@@ -446,3 +446,10 @@ h3.d .word,
 @media(max-width:640px){.service-handle .handle-detail strong{font-size:1.12rem}.service-handle .handle-detail span{font-size:13px}}
 /* service-hero-lead-contrast: keep the longer lead readable over the photo */
 .service-hero .hero-copy .lead{color:rgba(255,255,255,.86)!important;text-shadow:0 1px 18px rgba(0,0,0,.35)}
+/* service-hero-centered: the framework box is gone, so the hero copy sits in the middle of the page */
+.hero.service-hero .hero-content{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;grid-template-columns:none!important;max-width:none!important;width:100%!important;margin-left:auto!important;margin-right:auto!important}
+.hero.service-hero .hero-copy{grid-column:auto!important;justify-self:center!important;align-self:center!important;margin-left:auto!important;margin-right:auto!important;max-width:900px!important;width:100%!important;text-align:center!important}
+.hero.service-hero .hero-copy .eyebrow,.hero.service-hero .hero-copy h1{text-align:center!important;justify-content:center!important}
+.hero.service-hero .hero-copy h1 .rl{margin-left:auto;margin-right:auto}
+.hero.service-hero .hero-copy .lead{margin-left:auto!important;margin-right:auto!important;max-width:760px!important;text-align:center!important}
+.hero.service-hero .hero-actions{justify-content:center!important}
