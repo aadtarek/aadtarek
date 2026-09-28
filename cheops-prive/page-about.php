@@ -8,380 +8,19 @@
 <title>About Cheops Privé — A Private Approach to Property in Egypt</title>
 <link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>">
 
-<link data-cheops-font-preload rel="preload" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/79d5dddb2cad.otf' ); ?>" as="font" type="font/otf" crossorigin>
 
 <meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast." name="description"/>
 <meta content="Cheops Privé — Define Your Next Address" property="og:title"/>
 <meta content="Discover projects, destinations, developers and properties across Egypt's most prime addresses." property="og:description"/>
 <meta content="website" property="og:type"/>
 <link href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c9193073bb12.png' ); ?>" rel="icon"/>
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-<style>
-@font-face{
-  font-family:"Romie";
-  src:url(<?php echo esc_url( get_template_directory_uri() . '/assets/generated/79d5dddb2cad.otf' ); ?>) format("opentype");
-  font-weight:400;
-  font-style:normal;
-  font-display:swap;
-}
-:root{
-  --white:#ffffff; --ink:#1a1a1a; --gold:#e5cfa7;
-  --muted:#6f6f6f; --line:rgba(26,26,26,.12);
-}
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{background:var(--white);color:var(--ink);font-family:"Romie",sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-img{display:block;max-width:100%}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1560px;margin:0 auto;padding:0 20px}
-@media(min-width:640px){.wrap{padding:0 32px}}
-@media(min-width:1024px){.wrap{padding:0 48px}}
-.d{font-family:"Romie",serif;font-weight:400;letter-spacing:-.02em;line-height:.95}
-.d-xl{font-size:clamp(2.88rem,8.1vw,8.55rem)}
-.d-lg{font-size:clamp(2.16rem,5.04vw,4.86rem)}
-.d-md{font-size:clamp(1.44rem,2.34vw,2.34rem);line-height:1.05}
-.eyebrow{font-size:.522rem;letter-spacing:.28em;text-transform:uppercase;font-weight:700}
-.gold{color:var(--gold)}
-.rule-gold{height:1px;background:var(--gold)}
-.ink{background:var(--ink);color:#f4f1ec}
-.grain:before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(rgba(255,255,255,.6) 1px,transparent 1px);background-size:3px 3px}
-.overlay{background:linear-gradient(to top,rgba(10,10,10,.86) 0%,rgba(10,10,10,.35) 45%,rgba(10,10,10,.15) 100%)}
-.reveal{opacity:0;transform:translateY(38px);transition:opacity 1.1s cubic-bezier(.16,1,.3,1),transform 1.1s cubic-bezier(.16,1,.3,1)}
-.reveal.on{opacity:1;transform:none}
-.rl{display:block;overflow:hidden}
-.rl>span{display:block;transform:translateY(105%);transition:transform 1.15s cubic-bezier(.16,1,.3,1)}
-.on .rl>span,.rl.on>span{transform:none}
-.zoom{overflow:hidden}
-.zoom img{transition:transform 1.6s cubic-bezier(.16,1,.3,1)}
-.zoom:hover img{transform:scale(1.07)}
-.btn{display:inline-flex;align-items:center;gap:.8rem;border:1px solid var(--ink);background:var(--ink);color:#fff;padding:16px 28px;font-size:.54rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase;position:relative;overflow:hidden;transition:color .5s}
-.btn .ar{transition:transform .5s}
-.btn:hover .ar{transform:translateX(7px)}
-.btn:hover{color:var(--gold)}
-.btn-light{background:transparent;border-color:rgba(255,255,255,.55);color:#fff}
-.btn-light:hover{border-color:var(--gold);color:var(--gold)}
-.btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
-.btn-ghost:hover{border-color:var(--gold);color:var(--ink)}
-.link-arrow .ar{display:inline-block;transition:transform .5s}
-.link-arrow:hover .ar{transform:translateX(7px)}
-header.nav{position:fixed;inset:0 0 auto 0;z-index:60;transition:background .6s,border-color .6s,backdrop-filter .6s;border-bottom:1px solid transparent}
-header.nav.scrolled{background:rgba(255,255,255,.86);backdrop-filter:blur(14px);border-bottom-color:var(--line)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-top:18px;padding-bottom:18px}
-.nav-links{display:none;gap:34px;font-size:.54rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase}
-@media(min-width:1024px){.nav-links{display:flex}}
-.nav-links a{position:relative;padding-bottom:4px;color:inherit;opacity:.8}
-.nav-links a:after{content:"";position:absolute;left:0;bottom:0;height:1px;width:0;background:var(--gold);transition:width .5s}
-.nav-links a:hover:after{width:100%}
-header.nav:not(.scrolled) .nav-inner{color:#fff}
-.logo{height:34px;width:auto}
-header.nav:not(.scrolled) .logo{filter:brightness(0) invert(1)}
-.burger{display:grid;gap:5px;background:none;border:0;cursor:pointer;padding:10px}
-@media(min-width:1024px){.burger{display:none}}
-.burger span{display:block;width:24px;height:1px;background:currentColor}
-.menu{position:fixed;inset:0;z-index:70;background:var(--ink);color:#f4f1ec;display:none;padding:28px 24px}
-.menu.open{display:block}
-.menu a{display:block;font-family:"Romie",serif;font-size:2.16rem;padding:10px 0;opacity:0;transform:translateY(28px);animation:mi .7s cubic-bezier(.16,1,.3,1) forwards}
-@keyframes mi{to{opacity:1;transform:none}}
-#pre{position:fixed;inset:0;z-index:100;background:var(--ink);color:#f4f1ec;display:grid;place-items:center;transition:clip-path 1.2s cubic-bezier(.76,0,.24,1),opacity .6s}
-#pre.done{clip-path:inset(0 0 100% 0);pointer-events:none}
-#pre .cnt{font-family:"Romie",serif;font-size:clamp(3.6rem,12.6vw,9rem);line-height:1}
-#pre .bar{width:min(320px,60vw);height:1px;background:rgba(255,255,255,.18);margin-top:26px;overflow:hidden}
-#pre .bar i{display:block;height:100%;width:0;background:var(--gold)}
-.hero{position:relative;min-height:78svh;display:flex;align-items:flex-end;overflow:hidden;background:#000}
-.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.scroll-line{display:inline-block;width:1px;height:52px;background:linear-gradient(var(--gold),transparent);animation:sl 2.4s infinite}
-@keyframes sl{0%{transform:scaleY(.2);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}100%{transform:scaleY(.2);transform-origin:bottom}}
-.search{border:1px solid rgba(255,255,255,.22);background:rgba(20,20,20,.42);backdrop-filter:blur(16px);padding:22px}
-.search.light{border-color:var(--line);background:#fff;backdrop-filter:none}
-.fields{display:grid;gap:14px;grid-template-columns:1fr}
-@media(min-width:768px){.fields{grid-template-columns:repeat(4,1fr)}}
-.field label{display:block;font-size:.495rem;letter-spacing:.24em;text-transform:uppercase;opacity:.65;margin-bottom:8px;font-weight:700}
-.field select,.field input{width:100%;background:transparent;border:0;border-bottom:1px solid currentColor;padding:12px 6px;font:inherit;font-size:.774rem;color:inherit;opacity:.95;outline:none;border-radius:0;box-sizing:border-box}
-.search:not(.light) select option{color:#111}
-.pcard{border:1px solid var(--line);background:#fff;transition:transform .6s cubic-bezier(.16,1,.3,1),box-shadow .6s}
-.pcard:hover{transform:translateY(-6px);box-shadow:0 26px 60px -32px rgba(0,0,0,.35)}
-.meta{font-size:.522rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-.proj{display:grid;gap:0;border-top:1px solid var(--line)}
-@media(min-width:1024px){.proj{grid-template-columns:1.15fr .85fr;align-items:stretch}}
-.map{position:relative;aspect-ratio:16/10;border:1px solid rgba(255,255,255,.1);background:#232323;
-  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:44px 44px}
-.dot{position:absolute;transform:translate(-50%,-50%);background:none;border:0;cursor:pointer;color:#fff}
-.dot i{display:block;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.4);transition:all .5s;margin:0 auto}
-.dot.on i{background:var(--gold);transform:scale(1.6)}
-.dot span{display:block;margin-top:8px;font-size:.495rem;letter-spacing:.18em;text-transform:uppercase;opacity:.6;white-space:nowrap}
-.cursor{position:fixed;top:0;left:0;z-index:90;width:14px;height:14px;border-radius:50%;background:var(--gold);pointer-events:none;mix-blend-mode:difference;transition:width .35s,height .35s,opacity .35s;display:grid;place-items:center;opacity:0}
-.cursor.big{width:96px;height:96px;background:rgba(229,207,167,.92);mix-blend-mode:normal}
-.cursor b{font-size:.45rem;letter-spacing:.16em;text-transform:uppercase;color:#1a1a1a;opacity:0;white-space:nowrap}
-.cursor.big b{opacity:1}
-@media(max-width:1023px){.cursor{display:none}}
-.track{display:flex;gap:24px;width:max-content;padding:0 20px}
-@media(min-width:1024px){.track{gap:40px;padding:0 48px}}
-.story-card{position:relative;height:48vh;width:80vw;flex:0 0 auto;overflow:hidden;background:#000}
-@media(min-width:640px){.story-card{width:56vw}}
-@media(min-width:1024px){.story-card{height:54vh;width:42vw}}
-footer .col a{font-size:.774rem;opacity:.68}
-footer .col a:hover{opacity:1;color:var(--gold)}
-.sec{padding:48px 0}
-@media(min-width:1024px){.sec{padding:64px 0}}
-@media (prefers-reduced-motion: reduce){
-  .reveal,.rl>span{transition:none;opacity:1;transform:none}
-}
-/* ============ ULTRA RESTYLE v2 ============ */
-/* fix: .sec overrode .wrap horizontal padding */
-.sec.wrap{padding-left:20px;padding-right:20px}
-@media(min-width:640px){.sec.wrap{padding-left:32px;padding-right:32px}}
-@media(min-width:1024px){.sec.wrap{padding-left:48px;padding-right:48px}}
-section{overflow:clip}
-
-:root{--gold2:#c9a86a;--violet:white;--teal:#c9a86a;--r:999px}
-body{background:
-  radial-gradient(1200px 600px at 85% -5%, rgba(229,207,167,.22), transparent 60%),
-  radial-gradient(900px 500px at -10% 40%, rgba(109,91,208,.10), transparent 60%),
-  var(--white);}
-/* rounded everything */
-.btn,.btn-light,.btn-ghost,button[type=submit],button[type=reset]{border-radius:var(--r)!important}
-.field select,.field input,input,select{border-radius:var(--r)!important}
-.field select,.field input{padding:12px 6px !important;box-sizing:border-box !important}
-.search{border-radius:32px!important}
-.pcard,.story-card,.zoom,.map,.proj>.zoom,img{border-radius:22px}
-.hero img,#heroImg{border-radius:0}
-.pcard{overflow:hidden}
-/* ---- ultra button ---- */
-.btn{position:relative;isolation:isolate;padding:17px 32px;border-width:1px;transition:color .45s,transform .45s cubic-bezier(.16,1,.3,1),box-shadow .45s,border-color .45s}
-.btn::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;
-  background:linear-gradient(120deg,var(--gold) 0%,#f6e7c8 30%,var(--violet) 70%,var(--teal) 100%);
-  background-size:260% 260%;transform:translateY(102%);transition:transform .6s cubic-bezier(.16,1,.3,1);}
-.btn:hover::before{transform:translateY(0);animation:btnShift 3.2s linear infinite}
-.btn:hover{color:#111!important;border-color:transparent;transform:translateY(-3px);box-shadow:0 18px 40px -18px rgba(109,91,208,.55)}
-.btn:hover .ar{transform:translateX(9px)}
-@keyframes btnShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
-.btn-ghost{background:rgba(255,255,255,.6);backdrop-filter:blur(8px)}
-/* ---- section shells ---- */
-.sec{position:relative}
-.sec-pane{border-radius:40px;overflow:hidden}
-section#properties,section#insights{background:transparent!important}
-section#properties>.wrap,section#insights>.wrap{position:relative}
-section#properties::before,section#insights::before{content:"";position:absolute;inset:24px 12px;border-radius:44px;
-  background:linear-gradient(180deg,#faf8f5,#f2eee8);border:1px solid rgba(26,26,26,.07);z-index:0}
-section#properties>*,section#insights>*{position:relative;z-index:1}
-section#map,section#storytelling{border-radius:44px;margin:0 12px;overflow:hidden}
-.proj{border-top:0!important;gap:28px!important;padding:22px;border-radius:36px;background:rgba(255,255,255,.7);
-  border:1px solid rgba(26,26,26,.07);box-shadow:0 30px 80px -60px rgba(0,0,0,.5);margin-bottom:34px;
-  transition:box-shadow .7s,transform .7s cubic-bezier(.16,1,.3,1)}
-.proj:hover{box-shadow:0 50px 110px -60px rgba(0,0,0,.55);transform:translateY(-6px)}
-.proj>div[style*="padding"]{padding:34px!important}
-.pcard{border-color:rgba(26,26,26,.08);background:rgba(255,255,255,.85);backdrop-filter:blur(6px)}
-.pcard:hover{box-shadow:0 40px 90px -45px rgba(109,91,208,.35)}
-/* gold chip headings */
-.eyebrow.gold{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:var(--r);
-  background:linear-gradient(120deg,rgba(229,207,167,.35),rgba(255, 255, 255, 0.16));color:#8a6b2f}
-/* nav pill */
-header.nav .nav-inner{margin-top:10px;border-radius:var(--r);padding:12px 22px;transition:background .6s,box-shadow .6s}
-header.nav.scrolled{background:transparent!important;border-bottom-color:transparent!important;backdrop-filter:none}
-header.nav.scrolled .nav-inner{background:rgba(255,255,255,.78);backdrop-filter:blur(16px);box-shadow:0 18px 40px -30px rgba(0,0,0,.5)}
-header.nav.scrolled .nav-inner{color:var(--ink)}
-header.nav.scrolled .logo{filter:none}
-.nav-links a:hover{color:rgb(142, 131, 131)}
-/* marquee */
-.marq{overflow:hidden;border-top:1px solid var(--line);border-bottom:0px solid var(--line);padding:18px 0;margin:0 12px;border-radius:var(--r)}
-.marq div{display:flex;gap:56px;width:max-content;animation:marq 26s linear infinite}
-.marq span{font-family:"Romie",serif;font-size:1.35rem;opacity:1;white-space:nowrap}
-@keyframes marq{to{transform:translateX(-50%)}}
-/* scroll progress */
-#prog{position:fixed;top:0;left:0;height:3px;width:0;z-index:95;
-  background:linear-gradient(90deg,var(--gold),var(--violet),var(--teal))}
-/* char reveal */
-.ch{display:inline-block;will-change:transform,opacity}
-h2.d .word,h3.d .word{display:inline-block;white-space:nowrap;word-break:keep-all;overflow-wrap:normal;hyphens:none}
-/* glow blobs */
-.blob{position:absolute;border-radius:50%;filter:blur(70px);pointer-events:none;z-index:0}
-@media (prefers-reduced-motion:reduce){.marq div{animation:none}.btn:hover::before{animation:none}}
-
-</style>
 <!-- CHEOPS VIDEO PRELOADER: added without changing existing site styles -->
-<style id="cheops-video-preloader-styles">
-  #cheops-video-preloader{
-    position:fixed;
-    inset:0;
-    width:100%;
-    height:100vh;
-    height:100dvh;
-    z-index:2147483647;
-    overflow:hidden;
-    background:#050505;
-    opacity:1;
-    visibility:visible;
-    pointer-events:auto;
-    transition:opacity .75s cubic-bezier(.76,0,.24,1), visibility .75s ease;
-  }
-  #cheops-video-preloader.cheops-preloader-hidden{
-    opacity:0;
-    visibility:hidden;
-    pointer-events:none;
-  }
-  #cheops-video-preloader video{
-    position:absolute;
-    inset:0;
-    width:100%;f
-    height:100%;
-    display:block;
-    object-fit:cover;
-    object-position:center center;
-    background:#050505;
-  }
-</style>
-<style id="property-contact-actions-style">
-/* Contact buttons inside every property/unit card */
-#properties .pcard{display:flex;flex-direction:column}
-#properties .property-contact-actions{
-  margin-top:auto;
-  padding:18px 20px 20px;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  border-top:1px solid rgba(26,26,26,.10);
-}
-#properties .property-contact-btn{
-  min-width:0;
-  width:100%;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  padding:14px 16px;
-  text-decoration:none;
-  text-transform:uppercase;
-  letter-spacing:.14em;
-  font-size:.522rem;
-  font-weight:800;
-  border:1px solid #111;
-  border-radius:999px;
-  box-shadow:none;
-  transform:none;
-  transition:background .32s cubic-bezier(.16,1,.3,1),color .32s cubic-bezier(.16,1,.3,1),border-color .32s cubic-bezier(.16,1,.3,1),transform .32s cubic-bezier(.16,1,.3,1);
-}
-#properties .whatsapp-btn{background:#fff;color:#111;border-color:#111}
-#properties .call-btn{background:#111;color:#fff;border-color:#111}
-/* Clean black / white / champagne hover — no colorful gradients */
-#properties .property-contact-btn:hover{
-  background:#d8c49a;
-  color:#111;
-  border-color:#d8c49a;
-  transform:translateY(-2px);
-  box-shadow:none;
-}
-#properties .property-contact-btn .ar{transition:transform .32s cubic-bezier(.16,1,.3,1)}
-#properties .property-contact-btn:hover .ar{transform:translateX(4px)}
-#properties .pcard:hover .property-contact-btn{transform:none}
-#properties .pcard:hover .property-contact-btn:hover{transform:translateY(-2px)}
-@media(max-width:600px){
-  #properties .property-contact-actions{padding:16px;gap:8px}
-  #properties .property-contact-btn{padding:13px 8px;font-size:.468rem;letter-spacing:.10em}
-}
-</style>
 
 <!-- Section boxed layout: body stays full width, each section is individually framed -->
-<style id="section-boxed-layout-override">
-/* Restore the full-width page */
-html{background:#fff;}
-body{background:var(--white);}
-#nav, main, footer{
-  width:100% !important;
-  max-width:none !important;
-  margin-left:0 !important;
-  margin-right:0 !important;
-}
-#nav{left:0 !important;right:0 !important;transform:none !important;}
-main{overflow:visible !important;border-radius:0 !important;}
 
-/* Each section gets its own elegant boxed pane, like Places */
-main > section{
-  width:min(1680px, calc(100% - 40px)) !important;
-  max-width:1680px !important;
-  margin:0 auto 24px !important;
-  border-radius:32px !important;
-  overflow:hidden !important;
-}
 
-/* Keep the first hero immersive while still aligned with the new system */
-main > section.hero{
-  width:100% !important;
-  max-width:none !important;
-  margin:0 0 24px !important;
-  border-radius:0 !important;
-}
 
-/* The original .wrap sections already contain their content padding */
-main > section.wrap{
-  width:min(1680px, calc(100% - 40px)) !important;
-  margin-left:auto !important;
-  margin-right:auto !important;
-}
-
-/* Remove old inset spacing that was added for the previous boxed body version */
-section#map,section#storytelling{margin-left:auto !important;margin-right:auto !important;}
-.marq{margin-left:auto !important;margin-right:auto !important;}
-
-@media(max-width:768px){
-  main > section,
-  main > section.wrap{
-    width:calc(100% - 20px) !important;
-    border-radius:20px !important;
-    margin-bottom:14px !important;
-  }
-  main > section.hero{
-    width:100% !important;
-    border-radius:0 !important;
-    margin-bottom:14px !important;
-  }
-}
-</style>
-
-<style id="compact-sections-and-office-choices">
-.hero{min-height:78svh!important}
-main > section:not(.hero){min-height:auto!important}
-@media(min-width:1024px){#about .about-grid{min-height:0!important}}
-@media(max-width:768px){.hero{min-height:72svh!important}}
-#office-choices{background:#f7f5f2;padding:22px!important}
-.office-choice-grid{display:grid;grid-template-columns:1fr;gap:18px}
-.office-choice{position:relative;min-height:340px;border-radius:28px;overflow:hidden;padding:34px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;color:#fff;border:1px solid rgba(255,255,255,.18);transition:transform .65s cubic-bezier(.16,1,.3,1),box-shadow .65s}
-.office-choice::before{content:"";position:absolute;inset:0;z-index:-2;transition:transform 1s cubic-bezier(.16,1,.3,1)}
-.office-choice::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgba(10,10,10,.86),rgba(10,10,10,.18) 70%)}
-.office-choice.buy::before{background:radial-gradient(circle at 72% 22%,rgba(229,207,167,.48),transparent 24%),linear-gradient(135deg,#171717 0%,#40372a 48%,#8d7755 100%)}
-.office-choice.rent::before{background:radial-gradient(circle at 28% 18%,rgba(229,207,167,.42),transparent 24%),linear-gradient(135deg,#111 0%,#29313a 50%,#59636d 100%)}
-.office-choice:hover{transform:translateY(-7px);box-shadow:0 28px 70px -34px rgba(0,0,0,.55)}
-.office-choice:hover::before{transform:scale(1.08)}
-.office-choice .eyebrow{color:var(--gold);margin-bottom:14px}
-.office-choice h2{margin:0;font-size:clamp(2.16rem,3.6vw,4.05rem);line-height:.94;letter-spacing:-.035em;font-weight:400}
-.office-choice p{max-width:430px;margin:16px 0 24px;font-size:.81rem;line-height:1.55;color:rgba(255,255,255,.78)}
-.office-choice .btn{align-self:flex-start;background:#fff;border-color:#fff;color:#111}
-.office-choice .btn:hover{color:#111!important}
-@media(min-width:900px){#office-choices{padding:26px!important}.office-choice-grid{grid-template-columns:1fr 1fr;gap:22px}.office-choice{min-height:390px;padding:44px}}
-@media(max-width:640px){#office-choices{padding:10px!important}.office-choice{min-height:280px;padding:28px;border-radius:22px}}
-</style>
-
-<style id="map-restored-final-css"><!-- disabled, replaced by cheops-map-clean-css --></style>
-
-<style id="dev-logos-sharp">
-/* Developers marquee: sharp logos, no fade/blur */
-section.sec .marq img{
-  opacity:1 !important;
-  filter:none !important;
-  transform:none !important;
-}
-section.sec .marq span{
-  opacity:1 !important;
-  filter:none !important;
-}
-section.sec .marq .d{
-  opacity:1 !important;
-  color:inherit !important;
-}
-</style>
+<?php cheops_page_css('about'); ?>
 <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>><?php cheops_site_header(); ?>
@@ -430,35 +69,6 @@ section.sec .marq .d{
 </nav>
 </div>
 <main id="top">
-<style id="about-restyle">
-  #hero{align-items:center}
-  #hero>.wrap{padding-bottom:0;text-align:center}
-  #hero .about-frame{display:none!important}
-  #hero .eyebrow{justify-content:center}
-  #hero .hero-lead{margin-left:auto!important;margin-right:auto!important;text-align:center;max-width:620px}
-  #hero>.wrap>div[style*="flex-wrap"]{justify-content:center}
-  #hero h1,#hero .hero-title-line{text-align:center;justify-content:center}
-  #hero>.wrap>div[style*="Scroll"],#hero>.wrap>div:last-child{justify-content:center}
-  #hero .hero-side{position:absolute;right:44px;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;font-size:.495rem;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,255,255,.5);z-index:2}
-  @media(max-width:900px){#hero .hero-side{display:none}}
-  .about-hero-meta{margin-top:44px;display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
-  .about-hero-meta>div{min-width:190px;padding:22px 26px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.07);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;gap:6px}
-  .about-hero-meta .n{font-size:1.53rem;line-height:1;color:var(--gold)}
-  .about-hero-meta .l{font-size:.495rem;letter-spacing:.24em;text-transform:uppercase;opacity:.7}
-  #services .svc-grid{display:grid;gap:20px;margin-top:48px}
-  @media(min-width:700px){#services .svc-grid{grid-template-columns:repeat(2,1fr)}}
-  @media(min-width:1050px){#services .svc-grid{grid-template-columns:repeat(3,1fr)}}
-  #services .svc{border:1px solid var(--line);border-radius:28px;padding:30px;background:#fff;transition:transform .55s cubic-bezier(.16,1,.3,1),border-color .55s,box-shadow .55s}
-  #services .svc:hover{transform:translateY(-8px);border-color:var(--gold);box-shadow:0 26px 60px -34px rgba(26,26,26,.45)}
-  #services .ic{width:56px;height:56px;border-radius:999px;display:grid;place-items:center;border:1px solid var(--line);background:#faf8f5;transition:background .5s,border-color .5s}
-  #services .svc:hover .ic{background:var(--gold);border-color:var(--gold)}
-  #services .ic svg{width:24px;height:24px;stroke:#1a1a1a;fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
-  #services h3{margin:20px 0 0;font-size:1.08rem}
-  #services p{margin:11px 0 0;font-size:.774rem;line-height:1.8;color:var(--muted)}
-  #hero .about-hero-title{font-size:clamp(3.78rem,6.3vw,7.02rem)!important;line-height:.96!important;white-space:nowrap!important;max-width:none!important}
-  #hero .about-hero-title .hero-title-line{display:flex!important;justify-content:center!important}
-  @media(max-width:760px){#hero .about-hero-title{font-size:clamp(2.79rem,12.6vw,4.68rem)!important;white-space:normal!important}}
-</style>
 <section class="hero" id="hero">
 <img alt="Luxury residential architecture in New Cairo" id="heroImg" fetchpriority="high" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"/>
 <div class="overlay" style="position:absolute;inset:0"></div>
@@ -486,74 +96,7 @@ section.sec .marq .d{
       Scroll to explore <span class="scroll-line"></span>
 </div>
 </div>
-</section><style id="hero-title-restyle">
-  /* Rebalanced hero headline: grouped words instead of three oversized stacked words */
-  #hero .wrap{padding-top:120px;padding-bottom:34px}
-  #hero .hero-title-single{
-    display:block;
-    max-width:980px;
-    margin-top:18px!important;
-    line-height:73px;
-    letter-spacing:-.042em;
-  }
-  #hero .hero-title-line{display:flex;align-items:baseline;gap:.16em;white-space:nowrap}
-  #hero .hero-title-line-main{font-size:54px}
-  #hero .hero-title-line-sub{font-size:.738em;margin-top:.02em}
-  #hero .hero-title-single .rl{display:inline-block;overflow:hidden}
-  #hero .hero-title-single .rl>span{display:inline-block}
-  #hero .hero-title-accent{color:var(--gold)}
-  #hero .hero-lead{max-width:590px;margin:24px 0 0;font-size:.828rem;line-height:1.75;color:rgba(255,255,255,.76)}
-  #hero #search{margin-top:32px!important;max-width:none!important}
-  @media(min-width:1100px){
-    #hero .hero-title-single{font-size:clamp(4.14rem,5.22vw,6.12rem)}
-  }
-  @media(min-width:810px) and (max-width:989px){
-    #hero .hero-title-single{font-size:clamp(3.6rem,6.3vw,5.22rem)}
-  }
-  @media(max-width:809px){
-    #hero .wrap{padding-top:99px;padding-bottom:28px}
-    #hero .hero-title-single{font-size:clamp(3.15rem,9vw,4.95rem);max-width:100%}
-    #hero .hero-lead{max-width:480px;margin-top:20px}
-    #hero #search{margin-top:28px!important}
-  }
-  @media(max-width:620px){
-    #hero .wrap{padding-top:98px;padding-bottom:24px}
-    #hero .hero-title-single{font-size:clamp(2.61rem,11.7vw,3.96rem);line-height:.92}
-    #hero .hero-title-line{gap:.12em}
-    #hero .hero-title-line-sub{font-size:.81em;margin-top:.08em;white-space:normal}
-    #hero .hero-lead{font-size:.72rem;line-height:1.65;margin-top:18px}
-    #hero #search{margin-top:24px!important}
-  }
-</style>
-<style id="about-restyle">
-  #about{padding-top:34px;padding-bottom:88px}
-  #about .about-shell{position:relative;overflow:hidden;border-radius:38px;background:var(--ink);color:#f4f1ec;padding:30px;isolation:isolate}
-  #about .about-shell:before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;right:-210px;top:-270px;background:radial-gradient(circle,rgba(229,207,167,.28),transparent 68%);z-index:-1}
-  #about .about-top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding-bottom:28px;border-bottom:0px solid rgba(255,255,255,.14)}
-  #about .about-kicker{display:flex;align-items:center;gap:12px;color:var(--gold);font-size:.522rem;letter-spacing:.24em;text-transform:uppercase;font-weight:800}
-  #about .about-kicker i{display:block;width:38px;height:1px;background:var(--gold)}
-  #about .about-index{font-family:"Romie",serif;font-size:.99rem;color:rgba(255,255,255,.45)}
-  #about .about-grid{display:grid;gap:42px;padding-top:16px}
-  #about .about-intro{align-self:center;max-width:650px}
-  #about .about-title{font-size:clamp(2.52rem,3.78vw,5.22rem);max-width:650px;margin:0;line-height:1.02;letter-spacing:-.035em;word-break:normal;overflow-wrap:normal;hyphens:none}
-  #about .about-lead{margin:22px 0 0;max-width:540px;font-size:.792rem;line-height:1.9;color:rgba(244,241,236,.58)}
-  #about .about-tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:28px}
-  #about .about-tags span{padding:10px 14px;border:1px solid rgba(255,255,255,.14);border-radius:999px;font-size:.468rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(244,241,236,.7)}
-  #about .about-copy{display:grid;gap:30px;align-content:end}
-  #about .about-copy p{margin:0;max-width:520px;font-size:.855rem;line-height:1.9;color:rgba(244,241,236,.68)}
-  #about .about-points{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  #about .about-point{border:1px solid rgba(255,255,255,.13);border-radius:20px;padding:20px;background:rgba(255,255,255,.035);transition:transform .45s cubic-bezier(.16,1,.3,1),border-color .45s,background .45s}
-  #about .about-point:hover{transform:translateY(-4px);border-color:var(--gold);background:rgba(229,207,167,.08)}
-  #about .about-num{font-family:"Romie",serif;font-size:clamp(1.8rem,3.6vw,2.88rem);line-height:1;color:var(--gold)}
-  #about .about-label{margin-top:10px;font-size:.495rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,241,236,.55);font-weight:800;line-height:1.5}
-  #about .about-footer{margin-top:52px;padding-top:22px;border-top:1px solid rgba(255,255,255,.14);display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
-  #about .about-footer p{margin:0;font-size:.504rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(244,241,236,.45)}
-  #about .about-footer .btn{background:#f4f1ec;color:#111;border-color:#f4f1ec}
-  #about .about-footer .btn:hover{background:var(--gold);border-color:var(--gold);color:#111!important;box-shadow:none;transform:translateY(-2px)}
-  @media(min-width:900px){#about .about-shell{padding:46px 52px 40px}#about .about-grid{grid-template-columns:minmax(0,1.2fr) minmax(340px,.8fr);align-items:start;min-height:0}}
-  @media(max-width:640px){#about .about-shell{border-radius:28px;padding:24px 20px}#about .about-grid{padding-top:38px;gap:32px}#about .about-title{font-size:2.7rem;line-height:1.05}#about .about-tags span{padding:9px 11px;font-size:.432rem}#about .about-points{grid-template-columns:1fr 1fr}#about .about-point{padding:14px 13px}}
-</style>
-<section class="sec wrap" id="about">
+</section><section class="sec wrap" id="about">
   <div class="about-shell reveal">
     <div class="about-top">
       <div class="about-kicker"><i></i> About Cheops Privé</div>
@@ -584,20 +127,6 @@ section.sec .marq .d{
   </div>
 </section>
 
-<style id="values-restyle">
-  #values .val-grid{display:grid;gap:26px;margin-top:52px}
-  @media(min-width:900px){#values .val-grid{grid-template-columns:repeat(3,1fr)}}
-  #values .val{border:1px solid var(--line);border-radius:28px;padding:32px;background:#fff;transition:transform .5s cubic-bezier(.16,1,.3,1),border-color .5s}
-  #values .val:hover{transform:translateY(-6px);border-color:var(--gold)}
-  #values .val .n{font-family:"Romie",serif;font-size:1.98rem;color:var(--gold);line-height:1}
-  #values .val h3{margin:16px 0 0;font-size:1.215rem}
-  #values .val p{margin:13px 0 0;font-size:.81rem;line-height:1.85;color:var(--muted)}
-  #story .story-grid{display:grid;gap:38px;align-items:center}
-  @media(min-width:900px){#story .story-grid{grid-template-columns:1fr 1fr;gap:64px}}
-  #story .story-media{position:relative;aspect-ratio:4/5;border-radius:32px;overflow:hidden;background:#eee}
-  #story .story-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  #story p{font-size:.855rem;line-height:1.9;color:var(--muted);max-width:520px}
-</style>
 <section class="sec wrap" id="story">
   <div class="story-grid">
     <div class="zoom story-media reveal"><img alt="Cheops Privé curated architecture" loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"/></div>
@@ -693,57 +222,6 @@ section.sec .marq .d{
   </div>
 </section>
 
-<style id="faq-styles">
-#faqs .faq-list{display:grid;gap:0}
-#faqs .faq-item{
-  border-bottom:1px solid var(--line);
-  padding:0;
-}
-#faqs .faq-item summary{
-  list-style:none;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:24px;
-  padding:16px 0;
-  font-family:"Romie",serif;
-  font-size:clamp(.9rem,1.215vw,1.062rem);
-  letter-spacing:-.01em;
-  line-height:1.25;
-  user-select:none;
-}
-#faqs .faq-item summary::-webkit-details-marker{display:none}
-#faqs .faq-item summary::after{
-  content:"+";
-  flex-shrink:0;
-  width:28px;
-  height:28px;
-  display:grid;
-  place-items:center;
-  border:1px solid var(--line);
-  border-radius:50%;
-  font-size:.81rem;
-  font-family:system-ui,sans-serif;
-  color:var(--ink);
-  transition:transform .35s cubic-bezier(.16,1,.3,1),background .35s,border-color .35s,color .35s;
-}
-#faqs .faq-item[open] summary::after{
-  content:"–";
-  background:var(--ink);
-  border-color:var(--ink);
-  color:#fff;
-}
-#faqs .faq-item p{
-  margin:0 0 16px;
-  max-width:720px;
-  font-size:.774rem;
-  line-height:1.7;
-  opacity:.72;
-  padding-right:40px;
-}
-#faqs .faq-item summary:hover{color:var(--gold2,#c9a86a)}
-</style>
 
 </main>
 <footer class="ink grain" style="position:relative">
@@ -781,10 +259,7 @@ section.sec .marq .d{
 <p class="eyebrow" style="margin-top:48px;opacity:.35">© 2026 Cheops Privé. All rights reserved.</p>
 </div>
 </footer>
-<style>
-@media(min-width:768px){.grid3{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.intro-grid{grid-template-columns:2fr 1fr}}
-@media(min-width:1024px){.grid3{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(4,1fr)}.map-grid{grid-template-columns:1.6fr 1fr}.foot-grid{grid-template-columns:1.2fr 2fr}}
-</style>
+<?php cheops_print_motion_scripts(); ?>
 <script>
 const MAP = [{"name": "LVLS", "destination": "New Cairo", "statement": "A north-east corner address, quiet and elevated above the city.", "price": "EGP 7.4M", "units": "218"}, {"name": "Aliva Fields Park", "destination": "Shorouk City", "statement": "Wide green fields and quiet courtyards, close to the water.", "price": "EGP 5.9M", "units": "164"}, {"name": "The Gardens", "destination": "New Cairo", "statement": "Landscaped living just minutes from AUC, by MarQ.", "price": "EGP 11.2M", "units": "76"}, {"name": "Solana", "destination": "New Cairo", "statement": "An eastern address by Ora, built for calm, everyday living.", "price": "EGP 6.3M", "units": "142"}];
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -984,7 +459,6 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
 </script>
 <!-- Intro video preloader intentionally disabled on inner pages -->
 
-<style id="map-hard-fix-final"><!-- disabled, replaced by cheops-map-clean-css --></style>
 <?php wp_footer(); ?>
 </body>
 </html>

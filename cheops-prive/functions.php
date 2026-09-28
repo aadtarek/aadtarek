@@ -12,6 +12,103 @@ function cheops_prive_setup() {
 }
 add_action( 'after_setup_theme', 'cheops_prive_setup' );
 
+/* =========================================================
+ * Front-end assets
+ * Styles live in assets/css (cached by the browser) instead of being
+ * printed inline on every page. Order is preserved:
+ * fonts -> page styles -> theme.css -> page "late" styles.
+ * Motion libraries and Leaflet are served from the theme, not a CDN.
+ * ========================================================= */
+function cheops_asset_ver($rel) {
+    $file = get_template_directory() . '/' . $rel;
+    return file_exists($file) ? (string) filemtime($file) : null;
+}
+
+function cheops_register_front_assets() {
+    static $done = false;
+    if ($done) return;
+    $done = true;
+    $uri = get_template_directory_uri();
+    wp_register_style('cheops-fonts', $uri . '/assets/css/fonts.css', [], cheops_asset_ver('assets/css/fonts.css'));
+    wp_register_style('cheops-theme', $uri . '/assets/css/theme.css', ['cheops-fonts'], cheops_asset_ver('assets/css/theme.css'));
+    wp_register_script('cheops-gsap', $uri . '/assets/vendor/gsap.min.js', [], '3.12.5', true);
+    wp_register_script('cheops-scrolltrigger', $uri . '/assets/vendor/ScrollTrigger.min.js', ['cheops-gsap'], '3.12.5', true);
+    wp_register_script('cheops-lenis', $uri . '/assets/vendor/lenis.min.js', [], '1.1.13', true);
+}
+
+function cheops_enqueue_front_styles() {
+    if (is_admin()) return;
+    cheops_register_front_assets();
+    wp_enqueue_style('cheops-theme');
+}
+add_action('wp_enqueue_scripts', 'cheops_enqueue_front_styles', 99);
+
+/** Enqueue a template's own stylesheet(s); call before wp_head(). */
+function cheops_page_css($slug) {
+    $GLOBALS['cheops_custom_template'] = true;
+    cheops_register_front_assets();
+    $slug = sanitize_file_name($slug);
+    $uri = get_template_directory_uri();
+    foreach (['' => ['cheops-fonts'], '-late' => ['cheops-theme']] as $suffix => $deps) {
+        $rel = 'assets/css/pages/' . $slug . $suffix . '.css';
+        if (file_exists(get_template_directory() . '/' . $rel)) {
+            wp_enqueue_style('cheops-page-' . $slug . $suffix, $uri . '/' . $rel, $deps, cheops_asset_ver($rel));
+        }
+    }
+}
+
+/** Print GSAP, ScrollTrigger and Lenis once, right before the inline scripts that use them. */
+function cheops_print_motion_scripts() {
+    cheops_register_front_assets();
+    wp_print_scripts(['cheops-scrolltrigger', 'cheops-lenis']);
+}
+
+/* The custom templates render no block content, so the block library CSS is dead weight there. */
+function cheops_dequeue_unused_core_css() {
+    if (empty($GLOBALS['cheops_custom_template']) && !is_tax('project_city')) return;
+    wp_dequeue_style('wp-block-library');
+    wp_dequeue_style('wp-block-library-theme');
+    wp_dequeue_style('classic-theme-styles');
+}
+add_action('wp_enqueue_scripts', 'cheops_dequeue_unused_core_css', 100);
+
+remove_action('wp_head', 'print_emoji_detection_script', 7);
+remove_action('wp_print_styles', 'print_emoji_styles');
+
+function cheops_preload_fonts() {
+    if (is_admin()) return;
+    echo '<link rel="preload" href="' . esc_url(get_template_directory_uri() . '/assets/fonts/romie-regular.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
+}
+add_action('wp_head', 'cheops_preload_fonts', 1);
+
+/**
+ * Leaflet is ~150KB; load it only when the map section approaches the viewport.
+ * Usage: cheopsWhenMapNear(function(){ ...uses window.L... });
+ */
+function cheops_leaflet_loader_js() {
+    static $printed = false;
+    if ($printed) return;
+    $printed = true;
+    $base = get_template_directory_uri() . '/assets/vendor/leaflet/';
+    ?>
+<script id="cheops-leaflet-loader">
+window.cheopsWhenMapNear=function(cb){
+  var el=document.getElementById('map')||document.getElementById('real-map');
+  function load(){
+    if(window.L){cb();return;}
+    if(!document.getElementById('cheops-leaflet-css')){var l=document.createElement('link');l.id='cheops-leaflet-css';l.rel='stylesheet';l.href=<?php echo wp_json_encode($base . 'leaflet.css?ver=1.9.4'); ?>;document.head.appendChild(l);}
+    var s=document.getElementById('cheops-leaflet-js');
+    if(!s){s=document.createElement('script');s.id='cheops-leaflet-js';s.src=<?php echo wp_json_encode($base . 'leaflet.js?ver=1.9.4'); ?>;s.async=true;document.head.appendChild(s);}
+    s.addEventListener('load',cb);
+  }
+  if(!el||!('IntersectionObserver' in window)){load();return;}
+  var io=new IntersectionObserver(function(entries){if(entries.some(function(e){return e.isIntersecting;})){io.disconnect();load();}},{rootMargin:'800px 0px'});
+  io.observe(el);
+};
+</script>
+    <?php
+}
+
 function cheops_get_youtube_id( $url ) {
     $url = trim((string) $url);
     if ( preg_match('~(?:youtu\.be/|youtube(?:-nocookie)?\.com/(?:watch\?v=|embed/|shorts/))([A-Za-z0-9_-]{6,})~', $url, $m) ) {
@@ -580,6 +677,9 @@ function cheops_logo_white_url() {
 }
 
 function cheops_ensure_v4_pages() {
+    // Checked once, not on every request.
+    if (get_option('cheops_contact_page_checked_v1')) return;
+    update_option('cheops_contact_page_checked_v1', 1, false);
     if (!get_page_by_path('contact')) {
         wp_insert_post([
             'post_type'=>'page','post_status'=>'publish','post_title'=>'Contact Us','post_name'=>'contact','post_content'=>''
@@ -684,6 +784,15 @@ function cheops_project_image_url($post_id) {
     return get_template_directory_uri().'/assets/images/project-lvls.jpg';
 }
 function cheops_city_cover_url($term_id) {
+    $key = cheops_cache_key('city_cover_' . (int) $term_id);
+    $cached = get_transient($key);
+    if (is_string($cached) && $cached !== '') return $cached;
+    $url = cheops_city_cover_url_uncached($term_id);
+    set_transient($key, $url, DAY_IN_SECONDS);
+    return $url;
+}
+
+function cheops_city_cover_url_uncached($term_id) {
     // Dashboard-selected city image always wins.
     $image_id=absint(get_term_meta((int)$term_id,'_cheops_city_image_id',true));
     if($image_id){
@@ -780,30 +889,6 @@ function cheops_site_header() {
     $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span><b>'.cheops_arrow_icon().'</b></a></nav><div class="cheops-mobile-menu-foot"><a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential ↗</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative ↗</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
 }
 
-function cheops_unified_front_css() {
-    echo '<style id="cheops-unified-theme-css">
-      body > header.nav#nav, body > .menu#menu, footer:not(.cheops-site-footer){display:none!important}
-      .cheops-site-header{position:fixed;z-index:9999;left:0;right:0;top:18px;padding:0 22px;pointer-events:none;transition:.35s ease}.admin-bar .cheops-site-header{top:50px}
-      .cheops-site-header-inner{max-width:1320px;margin:0 auto;height:74px;padding:0 18px 0 22px;border:1px solid rgba(255,255,255,.2);background:rgba(10,10,10,.38);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);display:flex;align-items:center;justify-content:space-between;gap:24px;border-radius:20px;box-shadow:0 18px 50px -32px rgba(0,0,0,.62);pointer-events:auto;transition:.35s cubic-bezier(.16,1,.3,1)}
-      .cheops-site-header.is-scrolled .cheops-site-header-inner,.single-cheops_unit .cheops-site-header-inner,.page-template-page-contact .cheops-site-header-inner{background:rgba(250,248,244,.94);border-color:rgba(30,30,30,.09);box-shadow:0 22px 55px -36px rgba(0,0,0,.45)}
-      .cheops-logo-crop{display:block;width:145px;height:42px;overflow:hidden;border-radius:4px;position:relative;background:#000;flex:0 0 auto}.cheops-logo-crop>span{position:absolute;inset:0;background-repeat:no-repeat;background-size:215% auto;background-position:center 50%}
-      .cheops-desktop-nav{display:flex;align-items:center;gap:27px}.cheops-desktop-nav>a,.cheops-nav-drop>button{appearance:none;border:0;background:none;color:#fff;text-decoration:none;font:600 10px/1 Arial,sans-serif;letter-spacing:.09em;cursor:pointer;padding:29px 0;white-space:nowrap;transition:.2s}.cheops-site-header.is-scrolled .cheops-desktop-nav>a,.cheops-site-header.is-scrolled .cheops-nav-drop>button,.single-cheops_unit .cheops-desktop-nav>a,.single-cheops_unit .cheops-nav-drop>button,.page-template-page-contact .cheops-desktop-nav>a,.page-template-page-contact .cheops-nav-drop>button{color:#242424}.cheops-desktop-nav a:hover,.cheops-nav-drop>button:hover{opacity:.56}
-      .cheops-nav-drop{position:relative}.cheops-nav-drop .chev{display:inline-block;margin-left:5px;transition:transform .25s}.cheops-nav-drop:hover .chev{transform:rotate(180deg)}.cheops-nav-drop-panel{position:absolute;top:66px;left:50%;transform:translate(-50%,12px) scale(.98);width:320px;padding:10px;background:#fff;color:#171717;border:1px solid rgba(0,0,0,.08);box-shadow:0 28px 70px rgba(0,0,0,.18);border-radius:17px;opacity:0;visibility:hidden;transition:.28s cubic-bezier(.16,1,.3,1)}.cheops-nav-drop:hover .cheops-nav-drop-panel,.cheops-nav-drop:focus-within .cheops-nav-drop-panel{opacity:1;visibility:visible;transform:translate(-50%,0) scale(1)}.cheops-nav-drop-panel a{display:flex;align-items:center;justify-content:space-between;color:#171717!important;text-decoration:none;padding:14px 13px;border-radius:11px;font:600 11px/1.3 Arial,sans-serif}.cheops-nav-drop-panel a:hover{background:#f4f0e8;opacity:1}
-      .cheops-header-actions{display:flex;align-items:center;gap:10px}.cheops-header-cta{background:#fff;color:#171717;text-decoration:none;padding:14px 18px;border-radius:999px;font:800 8px/1 Arial,sans-serif;letter-spacing:.11em;text-transform:uppercase}.cheops-site-header.is-scrolled .cheops-header-cta,.single-cheops_unit .cheops-header-cta,.page-template-page-contact .cheops-header-cta{background:#171717;color:#fff}
-      .cheops-mobile-toggle{display:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.04);position:relative;cursor:pointer}.cheops-mobile-toggle span{position:absolute;left:12px;right:12px;height:1px;background:#fff;top:18px;transition:.35s cubic-bezier(.16,1,.3,1)}.cheops-mobile-toggle span+span{top:25px}.cheops-site-header.is-scrolled .cheops-mobile-toggle,.single-cheops_unit .cheops-mobile-toggle,.page-template-page-contact .cheops-mobile-toggle{border-color:#ddd;background:#fff}.cheops-site-header.is-scrolled .cheops-mobile-toggle span,.single-cheops_unit .cheops-mobile-toggle span,.page-template-page-contact .cheops-mobile-toggle span{background:#111}.cheops-mobile-toggle[aria-expanded="true"]{background:#fff;border-color:#fff}.cheops-mobile-toggle[aria-expanded="true"] span{background:#111!important}.cheops-mobile-toggle[aria-expanded="true"] span:first-child{top:21px;transform:rotate(45deg)}.cheops-mobile-toggle[aria-expanded="true"] span:last-child{top:21px;transform:rotate(-45deg)}
-      .cheops-mobile-menu{position:fixed;inset:0;z-index:9998;background:#10100f;color:#fff;display:block;visibility:hidden;opacity:0;transform:translateY(-16px);clip-path:inset(0 0 100% 0 round 0 0 34px 34px);transition:clip-path .7s cubic-bezier(.16,1,.3,1),opacity .35s,transform .7s cubic-bezier(.16,1,.3,1),visibility 0s .7s;padding:116px 24px 28px;overflow:auto}.cheops-mobile-menu.is-open{visibility:visible;opacity:1;transform:none;clip-path:inset(0 0 0 0 round 0);transition-delay:0s}.cheops-mobile-menu-glow{position:absolute;right:-170px;top:-160px;width:480px;height:480px;background:radial-gradient(circle,rgba(213,181,120,.22),transparent 68%);pointer-events:none}.cheops-mobile-menu-inner{max-width:720px;margin:0 auto;min-height:calc(100vh - 144px);display:flex;flex-direction:column;position:relative}.cheops-mobile-menu-kicker{font:700 8px/1.4 Arial,sans-serif;text-transform:uppercase;letter-spacing:.24em;color:#d5b578;padding:0 0 24px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;justify-content:space-between;gap:16px}.cheops-mobile-menu-kicker span{color:rgba(255,255,255,.35)}.cheops-mobile-nav{padding-top:18px}.mobile-main-link,.cheops-mobile-services{transform:translateY(24px);opacity:0;transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .4s;transition-delay:0s}.cheops-mobile-menu.is-open .mobile-main-link,.cheops-mobile-menu.is-open .cheops-mobile-services{transform:none;opacity:1;transition-delay:var(--d,0ms)}.mobile-main-link,.cheops-mobile-services-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:20px;color:#fff;text-decoration:none;font-family:Georgia,serif;font-size:clamp(29px,8.1vw,50px);line-height:1;padding:15px 0;border:0;border-bottom:1px solid rgba(255,255,255,.1);background:none;text-align:left}.mobile-main-link b,.cheops-mobile-services-toggle b{font:400 16px/1 Arial,sans-serif;color:#d5b578}.cheops-mobile-services-toggle{cursor:pointer}.cheops-mobile-services-toggle b{transition:transform .35s}.cheops-mobile-services-toggle[aria-expanded="true"] b{transform:rotate(45deg)}.cheops-mobile-services-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.16,1,.3,1)}.cheops-mobile-services-panel>div{overflow:hidden}.cheops-mobile-services.is-expanded .cheops-mobile-services-panel{grid-template-rows:1fr}.cheops-mobile-services-panel-inner{overflow:hidden}.cheops-mobile-services-panel a{display:flex;justify-content:space-between;gap:16px;color:rgba(255,255,255,.72);text-decoration:none;padding:14px 4px;border-bottom:1px solid rgba(255,255,255,.07);font:600 11px/1.35 Arial,sans-serif;letter-spacing:.06em}.cheops-mobile-services-panel a span{color:#d5b578}.cheops-mobile-menu-foot{margin-top:auto;padding-top:30px;display:flex;gap:12px;flex-wrap:wrap}.cheops-mobile-menu-foot a{color:rgba(255,255,255,.6);font:600 10px/1.4 Arial,sans-serif;text-decoration:none;padding:10px 13px;border:1px solid rgba(255,255,255,.13);border-radius:999px}
-      .cheops-city-projects{padding-bottom:92px}.cheops-city-projects-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}.cheops-city-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:50px}.cheops-city-tab{appearance:none;border:0;padding:0;min-height:260px;border-radius:26px;overflow:hidden;position:relative;text-align:left;cursor:pointer;background:#171717;color:#fff;isolation:isolate}.cheops-city-tab-bg,.cheops-city-tab-shade{position:absolute;inset:0}.cheops-city-tab-bg{background-size:cover;background-position:center;z-index:-2;transition:transform .75s cubic-bezier(.16,1,.3,1),filter .4s}.cheops-city-tab-shade{z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.78))}.cheops-city-tab-copy{position:absolute;inset:auto 26px 25px;display:grid;gap:8px}.cheops-city-tab-copy small{font:800 8px/1 Arial,sans-serif;text-transform:uppercase;letter-spacing:.2em;color:#d5b578}.cheops-city-tab-copy strong{font-size:clamp(1.8rem,3.6vw,3.42rem);font-weight:400}.cheops-city-tab-copy em{font:700 9px/1 Arial,sans-serif;text-transform:uppercase;letter-spacing:.17em;font-style:normal;color:rgba(255,255,255,.72)}.cheops-city-tab.is-active{outline:2px solid #d5b578;outline-offset:4px}.cheops-city-tab:hover .cheops-city-tab-bg,.cheops-city-tab.is-active .cheops-city-tab-bg{transform:scale(1.06);filter:saturate(.9)}.cheops-project-stage{margin-top:58px}.cheops-project-group{display:none}.cheops-project-group.is-active{display:block;animation:cheopsProjectIn .55s cubic-bezier(.16,1,.3,1)}@keyframes cheopsProjectIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}.cheops-project-dynamic .zoom img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.cheops-project-copy{padding:40px 0 56px}.cheops-project-copy.is-reverse{order:1;padding-right:48px}.cheops-project-copy h3{font-size:clamp(1.8rem,3.24vw,3.06rem);margin:14px 0 0}.cheops-project-desc{margin-top:16px;font-size:.855rem;line-height:1.8;color:var(--muted);max-width:460px}.cheops-project-copy dl{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:20px;font-size:.81rem}.cheops-project-copy dd{margin:5px 0 0}.cheops-project-copy dl .d{font-size:1.17rem}.cheops-project-copy .link-arrow{margin-top:29px;display:inline-block;font-size:.54rem;font-weight:800;letter-spacing:.24em;text-transform:uppercase}.cheops-project-copy .rule-gold{display:block;width:48px;margin-top:24px}
-      .cheops-site-footer{background:#11100f;color:#f3efe8;padding:74px 24px 28px;margin-top:0}.cheops-site-footer-inner{max-width:1320px;margin:0 auto}.cheops-footer-top{display:grid;grid-template-columns:.9fr 1.1fr;gap:70px;padding-bottom:52px}.cheops-footer-logo{display:block;width:190px;height:58px;overflow:hidden;background:#000;position:relative;border-radius:5px}.cheops-footer-logo span{position:absolute;inset:0;background-repeat:no-repeat;background-size:215% auto;background-position:center 50%}.cheops-footer-tagline{font-family:Georgia,serif;font-size:clamp(1.8rem,3.6vw,4.05rem);line-height:1.02;max-width:620px;margin:28px 0 0}.cheops-footer-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.cheops-footer-col h4{font:800 8px/1 Arial,sans-serif;text-transform:uppercase;letter-spacing:.22em;color:#d5b578;margin:0 0 16px}.cheops-footer-col a,.cheops-footer-col p{display:block;color:rgba(255,255,255,.62);font:500 11px/1.65 Arial,sans-serif;text-decoration:none;margin:0 0 8px}.cheops-footer-col a:hover{color:#fff}.cheops-footer-bottom{border-top:1px solid rgba(255,255,255,.12);padding-top:22px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;color:rgba(255,255,255,.35);font:600 8px/1.4 Arial,sans-serif;text-transform:uppercase;letter-spacing:.14em}
-      #pre{display:none!important}body:not(.home) #cheops-video-preloader{display:none!important}.home.cheops-preloader-seen #cheops-video-preloader{display:none!important}.cheops-unit-card .property-contact-actions{margin-top:auto}.cheops-card-media{border-radius:0!important}.cheops-unit-card .save-property{border-radius:50%}
-      @media(max-width:980px){.cheops-desktop-nav,.cheops-header-cta{display:none}.cheops-mobile-toggle{display:block}.cheops-site-header{padding:0 12px;top:10px}.admin-bar .cheops-site-header{top:42px}.cheops-site-header-inner{height:64px;border-radius:16px;padding:0 10px 0 13px}.cheops-logo-crop{width:118px;height:35px}.cheops-city-tabs{grid-template-columns:1fr 1fr}.cheops-footer-top{grid-template-columns:1fr;gap:45px}}
-      @media(max-width:640px){.cheops-mobile-menu{padding:96px 18px 22px}.cheops-mobile-menu-kicker span{display:none}.cheops-city-tabs{grid-template-columns:1fr;gap:13px;margin-top:34px}.cheops-city-tab{min-height:190px;border-radius:20px}.cheops-project-stage{margin-top:40px}.cheops-project-copy.is-reverse{padding-right:0}.cheops-project-copy dl{grid-template-columns:1fr 1fr;gap:16px}.cheops-project-dynamic{display:flex!important;flex-direction:column}.cheops-project-dynamic .zoom,.cheops-project-copy,.cheops-project-copy.is-reverse{order:initial!important}.cheops-footer-cols{grid-template-columns:1fr}.cheops-site-footer{padding:58px 18px 24px}}
-      .csi-arrow{display:inline-block;vertical-align:-1px;flex:0 0 auto;transition:transform .3s cubic-bezier(.16,1,.3,1)}
-      a:hover .csi-arrow,button:hover .csi-arrow{transform:translate(3px,-3px)}
-      a:hover .csi-arrow.csi-arrow--right,button:hover .csi-arrow.csi-arrow--right{transform:translateX(4px)}
-    
-</style>';
-}
-add_action('wp_head','cheops_unified_front_css',99);
 
 function cheops_site_footer() {
     $fb='https://www.facebook.com/cheopsprive';
@@ -856,71 +941,6 @@ add_action('admin_init','cheops_flush_rewrites_once');
 /* =========================================================
  * V5 — unified identity + dedicated city pages
  * ========================================================= */
-function cheops_v5_identity_css() {
-    echo '<style id="cheops-v5-identity-css">
-      /* Logo: preserve the supplied artwork exactly; no card, crop or background behind it. */
-      .cheops-logo-crop{width:156px!important;height:48px!important;background:transparent!important;border-radius:0!important;overflow:visible!important;display:flex!important;align-items:center!important;box-shadow:none!important}
-      .cheops-logo-crop img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:left center!important;background:transparent!important;border-radius:0!important}
-      .cheops-footer-logo{display:block!important;width:210px!important;height:auto!important;overflow:visible!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
-      .cheops-footer-logo img{display:block!important;width:100%!important;height:auto!important;object-fit:contain!important;background:transparent!important;border-radius:0!important}
-      /* One typography / spacing / motion language across every WordPress page. */
-      body.cheops-prive-theme,body.cheops-contact-page,body.single-cheops_unit,body.tax-project_city{font-family:"Romie",Georgia,"Times New Roman",serif!important;-webkit-font-smoothing:antialiased}
-      body.cheops-prive-theme h1,body.cheops-prive-theme h2,body.cheops-prive-theme h3,body.cheops-prive-theme h4,body.cheops-prive-theme .d,
-      body.cheops-contact-page h1,body.cheops-contact-page h2,body.cheops-contact-page h3,
-      body.single-cheops_unit h1,body.single-cheops_unit h2,body.single-cheops_unit h3,
-      body.tax-project_city h1,body.tax-project_city h2,body.tax-project_city h3{font-family:"Romie",Georgia,"Times New Roman",serif!important;font-weight:400}
-      .cheops-site-header,.cheops-site-footer,.cheops-mobile-menu{font-family:"Romie",Georgia,"Times New Roman",serif}
-      .cheops-desktop-nav>a,.cheops-nav-drop>button,.cheops-nav-drop-panel a,.cheops-header-cta,.cheops-mobile-menu-kicker,.cheops-mobile-services-panel a,.cheops-mobile-menu-foot a{font-family:inherit!important}
-      .cheops-global-reveal{opacity:0;transform:translateY(28px);transition:opacity .85s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1);will-change:opacity,transform}
-      .cheops-global-reveal.is-inview{opacity:1;transform:none}
-      .cheops-global-reveal.cheops-delay-1{transition-delay:.08s}.cheops-global-reveal.cheops-delay-2{transition-delay:.16s}.cheops-global-reveal.cheops-delay-3{transition-delay:.24s}
-      /* Home city cards are links only; projects live on their own city page. */
-      .cheops-city-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:50px}
-      .cheops-city-link{min-height:300px;border-radius:26px;overflow:hidden;position:relative;text-align:left;background:#171717;color:#fff;isolation:isolate;text-decoration:none;display:block}
-      .cheops-city-link .cheops-city-tab-bg,.cheops-city-link .cheops-city-tab-shade{position:absolute;inset:0}
-      .cheops-city-link .cheops-city-tab-bg{background-size:cover;background-position:center;z-index:-2;transition:transform .8s cubic-bezier(.16,1,.3,1),filter .5s}
-      .cheops-city-link .cheops-city-tab-shade{z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.82))}
-      .cheops-city-link .cheops-city-tab-copy{position:absolute;inset:auto 28px 28px;display:grid;gap:9px}
-      .cheops-city-link .cheops-city-tab-copy small{font-size:8px;text-transform:uppercase;letter-spacing:.2em;color:#d5b578;font-weight:700}
-      .cheops-city-link .cheops-city-tab-copy strong{font-size:clamp(1.98rem,3.6vw,3.6rem);font-weight:400;line-height:.95}
-      .cheops-city-link .cheops-city-tab-copy em{font-size:9px;text-transform:uppercase;letter-spacing:.17em;font-style:normal;color:rgba(255,255,255,.72)}
-      .cheops-city-link:hover .cheops-city-tab-bg{transform:scale(1.055);filter:saturate(.88)}
-      .cheops-city-link:hover .cheops-city-tab-copy em b{display:inline-block;transform:translateX(7px)}
-      /* Dedicated city page. */
-      body.tax-project_city{margin:0;background:#f7f5f2;color:#1a1a1a;overflow-x:hidden}
-      body.tax-project_city *,body.tax-project_city *:before,body.tax-project_city *:after{box-sizing:border-box}
-      .cheops-city-page{background:#f7f5f2;color:#1a1a1a;min-height:100vh}
-      .cheops-city-page a{color:inherit}
-      .cheops-city-page .eyebrow{font-size:.558rem;letter-spacing:.22em;text-transform:uppercase;font-weight:700}.cheops-city-page .eyebrow.gold{color:#9a7440}
-      .cheops-city-page .meta{font-size:.522rem;letter-spacing:.19em;text-transform:uppercase;color:#837c73}
-      .cheops-city-page .proj{display:grid;grid-template-columns:1.15fr .85fr;align-items:stretch;gap:28px;padding:22px;border-radius:32px;background:rgba(255,255,255,.8);border:1px solid rgba(26,26,26,.08);box-shadow:0 30px 80px -60px rgba(0,0,0,.45);overflow:hidden}
-      .cheops-city-page .zoom{display:block;overflow:hidden;border-radius:22px;background:#ddd;position:relative}.cheops-city-page .zoom img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.16,1,.3,1)}.cheops-city-page .zoom:hover img{transform:scale(1.035)}
-      .cheops-city-page .cheops-project-copy{padding:40px 28px 48px 10px}.cheops-city-page .cheops-project-copy.is-reverse{order:1;padding:40px 10px 48px 28px}
-      .cheops-city-page .cheops-project-copy h3{font-size:clamp(2.25rem,3.78vw,4.32rem);line-height:.92;letter-spacing:-.035em;margin:16px 0 0}
-      .cheops-city-page .cheops-project-desc{margin-top:18px;line-height:1.85;color:#77716a;max-width:520px}
-      .cheops-city-page .cheops-project-copy dl{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:34px 0 0}.cheops-city-page .cheops-project-copy dt,.cheops-city-page .cheops-project-copy dd{margin:0}.cheops-city-page .cheops-project-copy dd{margin-top:7px}.cheops-city-page .cheops-project-copy dd.d{font-size:1.215rem}
-      .cheops-city-page .link-arrow{display:inline-flex;gap:14px;align-items:center;margin-top:34px;text-decoration:none;font-size:.558rem;letter-spacing:.2em;text-transform:uppercase;font-weight:700}.cheops-city-page .link-arrow .ar{transition:transform .3s}.cheops-city-page .link-arrow:hover .ar{transform:translateX(7px)}
-      .cheops-city-page .rule-gold{display:block;width:54px;height:1px;background:#b58d52;margin-top:24px}
-      .cheops-city-hero{position:relative;min-height:76vh;display:flex;align-items:flex-end;color:#fff;overflow:hidden;background:#111}
-      .cheops-city-hero-media{position:absolute;inset:-3%;background-size:cover;background-position:center;transform:scale(1.03)}
-      .cheops-city-hero-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.72) 75%,rgba(0,0,0,.92))}
-      .cheops-city-hero-content{position:relative;z-index:2;width:min(1320px,calc(100% - 48px));margin:0 auto;padding:190px 0 72px}
-      .cheops-city-hero-kicker{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#d5b578;margin:0 0 18px}
-      .cheops-city-hero-title{font-size:clamp(3.87rem,9vw,9rem);line-height:.82;letter-spacing:-.055em;margin:0;max-width:1100px}
-      .cheops-city-hero-meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;color:rgba(255,255,255,.68);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
-      .cheops-city-intro{width:min(1320px,calc(100% - 48px));margin:0 auto;padding:92px 0 48px;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:80px;align-items:start}
-      .cheops-city-intro h2{font-size:clamp(2.7rem,5.4vw,6.12rem);line-height:.9;letter-spacing:-.045em;margin:0}
-      .cheops-city-intro-copy{color:#77716a;font-size:14px;line-height:1.9;max-width:640px}
-      .cheops-city-project-list{width:min(1320px,calc(100% - 48px));margin:0 auto;padding:12px 0 110px}
-      .cheops-city-project-row{margin-bottom:42px!important}
-      .cheops-city-back{display:inline-flex;align-items:center;gap:12px;color:#1a1a1a;text-decoration:none;font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-bottom:34px}
-      @media(max-width:980px){.cheops-logo-crop{width:126px!important;height:38px!important}.cheops-city-links{grid-template-columns:1fr 1fr}.cheops-city-intro{grid-template-columns:1fr;gap:28px}.cheops-city-hero{min-height:68vh}}
-      @media(max-width:640px){.cheops-city-links{grid-template-columns:1fr;gap:13px;margin-top:34px}.cheops-city-link{min-height:215px;border-radius:20px}.cheops-city-hero-content,.cheops-city-intro,.cheops-city-project-list{width:min(100% - 32px,1320px)}.cheops-city-hero-content{padding:150px 0 48px}.cheops-city-hero-title{font-size:clamp(3.06rem,17.1vw,5.22rem)}.cheops-city-intro{padding:58px 0 27px}.cheops-city-project-list{padding-bottom:65px}.cheops-city-page .proj{display:flex;flex-direction:column;padding:12px;gap:0}.cheops-city-page .zoom{min-height:300px!important}.cheops-city-page .cheops-project-copy,.cheops-city-page .cheops-project-copy.is-reverse{order:initial!important;padding:28px 12px 32px}.cheops-city-page .cheops-project-copy dl{grid-template-columns:1fr 1fr}}
-      @media(prefers-reduced-motion:reduce){.cheops-global-reveal{opacity:1!important;transform:none!important;transition:none!important}}
-    
-</style>';
-}
-add_action('wp_head','cheops_v5_identity_css',120);
 
 function cheops_v5_identity_js() { ?>
 <script id="cheops-v5-identity-js">
@@ -954,119 +974,11 @@ add_action('admin_init','cheops_flush_rewrites_v5',30);
  * ========================================================= */
 function cheops_v6_motion_assets() {
     if ( is_admin() ) return;
-    wp_enqueue_script('cheops-gsap','https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js',[], '3.12.5', true);
-    wp_enqueue_script('cheops-scrolltrigger','https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js',['cheops-gsap'], '3.12.5', true);
+    cheops_register_front_assets();
+    wp_enqueue_script('cheops-scrolltrigger');
 }
 add_action('wp_enqueue_scripts','cheops_v6_motion_assets',20);
 
-function cheops_v6_design_system_css() {
-    echo '<style id="cheops-v6-design-system">
-    :root{--cheops-ink:#1a1a1a;--cheops-gold:#e5cfa7;--cheops-gold-deep:#b58d52;--cheops-line:rgba(26,26,26,.12);--cheops-muted:#6f6f6f;--cheops-ease:cubic-bezier(.16,1,.3,1)}
-
-    /* One type language. */
-    body.cheops-prive-theme{font-family:"Romie",Georgia,"Times New Roman",serif!important;color:var(--cheops-ink)}
-    body.cheops-prive-theme h1,body.cheops-prive-theme h2,body.cheops-prive-theme h3,body.cheops-prive-theme h4,
-    body.cheops-prive-theme .d,body.cheops-prive-theme .sp-title,body.cheops-prive-theme .sp-price,
-    body.cheops-prive-theme .cheops-footer-tagline{font-family:"Romie",Georgia,"Times New Roman",serif!important;font-weight:400!important;letter-spacing:-.02em}
-    body.cheops-prive-theme .eyebrow,body.cheops-prive-theme .meta,body.cheops-prive-theme .sp-eyebrow,
-    body.cheops-prive-theme .contact-eyebrow,body.cheops-prive-theme .cheops-city-hero-kicker{letter-spacing:.24em;text-transform:uppercase;font-weight:700}
-
-    /* Supplied logo, untouched. No crop, no backing card, no filter. */
-    .cheops-logo-crop{width:224px!important;height:58px!important;display:flex!important;align-items:center!important;overflow:visible!important;background:transparent!important;border-radius:0!important;box-shadow:none!important;padding:0!important}
-    .cheops-logo-crop img{display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:left center!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;filter:none!important}
-    .cheops-footer-logo{width:270px!important;height:auto!important;display:block!important;overflow:visible!important;background:transparent!important;border-radius:0!important;box-shadow:none!important;padding:0!important}
-    .cheops-footer-logo img{display:block!important;width:100%!important;height:auto!important;object-fit:contain!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;filter:none!important}
-
-    /* Header — same floating treatment everywhere. */
-    .cheops-site-header{top:20px!important;padding:0 24px!important}
-    .admin-bar .cheops-site-header{top:52px!important}
-    .cheops-site-header-inner{max-width:1460px!important;height:82px!important;padding:0 20px 0 24px!important;border-radius:22px!important;background:rgba(12,12,12,.34)!important;border:1px solid rgba(255,255,255,.18)!important;box-shadow:0 24px 70px -48px rgba(0,0,0,.7)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
-    .cheops-site-header.is-scrolled .cheops-site-header-inner,.single-cheops_unit .cheops-site-header-inner,.page-template-page-contact .cheops-site-header-inner{background:rgba(255,255,255,.92)!important;border-color:rgba(26,26,26,.1)!important;box-shadow:0 24px 70px -50px rgba(0,0,0,.42)!important}
-    .cheops-desktop-nav{gap:30px!important}
-    .cheops-desktop-nav>a,.cheops-nav-drop>button{font-family:inherit!important;font-size:10px!important;line-height:1!important;font-weight:600!important;letter-spacing:.1em!important;text-transform:uppercase!important}
-    .cheops-nav-drop-panel{border-radius:20px!important;padding:10px!important;box-shadow:0 28px 70px -40px rgba(0,0,0,.48)!important}
-    .cheops-nav-drop-panel a{font-family:inherit!important;font-size:11px!important;border-radius:12px!important}
-    .cheops-header-cta{font-family:inherit!important;border-radius:999px!important;padding:15px 20px!important;font-size:9px!important;letter-spacing:.14em!important}
-
-    /* One button family everywhere. */
-    body.cheops-prive-theme .btn,body.cheops-prive-theme .sp-btn,body.cheops-prive-theme .contact-call,
-    body.cheops-prive-theme .contact-whatsapp,body.cheops-prive-theme .contact-submit,body.cheops-prive-theme .contact-map-btn,
-    body.cheops-prive-theme .property-contact-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:12px!important;min-height:50px!important;padding:14px 24px!important;border-radius:999px!important;border:1px solid var(--cheops-ink)!important;background:var(--cheops-ink)!important;color:#fff!important;font-family:inherit!important;font-size:9px!important;line-height:1!important;font-weight:700!important;letter-spacing:.16em!important;text-transform:uppercase!important;text-decoration:none!important;transition:transform .5s var(--cheops-ease),background .35s,color .35s,border-color .35s!important}
-    body.cheops-prive-theme .btn:hover,body.cheops-prive-theme .sp-btn:hover,body.cheops-prive-theme .contact-call:hover,
-    body.cheops-prive-theme .contact-whatsapp:hover,body.cheops-prive-theme .contact-submit:hover,body.cheops-prive-theme .contact-map-btn:hover,
-    body.cheops-prive-theme .property-contact-btn:hover{color:var(--cheops-gold)!important}
-    body.cheops-prive-theme .btn-light,body.cheops-prive-theme .btn.light,body.cheops-prive-theme .hero .btn.ghost{background:rgba(255,255,255,.06)!important;color:#fff!important;border-color:rgba(255,255,255,.52)!important}
-    body.cheops-prive-theme .btn-ghost,body.cheops-prive-theme .sp-btn.alt{background:transparent!important;color:var(--cheops-ink)!important;border-color:var(--cheops-line)!important}
-    body.cheops-prive-theme .btn .ar,body.cheops-prive-theme .link-arrow .ar,body.cheops-prive-theme .property-contact-btn .ar{display:inline-block;transition:transform .5s var(--cheops-ease)}
-    body.cheops-prive-theme .btn:hover .ar,body.cheops-prive-theme .link-arrow:hover .ar,body.cheops-prive-theme .property-contact-btn:hover .ar{transform:translateX(7px)}
-
-    /* Same reveal primitives as the original home page. */
-    body.cheops-prive-theme .reveal{opacity:0;transform:translateY(38px);transition:opacity 1.1s var(--cheops-ease),transform 1.1s var(--cheops-ease)}
-    body.cheops-prive-theme .reveal.on{opacity:1;transform:none}
-    body.cheops-prive-theme .rl{display:block;overflow:hidden}
-    body.cheops-prive-theme .rl>span{display:block;transform:translateY(105%);transition:transform 1.15s var(--cheops-ease)}
-    body.cheops-prive-theme .on .rl>span,body.cheops-prive-theme .rl.on>span{transform:none}
-    body.cheops-prive-theme .zoom{overflow:hidden}
-    body.cheops-prive-theme .zoom img{transition:transform 1.6s var(--cheops-ease)}
-    body.cheops-prive-theme .zoom:hover img{transform:scale(1.07)}
-
-    /* City page now uses the same clean, old stacked-project language. */
-    body.tax-project_city{margin:0!important;background:#fff!important;color:var(--cheops-ink)!important}
-    .cheops-city-page{background:#fff!important;color:var(--cheops-ink)!important}
-    .cheops-city-hero{min-height:78svh!important;position:relative!important;display:flex!important;align-items:flex-end!important;overflow:hidden!important;background:#000!important;color:#fff!important}
-    .cheops-city-hero-media{position:absolute!important;inset:-3%!important;background-size:cover!important;background-position:center!important;transform:scale(1.04);will-change:transform}
-    .cheops-city-hero-overlay{position:absolute!important;inset:0!important;background:linear-gradient(to top,rgba(10,10,10,.88),rgba(10,10,10,.33) 48%,rgba(10,10,10,.16))!important}
-    .cheops-city-hero-content{position:relative!important;z-index:2!important;width:min(1560px,calc(100% - 96px))!important;margin:0 auto!important;padding:190px 0 70px!important}
-    .cheops-city-hero-title{font-size:clamp(3.78rem,8.1vw,8.55rem)!important;line-height:.88!important;letter-spacing:-.045em!important;margin:0!important;max-width:1150px!important}
-    .cheops-city-hero-meta{display:flex!important;gap:22px!important;flex-wrap:wrap!important;margin-top:28px!important;font-size:9px!important;letter-spacing:.16em!important;text-transform:uppercase!important;color:rgba(255,255,255,.68)!important}
-    .cheops-city-intro{width:min(1560px,calc(100% - 96px))!important;margin:0 auto!important;padding:100px 0 64px!important;display:grid!important;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important;gap:90px!important;align-items:end!important}
-    .cheops-city-intro h2{font-size:clamp(2.52rem,5.04vw,4.86rem)!important;line-height:.95!important;margin:18px 0 0!important}
-    .cheops-city-intro-copy{font-size:14px!important;line-height:1.9!important;color:var(--cheops-muted)!important;max-width:640px!important}
-    .cheops-city-project-list{width:min(1560px,calc(100% - 96px))!important;margin:0 auto!important;padding:0 0 118px!important}
-    .cheops-city-back{display:inline-flex!important;align-items:center!important;gap:12px!important;margin-bottom:28px!important;font-size:9px!important;letter-spacing:.18em!important;text-transform:uppercase!important;font-weight:700!important;text-decoration:none!important}
-    .cheops-city-project-row{display:grid!important;grid-template-columns:1.15fr .85fr!important;align-items:stretch!important;gap:0!important;margin:0!important;padding:0!important;border-radius:0!important;background:transparent!important;border:0!important;border-top:1px solid var(--cheops-line)!important;box-shadow:none!important;overflow:visible!important;transform-style:preserve-3d}
-    .cheops-city-project-row .zoom{min-height:540px!important;border-radius:0!important;background:#eee!important;position:relative!important}
-    .cheops-city-project-row .zoom img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:0!important}
-    .cheops-city-project-row .cheops-project-copy{padding:64px 20px 64px 64px!important;display:flex!important;flex-direction:column!important;justify-content:center!important}
-    .cheops-city-project-row .cheops-project-copy.is-reverse{order:1!important;padding:64px 64px 64px 20px!important}
-    .cheops-city-project-row .cheops-project-copy h3{font-size:clamp(2.43rem,3.96vw,4.68rem)!important;line-height:.92!important;letter-spacing:-.035em!important;margin:18px 0 0!important}
-    .cheops-city-project-row .cheops-project-desc{font-size:14px!important;line-height:1.85!important;color:var(--cheops-muted)!important;max-width:520px!important;margin:22px 0 0!important}
-    .cheops-city-project-row .cheops-project-copy dl{display:grid!important;grid-template-columns:1fr 1fr!important;gap:22px 30px!important;margin:38px 0 0!important;font-size:13px!important}
-    .cheops-city-project-row .cheops-project-copy dt,.cheops-city-project-row .cheops-project-copy dd{margin:0!important}.cheops-city-project-row .cheops-project-copy dd{margin-top:7px!important}
-    .cheops-city-project-row .link-arrow{display:inline-flex!important;align-items:center!important;gap:12px!important;width:max-content!important;margin-top:38px!important;font-size:9px!important;font-weight:700!important;letter-spacing:.2em!important;text-transform:uppercase!important;text-decoration:none!important}
-    .cheops-city-project-row .rule-gold{width:54px!important;height:1px!important;background:var(--cheops-gold)!important;margin-top:26px!important}
-
-    /* Footer — same type and logo treatment on every template. */
-    .cheops-site-footer{background:#11100f!important;color:#f4f1ec!important;padding:82px 30px 30px!important}
-    .cheops-site-footer-inner{max-width:1460px!important}
-    .cheops-footer-top{grid-template-columns:.85fr 1.15fr!important;gap:80px!important;padding-bottom:62px!important}
-    .cheops-footer-cols{grid-template-columns:repeat(3,1fr)!important;gap:24px!important}
-    .cheops-footer-tagline{font-size:clamp(2.52rem,4.5vw,5.22rem)!important;line-height:.94!important;max-width:680px!important;margin-top:28px!important}
-    .cheops-footer-col h4{font-family:inherit!important;font-size:9px!important;letter-spacing:.22em!important;color:var(--cheops-gold)!important}
-    .cheops-footer-col a,.cheops-footer-col p{font-family:inherit!important;font-size:12px!important;line-height:1.6!important;color:rgba(255,255,255,.62)!important}
-    .cheops-footer-col a:hover{color:var(--cheops-gold)!important}
-    .cheops-footer-bottom{font-family:inherit!important;font-size:8px!important;letter-spacing:.16em!important}
-
-    @media(max-width:1100px){
-      .cheops-logo-crop{width:184px!important;height:50px!important}.cheops-desktop-nav{gap:20px!important}
-      .cheops-city-hero-content,.cheops-city-intro,.cheops-city-project-list{width:min(100% - 64px,1560px)!important}
-      .cheops-city-project-row .cheops-project-copy{padding-left:42px!important}.cheops-city-project-row .cheops-project-copy.is-reverse{padding-right:42px!important}
-    }
-    @media(max-width:980px){
-      .cheops-site-header{top:12px!important;padding:0 12px!important}.admin-bar .cheops-site-header{top:44px!important}.cheops-site-header-inner{height:70px!important;border-radius:18px!important;padding:0 12px 0 16px!important}
-      .cheops-logo-crop{width:170px!important;height:45px!important}.cheops-mobile-toggle{display:block!important}
-      .cheops-city-intro{grid-template-columns:1fr!important;gap:32px!important}.cheops-city-project-row{grid-template-columns:1fr!important}.cheops-city-project-row .zoom{min-height:440px!important;order:0!important}.cheops-city-project-row .cheops-project-copy,.cheops-city-project-row .cheops-project-copy.is-reverse{order:1!important;padding:42px 0 62px!important}
-      .cheops-footer-top{grid-template-columns:1fr!important;gap:48px!important}
-    }
-    @media(max-width:640px){
-      .cheops-logo-crop{width:156px!important;height:42px!important}.cheops-site-header-inner{height:66px!important}
-      .cheops-city-hero{min-height:72svh!important}.cheops-city-hero-content,.cheops-city-intro,.cheops-city-project-list{width:min(100% - 32px,1560px)!important}.cheops-city-hero-content{padding:150px 0 44px!important}.cheops-city-hero-title{font-size:clamp(3.15rem,16.2vw,4.95rem)!important}.cheops-city-intro{padding:61px 0 40px!important}.cheops-city-project-list{padding-bottom:74px!important}.cheops-city-project-row .zoom{min-height:288px!important}.cheops-city-project-row .cheops-project-copy,.cheops-city-project-row .cheops-project-copy.is-reverse{padding:29px 0 47px!important}.cheops-city-project-row .cheops-project-copy dl{grid-template-columns:1fr 1fr!important;gap:18px!important}.cheops-footer-logo{width:230px!important}.cheops-site-footer{padding:62px 18px 26px!important}
-    }
-    @media(prefers-reduced-motion:reduce){body.cheops-prive-theme .reveal,body.cheops-prive-theme .rl>span{opacity:1!important;transform:none!important;transition:none!important}}
-    
-</style>';
-}
-add_action('wp_head','cheops_v6_design_system_css',200);
 
 function cheops_v6_motion_js() { ?>
 <script id="cheops-v6-motion">
@@ -1117,85 +1029,11 @@ function cheops_flush_rewrites_v6() {
 }
 add_action('admin_init','cheops_flush_rewrites_v6',40);
 
-function cheops_v6_home_identity_overrides() {
-    echo '<style id="cheops-v6-home-identity-overrides">
-    /* Exact visual grammar from the original home project cards. */
-    .cheops-city-project-row{gap:28px!important;padding:22px!important;border-radius:36px!important;background:rgba(255,255,255,.72)!important;border:1px solid rgba(26,26,26,.07)!important;box-shadow:0 30px 80px -60px rgba(0,0,0,.5)!important;margin-bottom:34px!important;overflow:hidden!important;transition:box-shadow .7s,transform .7s cubic-bezier(.16,1,.3,1)!important}
-    .cheops-city-project-row:hover{box-shadow:0 50px 110px -60px rgba(0,0,0,.55)!important;transform:translateY(-6px)}
-    .cheops-city-project-row .zoom{min-height:520px!important;border-radius:22px!important;overflow:hidden!important}
-    .cheops-city-project-row .zoom img{border-radius:22px!important}
-    .cheops-city-project-row .cheops-project-copy{padding:34px!important}
-    .cheops-city-project-row .cheops-project-copy.is-reverse{padding:34px!important}
-    .cheops-city-project-row .eyebrow.gold,.cheops-city-page .eyebrow.gold{display:inline-flex!important;width:max-content!important;align-items:center!important;gap:8px!important;padding:8px 16px!important;border-radius:999px!important;background:linear-gradient(120deg,rgba(229,207,167,.35),rgba(255,255,255,.16))!important;color:#8a6b2f!important}
-
-    /* Original Cheops button sweep everywhere. */
-    body.cheops-prive-theme .btn,body.cheops-prive-theme .sp-btn,body.cheops-prive-theme .contact-call,
-    body.cheops-prive-theme .contact-whatsapp,body.cheops-prive-theme .contact-submit,body.cheops-prive-theme .contact-map-btn,
-    body.cheops-prive-theme .property-contact-btn,body.cheops-prive-theme .cheops-header-cta{position:relative!important;isolation:isolate!important;overflow:hidden!important;transition:color .45s,transform .45s cubic-bezier(.16,1,.3,1),box-shadow .45s,border-color .45s!important}
-    body.cheops-prive-theme .btn:before,body.cheops-prive-theme .sp-btn:before,body.cheops-prive-theme .contact-call:before,
-    body.cheops-prive-theme .contact-whatsapp:before,body.cheops-prive-theme .contact-submit:before,body.cheops-prive-theme .contact-map-btn:before,
-    body.cheops-prive-theme .property-contact-btn:before,body.cheops-prive-theme .cheops-header-cta:before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(120deg,#e5cfa7 0%,#f6e7c8 34%,#fff 68%,#c9a86a 100%);background-size:260% 260%;transform:translateY(103%);transition:transform .6s cubic-bezier(.16,1,.3,1)}
-    body.cheops-prive-theme .btn:hover:before,body.cheops-prive-theme .sp-btn:hover:before,body.cheops-prive-theme .contact-call:hover:before,
-    body.cheops-prive-theme .contact-whatsapp:hover:before,body.cheops-prive-theme .contact-submit:hover:before,body.cheops-prive-theme .contact-map-btn:hover:before,
-    body.cheops-prive-theme .property-contact-btn:hover:before,body.cheops-prive-theme .cheops-header-cta:hover:before{transform:translateY(0);animation:cheopsBtnShift 3.2s linear infinite}
-    body.cheops-prive-theme .btn:hover,body.cheops-prive-theme .sp-btn:hover,body.cheops-prive-theme .contact-call:hover,
-    body.cheops-prive-theme .contact-whatsapp:hover,body.cheops-prive-theme .contact-submit:hover,body.cheops-prive-theme .contact-map-btn:hover,
-    body.cheops-prive-theme .property-contact-btn:hover,body.cheops-prive-theme .cheops-header-cta:hover{color:#111!important;border-color:transparent!important;transform:translateY(-3px);box-shadow:0 18px 40px -18px rgba(201,168,106,.6)!important}
-    @keyframes cheopsBtnShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
-
-    /* Shared card image treatment and soft page field. */
-    body.cheops-prive-theme .pcard,body.cheops-prive-theme .sp-related-card,body.cheops-prive-theme .contact-form-card,body.cheops-prive-theme .contact-location-card{border-color:rgba(26,26,26,.08)!important;box-shadow:0 30px 80px -60px rgba(0,0,0,.45)}
-    body.tax-project_city .cheops-city-page{background:radial-gradient(1100px 560px at 85% 0%,rgba(229,207,167,.18),transparent 60%),#fff!important}
-
-    @media(max-width:980px){.cheops-city-project-row{display:flex!important;flex-direction:column!important;padding:14px!important;gap:0!important;border-radius:28px!important}.cheops-city-project-row .zoom{min-height:420px!important;order:0!important}.cheops-city-project-row .cheops-project-copy,.cheops-city-project-row .cheops-project-copy.is-reverse{order:1!important;padding:34px 18px 42px!important}}
-    @media(max-width:640px){.cheops-city-project-row{border-radius:22px!important;margin-bottom:20px!important}.cheops-city-project-row .zoom{min-height:300px!important;border-radius:16px!important}.cheops-city-project-row .zoom img{border-radius:16px!important}.cheops-city-project-row .cheops-project-copy,.cheops-city-project-row .cheops-project-copy.is-reverse{padding:28px 12px 34px!important}}
-    
-</style>';
-}
-add_action('wp_head','cheops_v6_home_identity_overrides',220);
 
 
 /* =========================================================
  * V8 — spacing + typography polish
  * ========================================================= */
-function cheops_v8_polish_css() {
-    echo '<style id="cheops-v8-polish-css">
-      /* Never hyphenate or split a real word across lines. */
-      body.cheops-prive-theme h1,body.cheops-prive-theme h2,body.cheops-prive-theme h3,body.cheops-prive-theme h4,
-      body.cheops-prive-theme .d,body.cheops-prive-theme .section-title,body.cheops-prive-theme .statement,
-      body.cheops-prive-theme .qtitle{word-break:normal!important;overflow-wrap:normal!important;hyphens:none!important;-webkit-hyphens:none!important}
-      body.cheops-prive-theme .cheops-word{display:inline-block!important;white-space:nowrap!important}
-      body.cheops-prive-theme .cheops-word .ch{display:inline-block!important}
-
-      /* Tighten oversized vertical rhythm without changing the visual language. */
-      body.cheops-prive-theme .section{padding-top:88px!important;padding-bottom:88px!important}
-      body.cheops-prive-theme .quote-band{padding-top:68px!important;padding-bottom:68px!important}
-      body.cheops-prive-theme .cta{padding-top:88px!important;padding-bottom:88px!important}
-      body.cheops-contact-page .contact-main{padding-top:88px!important;padding-bottom:94px!important}
-      body.cheops-contact-page .contact-main-grid{gap:64px!important}
-      body.cheops-prive-theme .section-title,body.cheops-prive-theme .statement,body.cheops-prive-theme .cta h2{line-height:1.02!important}
-      body.cheops-prive-theme .hero h1{line-height:.98!important}
-
-      /* About hero: no decorative frame, title centered as one line on desktop. */
-      body.page-template-page-about #hero .about-frame{display:none!important}
-      body.page-template-page-about #hero .about-hero-title{text-align:center!important;white-space:nowrap!important;max-width:none!important;margin-left:auto!important;margin-right:auto!important}
-      body.page-template-page-about #hero .about-hero-title .rl{display:inline-block!important;overflow:hidden!important}
-
-      /* Compact FAQ proportions. */
-      #faqs{min-height:0!important}
-      #faqs>.wrap{padding-top:0!important;padding-bottom:0!important}
-      #faqs .faq-list{margin-top:32px!important}
-
-      @media(max-width:800px){
-        body.cheops-prive-theme .section{padding-top:64px!important;padding-bottom:64px!important}
-        body.cheops-prive-theme .quote-band,body.cheops-prive-theme .cta{padding-top:62px!important;padding-bottom:62px!important}
-        body.cheops-contact-page .contact-main{padding-top:66px!important;padding-bottom:72px!important}
-        body.page-template-page-about #hero .about-hero-title{white-space:normal!important}
-      }
-    
-</style>';
-}
-add_action('wp_head','cheops_v8_polish_css',260);
 
 function cheops_v8_word_guard_js() { ?>
 <script id="cheops-v8-word-guard">
@@ -1232,113 +1070,6 @@ add_action('wp_footer','cheops_v8_word_guard_js',999);
 /* =========================================================
  * V9 — compact typography + fully dynamic city directory
  * ========================================================= */
-function cheops_v9_compact_typography_css() {
-    echo '<style id="cheops-v9-compact-typography-css">
-      /* Keep the original visual language, but remove the oversized type that caused awkward wraps. */
-      body.cheops-prive-theme .d-xl{font-size:clamp(47px,5.4vw,79px)!important;line-height:.98!important}
-      body.cheops-prive-theme .d-lg{font-size:clamp(34px,3.6vw,58px)!important;line-height:1.02!important}
-      body.cheops-prive-theme .d-md{font-size:clamp(23px,2.115vw,34px)!important;line-height:1.08!important}
-      body.cheops-prive-theme #hero .hero-title-single{font-size:clamp(49px,4.68vw,74px)!important;line-height:.99!important;letter-spacing:-.035em!important}
-      body.cheops-prive-theme .properties-hero h1{font-size:clamp(49px,5.13vw,79px)!important;line-height:.99!important;letter-spacing:-.038em!important;max-width:900px!important}
-      body.cheops-prive-theme .hero.service-hero h1,
-      body.cheops-prive-theme .hero-investment h1{font-size:clamp(45px,5.13vw,74px)!important;line-height:1.02!important;letter-spacing:-.035em!important}
-      body.cheops-contact-page .contact-title{font-size:clamp(45px,5.22vw,74px)!important;line-height:1!important;letter-spacing:-.035em!important;max-width:760px!important}
-      body.page-template-page-about #hero .about-hero-title{font-size:clamp(45px,4.86vw,68px)!important;line-height:1!important}
-      body.tax-project_city .cheops-city-hero-title{font-size:clamp(45px,5.4vw,77px)!important;line-height:.98!important;letter-spacing:-.04em!important}
-      body.tax-project_city .cheops-city-intro h2{font-size:clamp(34px,3.78vw,56px)!important;line-height:1.02!important}
-      body.cheops-prive-theme .section-title,
-      body.cheops-prive-theme .statement,
-      body.cheops-prive-theme .cta h2{font-size:clamp(34px,3.69vw,58px)!important;line-height:1.05!important;letter-spacing:-.03em!important}
-      body.cheops-prive-theme #about .about-title{font-size:clamp(36px,3.6vw,56px)!important;line-height:1.04!important}
-      body.cheops-prive-theme .office-choice h2{font-size:clamp(31px,2.7vw,45px)!important;line-height:1.02!important}
-      body.single-cheops_unit .sp-title{font-size:clamp(32px,3.6vw,52px)!important;line-height:1.05!important}
-      body.single-cheops_unit .sp-related h2{font-size:34px!important}
-      body.cheops-prive-theme .hero-lead,
-      body.cheops-prive-theme .properties-hero .lead,
-      body.cheops-prive-theme .hero.service-hero .lead,
-      body.cheops-contact-page .contact-lead{font-size:13px!important;line-height:1.7!important}
-
-      /* Dynamic city cards: every Dashboard city gets a stable slot beside the others. */
-      body.cheops-prive-theme .cheops-city-links{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:16px!important;margin-top:38px!important}
-      body.cheops-prive-theme .cheops-city-link{min-height:245px!important;border-radius:22px!important}
-      body.cheops-prive-theme .cheops-city-link .cheops-city-tab-copy{inset:auto 22px 22px!important;gap:7px!important}
-      body.cheops-prive-theme .cheops-city-link .cheops-city-tab-copy strong{font-size:clamp(27px,2.34vw,41px)!important;line-height:1!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:none!important}
-      body.cheops-prive-theme .cheops-city-link .cheops-city-tab-copy small{font-size:7px!important}
-      body.cheops-prive-theme .cheops-city-link .cheops-city-tab-copy em{font-size:8px!important}
-      body.cheops-prive-theme .cheops-city-projects{padding-bottom:65px!important}
-      body.cheops-prive-theme .cheops-city-projects-head{align-items:flex-end!important}
-
-      /* Global word-safety for titles, including titles split into animated character spans. */
-      body.cheops-prive-theme h1,body.cheops-prive-theme h2,body.cheops-prive-theme h3,
-      body.cheops-contact-page h1,body.cheops-contact-page h2,body.cheops-contact-page h3,
-      body.single-cheops_unit h1,body.single-cheops_unit h2,body.single-cheops_unit h3,
-      body.tax-project_city h1,body.tax-project_city h2,body.tax-project_city h3{
-        word-break:normal!important;overflow-wrap:normal!important;hyphens:none!important;-webkit-hyphens:none!important
-      }
-
-      @media(max-width:1180px){
-        body.cheops-prive-theme .cheops-city-links{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-      }
-      @media(max-width:760px){
-        body.cheops-prive-theme .d-xl{font-size:clamp(38px,10.8vw,52px)!important;line-height:1.02!important}
-        body.cheops-prive-theme .d-lg{font-size:clamp(31px,8.55vw,41px)!important;line-height:1.06!important}
-        body.cheops-prive-theme .d-md{font-size:clamp(22px,6.3vw,31px)!important;line-height:1.1!important}
-        body.cheops-prive-theme #hero .hero-title-single{font-size:clamp(38px,10.8vw,52px)!important;line-height:1.04!important;letter-spacing:-.03em!important}
-        body.cheops-prive-theme .properties-hero h1{font-size:clamp(38px,10.8vw,52px)!important;line-height:1.04!important;letter-spacing:-.03em!important;max-width:100%!important}
-        body.cheops-prive-theme .hero.service-hero h1,
-        body.cheops-prive-theme .hero-investment h1{font-size:clamp(36px,9.9vw,49px)!important;line-height:1.08!important;letter-spacing:-.025em!important}
-        body.cheops-contact-page .contact-title{font-size:clamp(36px,9.9vw,49px)!important;line-height:1.06!important;letter-spacing:-.025em!important}
-        body.page-template-page-about #hero .about-hero-title{font-size:clamp(34px,9.45vw,45px)!important;line-height:1.06!important;white-space:normal!important}
-        body.tax-project_city .cheops-city-hero-title{font-size:clamp(36px,9.9vw,50px)!important;line-height:1.04!important}
-        body.tax-project_city .cheops-city-intro h2,
-        body.cheops-prive-theme .section-title,
-        body.cheops-prive-theme .statement,
-        body.cheops-prive-theme .cta h2{font-size:clamp(31px,8.1vw,41px)!important;line-height:1.08!important}
-        body.cheops-prive-theme #about .about-title{font-size:clamp(31px,8.1vw,41px)!important;line-height:1.08!important}
-        body.cheops-prive-theme .office-choice h2{font-size:31px!important}
-        body.cheops-prive-theme .hero-lead,
-        body.cheops-prive-theme .properties-hero .lead,
-        body.cheops-prive-theme .hero.service-hero .lead,
-        body.cheops-contact-page .contact-lead,
-        body.cheops-prive-theme .section-copy{font-size:12px!important;line-height:1.7!important}
-        body.cheops-prive-theme .btn,body.cheops-prive-theme .sp-btn,body.cheops-prive-theme .property-contact-btn,
-        body.cheops-prive-theme .cheops-header-cta,body.cheops-contact-page .contact-call,body.cheops-contact-page .contact-whatsapp,
-        body.cheops-contact-page .contact-submit,body.cheops-contact-page .contact-map-btn{font-size:8px!important;letter-spacing:.13em!important;min-height:44px!important;padding:12px 17px!important}
-        body.cheops-prive-theme .eyebrow,body.cheops-prive-theme .meta,body.cheops-contact-page .contact-eyebrow{font-size:8px!important;letter-spacing:.18em!important}
-        body.cheops-prive-theme .cheops-city-projects-head{align-items:flex-start!important;gap:18px!important}
-        body.cheops-prive-theme .cheops-city-projects-head .btn{margin-top:0!important}
-        body.cheops-prive-theme .cheops-city-links{grid-template-columns:1fr!important;gap:12px!important;margin-top:28px!important}
-        body.cheops-prive-theme .cheops-city-link{min-height:205px!important;border-radius:18px!important}
-        body.cheops-prive-theme .cheops-city-link .cheops-city-tab-copy{inset:auto 18px 18px!important}
-        body.cheops-prive-theme .cheops-city-link .cheops-city-tab-copy strong{font-size:32px!important}
-        body.cheops-prive-theme .m-service-title,body.cheops-prive-theme .mobile-menu nav>a{font-size:27px!important;line-height:1.15!important}
-        body.single-cheops_unit .sp-title{font-size:clamp(32px,9vw,43px)!important}
-        body.single-cheops_unit .sp-related h2{font-size:31px!important}
-      }
-      @media(max-width:378px){
-        body.cheops-prive-theme .d-xl{font-size:40px!important}
-        body.cheops-prive-theme .d-lg{font-size:32px!important}
-        body.cheops-prive-theme #hero .hero-title-single,
-        body.cheops-prive-theme .properties-hero h1,
-        body.cheops-prive-theme .hero.service-hero h1,
-        body.cheops-prive-theme .hero-investment h1,
-        body.cheops-contact-page .contact-title{font-size:36px!important;line-height:1.08!important}
-        body.cheops-prive-theme .section-title,body.cheops-prive-theme .statement,body.cheops-prive-theme .cta h2{font-size:31px!important}
-      }
-
-      /* Header logo: white on load, black once the header goes solid/light. */
-      .cheops-brand .cheops-logo-black{display:none!important}
-      .cheops-brand .cheops-logo-white{display:block!important}
-      .cheops-site-header.is-scrolled .cheops-brand .cheops-logo-white,
-      .single-cheops_unit .cheops-brand .cheops-logo-white,
-      .page-template-page-contact .cheops-brand .cheops-logo-white{display:none!important}
-      .cheops-site-header.is-scrolled .cheops-brand .cheops-logo-black,
-      .single-cheops_unit .cheops-brand .cheops-logo-black,
-      .page-template-page-contact .cheops-brand .cheops-logo-black{display:block!important}
-    
-</style>';
-}
-add_action('wp_head','cheops_v9_compact_typography_css',320);
 
 /* =========================================================
  * Cheops Privé — WordPress admin identity
@@ -1908,7 +1639,37 @@ function cheops_project_map_coords($title,$city='') {
     return $coord;
 }
 
+/*
+ * Front-end data cache. Project/unit lists are rebuilt only when a project,
+ * unit or city changes, instead of running one query per project on every view.
+ */
+function cheops_cache_key($name) {
+    return 'cheops_' . $name . '_' . (int) get_option('cheops_content_version', 1);
+}
+function cheops_bump_content_version($post_id = 0) {
+    if ($post_id && !in_array(get_post_type($post_id), ['cheops_project', 'cheops_unit'], true)) return;
+    update_option('cheops_content_version', (int) get_option('cheops_content_version', 1) + 1, true);
+}
+add_action('save_post', 'cheops_bump_content_version');
+add_action('deleted_post', 'cheops_bump_content_version');
+add_action('trashed_post', 'cheops_bump_content_version');
+add_action('untrashed_post', 'cheops_bump_content_version');
+add_action('created_project_city', function () { cheops_bump_content_version(); });
+add_action('edited_project_city', function () { cheops_bump_content_version(); });
+add_action('delete_project_city', function () { cheops_bump_content_version(); });
+add_action('switch_theme', function () { cheops_bump_content_version(); });
+add_action('after_switch_theme', function () { cheops_bump_content_version(); });
+
 function cheops_project_map_items() {
+    $key = cheops_cache_key('map_items');
+    $cached = get_transient($key);
+    if (is_array($cached)) return $cached;
+    $items = cheops_project_map_items_uncached();
+    set_transient($key, $items, DAY_IN_SECONDS);
+    return $items;
+}
+
+function cheops_project_map_items_uncached() {
     $items=[];
     $q=new WP_Query(['post_type'=>'cheops_project','post_status'=>'publish','posts_per_page'=>-1,'orderby'=>['menu_order'=>'ASC','title'=>'ASC']]);
     while($q->have_posts()){ $q->the_post(); $pid=get_the_ID(); $title=get_the_title();
@@ -1932,8 +1693,6 @@ function cheops_project_map_items() {
 function cheops_render_project_map_section() {
     $items=cheops_project_map_items(); if(!$items) return; $first=$items[0];
     ?>
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
     <section class="ink sec cheops-project-map" id="map">
       <div class="wrap">
         <p class="eyebrow">Projects on the map</p>
@@ -1950,7 +1709,7 @@ function cheops_render_project_map_section() {
         </div>
       </div>
     </section>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <?php cheops_leaflet_loader_js(); ?>
     <script>(function(){
       var data=<?php echo wp_json_encode($items,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE); ?>;
       function boot(){var el=document.getElementById('real-map');if(!el||!window.L){setTimeout(boot,100);return}if(el._leaflet_id)return;
@@ -1962,7 +1721,7 @@ function cheops_render_project_map_section() {
         data.forEach(function(p,i){var m=L.marker(p.coords,{icon:icon(i===0),title:p.name,keyboard:true}).addTo(map).bindTooltip(p.name,{direction:'top',offset:[0,-20],className:'cheops-tooltip'});m.on('click',function(){select(i,false);window.location.href=p.link});markers.push(m)});
         map.fitBounds(L.latLngBounds(data.map(function(p){return p.coords})),{padding:[44,44],maxZoom:9});select(0,false);
         var fix=function(){try{map.invalidateSize(true)}catch(e){}};[50,300,900].forEach(function(t){setTimeout(fix,t)});addEventListener('resize',fix);
-      } if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+      } window.cheopsWhenMapNear(boot);
     })();</script>
     <?php
 }
@@ -1988,357 +1747,28 @@ function cheops_render_logo_band($kind='tenants') {
 function cheops_render_business_tenants(){cheops_render_logo_band('tenants');}
 function cheops_render_developers_band(){cheops_render_logo_band('developers');}
 
-function cheops_v17_polish_css(){ ?>
-<style id="cheops-v17-polish-css">
-/* Vector-like wordmark: avoids raster logo pixelation at all viewport sizes. */
-.cheops-logo-crop{width:auto!important;height:auto!important;overflow:visible!important;background:transparent!important;border-radius:0!important;text-decoration:none!important}
-.cheops-wordmark{position:static!important;inset:auto!important;background:none!important;display:inline-grid;justify-items:center;line-height:1;color:inherit;min-width:118px}.cheops-wordmark strong{font-family:"Romie",Georgia,serif;font-size:27px;font-weight:400;letter-spacing:.045em}.cheops-wordmark small{font:700 7px/1 Arial,sans-serif;letter-spacing:.42em;margin-top:5px;padding-left:.42em}
-.cheops-site-header:not(.is-scrolled) .cheops-wordmark{color:#fff}.cheops-site-header.is-scrolled .cheops-wordmark,.single-cheops_unit .cheops-wordmark,.page-template-page-contact .cheops-wordmark{color:#171717}
-.cheops-header-actions{gap:7px!important}.cheops-header-doc{padding:12px 14px!important;font-size:7.5px!important}.cheops-header-doc-alt{background:rgba(255,255,255,.12)!important;color:#fff!important;border:1px solid rgba(255,255,255,.28)!important}.cheops-site-header.is-scrolled .cheops-header-doc-alt,.single-cheops_unit .cheops-header-doc-alt,.page-template-page-contact .cheops-header-doc-alt{background:#fff!important;color:#171717!important;border-color:#ddd!important}
-/* compact editorial rhythm site-wide */
-body.cheops-prive-theme .sec{padding-top:48px!important;padding-bottom:48px!important}body.cheops-prive-theme h1.d .rl+.rl,body.cheops-prive-theme h2.d .rl+.rl,body.cheops-prive-theme h3.d .rl+.rl{margin-top:-.08em!important}body.cheops-prive-theme .d{line-height:1.01!important}body.cheops-prive-theme .collection-head{margin-bottom:26px!important}
-/* about/editorial compactness */
-body.cheops-prive-theme #about .about-shell{min-height:0!important}body.cheops-prive-theme #about .about-grid{min-height:0!important;gap:28px!important;padding-top:12px!important}body.cheops-prive-theme #about .about-lead{margin-top:14px!important;line-height:1.68!important}body.cheops-prive-theme #about .about-tags{margin-top:18px!important}body.cheops-prive-theme #about .about-copy{gap:20px!important}body.cheops-prive-theme #about .about-footer{margin-top:28px!important;padding-top:18px!important}
-/* logo bands */
-.cheops-logo-band{background:#fff;overflow:hidden;border-top:1px solid rgba(26,26,26,.08);border-bottom:1px solid rgba(26,26,26,.06)}.cheops-logo-band-head{padding-top:26px!important;padding-bottom:14px!important;text-align:left}.cheops-logo-band-head .eyebrow{font-size:10px!important;padding:10px 18px!important;margin:0!important}.cheops-logo-marquee{overflow:hidden;padding:16px 0 28px}.cheops-logo-track{display:flex;width:max-content;animation:cheopsLogoLoop 34s linear infinite;will-change:transform}.cheops-logo-set{display:flex;align-items:center;gap:74px;padding-right:74px}.cheops-logo-item{width:260px;height:112px;flex:0 0 auto;display:grid;place-items:center}.cheops-logo-band-developers .cheops-logo-item{width:220px;height:92px}.cheops-logo-item img{max-width:100%;max-height:100%;width:auto!important;height:auto!important;object-fit:contain!important;border-radius:0!important;filter:none!important;opacity:1!important;transform:none!important;image-rendering:auto!important}@keyframes cheopsLogoLoop{to{transform:translateX(-50%)}}
-/* project map */
-.cheops-project-map{position:relative!important;background:#171717!important;color:#f4f1ec!important;padding:62px 0!important;margin:0 12px!important;border-radius:36px!important;overflow:hidden!important}.cheops-project-map .map-title{margin:15px 0 0!important;color:#fff!important;font-size:clamp(38px,4.2vw,64px)!important;line-height:1!important}.cheops-map-grid{margin-top:32px!important;display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(320px,.95fr)!important;gap:38px!important;align-items:stretch!important}#mapBox{height:480px!important;min-height:480px!important;position:relative!important;overflow:hidden!important;border-radius:22px!important;border:1px solid rgba(255,255,255,.14)!important;background:#d9d4cc!important}#real-map{position:absolute!important;inset:0!important;width:100%!important;height:100%!important}.cheops-map-info{display:flex!important;flex-direction:column!important;justify-content:center!important;color:#fff!important}.cheops-map-info h3{font-size:clamp(34px,3.2vw,52px)!important;line-height:1!important;margin:10px 0 0!important}.cheops-map-info #mStatement{margin:16px 0 0!important;color:rgba(255,255,255,.68)!important;font-size:13px!important;line-height:1.72!important}.cheops-map-info dl{margin:28px 0 0!important}.cheops-map-info dl>div{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.62)}.cheops-map-info dd{margin:0;color:#fff;font-size:16px}.cheops-map-info .link-arrow{margin-top:27px;font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:#e5cfa7}.cheops-map-icon{background:transparent!important;border:0!important}.cheops-pin{display:block;width:24px;height:24px;border-radius:50% 50% 50% 0;background:#e5cfa7;transform:rotate(-45deg);box-shadow:0 7px 18px rgba(0,0,0,.35);position:relative;border:3px solid #171717}.cheops-pin i{display:block;position:absolute;width:7px;height:7px;border-radius:50%;background:#171717;left:5.5px;top:5.5px}.cheops-pin.active{background:#fff}.cheops-tooltip{background:#171717!important;color:#fff!important;border:none!important;border-radius:8px!important}.cheops-tooltip:before{border-top-color:#171717!important}
-/* footer rebuild */
-.cheops-site-footer{padding:66px 28px 26px!important;background:#0d0d0c!important}.cheops-site-footer-inner{max-width:1460px!important}.cheops-footer-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:80px;align-items:end;padding-bottom:48px}.cheops-footer-wordmark{color:#fff;text-decoration:none}.cheops-footer-wordmark .cheops-wordmark{justify-items:start;min-width:190px}.cheops-footer-wordmark .cheops-wordmark strong{font-size:42px}.cheops-footer-wordmark .cheops-wordmark small{font-size:8px;margin-left:5px}.cheops-footer-tagline{font-family:"Romie",Georgia,serif!important;font-size:clamp(44px,5.3vw,82px)!important;line-height:.93!important;letter-spacing:-.045em!important;max-width:720px!important;margin:30px 0 0!important}.cheops-footer-intro{max-width:500px;justify-self:end}.cheops-footer-intro>p{font-size:14px;line-height:1.8;color:rgba(255,255,255,.55);margin:0 0 24px}.cheops-footer-social{display:flex;flex-wrap:wrap;gap:10px}.cheops-footer-social a{display:inline-flex;padding:11px 14px;border:1px solid rgba(255,255,255,.16);border-radius:999px;color:#fff;text-decoration:none;font:700 9px/1 Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;transition:.25s}.cheops-footer-social a:hover{background:#e5cfa7;color:#111;border-color:#e5cfa7;transform:translateY(-2px)}.cheops-footer-links{border-top:1px solid rgba(255,255,255,.12);padding:38px 0 42px;display:grid;grid-template-columns:repeat(3,1fr);gap:46px}.cheops-footer-col h4{font-size:9px!important;margin-bottom:18px!important}.cheops-footer-col a,.cheops-footer-col p{font-size:12px!important;line-height:1.7!important;margin-bottom:9px!important}.cheops-footer-bottom{padding-top:20px!important}
-/* contact typography */
-body.cheops-contact-page .contact-title{font-size:clamp(46px,5vw,72px)!important;line-height:.98!important}body.cheops-contact-page .contact-copy h2{font-size:clamp(42px,4.1vw,62px)!important;line-height:1!important;max-width:650px!important}body.cheops-contact-page .contact-copy>p{font-size:13px!important;line-height:1.72!important}body.cheops-contact-page .contact-form-card h3{font-size:30px!important}body.cheops-contact-page .contact-quick-card span{font-size:18px!important}
-@media(max-width:980px){.cheops-header-doc{display:none!important}.cheops-wordmark strong{font-size:24px}.cheops-map-grid{grid-template-columns:1fr!important}.cheops-footer-hero{grid-template-columns:1fr;gap:36px}.cheops-footer-intro{justify-self:start}.cheops-footer-links{grid-template-columns:1fr 1fr}.cheops-logo-item{width:215px;height:94px}.cheops-logo-band-developers .cheops-logo-item{width:195px;height:84px}}
-@media(max-width:640px){body.cheops-prive-theme .sec{padding-top:38px!important;padding-bottom:38px!important}.cheops-logo-band-head{padding:20px 18px 8px!important}.cheops-logo-band-head .eyebrow{font-size:9px!important}.cheops-logo-set{gap:44px;padding-right:44px}.cheops-logo-item{width:180px;height:82px}.cheops-logo-band-developers .cheops-logo-item{width:172px;height:76px}.cheops-project-map{margin:0 8px!important;padding:48px 0!important;border-radius:26px!important}#mapBox{height:345px!important;min-height:345px!important}.cheops-footer-links{grid-template-columns:1fr}.cheops-site-footer{padding:54px 18px 22px!important}.cheops-footer-tagline{font-size:48px!important}.cheops-footer-wordmark .cheops-wordmark strong{font-size:34px}}
-@media(prefers-reduced-motion:reduce){.cheops-logo-track{animation:none!important}}
-
-</style>
-<?php }
-add_action('wp_head','cheops_v17_polish_css',400);
 
 
 /* =========================================================
    V19 — refined logo headings + compact footer
    ========================================================= */
-function cheops_v19_refine_css(){ ?>
-<style id="cheops-v19-refine-css">
-/* Logo section headings: normal text, selective bold, no pill treatment. */
-.cheops-logo-band-head{
-  max-width:none!important;
-  margin:0!important;
-  padding:24px 48px 8px!important;
-  text-align:left!important;
-}
-.cheops-logo-band-title{
-  margin:0!important;
-  padding:0!important;
-  background:none!important;
-  border:0!important;
-  color:#1a1a1a!important;
-  font-family:"Romie",Georgia,serif!important;
-  font-size:clamp(28px,2.5vw,42px)!important;
-  line-height:1.04!important;
-  font-weight:400!important;
-  letter-spacing:-.02em!important;
-  text-transform:none!important;
-}
-.cheops-logo-marquee{padding-top:12px!important}
-
-/* Footer: compact, quiet, no oversized display statement. */
-.cheops-site-footer{
-  background:#0d0d0c!important;
-  color:#f4f1ec!important;
-  padding:56px 30px 24px!important;
-}
-.cheops-site-footer-inner{max-width:1460px!important;margin:0 auto!important}
-.cheops-footer-main{
-  display:grid!important;
-  grid-template-columns:minmax(280px,1.25fr) repeat(3,minmax(150px,.72fr))!important;
-  gap:58px!important;
-  align-items:start!important;
-  padding-bottom:42px!important;
-}
-.cheops-footer-brand{max-width:390px!important}
-.cheops-footer-wordmark{display:inline-block!important;color:#fff!important;text-decoration:none!important}
-.cheops-footer-wordmark .cheops-wordmark{justify-items:start!important;min-width:150px!important}
-.cheops-footer-wordmark .cheops-wordmark strong{font-size:32px!important;letter-spacing:.05em!important}
-.cheops-footer-wordmark .cheops-wordmark small{font-size:7px!important;margin-top:4px!important;margin-left:4px!important}
-.cheops-footer-brand>p{
-  margin:22px 0 0!important;
-  max-width:360px!important;
-  color:rgba(255,255,255,.56)!important;
-  font-family:Arial,Helvetica,sans-serif!important;
-  font-size:12px!important;
-  line-height:1.75!important;
-}
-.cheops-footer-cta{
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:14px!important;
-  margin-top:22px!important;
-  color:#f4f1ec!important;
-  font:700 9px/1 Arial,Helvetica,sans-serif!important;
-  letter-spacing:.12em!important;
-  text-transform:uppercase!important;
-  text-decoration:none!important;
-  padding-bottom:6px!important;
-  border-bottom:1px solid rgba(229,207,167,.48)!important;
-  transition:color .3s,border-color .3s!important;
-}
-.cheops-footer-cta span{transition:transform .3s!important}
-.cheops-footer-cta:hover{color:#e5cfa7!important;border-color:#e5cfa7!important}
-.cheops-footer-cta:hover span{transform:translateX(4px)!important}
-.cheops-footer-col h4{
-  margin:4px 0 17px!important;
-  color:#d9bd85!important;
-  font:700 9px/1 Arial,Helvetica,sans-serif!important;
-  letter-spacing:.16em!important;
-  text-transform:uppercase!important;
-}
-.cheops-footer-col a,.cheops-footer-col p{
-  display:block!important;
-  margin:0 0 9px!important;
-  color:rgba(255,255,255,.58)!important;
-  font:400 12px/1.6 Arial,Helvetica,sans-serif!important;
-  text-decoration:none!important;
-}
-.cheops-footer-col a{width:max-content;max-width:100%;transition:color .25s,transform .25s!important}
-.cheops-footer-col a:hover{color:#fff!important;transform:translateX(2px)!important}
-.cheops-footer-contact p{max-width:260px!important}
-.cheops-footer-lower{
-  border-top:1px solid rgba(255,255,255,.11)!important;
-  padding-top:20px!important;
-  display:flex!important;
-  align-items:center!important;
-  justify-content:space-between!important;
-  gap:24px!important;
-}
-.cheops-footer-social{display:flex!important;flex-wrap:wrap!important;gap:18px!important}
-.cheops-footer-social a{
-  padding:0!important;
-  border:0!important;
-  border-radius:0!important;
-  background:none!important;
-  color:rgba(255,255,255,.64)!important;
-  font:600 9px/1 Arial,Helvetica,sans-serif!important;
-  letter-spacing:.08em!important;
-  text-transform:none!important;
-  text-decoration:none!important;
-}
-.cheops-footer-social a:hover{background:none!important;color:#e5cfa7!important;transform:none!important}
-.cheops-footer-meta{display:flex!important;gap:24px!important;flex-wrap:wrap!important;color:rgba(255,255,255,.32)!important;font:600 8px/1.4 Arial,Helvetica,sans-serif!important;letter-spacing:.12em!important;text-transform:uppercase!important}
-/* retire older footer layout rules */
-.cheops-footer-hero,.cheops-footer-links,.cheops-footer-bottom,.cheops-footer-tagline,.cheops-footer-intro{display:none!important}
-@media(max-width:980px){
-  .cheops-logo-band-head{padding-left:32px!important;padding-right:32px!important}
-  .cheops-footer-main{grid-template-columns:1.2fr 1fr 1fr!important;gap:38px!important}
-  .cheops-footer-brand{grid-column:1/-1!important;max-width:520px!important}
-}
-@media(max-width:640px){
-  .cheops-logo-band-head{padding:22px 20px 8px!important}
-  .cheops-logo-band-title{font-size:16px!important}
-  .cheops-site-footer{padding:46px 20px 22px!important}
-  .cheops-footer-main{grid-template-columns:1fr 1fr!important;gap:34px 24px!important;padding-bottom:34px!important}
-  .cheops-footer-brand{grid-column:1/-1!important}
-  .cheops-footer-contact{grid-column:1/-1!important}
-  .cheops-footer-lower{align-items:flex-start!important;flex-direction:column!important;gap:18px!important}
-  .cheops-footer-meta{gap:10px 18px!important}
-}
-
-
-/* V22 — compact logo bands: 69% visual width / 80px max height */
-.cheops-logo-track{animation-duration:34s!important;}
-.cheops-logo-set{gap:54px!important;padding-right:54px!important;}
-.cheops-logo-item,.cheops-logo-band-developers .cheops-logo-item{
-  width:170px!important;
-  height:92px!important;
-  overflow:visible!important;
-  flex:0 0 170px!important;
-  display:grid!important;
-  place-items:center!important;
-}
-.cheops-logo-item img{
-  width:auto!important;
-  height:auto!important;
-  max-width:69%!important;
-  max-height:80px!important;
-  object-fit:contain!important;
-  object-position:center center!important;
-  display:block!important;
-}
-.cheops-logo-marquee{padding:10px 0 22px!important;overflow:hidden!important;}
-@media(max-width:980px){
-  .cheops-logo-set{gap:46px!important;padding-right:46px!important;}
-  .cheops-logo-item,.cheops-logo-band-developers .cheops-logo-item{width:150px!important;height:82px!important;flex-basis:150px!important;}
-  .cheops-logo-item img{max-width:69%!important;max-height:72px!important;}
-}
-@media(max-width:640px){
-  .cheops-logo-band-title{font-size:clamp(25px,7.5vw,34px)!important;line-height:1.04!important}
-  .cheops-logo-set{gap:34px!important;padding-right:34px!important;}
-  .cheops-logo-item,.cheops-logo-band-developers .cheops-logo-item{width:128px!important;height:72px!important;flex-basis:128px!important;}
-  .cheops-logo-item img{max-width:72%!important;max-height:62px!important;}
-}
-</style>
-<?php }
-add_action('wp_head','cheops_v19_refine_css',430);
 
 
 /* =========================================================
  * V24 — Clinics category + mobile About title guard
  * ========================================================= */
-function cheops_v24_mobile_about_fix_css(){ ?>
-<style id="cheops-v24-mobile-about-fix-css">
-@media(max-width:640px){
-  body.page-template-page-about #hero .about-hero-title{
-    width:100%!important;
-    max-width:100%!important;
-    margin-left:0!important;
-    margin-right:0!important;
-    padding:0 4px!important;
-    font-size:clamp(30px,9.2vw,40px)!important;
-    line-height:1.06!important;
-    letter-spacing:-.03em!important;
-    white-space:normal!important;
-    overflow:visible!important;
-    text-align:center!important;
-  }
-  body.page-template-page-about #hero .about-hero-title .hero-title-line,
-  body.page-template-page-about #hero .about-hero-title .rl,
-  body.page-template-page-about #hero .about-hero-title .rl>span,
-  body.page-template-page-about #hero .about-hero-title .cheops-word{
-    display:inline!important;
-    width:auto!important;
-    max-width:none!important;
-    overflow:visible!important;
-    white-space:normal!important;
-  }
-  body.page-template-page-about #hero .about-hero-title .hero-title-line{
-    line-height:inherit!important;
-  }
-}
-</style>
-<?php }
-add_action('wp_head','cheops_v24_mobile_about_fix_css',490);
 
 
 /* =========================================================
  * V26 — definitive mobile About hero title wrap
  * ========================================================= */
-function cheops_v26_about_title_css(){ ?>
-<style id="cheops-v26-about-title-css">
-body.page-template-page-about #hero .about-title-part{display:inline-block!important;vertical-align:baseline!important;overflow:visible!important}
-body.page-template-page-about #hero .about-title-first{margin-right:.16em!important}
-@media(max-width:640px){
-  body.page-template-page-about #hero .about-hero-title{
-    width:100%!important;
-    max-width:100%!important;
-    font-size:clamp(38px,11.2vw,54px)!important;
-    line-height:.98!important;
-    letter-spacing:-.035em!important;
-    padding:0 14px!important;
-    overflow:visible!important;
-  }
-  body.page-template-page-about #hero .about-hero-title .hero-title-line{
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    width:100%!important;
-    max-width:100%!important;
-    overflow:visible!important;
-  }
-  body.page-template-page-about #hero .about-title-part,
-  body.page-template-page-about #hero .about-title-part>span,
-  body.page-template-page-about #hero .about-title-part .cheops-word{
-    display:block!important;
-    width:max-content!important;
-    max-width:100%!important;
-    white-space:nowrap!important;
-    overflow:visible!important;
-  }
-  body.page-template-page-about #hero .about-title-first{margin-right:0!important;margin-bottom:.04em!important}
-  body.page-template-page-about #hero .about-title-brand{font-size:.92em!important}
-}
-</style>
-<?php }
-add_action('wp_head','cheops_v26_about_title_css',520);
 
 
 /* =========================================================
    Global CTA typography — one button language across the site
    ========================================================= */
-function cheops_global_uppercase_buttons_css(){ ?>
-<style id="cheops-global-uppercase-buttons">
-.btn,
-button.btn,
-a.btn,
-.cheops-header-cta,
-.cheops-header-doc,
-.property-contact-btn,
-.cheops-footer-cta,
-.cheops-whatsapp-channel,
-.cheops-modal button[type="submit"],
-.cheops-fab-label,
-input[type="submit"],
-button[type="submit"],
-button[type="reset"],
-.link-arrow{
-  font-family:Arial,Helvetica,sans-serif !important;
-  font-size:10px !important;
-  font-weight:800 !important;
-  line-height:1 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-}
-
-/* Keep the same CTA rhythm on the homepage and inner pages. */
-body.home .btn,
-body.home a.btn,
-body.home button.btn,
-body.home .link-arrow,
-body.cheops-prive-theme .btn,
-body.cheops-prive-theme a.btn,
-body.cheops-prive-theme button.btn,
-body.cheops-prive-theme .link-arrow,
-body.cheops-contact-page .btn,
-body.single-cheops_unit .btn,
-body.tax-project_city .btn{
-  font-family:Arial,Helvetica,sans-serif !important;
-  font-size:10px !important;
-  font-weight:800 !important;
-  line-height:1 !important;
-  letter-spacing:.14em !important;
-  text-transform:uppercase !important;
-}
-
-@media(max-width:640px){
-  .btn,button.btn,a.btn,.property-contact-btn,.cheops-footer-cta,.cheops-whatsapp-channel,.link-arrow{
-    font-size:9px !important;
-    letter-spacing:.12em !important;
-  }
-}
-</style>
-<?php }
-add_action('wp_head','cheops_global_uppercase_buttons_css',9999);
 
 
 /* =========================================================
    Logo band heading typography — Romie Regular only
    ========================================================= */
-function cheops_logo_band_romie_regular_css(){ ?>
-<style id="cheops-logo-band-romie-regular-css">
-.cheops-logo-band-title,
-.cheops-logo-band-title strong,
-.cheops-logo-band-title b{
-  font-family:"Romie", Georgia, serif !important;
-  font-weight:400 !important;
-  font-style:normal !important;
-  font-synthesis:none !important;
-  letter-spacing:-.025em !important;
-  text-transform:none !important;
-  text-shadow:none !important;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-}
-</style>
-<?php }
-add_action('wp_head','cheops_logo_band_romie_regular_css',999);

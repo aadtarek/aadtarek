@@ -1,0 +1,4 @@
+/* inline */
+@media(min-width:768px){.grid3{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.intro-grid{grid-template-columns:2fr 1fr}}
+@media(min-width:1024px){.grid3{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(4,1fr)}.map-grid{grid-template-columns:1.6fr 1fr}.foot-grid{grid-template-columns:1.2fr 2fr}}
+

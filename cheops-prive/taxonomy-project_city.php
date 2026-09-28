@@ -8,15 +8,7 @@ $q=new WP_Query([
   'orderby'=>['menu_order'=>'ASC','date'=>'DESC'],
   'tax_query'=>[['taxonomy'=>'project_city','field'=>'term_id','terms'=>(int)$city->term_id]],
 ]);
-// Reuse the supplied Romie face already embedded in the converted source pages, so the city template matches them.
-$home_template=get_template_directory().'/front-page.php';
-$romie_css='';
-if(file_exists($home_template)){
-  $src=file_get_contents($home_template);
-  if(preg_match('/@font-face\s*\{.*?\}/s',$src,$m)) $romie_css=$m[0];
-}
 ?><!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width,initial-scale=1">
-<?php if($romie_css): ?><style><?php echo $romie_css; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></style><?php endif; ?>
 <?php wp_head(); ?></head>
 <body <?php body_class('tax-project_city'); ?>><?php wp_body_open(); cheops_site_header(); ?>
 <main class="cheops-city-page">

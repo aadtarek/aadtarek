@@ -1,0 +1,22 @@
+/* Cheops Privé web fonts. WOFF2 first; the original OpenType file stays as a fallback. */
+@font-face{
+  font-family:"Romie";
+  src:url("../fonts/romie-regular.woff2") format("woff2"),url("../generated/79d5dddb2cad.otf") format("opentype");
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:"Neue Montreal";
+  src:url("../fonts/neue-montreal-regular.woff2") format("woff2");
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:"Neue Montreal";
+  src:url("../fonts/neue-montreal-medium.woff2") format("woff2");
+  font-weight:500;
+  font-style:normal;
+  font-display:swap;
+}
