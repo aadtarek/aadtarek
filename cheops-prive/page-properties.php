@@ -5,10 +5,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Properties — Cheops Privé | Curated Property in Egypt</title>
+<title>Properties | Cheops Privé, Curated Property in Egypt</title>
 
 <meta content="Explore a curated collection of residences, offices, clinics and retail opportunities across Egypt’s prime addresses." name="description"/>
-<meta content="Cheops Privé — Define Your Next Address" property="og:title"/>
+<meta content="Cheops Privé | Define Your Next Address" property="og:title"/>
 <meta content="Browse curated properties across New Cairo, Mostakbal City, the New Capital, the coast and selected prime destinations." property="og:description"/>
 <meta content="website" property="og:type"/>
 <link href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c9193073bb12.png' ); ?>" rel="icon"/>
@@ -73,9 +73,9 @@
   <img id="heroImg" alt="Curated luxury property collection by Cheops Privé" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"/>
   <div class="overlay" style="position:absolute;inset:0"></div>
   <div class="wrap hero-copy">
-    <p class="eyebrow" style="display:flex;align-items:center;gap:12px;opacity:.78"><span class="rule-gold" style="width:40px;display:inline-block"></span> Properties · Private collection</p>
+    <p class="eyebrow" style="display:flex;align-items:center;gap:12px;opacity:.78">Properties · Private collection</p>
     <h1 class="d"><span class="rl"><span>Find the address</span></span><span class="rl"><span>worth <em>choosing.</em></span></span></h1>
-    <p class="lead">A considered collection of homes, workspaces and administrative opportunities across Egypt's most sought-after destinations — selected for quality, location and long-term value.</p>
+    <p class="lead">A considered collection of homes, workspaces and administrative opportunities across Egypt's most sought-after destinations, selected for quality, location and long-term value.</p>
     <div class="hero-meta"><span>Residences</span><span>Offices</span><span>Medical</span><span>Retail</span><span>Curated only</span></div>
     <div style="margin-top:34px;display:flex;flex-wrap:wrap;gap:14px">
       <a class="btn btn-light" href="#property-search">Search properties <span class="ar">→</span></a>

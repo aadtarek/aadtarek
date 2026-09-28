@@ -43,18 +43,48 @@ function cheops_enqueue_front_styles() {
 }
 add_action('wp_enqueue_scripts', 'cheops_enqueue_front_styles', 99);
 
-/** Enqueue a template's own stylesheet(s); call before wp_head(). */
-function cheops_page_css($slug) {
+/**
+ * Enqueue a template's own stylesheet(s); call before wp_head().
+ * $shared: extra files from assets/css/ loaded after the page's late styles.
+ */
+function cheops_page_css($slug, $shared = []) {
     $GLOBALS['cheops_custom_template'] = true;
     cheops_register_front_assets();
     $slug = sanitize_file_name($slug);
     $uri = get_template_directory_uri();
+    $last = 'cheops-theme';
     foreach (['' => ['cheops-fonts'], '-late' => ['cheops-theme']] as $suffix => $deps) {
         $rel = 'assets/css/pages/' . $slug . $suffix . '.css';
         if (file_exists(get_template_directory() . '/' . $rel)) {
             wp_enqueue_style('cheops-page-' . $slug . $suffix, $uri . '/' . $rel, $deps, cheops_asset_ver($rel));
+            if ($suffix === '-late') $last = 'cheops-page-' . $slug . $suffix;
         }
     }
+    foreach ((array) $shared as $name) {
+        $name = sanitize_file_name($name);
+        $rel = 'assets/css/' . $name . '.css';
+        wp_enqueue_style('cheops-' . $name, $uri . '/' . $rel, [$last], cheops_asset_ver($rel));
+        $last = 'cheops-' . $name;
+    }
+}
+
+function cheops_footer_social_icons() {
+    return [
+        'Facebook ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M13.3 21v-8.2h2.8l.4-3.2h-3.2v-2c0-.9.3-1.6 1.6-1.6h1.7V3.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.1v3.2h2.8V21z"/></svg><span class="cheops-home-sr-only">Facebook</span>',
+        'Instagram ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1.1"/></svg><span class="cheops-home-sr-only">Instagram</span>',
+        'LinkedIn ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M5.4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3.7 8.5H7V21H3.7Zm5.5 0h3.2v1.7h.1c.5-1 1.6-2 3.6-2 3.8 0 4.5 2.4 4.5 5.5V21h-3.4v-6.5c0-1.6 0-3.5-2.1-3.5s-2.5 1.7-2.5 3.4V21H9.2Z"/></svg><span class="cheops-home-sr-only">LinkedIn</span>',
+    ];
+}
+
+/** Footer with SVG social icons instead of "Facebook ↗" text links (Home and About). */
+function cheops_use_icon_footer() {
+    if (!function_exists('cheops_site_footer')) return;
+    remove_action('wp_footer', 'cheops_site_footer', 5);
+    add_action('wp_footer', static function () {
+        ob_start();
+        cheops_site_footer();
+        echo strtr(ob_get_clean(), cheops_footer_social_icons());
+    }, 5);
 }
 
 /** Print GSAP, ScrollTrigger and Lenis once, right before the inline scripts that use them. */
@@ -74,6 +104,40 @@ add_action('wp_enqueue_scripts', 'cheops_dequeue_unused_core_css', 100);
 
 remove_action('wp_head', 'print_emoji_detection_script', 7);
 remove_action('wp_print_styles', 'print_emoji_styles');
+
+/*
+ * No dashes between words on the front end. Theme copy is written without them;
+ * this catches data: WordPress turns "Villa - REF" titles into "Villa – REF",
+ * and imported badges read "Leased — Tenant". Spaced dashes in visible text
+ * become a middle dot. Scripts, styles and form fields are left untouched.
+ */
+function cheops_clean_dashes($text) {
+    return preg_replace('/(?:\s|&nbsp;)+(?:-|–|—|&#8211;|&#8212;|&ndash;|&mdash;)(?:\s|&nbsp;)+/u', ' · ', (string) $text);
+}
+
+function cheops_clean_dashes_html($html) {
+    if (stripos($html, '<html') === false) return $html;
+    $parts = preg_split('#(<script\b.*?</script>|<style\b.*?</style>|<textarea\b.*?</textarea>|<[^>]*>)#is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+    if (!is_array($parts)) return $html;
+    foreach ($parts as $i => $part) {
+        if ($part === '') continue;
+        if ($i % 2 === 0) {
+            $parts[$i] = cheops_clean_dashes($part);
+        } elseif ($part[0] === '<' && $part[1] !== '/' && stripos($part, '<script') !== 0 && stripos($part, '<style') !== 0 && stripos($part, '<textarea') !== 0) {
+            // Readable attributes (tooltips, alt text, labels) follow the same rule.
+            $parts[$i] = preg_replace_callback('/\s(alt|title|aria-label)="([^"]*)"/i', static function ($m) {
+                return ' ' . $m[1] . '="' . cheops_clean_dashes($m[2]) . '"';
+            }, $part);
+        }
+    }
+    return implode('', $parts);
+}
+
+function cheops_start_dash_filter() {
+    if (is_admin() || wp_doing_ajax() || is_feed() || (defined('REST_REQUEST') && REST_REQUEST)) return;
+    ob_start('cheops_clean_dashes_html');
+}
+add_action('template_redirect', 'cheops_start_dash_filter', 99);
 
 function cheops_preload_fonts() {
     if (is_admin()) return;
@@ -129,7 +193,7 @@ function cheops_email() {
     return get_theme_mod('cheops_email', 'hello@cheopsprive.com');
 }
 function cheops_address() {
-    return get_theme_mod('cheops_address', 'Bldg C – Laketown Plaza, New Cairo – Egypt');
+    return preg_replace('/\s+[–—-]\s+/u', ', ', (string) get_theme_mod('cheops_address', 'Bldg C, Laketown Plaza, New Cairo, Egypt'));
 }
 function cheops_whatsapp_url($message = '') {
     $raw = preg_replace('/\D+/', '', get_theme_mod('cheops_whatsapp', '01279366691'));
@@ -174,7 +238,7 @@ function cheops_customize_register( $wp_customize ) {
         ],
         'cheops_address' => [
             'label' => 'Office address',
-            'default' => 'Bldg C – Laketown Plaza, New Cairo – Egypt',
+            'default' => 'Bldg C, Laketown Plaza, New Cairo, Egypt',
             'sanitize' => 'sanitize_text_field',
         ],
     ];
@@ -835,7 +899,7 @@ function cheops_render_project_row($pid,$city,$n=1) {
     $reverse=($n%2===0);
     echo '<article class="proj reveal cheops-project-dynamic cheops-city-project-row">';
     if(!$reverse) echo '<a class="zoom" data-cursor="View project" href="'.esc_url($link).'" style="position:relative;min-height:460px"><img src="'.esc_url($img).'" alt="'.esc_attr(get_the_title($pid).' in '.$city->name).'" loading="lazy" /></a>';
-    echo '<div class="cheops-project-copy'.($reverse?' is-reverse':'').'"><p class="eyebrow gold">Project '.str_pad((string)$n,2,'0',STR_PAD_LEFT).'</p><h3 class="d">'.esc_html(get_the_title($pid)).'</h3><p class="cheops-project-desc">'.esc_html($desc).'</p><dl><div><dt class="meta">Location</dt><dd>'.esc_html($city->name).'</dd></div><div><dt class="meta">Property type</dt><dd>'.esc_html($type ?: 'Mixed use').'</dd></div><div><dt class="meta">Starting price</dt><dd class="d">'.esc_html($price ?: 'On request').'</dd></div><div><dt class="meta">Available units</dt><dd class="d">'.esc_html($units ?: '—').'</dd></div></dl><a class="link-arrow" href="'.esc_url($link).'">Explore project <span class="ar">→</span></a><span class="rule-gold"></span></div>';
+    echo '<div class="cheops-project-copy'.($reverse?' is-reverse':'').'"><p class="eyebrow gold">Project '.str_pad((string)$n,2,'0',STR_PAD_LEFT).'</p><h3 class="d">'.esc_html(get_the_title($pid)).'</h3><p class="cheops-project-desc">'.esc_html($desc).'</p><dl><div><dt class="meta">Location</dt><dd>'.esc_html($city->name).'</dd></div><div><dt class="meta">Property type</dt><dd>'.esc_html($type ?: 'Mixed use').'</dd></div><div><dt class="meta">Starting price</dt><dd class="d">'.esc_html($price ?: 'On request').'</dd></div><div><dt class="meta">Available units</dt><dd class="d">'.esc_html($units ?: '—').'</dd></div></dl><a class="link-arrow" href="'.esc_url($link).'">Explore project <span class="ar">→</span></a></div>';
     if($reverse) echo '<a class="zoom" data-cursor="View project" href="'.esc_url($link).'" style="position:relative;min-height:460px"><img src="'.esc_url($img).'" alt="'.esc_attr(get_the_title($pid).' in '.$city->name).'" loading="lazy" /></a>';
     echo '</article>';
 }
@@ -849,7 +913,7 @@ function cheops_contact_form_handler() {
     $message=sanitize_textarea_field(wp_unslash($_POST['message'] ?? ''));
     if(!$name || !$phone){ wp_safe_redirect(add_query_arg('contact','missing',home_url('/contact/'))); exit; }
     $to=cheops_email(); if(!$to) $to=get_option('admin_email');
-    $subject='Cheops Privé enquiry — '.$name;
+    $subject='Cheops Privé enquiry: '.$name;
     $body="Name: {$name}\nPhone: {$phone}\nEmail: {$email}\nInterest: {$interest}\n\nMessage:\n{$message}";
     $headers=[]; if($email) $headers[]='Reply-To: '.$name.' <'.$email.'>';
     wp_mail($to,$subject,$body,$headers);
@@ -1303,8 +1367,41 @@ function cheops_floating_widgets() {
       .cheops-modal-close{position:absolute;top:16px;right:16px;background:none;border:0;font-size:20px;cursor:pointer;color:#999;width:32px;height:32px}
       .cheops-modal label{display:block;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#666;margin:14px 0 6px}
       .cheops-modal input{width:100%;border:1px solid #ddd;border-radius:12px;padding:12px 14px;font:inherit;font-size:14px;box-sizing:border-box;color:#171717}
-      .cheops-modal button[type=submit]{margin-top:20px;width:100%;background:#171717;color:#fff;border:0;border-radius:999px;padding:15px;font:800 11px/1 Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;cursor:pointer}
-      .cheops-modal button[type=submit]:disabled{opacity:.6;cursor:default}
+      /* Date and time: same look on iOS/Android as the text fields (native pickers still open on tap). */
+      .cheops-modal .cheops-field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .cheops-modal .cheops-field-row>div{min-width:0}
+      .cheops-modal input[type=date],.cheops-modal input[type=time]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;height:48px;min-height:48px;line-height:1.2;background:#fff;text-align:left;padding-top:0;padding-bottom:0}
+      .cheops-modal input[type=date]::-webkit-date-and-time-value,.cheops-modal input[type=time]::-webkit-date-and-time-value{text-align:left;margin:0;min-height:1.2em}
+      .cheops-modal input[type=date]::-webkit-calendar-picker-indicator,.cheops-modal input[type=time]::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer;margin-left:4px}
+      .cheops-modal input:focus{outline:none;border-color:#c9a86a;box-shadow:0 0 0 3px rgba(201,168,106,.22)}
+      @media(max-width:640px){.cheops-modal{padding:28px 22px}.cheops-modal input{font-size:16px}}
+      @media(max-width:340px){.cheops-modal .cheops-field-row{grid-template-columns:1fr;gap:0}}
+      /* Animated submit button */
+      .cheops-modal button[type=submit]{position:relative;overflow:hidden;isolation:isolate;margin-top:22px;width:100%;min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;background:#171717;color:#fff;border:0;border-radius:999px;padding:15px 20px;font:800 11px/1 Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;cursor:pointer;box-shadow:0 14px 30px -18px rgba(0,0,0,.55);transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,background-color .35s,color .35s}
+      .cheops-modal button[type=submit]:before{content:"";position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(135deg,#e5cfa7,#fff,#c9a86a);background-size:200% 200%;transform:scaleX(0);transform-origin:left center;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+      .cheops-modal button[type=submit]:after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-18deg);animation:cheopsBtnSheen 3.4s cubic-bezier(.4,0,.2,1) infinite}
+      .cheops-modal button[type=submit] .cheops-btn-arrow{display:inline-block;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+      .cheops-modal button[type=submit]:hover:not(:disabled),.cheops-modal button[type=submit]:focus-visible{transform:translateY(-2px);color:#171717;box-shadow:0 20px 40px -18px rgba(201,168,106,.75)}
+      .cheops-modal button[type=submit]:hover:not(:disabled):before,.cheops-modal button[type=submit]:focus-visible:before{transform:scaleX(1);animation:cheopsBtnShift 3.2s linear infinite}
+      .cheops-modal button[type=submit]:hover:not(:disabled) .cheops-btn-arrow{transform:translateX(5px)}
+      .cheops-modal button[type=submit]:active:not(:disabled){transform:translateY(0) scale(.98)}
+      .cheops-modal button[type=submit]:disabled{cursor:default}
+      .cheops-modal button[type=submit].is-loading .cheops-btn-text,.cheops-modal button[type=submit].is-loading .cheops-btn-arrow{opacity:0}
+      .cheops-modal button[type=submit].is-loading:after{left:50%;top:50%;bottom:auto;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;background:none;transform:none;z-index:1;animation:cheopsBtnSpin .7s linear infinite}
+      .cheops-modal button[type=submit].is-done{background:#d5b578;color:#171717}
+      .cheops-modal button[type=submit].is-done:after{content:none}
+      @keyframes cheopsBtnSheen{0%{left:-60%}55%,100%{left:130%}}
+      @keyframes cheopsBtnSpin{to{transform:rotate(360deg)}}
+      @keyframes cheopsBtnShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+      @media(prefers-reduced-motion:reduce){.cheops-modal button[type=submit]:after{animation:none;content:none}.cheops-modal button[type=submit].is-loading:after{content:"";animation:cheopsBtnSpin 1.4s linear infinite}}
+      /* Hide (x) buttons on the two floating buttons */
+      .cheops-fab-dismiss{position:fixed;z-index:9991;width:24px;height:24px;padding:0;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(23,23,23,.14);background:#fff;color:#171717;font:400 16px/1 Arial,sans-serif;cursor:pointer;box-shadow:0 6px 16px -8px rgba(0,0,0,.45);transition:transform .25s,background-color .25s,color .25s}
+      .cheops-fab-dismiss:hover,.cheops-fab-dismiss:focus-visible{background:#171717;color:#fff;transform:scale(1.08)}
+      .cheops-fab-dismiss:focus-visible{outline:2px solid #c9a86a;outline-offset:2px}
+      #cheopsBookFabDismiss{left:66px;bottom:66px}
+      #cheopsNewsletterFabDismiss{right:66px;bottom:66px}
+      .cheops-fab.is-hidden,.cheops-fab-dismiss.is-hidden{display:none!important}
+      @media(max-width:640px){#cheopsBookFabDismiss{left:44px;bottom:44px}#cheopsNewsletterFabDismiss{right:44px;bottom:44px}.cheops-fab-dismiss{width:22px;height:22px;font-size:14px}}
       .cheops-modal .cheops-whatsapp-channel{margin-top:10px;width:100%;min-height:46px;display:flex;align-items:center;justify-content:center;gap:9px;border:1px solid #171717;border-radius:999px;color:#171717;background:#fff;text-decoration:none;font:800 10px/1 Arial,sans-serif;text-transform:uppercase;letter-spacing:.09em;box-sizing:border-box;transition:background .28s,color .28s,transform .28s}.cheops-modal .cheops-whatsapp-channel:hover{background:#171717;color:#fff;transform:translateY(-1px)}.cheops-modal .cheops-whatsapp-channel svg{width:17px;height:17px;fill:currentColor}
       .cheops-modal .cheops-form-msg{margin-top:12px;font-size:12px;display:none}
       .cheops-modal .cheops-form-msg.ok{color:#31572c;display:block}
@@ -1314,18 +1411,22 @@ function cheops_floating_widgets() {
 
     <button class="cheops-fab" id="cheopsBookFab" type="button" aria-label="Book a meeting"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4M16 3v4M4 10h16M8 14h3M8 17h6"></path></svg><span class="cheops-fab-label">Book a meeting</span></button>
     <button class="cheops-fab" id="cheopsNewsletterFab" type="button" aria-label="Join our newsletter"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v12H4z"></path><path d="m4 7 8 6 8-6"></path></svg><span class="cheops-fab-label">Join our newsletter</span></button>
+    <button class="cheops-fab-dismiss" id="cheopsBookFabDismiss" type="button" data-fab="cheopsBookFab" aria-label="Hide the book a meeting button">&times;</button>
+    <button class="cheops-fab-dismiss" id="cheopsNewsletterFabDismiss" type="button" data-fab="cheopsNewsletterFab" aria-label="Hide the newsletter button">&times;</button>
 
     <div class="cheops-modal-overlay" id="cheopsBookOverlay">
       <div class="cheops-modal">
         <button class="cheops-modal-close" type="button" data-close aria-label="Close">&times;</button>
         <h3>Book a meeting</h3>
-        <p class="desc">Pick a day and time that works for you — our team will confirm shortly.</p>
+        <p class="desc">Pick a day and time that works for you and our team will confirm shortly.</p>
         <form id="cheopsBookForm">
           <label>Name</label><input type="text" name="name" required>
           <label>Phone or email</label><input type="text" name="contact" required>
-          <label>Date</label><input type="date" name="date" required>
-          <label>Time</label><input type="time" name="time" required>
-          <button type="submit">Request meeting</button>
+          <div class="cheops-field-row">
+            <div><label for="cheopsBookDate">Date</label><input id="cheopsBookDate" type="date" name="date" required></div>
+            <div><label for="cheopsBookTime">Time</label><input id="cheopsBookTime" type="time" name="time" step="900" required></div>
+          </div>
+          <button type="submit"><span class="cheops-btn-text">Send request</span> <span class="cheops-btn-arrow" aria-hidden="true">→</span></button>
           <p class="cheops-form-msg"></p>
         </form>
       </div>
@@ -1339,7 +1440,7 @@ function cheops_floating_widgets() {
         <form id="cheopsNewsletterForm">
           <label>Email address</label><input type="email" name="email" autocomplete="email" required>
           <label>WhatsApp number (with country code)</label><input type="tel" name="whatsapp" inputmode="tel" autocomplete="tel" placeholder="+20 1XX XXX XXXX" required>
-          <button type="submit">Subscribe</button>
+          <button type="submit"><span class="cheops-btn-text">Subscribe</span> <span class="cheops-btn-arrow" aria-hidden="true">→</span></button>
           <a class="cheops-whatsapp-channel" href="https://whatsapp.com/channel/0029Vb8qAs06GcG9zZOJHP2S" target="_blank" rel="noopener noreferrer" aria-label="Join Cheops Privé Residential channel on WhatsApp"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M19.11 17.37c-.27-.14-1.61-.79-1.86-.88-.25-.09-.43-.14-.61.14-.18.27-.7.88-.86 1.06-.16.18-.32.2-.59.07-.27-.14-1.15-.42-2.19-1.35-.81-.72-1.36-1.61-1.52-1.88-.16-.27-.02-.42.12-.55.12-.12.27-.32.41-.48.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.02-.22-.53-.45-.46-.61-.47h-.52c-.18 0-.48.07-.73.34-.25.27-.95.93-.95 2.27s.98 2.63 1.11 2.81c.14.18 1.92 2.93 4.65 4.11.65.28 1.16.45 1.55.57.65.21 1.24.18 1.71.11.52-.08 1.61-.66 1.84-1.29.23-.64.23-1.2.16-1.31-.07-.12-.25-.18-.52-.32z"></path><path d="M16.03 3.2c-7.03 0-12.75 5.72-12.75 12.75 0 2.25.59 4.45 1.7 6.38L3.2 28.8l6.62-1.74a12.72 12.72 0 0 0 6.21 1.59h.01c7.03 0 12.75-5.72 12.75-12.75S23.07 3.2 16.03 3.2zm0 23.3h-.01a10.55 10.55 0 0 1-5.38-1.47l-.39-.23-3.93 1.03 1.05-3.83-.25-.39a10.56 10.56 0 1 1 8.91 4.89z"></path></svg><span>Join us on WhatsApp</span></a>
           <p class="cheops-form-msg"></p>
         </form>
@@ -1358,6 +1459,18 @@ function cheops_floating_widgets() {
       bind('cheopsBookFab','cheopsBookOverlay');
       bind('cheopsNewsletterFab','cheopsNewsletterOverlay');
 
+      // (x) hides a floating button for the rest of the visit.
+      document.querySelectorAll('.cheops-fab-dismiss').forEach(function(x){
+        var fab=document.getElementById(x.getAttribute('data-fab')), key='cheops_fab_hidden_'+x.getAttribute('data-fab');
+        function hide(){ x.classList.add('is-hidden'); if(fab) fab.classList.add('is-hidden'); }
+        try{ if(sessionStorage.getItem(key)) hide(); }catch(e){}
+        x.addEventListener('click', function(){ hide(); try{ sessionStorage.setItem(key,'1'); }catch(e){} });
+      });
+
+      // Meeting date cannot be in the past.
+      var dateInput=document.getElementById('cheopsBookDate');
+      if(dateInput){ var d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); dateInput.min=d.toISOString().slice(0,10); }
+
       function handleForm(formId, action){
         var form=document.getElementById(formId);
         if(!form) return;
@@ -1368,17 +1481,23 @@ function cheops_floating_widgets() {
           var data=new FormData(form);
           data.append('action', action);
           data.append('_wpnonce', '<?php echo esc_js( wp_create_nonce('cheops_leads_nonce') ); ?>');
-          btn.disabled=true;
+          btn.disabled=true; btn.classList.remove('is-done'); btn.classList.add('is-loading');
+          var label=btn.querySelector('.cheops-btn-text'), original=label?label.textContent:'';
+          function finish(ok){
+            btn.classList.remove('is-loading');
+            if(ok&&label){ btn.classList.add('is-done'); label.textContent=action==='cheops_book_meeting'?'Request sent':'Subscribed';
+              setTimeout(function(){ btn.classList.remove('is-done'); label.textContent=original; },3000); }
+          }
           fetch('<?php echo esc_url( admin_url('admin-ajax.php') ); ?>', { method:'POST', body:data, credentials:'same-origin' })
             .then(function(r){ return r.json(); })
             .then(function(res){
-              btn.disabled=false;
+              btn.disabled=false; finish(!!res.success);
               msg.className='cheops-form-msg '+(res.success?'ok':'err');
               msg.textContent = (res.data && res.data.message) ? res.data.message : (res.success ? 'Thank you!' : 'Something went wrong.');
               if(res.success) form.reset();
             })
             .catch(function(){
-              btn.disabled=false;
+              btn.disabled=false; finish(false);
               msg.className='cheops-form-msg err';
               msg.textContent='Something went wrong. Please try again.';
             });
@@ -1410,7 +1529,7 @@ function cheops_handle_book_meeting() {
         update_post_meta($post_id, '_cheops_booking_contact', $contact);
         update_post_meta($post_id, '_cheops_booking_date', $date);
         update_post_meta($post_id, '_cheops_booking_time', $time);
-        wp_send_json_success(['message' => 'Thanks — we will confirm your meeting shortly.']);
+        wp_send_json_success(['message' => 'Thanks, we will confirm your meeting shortly.']);
     }
     wp_send_json_error(['message' => 'Something went wrong. Please try again.']);
 }
@@ -1433,7 +1552,7 @@ function cheops_handle_newsletter_signup() {
     $existing = get_posts(['post_type' => 'cheops_subscriber', 'title' => $email, 'posts_per_page' => 1, 'fields' => 'ids']);
     if ($existing) {
         update_post_meta((int) $existing[0], '_cheops_subscriber_whatsapp', $whatsapp);
-        wp_send_json_success(['message' => 'You are already subscribed — your WhatsApp number has been updated.']);
+        wp_send_json_success(['message' => 'You are already subscribed. Your WhatsApp number has been updated.']);
     }
 
     $post_id = wp_insert_post([
@@ -1603,6 +1722,7 @@ add_action('admin_post_cheops_import_lake_town_units', 'cheops_import_lake_town_
 
 /* Curated Portfolio AUG26 — projects + units importer */
 require_once get_template_directory() . '/inc/portfolio-aug26-import.php';
+require_once get_template_directory() . '/inc/service-pages.php';
 
 
 /* =========================================================
@@ -1644,7 +1764,7 @@ function cheops_project_map_coords($title,$city='') {
  * unit or city changes, instead of running one query per project on every view.
  */
 function cheops_cache_key($name) {
-    return 'cheops_' . $name . '_' . (int) get_option('cheops_content_version', 1);
+    return 'cheops_' . $name . '_v2_' . (int) get_option('cheops_content_version', 1);
 }
 function cheops_bump_content_version($post_id = 0) {
     if ($post_id && !in_array(get_post_type($post_id), ['cheops_project', 'cheops_unit'], true)) return;
@@ -1679,7 +1799,7 @@ function cheops_project_map_items_uncached() {
         $real_units=count($unit_ids); if(!$real_units) continue;
         $lat=get_post_meta($pid,'_cheops_project_lat',true); $lng=get_post_meta($pid,'_cheops_project_lng',true); $coords=($lat!=='' && $lng!=='')?[(float)$lat,(float)$lng]:cheops_project_map_coords($title,$city);
         $items[]=[
-            'name'=>$title,'dest'=>$city ?: 'Project','coords'=>$coords,
+            'name'=>cheops_clean_dashes($title),'dest'=>$city ?: 'Project','coords'=>$coords,
             'statement'=>$desc ?: 'Explore the available residences and private opportunities in this project.',
             'price'=>get_post_meta($pid,'_cheops_project_start_price',true) ?: 'On request',
             'units'=>(string)$real_units,

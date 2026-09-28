@@ -16,7 +16,7 @@ $q=new WP_Query([
     <div class="cheops-city-hero-media" style="background-image:url('<?php echo esc_url($cover); ?>')"></div>
     <div class="cheops-city-hero-overlay"></div>
     <div class="cheops-city-hero-content reveal">
-      <p class="cheops-city-hero-kicker"><span class="rule-gold" style="display:inline-block;width:38px;margin-right:12px;vertical-align:middle"></span> </p>
+      <p class="cheops-city-hero-kicker"></p>
       <h1 class="cheops-city-hero-title d"><?php echo esc_html($city->name); ?></h1>
       <div class="cheops-city-hero-meta"><span><?php echo esc_html((int)$city->count); ?> projects</span><span>Curated opportunities</span><span>Cheops Privé</span></div>
     </div>

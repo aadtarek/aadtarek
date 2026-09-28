@@ -1,16 +1,17 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
+<?php cheops_use_icon_footer(); ?>
 <!DOCTYPE html>
 
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>About Cheops Privé — A Private Approach to Property in Egypt</title>
+<title>About Cheops Privé | A Private Approach to Property in Egypt</title>
 <link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>">
 
 
 <meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast." name="description"/>
-<meta content="Cheops Privé — Define Your Next Address" property="og:title"/>
+<meta content="Cheops Privé | Define Your Next Address" property="og:title"/>
 <meta content="Discover projects, destinations, developers and properties across Egypt's most prime addresses." property="og:description"/>
 <meta content="website" property="og:type"/>
 <link href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c9193073bb12.png' ); ?>" rel="icon"/>
@@ -20,10 +21,10 @@
 
 
 
-<?php cheops_page_css('about'); ?>
+<?php cheops_page_css('about', ['home-refinements']); ?>
 <?php wp_head(); ?>
 </head>
-<body <?php body_class(); ?>><?php cheops_site_header(); ?>
+<body <?php body_class('cheops-home-edited cheops-about-page'); ?>><?php cheops_site_header(); ?>
 <?php wp_body_open(); ?>
 <!-- CHEOPS VIDEO PRELOADER: added without changing existing page content -->
 <div aria-label="Loading" id="cheops-video-preloader">
@@ -75,54 +76,40 @@
 <div class="about-frame"></div>
 <span class="hero-side">Cheops Privé · Private property office</span>
 <div class="wrap" style="position:relative;z-index:2;color:#fff;padding-bottom:56px;width:100%">
-<p class="eyebrow" style="display:flex;align-items:center;gap:12px;opacity:.75"><span class="rule-gold" style="width:40px;display:inline-block"></span> Who we are</p>
+<p class="eyebrow" style="display:flex;align-items:center;gap:12px;opacity:.75">Who we are</p>
 <h1 class="d d-xl hero-title-single about-hero-title" style="margin:18px 0 0">
   <span class="hero-title-line hero-title-line-main">
     <span class="rl about-title-part about-title-first"><span>About</span></span>
     <span class="rl about-title-part about-title-brand"><span>Cheops Privé</span></span>
   </span>
 </h1>
-<p class="hero-lead">A private-office approach to property discovery in Egypt — curating projects, destinations and residences worth belonging to.</p>
+<p class="hero-lead">A private-office approach to property discovery in Egypt, curating projects, destinations and residences worth belonging to.</p>
 <div style="margin-top:38px;display:flex;flex-wrap:wrap;gap:18px">
 <a class="btn btn-light" href="#values">Our collection <span class="ar">→</span></a>
-<a class="btn btn-light" href="#contact">Talk to us <span class="ar">→</span></a>
-</div>
-<div class="about-hero-meta">
-<div><span class="n d">2014</span><span class="l">Founded in Cairo</span></div>
-<div><span class="n d">06</span><span class="l">Prime destinations</span></div>
-<div><span class="n d">1:1</span><span class="l">Private advisory</span></div>
+<a class="btn btn-light" href="<?php echo esc_url(home_url('/contact/')); ?>">Talk to us <span class="ar">→</span></a>
 </div>
 <div style="margin-top:40px;display:flex;align-items:center;gap:16px;font-size:.522rem;letter-spacing:.26em;text-transform:uppercase;opacity:.6">
-      Scroll to explore <span class="scroll-line"></span>
+      Scroll to explore
 </div>
 </div>
 </section><section class="sec wrap" id="about">
   <div class="about-shell reveal">
     <div class="about-top">
-      <div class="about-kicker"><i></i> About Cheops Privé</div>
-      <div class="about-index">01 / 04</div>
+      <div class="about-kicker">About Cheops Privé</div>
     </div>
     <div class="about-grid">
       <div class="about-intro">
         <h2 class="about-title d">A more considered way to find your next address.</h2>
         <p class="about-lead">Everything we feature is selected to make the search feel clearer, calmer and more personal not louder.</p>
-        <div class="about-tags">
-          <span>Curated projects</span>
-          <span>Prime destinations</span>
-          <span>Private guidance</span>
-        </div>
+        <a class="btn btn-light cheops-about-properties" href="<?php echo esc_url(home_url('/properties/')); ?>">Explore Properties <span class="ar">→</span></a>
       </div>
       <div class="about-copy">
-        <p>Cheops Privé takes a more considered approach to property discovery. We bring together exceptional projects, destinations and individual residences into one curated experience — designed to make finding your next address feel more personal, refined and effortless.</p>
+        <p>Cheops Privé takes a more considered approach to property discovery. We bring together exceptional projects, destinations and individual residences into one curated experience, designed to make finding your next address feel more personal, refined and effortless.</p>
         <div class="about-points">
           <div class="about-point"><div class="about-num" data-count="228" data-suffix="+">0</div><div class="about-label">Projects indexed</div></div>
           <div class="about-point"><div class="about-num" data-count="6130">0</div><div class="about-label">Live properties</div></div>
         </div>
       </div>
-    </div>
-    <div class="about-footer">
-      <p>Private guidance. Curated addresses. One refined journey.</p>
-      <a class="btn" href="#properties">Explore the collection <span class="ar">→</span></a>
     </div>
   </div>
 </section>
@@ -150,7 +137,7 @@
     <h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Three principles,</span></span><span class="rl"><span>no exceptions.</span></span></h2>
     <div class="val-grid">
       <div class="val reveal"><div class="n">01</div><h3 class="d">Curation before volume</h3><p>Every project is reviewed before it reaches you. If it does not hold up in person, it does not appear here.</p></div>
-      <div class="val reveal"><div class="n">02</div><h3 class="d">Private guidance</h3><p>One advisor, start to finish — from the first shortlist to handover, contracts and leasing terms.</p></div>
+      <div class="val reveal"><div class="n">02</div><h3 class="d">Private guidance</h3><p>One advisor from the first shortlist to handover, contracts and leasing terms.</p></div>
       <div class="val reveal"><div class="n">03</div><h3 class="d">Clarity on numbers</h3><p>Real starting prices, real availability, real payment plans. No pressure, no invented urgency.</p></div>
     </div>
   </div>
@@ -196,7 +183,7 @@
     <div class="faq-list" style="margin-top:0;max-width:880px">
       <details class="faq-item reveal">
         <summary>What is Cheops Privé?</summary>
-        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast. We focus on clarity and quality — not volume.</p>
+        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast. We focus on clarity and quality, not volume.</p>
       </details>
       <details class="faq-item reveal">
         <summary>Do you charge buyers a commission?</summary>
@@ -204,7 +191,7 @@
       </details>
       <details class="faq-item reveal">
         <summary>Which areas do you cover?</summary>
-        <p>Primarily New Cairo, Shorouk, Mostakbal City and the North Coast — with selected opportunities in other prime destinations on request.</p>
+        <p>Primarily New Cairo, Shorouk, Mostakbal City and the North Coast, with selected opportunities in other prime destinations on request.</p>
       </details>
       <details class="faq-item reveal">
         <summary>Can I request a private viewing?</summary>

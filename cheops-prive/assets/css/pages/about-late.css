@@ -163,3 +163,17 @@
 @media(min-width:768px){.grid3{grid-template-columns:repeat(2,1fr)}.grid4{grid-template-columns:repeat(2,1fr)}.intro-grid{grid-template-columns:2fr 1fr}}
 @media(min-width:1024px){.grid3{grid-template-columns:repeat(3,1fr)}.grid4{grid-template-columns:repeat(4,1fr)}.map-grid{grid-template-columns:1.6fr 1fr}.foot-grid{grid-template-columns:1.2fr 2fr}}
 
+/* about-hero-title-fix: the page-template-page-about class is never set (the template is picked by slug),
+   so these rules use the class the template adds itself. Keeps "About Cheops Privé" fully visible. */
+html body.cheops-about-page #hero .hero-lead{margin:16px auto 0!important;text-align:center!important;max-width:640px!important}
+html body.cheops-about-page #hero .about-hero-title{text-align:center!important;margin-left:auto!important;margin-right:auto!important}
+html body.cheops-about-page #hero .about-hero-title .hero-title-line{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:baseline!important;column-gap:.22em!important;row-gap:0!important}
+html body.cheops-about-page #hero .about-hero-title .about-title-part{display:block!important;margin:0!important;max-width:100%!important}
+html body.cheops-about-page #hero .about-hero-title .about-title-part>span{display:block!important}
+@media(max-width:760px){
+  html body.cheops-about-page #hero .about-hero-title{font-size:clamp(40px,12.5vw,58px)!important;line-height:1.04!important;white-space:normal!important;max-width:100%!important}
+  html body.cheops-about-page #hero .about-hero-title .hero-title-line{flex-direction:column!important;align-items:center!important}
+  html body.cheops-about-page #hero .about-hero-title .about-title-part,
+  html body.cheops-about-page #hero .about-hero-title .about-title-part *{white-space:nowrap!important}
+}
+

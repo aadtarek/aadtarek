@@ -1,20 +1,5 @@
 <?php if ( ! defined( 'ABSPATH' ) ) exit; ?>
-<?php
-/* This template's footer uses SVG social icons; other pages retain their current footer. */
-if (function_exists('cheops_site_footer')) {
-    remove_action('wp_footer', 'cheops_site_footer', 5);
-    add_action('wp_footer', static function () {
-        ob_start();
-        cheops_site_footer();
-        $cheops_home_footer = ob_get_clean();
-        echo strtr($cheops_home_footer, [
-        'Facebook ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M13.3 21v-8.2h2.8l.4-3.2h-3.2v-2c0-.9.3-1.6 1.6-1.6h1.7V3.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.1v3.2h2.8V21z"/></svg><span class="cheops-home-sr-only">Facebook</span>',
-        'Instagram ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1.1"/></svg><span class="cheops-home-sr-only">Instagram</span>',
-        'LinkedIn ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M5.4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3.7 8.5H7V21H3.7Zm5.5 0h3.2v1.7h.1c.5-1 1.6-2 3.6-2 3.8 0 4.5 2.4 4.5 5.5V21h-3.4v-6.5c0-1.6 0-3.5-2.1-3.5s-2.5 1.7-2.5 3.4V21H9.2Z"/></svg><span class="cheops-home-sr-only">LinkedIn</span>',
-        ]);
-    }, 5);
-}
-?>
+<?php cheops_use_icon_footer(); ?>
 <?php $cheops_video_id = cheops_get_youtube_id( get_theme_mod('cheops_hero_video_url', 'https://youtu.be/nt0bdK3USr8?feature=shared') ); ?>
 <!DOCTYPE html>
 
@@ -22,12 +7,12 @@ if (function_exists('cheops_site_footer')) {
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Cheops Privé — Luxury Property in New Cairo &amp; Beyond</title>
+<title>Cheops Privé | Luxury Property in New Cairo &amp; Beyond</title>
 <link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>">
 
 
 <meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast." name="description"/>
-<meta content="Cheops Privé — Define Your Next Address" property="og:title"/>
+<meta content="Cheops Privé | Define Your Next Address" property="og:title"/>
 <meta content="Discover projects, destinations, developers and properties across Egypt's most prime addresses." property="og:description"/>
 <meta content="website" property="og:type"/>
 <link href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c9193073bb12.png' ); ?>" rel="icon"/>
@@ -38,7 +23,7 @@ if (function_exists('cheops_site_footer')) {
 
 
 
-<?php cheops_page_css('front-page'); ?>
+<?php cheops_page_css('front-page', ['home-refinements']); ?>
 <?php wp_head(); ?>
 
 
@@ -200,11 +185,11 @@ if (function_exists('cheops_site_footer')) {
     <div class="about-grid">
       <div class="about-intro">
         <h2 class="about-title d">Temple of Opulence</h2>
-        <p class="about-lead">At the heart of Cheops Privé lies a reverence for timeless luxury and enduring elegance — expressed through curated environments and bespoke service.</p>
+        <p class="about-lead">At the heart of Cheops Privé lies a reverence for timeless luxury and enduring elegance, expressed through curated environments and bespoke service.</p>
         <a class="btn btn-light cheops-about-properties" href="<?php echo esc_url(home_url('/properties/')); ?>">Explore Properties <span class="ar">→</span></a>
       </div>
       <div class="about-copy">
-        <p>Cheops Privé takes a more considered approach to property discovery. We bring together exceptional projects, destinations and individual residences into one curated experience — designed to make finding your next address feel more personal, refined and effortless.</p>
+        <p>Cheops Privé takes a more considered approach to property discovery. We bring together exceptional projects, destinations and individual residences into one curated experience, designed to make finding your next address feel more personal, refined and effortless.</p>
         <div class="about-points">
           <div class="about-point"><div class="about-num" data-count="228" data-suffix="+">0</div><div class="about-label">Projects indexed</div></div>
           <div class="about-point"><div class="about-num" data-count="6130">0</div><div class="about-label">Live properties</div></div>
@@ -438,7 +423,7 @@ if ($cheops_home_map_items) :
     <div class="faq-list" style="margin-top:0;max-width:880px">
       <details class="faq-item reveal">
         <summary>What is Cheops Privé?</summary>
-        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast. We focus on clarity and quality — not volume.</p>
+        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast. We focus on clarity and quality, not volume.</p>
       </details>
       <details class="faq-item reveal">
         <summary>Do you charge buyers a commission?</summary>
@@ -446,7 +431,7 @@ if ($cheops_home_map_items) :
       </details>
       <details class="faq-item reveal">
         <summary>Which areas do you cover?</summary>
-        <p>Primarily New Cairo, Shorouk, Mostakbal City and the North Coast — with selected opportunities in other prime destinations on request.</p>
+        <p>Primarily New Cairo, Shorouk, Mostakbal City and the North Coast, with selected opportunities in other prime destinations on request.</p>
       </details>
       <details class="faq-item reveal">
         <summary>Can I request a private viewing?</summary>

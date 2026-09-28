@@ -669,3 +669,8 @@ body.tax-project_city .btn{
     letter-spacing:.12em !important;
   }
 }
+
+/* no-decorative-lines: no rules beside labels or scroll hints, and no underline bar on the active nav link. */
+.rule-gold,.scroll-line{display:none!important}
+.nav-links a.active:after,.nav-links a.active::after{content:none!important}
+.eyebrow:before,.eyebrow:after{content:none!important}

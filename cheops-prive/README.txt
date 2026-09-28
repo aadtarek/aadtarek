@@ -75,3 +75,30 @@ This build includes a source-backed importer for 7 projects and 35 units from Cu
 - Manual refresh: Property Manager > Overview > Import / Refresh AUG26 Portfolio (35 units).
 - Units are matched by Reference Code, so the importer is safe to run again without duplicating portfolio units.
 - Project covers, unit locator pages and floor-plan pages are stored under assets/portfolio/ and remain editable/replacable later from WordPress.
+
+
+PERFORMANCE + CONTENT UPDATE
+----------------------------
+Performance
+- Styles live in assets/css (fonts.css, theme.css, pages/*.css, home-refinements.css)
+  instead of being printed inline on every page. Edit these files directly;
+  WordPress adds ?ver=<file time> so browsers pick up changes immediately.
+- Fonts are WOFF2 files in assets/fonts (Romie, Neue Montreal 400/500).
+- GSAP, ScrollTrigger, Lenis and Leaflet are served from assets/vendor (no CDN).
+- The map loads Leaflet only when it scrolls into view; the Home hero video
+  loads after the page has finished loading.
+- Every JPG/PNG in assets has a .webp copy. On Apache, assets/.htaccess serves
+  the WebP automatically. On Nginx, add an equivalent Accept-based rule or
+  leave it: the original images keep working.
+- Project map data and city covers are cached and refresh automatically when a
+  project, unit or city is saved.
+
+Content
+- No decorative lines beside labels and no dashes between words. Dashes coming
+  from data (unit titles like "Villa - REF", tenant badges) are shown as "·".
+- About: stat pills removed, About card and typography match the Home page,
+  "About Cheops Privé" always fits on mobile.
+- Service pages (For Sale, For Rent, Income Property, Private Consultation):
+  content lives in inc/service-pages.php.
+- Floating buttons have an (x) to hide them for the visit; the meeting form has
+  mobile-friendly date/time fields and an animated send button.
