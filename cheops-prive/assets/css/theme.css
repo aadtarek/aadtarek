@@ -674,3 +674,9 @@ body.tax-project_city .btn{
 .rule-gold,.scroll-line{display:none!important}
 .nav-links a.active:after,.nav-links a.active::after{content:none!important}
 .eyebrow:before,.eyebrow:after{content:none!important}
+
+/* unit-status-badges: Available / Leased on unit cards and the property page */
+.cheops-status-badge{display:inline-block;padding:7px 12px;line-height:1}
+.cheops-status-badge.is-available{background:#e5cfa7!important;color:#171717!important}
+.cheops-status-badge.is-leased{background:rgba(255,255,255,.94)!important;color:#171717!important}
+.cheops-card-badges .eyebrow{margin:0!important}

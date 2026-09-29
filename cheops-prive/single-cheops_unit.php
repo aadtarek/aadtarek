@@ -48,6 +48,8 @@ $gallery_urls=array_values(array_unique(array_filter($gallery_urls)));
 $floorplan_url=$floorplan ? wp_get_attachment_image_url($floorplan,'full') : (($floorplan_asset && function_exists('cheops_portfolio_asset_url')) ? cheops_portfolio_asset_url($floorplan_asset) : '');
 $masterplan_url=$masterplan ? wp_get_attachment_image_url($masterplan,'full') : (($masterplan_asset && function_exists('cheops_portfolio_asset_url')) ? cheops_portfolio_asset_url($masterplan_asset) : '');
 $price_text=cheops_unit_price_text($id);
+$is_leased=cheops_unit_status($id)==='leased';
+if($is_leased){ $payment=$down=$installment=$remaining=$maintenance=$due=''; }
 ?><!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width,initial-scale=1"><?php cheops_page_css('single-unit'); ?>
 <?php wp_head(); ?>
 </head><body <?php body_class(); ?>><?php cheops_site_header(); ?>
@@ -63,7 +65,7 @@ $price_text=cheops_unit_price_text($id);
 
   <div class="sp-layout">
     <article>
-      <div><span class="sp-badge"><?php echo esc_html($deal_label); ?></span> <span class="sp-badge"><?php echo esc_html($type); ?></span></div>
+      <div><span class="sp-badge"><?php echo esc_html($deal_label); ?></span> <span class="sp-badge"><?php echo esc_html($type); ?></span> <span class="sp-badge cheops-status-badge is-<?php echo esc_attr(cheops_unit_status($id)); ?>"><?php echo esc_html(cheops_unit_status_label($id)); ?></span></div>
       <h1 class="sp-title"><?php the_title(); ?></h1>
       <div class="sp-location"><?php echo esc_html(implode(' · ',array_filter([$project,$loc,$dev]))); ?></div>
       <div class="sp-summary"><div class="sp-spec-grid">

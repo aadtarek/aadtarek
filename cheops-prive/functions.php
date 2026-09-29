@@ -268,8 +268,68 @@ function cheops_customize_register( $wp_customize ) {
             'label' => __($label, 'cheops-prive'),
         ]));
     }
+
+    // Tick a logo to hide it from the "Our Projects and Developers" band.
+    $wp_customize->add_setting('cheops_hidden_developer_logos', [
+        'default' => '',
+        'sanitize_callback' => 'cheops_sanitize_logo_list',
+    ]);
+    $wp_customize->add_control(new Cheops_Logo_Picker_Control($wp_customize, 'cheops_hidden_developer_logos', [
+        'section' => 'cheops_theme_options',
+        'label' => __('Hide developer logos', 'cheops-prive'),
+        'description' => __('Tick the logos you do not want in the Our Projects and Developers band.', 'cheops-prive'),
+    ]));
 }
 add_action('customize_register', 'cheops_customize_register');
+
+/** Developer band logo numbers (files NN-2.png in the media library). */
+function cheops_developer_logo_numbers() {
+    return array_values(array_diff(range(10, 21), [13, 14]));
+}
+
+function cheops_developer_logo_url($n) {
+    return 'https://cheopsprive.com/wp-content/uploads/2026/09/' . (int) $n . '-2.png?v=20260924d';
+}
+
+function cheops_sanitize_logo_list($value) {
+    $nums = array_intersect(array_map('intval', explode(',', (string) $value)), cheops_developer_logo_numbers());
+    return implode(',', $nums);
+}
+
+function cheops_hidden_developer_logos() {
+    return array_map('intval', array_filter(explode(',', (string) get_theme_mod('cheops_hidden_developer_logos', ''))));
+}
+
+add_action('customize_register', function () {
+    if (class_exists('Cheops_Logo_Picker_Control') || !class_exists('WP_Customize_Control')) return;
+    class Cheops_Logo_Picker_Control extends WP_Customize_Control {
+        public $type = 'cheops_logo_picker';
+        public function render_content() {
+            $hidden = cheops_hidden_developer_logos();
+            echo '<span class="customize-control-title">' . esc_html($this->label) . '</span>';
+            if ($this->description) echo '<span class="description customize-control-description">' . esc_html($this->description) . '</span>';
+            echo '<input type="hidden" class="cheops-logo-picker-value" ' . $this->get_link() . ' value="' . esc_attr(implode(',', $hidden)) . '">';
+            echo '<div class="cheops-logo-picker" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">';
+            foreach (cheops_developer_logo_numbers() as $n) {
+                echo '<label style="display:grid;gap:6px;justify-items:center;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer">';
+                echo '<img src="' . esc_url(cheops_developer_logo_url($n)) . '" alt="" style="max-width:100%;height:44px;object-fit:contain">';
+                echo '<span><input type="checkbox" value="' . esc_attr($n) . '" ' . checked(in_array($n, $hidden, true), true, false) . '> Hide</span></label>';
+            }
+            echo '</div>';
+            ?>
+<script>
+(function(){
+  var root=document.currentScript.previousElementSibling, input=root.previousElementSibling;
+  root.addEventListener('change',function(){
+    var v=[].slice.call(root.querySelectorAll('input:checked')).map(function(c){return c.value;}).join(',');
+    input.value=v; input.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+})();
+</script>
+            <?php
+        }
+    }
+}, 1);
 
 function cheops_create_core_pages() {
     $pages = [
@@ -405,7 +465,23 @@ function cheops_amenity_options() {
         'Driver’s Room','Reception','Meeting Room','Sea View','Nile View','Lagoon View','Landscape View','Smart Home'
     ];
 }
+/**
+ * Availability: 'available' or 'leased'. Set in the unit editor; units saved
+ * before the field existed fall back to their card label ("Leased ...").
+ */
+function cheops_unit_status($post_id) {
+    $status = get_post_meta($post_id, '_cheops_status', true);
+    if ($status === 'leased' || $status === 'available') return $status;
+    return stripos((string) get_post_meta($post_id, '_cheops_label', true), 'leased') !== false ? 'leased' : 'available';
+}
+
+function cheops_unit_status_label($post_id) {
+    return cheops_unit_status($post_id) === 'leased' ? 'Leased' : 'Available';
+}
+
+/** Price shown on the site; leased units never show one. */
 function cheops_unit_price_text($post_id) {
+    if (cheops_unit_status($post_id) === 'leased') return 'Leased';
     $override = get_post_meta($post_id,'_cheops_price_override_text',true);
     if ($override) return $override;
     $price = (float)get_post_meta($post_id,'_cheops_price',true);
@@ -518,6 +594,8 @@ function cheops_unit_gallery_box($post) {
 function cheops_unit_marketing_box($post) {
     $featured = get_post_meta($post->ID,'_cheops_featured',true);
     $label = get_post_meta($post->ID,'_cheops_label',true);
+    $status = cheops_unit_status($post->ID);
+    echo '<p><label><strong>Availability</strong><br><select name="_cheops_status" style="width:100%;margin-top:7px"><option value="available" '.selected($status,'available',false).'>Available</option><option value="leased" '.selected($status,'leased',false).'>Leased (price hidden on the site)</option></select></label></p>';
     echo '<label class="cheops-toggle"><input type="checkbox" name="_cheops_featured" value="1" '.checked($featured,'1',false).'> <span>Show on homepage Featured Units</span></label>';
     echo '<p><label><strong>Card label</strong><br><input style="width:100%;margin-top:7px" type="text" name="_cheops_label" value="'.esc_attr($label).'" placeholder="New / Ready / Exclusive"></label></p>';
     echo '<p class="description">Use the Featured Image as the unit cover image.</p>';
@@ -550,6 +628,8 @@ function cheops_save_unit($post_id) {
     update_post_meta($post_id,'_cheops_gallery_ids', isset($_POST['_cheops_gallery_ids']) ? implode(',',array_filter(array_map('absint',explode(',',sanitize_text_field(wp_unslash($_POST['_cheops_gallery_ids'])))))) : '');
     update_post_meta($post_id,'_cheops_featured', isset($_POST['_cheops_featured']) ? '1' : '0');
     update_post_meta($post_id,'_cheops_label', isset($_POST['_cheops_label']) ? sanitize_text_field(wp_unslash($_POST['_cheops_label'])) : '');
+    $status = isset($_POST['_cheops_status']) ? sanitize_key(wp_unslash($_POST['_cheops_status'])) : 'available';
+    update_post_meta($post_id,'_cheops_status', $status === 'leased' ? 'leased' : 'available');
 }
 add_action('save_post_cheops_unit','cheops_save_unit');
 
@@ -686,6 +766,8 @@ function cheops_render_unit_card($post_id) {
     $label = get_post_meta($post_id,'_cheops_label',true);
     $deal = get_post_meta($post_id,'_cheops_listing_type',true) ?: 'sale';
     $deal_label = cheops_listing_types()[$deal] ?? 'For Sale';
+    $status = cheops_unit_status($post_id);
+    if ($status === 'leased' && stripos((string) $label, 'leased') !== false) $label = '';
     $img = get_the_post_thumbnail_url($post_id,'large');
     if(!$img){
         $ids=array_filter(array_map('absint',explode(',',(string)get_post_meta($post_id,'_cheops_gallery_ids',true))));
@@ -695,12 +777,12 @@ function cheops_render_unit_card($post_id) {
         $asset=get_post_meta($post_id,'_cheops_portfolio_cover',true);
         if($asset) $img=cheops_portfolio_asset_url($asset);
     }
-    echo '<article class="pcard reveal cheops-unit-card" data-beds="'.esc_attr($beds).'" data-loc="'.esc_attr($loc).'" data-price="'.esc_attr((int)$price).'" data-type="'.esc_attr($type).'" data-deal="'.esc_attr($deal).'" data-project="'.esc_attr($project).'">';
+    echo '<article class="pcard reveal cheops-unit-card" data-beds="'.esc_attr($beds).'" data-loc="'.esc_attr($loc).'" data-price="'.esc_attr((int)$price).'" data-type="'.esc_attr($type).'" data-deal="'.esc_attr($deal).'" data-status="'.esc_attr($status).'" data-project="'.esc_attr($project).'">';
     echo '<a href="'.esc_url($url).'" class="zoom cheops-card-media" data-cursor="View property" style="position:relative;aspect-ratio:4/3;display:block;overflow:hidden;background:#ded9d1">';
     if($img) echo '<img alt="'.esc_attr($title).'" loading="lazy" decoding="async" src="'.esc_url($img).'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">';
     else echo '<span style="position:absolute;inset:0;background:linear-gradient(135deg,#d9d2c5,#f4f1eb)"></span>';
     echo '<span class="eyebrow" style="position:absolute;top:14px;left:14px;background:rgba(255,255,255,.92);padding:7px 12px">'.esc_html($label ?: $type).'</span>';
-    echo '<span class="eyebrow" style="position:absolute;bottom:14px;left:14px;background:#171717;color:#fff;padding:7px 12px">'.esc_html($deal_label).'</span>';
+    echo '<span class="cheops-card-badges" style="position:absolute;bottom:14px;left:14px;display:flex;gap:6px;flex-wrap:wrap"><span class="eyebrow" style="background:#171717;color:#fff;padding:7px 12px">'.esc_html($deal_label).'</span><span class="eyebrow cheops-status-badge is-'.esc_attr($status).'">'.esc_html(cheops_unit_status_label($post_id)).'</span></span>';
     echo '<span class="save-property" aria-hidden="true" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,.92);width:34px;height:34px;display:grid;place-items:center;font-size:.9rem">♡</span></a>';
     echo '<div style="padding:22px"><h3 class="d" style="font-size:1.5rem;margin:0"><a href="'.esc_url($url).'" style="color:inherit;text-decoration:none">'.esc_html($title).'</a></h3>';
     $place = trim(implode(' · ',array_filter([$project,$loc])));
@@ -1701,6 +1783,7 @@ function cheops_import_lake_town_units() {
         if ($u['status'] === 'leased') $label = 'Leased';
         elseif ($u['status'] === 'delivery') $label = 'Delivery Mid 2026';
         update_post_meta($post_id, '_cheops_label', $label);
+        update_post_meta($post_id, '_cheops_status', $u['status'] === 'leased' ? 'leased' : 'available');
         update_post_meta($post_id, '_cheops_featured', $u['status'] === 'available' ? '1' : '0');
 
         wp_set_object_terms($post_id, $type_label, 'unit_type');
@@ -1850,14 +1933,15 @@ function cheops_render_logo_band($kind='tenants') {
     $is_dev=$kind==='developers';
     $start=$is_dev?10:25; $end=$is_dev?21:29;
     $label=$is_dev?'Developer logo':'Business tenant logo';
-    $title_html=$is_dev?'Our Developers':'Our Business Tenants';
+    $title_html=$is_dev?'Our Projects and Developers':'Our Business Tenants';
+    $hidden=$is_dev?cheops_hidden_developer_logos():[];
     echo '<section class="cheops-logo-band cheops-logo-band-'.esc_attr($kind).'"><div class="wrap cheops-logo-band-head"><p class="cheops-logo-band-title">'.$title_html.'</p></div><div class="cheops-logo-marquee"><div class="cheops-logo-track">';
     for($copy=0;$copy<2;$copy++){
         echo '<div class="cheops-logo-set"'.($copy?' aria-hidden="true"':'').'>';
         for($i=$start;$i<=$end;$i++){
             // Remove the two unwanted developer logos from Home + About.
-            if($is_dev && in_array($i,[13,14],true)) continue;
-            $url='https://cheopsprive.com/wp-content/uploads/2026/09/'.$i.'-2.png?v=20260924d';
+            if($is_dev && (in_array($i,[13,14],true) || in_array($i,$hidden,true))) continue;
+            $url=cheops_developer_logo_url($i);
             echo '<span class="cheops-logo-item"><img src="'.esc_url($url).'" alt="'.esc_attr($copy?'':$label).'" loading="lazy" decoding="async"></span>';
         }
         echo '</div>';
