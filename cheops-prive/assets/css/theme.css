@@ -709,3 +709,8 @@ body.cheops-prive-theme footer.cheops-site-footer a[href^="mailto:"]{text-transf
 body.cheops-prive-theme .cheops-site-footer .cheops-wordmark{color:#fff!important}
 body.cheops-prive-theme .cheops-site-footer{padding-bottom:92px!important}
 @media(max-width:600px){body.cheops-prive-theme .cheops-site-footer{padding-bottom:84px!important}}
+/* temple-of-opulence: Romie, with "of" in italic (heading in the About card and the footer line) */
+.cheops-of{font-family:"Romie",Georgia,serif!important;font-style:italic!important;font-weight:400!important}
+#about .about-title{font-family:"Romie",Georgia,serif!important;font-weight:400!important}
+body.cheops-prive-theme .cheops-site-footer .cheops-footer-line{font-family:"Romie",Georgia,serif!important;font-weight:400!important;font-size:13px!important;letter-spacing:.14em!important;color:rgba(244,241,236,.72)!important}
+.cheops-of{padding-right:.1em}

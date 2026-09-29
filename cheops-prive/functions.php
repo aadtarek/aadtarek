@@ -269,6 +269,19 @@ function cheops_customize_register( $wp_customize ) {
         ]));
     }
 
+    // Numbers in the About card (Home and About) and the footer line.
+    $text_settings = [
+        'cheops_stat1_value' => ['About card: first number', '100+'],
+        'cheops_stat1_label' => ['About card: first label', 'Projects indexed'],
+        'cheops_stat2_value' => ['About card: second number', '65'],
+        'cheops_stat2_label' => ['About card: second label', 'Live properties'],
+        'cheops_footer_tagline' => ['Footer line (bottom right)', 'Temple of Opulence'],
+    ];
+    foreach ($text_settings as $id => $cfg) {
+        $wp_customize->add_setting($id, ['default' => $cfg[1], 'sanitize_callback' => 'sanitize_text_field']);
+        $wp_customize->add_control($id, ['section' => 'cheops_theme_options', 'label' => __($cfg[0], 'cheops-prive'), 'type' => 'text']);
+    }
+
     // Tick a logo to hide it from the "Our Projects and Developers" band.
     $wp_customize->add_setting('cheops_hidden_developer_logos', [
         'default' => '',
@@ -281,6 +294,32 @@ function cheops_customize_register( $wp_customize ) {
     ]));
 }
 add_action('customize_register', 'cheops_customize_register');
+
+/** "Temple of Opulence" style: Romie, with a lone "of" set in italic. */
+function cheops_title_html($text) {
+    return preg_replace('/(^|\s)(of)(?=\s|$)/i', '$1<em class="cheops-of">$2</em>', esc_html($text));
+}
+
+/** The two numbers in the About card, editable in Appearance > Customize. */
+function cheops_render_about_points() {
+    echo '<div class="about-points">';
+    foreach ([1, 2] as $i) {
+        $defaults = [1 => ['100+', 'Projects indexed'], 2 => ['65', 'Live properties']];
+        $value = (string) get_theme_mod('cheops_stat' . $i . '_value', $defaults[$i][0]);
+        $label = (string) get_theme_mod('cheops_stat' . $i . '_label', $defaults[$i][1]);
+        if ($value === '' && $label === '') continue;
+        $num = preg_replace('/[^0-9]/', '', $value);
+        $suffix = trim(preg_replace('/^[0-9,.\s]+/', '', $value));
+        echo '<div class="about-point">';
+        if ($num !== '' && preg_match('/^[0-9,.\s]+/', $value)) {
+            echo '<div class="about-num" data-count="' . esc_attr($num) . '" data-suffix="' . esc_attr($suffix) . '">0</div>';
+        } else {
+            echo '<div class="about-num">' . esc_html($value) . '</div>';
+        }
+        echo '<div class="about-label">' . esc_html($label) . '</div></div>';
+    }
+    echo '</div>';
+}
 
 /** Developer band logo numbers (files NN-2.png in the media library). */
 function cheops_developer_logo_numbers() {
@@ -1108,7 +1147,7 @@ function cheops_site_footer() {
     echo '<div class="cheops-footer-col"><h4>Services</h4><a href="'.esc_url(home_url('/for-rent/')).'">For Rent</a><a href="'.esc_url(home_url('/for-sale/')).'">For Sale</a><a href="'.esc_url(home_url('/income-property/')).'">Income Property</a><a href="'.esc_url(home_url('/private-consultation/')).'">Private Consultation</a></div>';
     echo '<div class="cheops-footer-col cheops-footer-contact"><h4>Contact</h4><p>'.esc_html(cheops_address()).'</p><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div>';
     echo '</div>';
-    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social">'.strtr('<a href="'.esc_url($fb).'" target="_blank" rel="noopener" aria-label="Facebook">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener" aria-label="Instagram">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn ↗</a>', cheops_footer_social_icons()).'</div><div class="cheops-footer-meta"><span>© '.esc_html(date('Y')).' Cheops Privé</span><span>Curated property in Egypt</span></div></div>';
+    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social">'.strtr('<a href="'.esc_url($fb).'" target="_blank" rel="noopener" aria-label="Facebook">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener" aria-label="Instagram">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn ↗</a>', cheops_footer_social_icons()).'</div><div class="cheops-footer-meta"><span class="cheops-footer-line">'.cheops_title_html(get_theme_mod('cheops_footer_tagline','Temple of Opulence')).'</span><span>Curated property in Egypt</span></div></div>';
     echo '</div></footer>';
 }
 add_action('wp_footer','cheops_site_footer',5);

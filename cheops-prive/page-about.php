@@ -105,10 +105,7 @@
       </div>
       <div class="about-copy">
         <p>Cheops Privé takes a more considered approach to property discovery. We bring together exceptional projects, destinations and individual residences into one curated experience, designed to make finding your next address feel more personal, refined and effortless.</p>
-        <div class="about-points">
-          <div class="about-point"><div class="about-num" data-count="228" data-suffix="+">0</div><div class="about-label">Projects indexed</div></div>
-          <div class="about-point"><div class="about-num" data-count="6130">0</div><div class="about-label">Live properties</div></div>
-        </div>
+        <?php cheops_render_about_points(); ?>
       </div>
     </div>
   </div>

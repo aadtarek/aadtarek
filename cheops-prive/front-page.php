@@ -184,16 +184,13 @@
     </div>
     <div class="about-grid">
       <div class="about-intro">
-        <h2 class="about-title d">Temple of Opulence</h2>
+        <h2 class="about-title d"><?php echo cheops_title_html('Temple of Opulence'); ?></h2>
         <p class="about-lead">At the heart of Cheops Privé lies a reverence for timeless luxury and enduring elegance, expressed through curated environments and bespoke service.</p>
         <a class="btn btn-light cheops-about-properties" href="<?php echo esc_url(home_url('/properties/')); ?>">Explore Properties <span class="ar">→</span></a>
       </div>
       <div class="about-copy">
         <p>Cheops Privé takes a more considered approach to property discovery. We bring together exceptional projects, destinations and individual residences into one curated experience, designed to make finding your next address feel more personal, refined and effortless.</p>
-        <div class="about-points">
-          <div class="about-point"><div class="about-num" data-count="228" data-suffix="+">0</div><div class="about-label">Projects indexed</div></div>
-          <div class="about-point"><div class="about-num" data-count="6130">0</div><div class="about-label">Live properties</div></div>
-        </div>
+        <?php cheops_render_about_points(); ?>
       </div>
     </div>
   </div>
