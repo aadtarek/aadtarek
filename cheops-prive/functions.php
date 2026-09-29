@@ -1072,7 +1072,7 @@ function cheops_arrow_icon_right() {
     return '<svg class="csi-arrow csi-arrow--right" width="13" height="9" viewBox="0 0 13 9" fill="none" aria-hidden="true"><path d="M0.5 4.5H12M12 4.5L8 0.5M12 4.5L8 8.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 }
 function cheops_chevron_icon() {
-    return '<svg class="chev" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return '<svg class="cheops-chev" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 }
 
 function cheops_site_header() {
@@ -1085,15 +1085,15 @@ function cheops_site_header() {
     echo '<nav class="cheops-desktop-nav" aria-label="Primary navigation">';
     foreach($links as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '<div class="cheops-nav-drop"><button type="button">Services '.cheops_chevron_icon().'</button><div class="cheops-nav-drop-panel">';
-    foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'<span>'.cheops_arrow_icon().'</span></a>';
+    foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '</div></div><a href="'.esc_url(home_url('/contact/')).'">Contact</a></nav>';
     echo '<div class="cheops-header-actions"><a class="cheops-header-cta cheops-header-doc" href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a class="cheops-header-cta cheops-header-doc cheops-header-doc-alt" href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><button class="cheops-mobile-toggle" id="cheopsMobileToggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div></div></header>';
     echo '<aside class="cheops-mobile-menu" id="cheopsMobileMenu" aria-hidden="true"><div class="cheops-mobile-menu-glow"></div><div class="cheops-mobile-menu-inner"><div class="cheops-mobile-menu-kicker">Cheops Privé <span>Private Property Advisory</span></div><nav class="cheops-mobile-nav" aria-label="Mobile navigation">';
-    $delay=0; foreach($links as $l){$delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url($l[1]).'"><span>'.esc_html($l[0]).'</span><b>'.cheops_arrow_icon().'</b></a>';}
+    $delay=0; foreach($links as $l){$delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url($l[1]).'"><span>'.esc_html($l[0]).'</span></a>';}
     $delay+=1; echo '<div class="cheops-mobile-services" style="--d:'.($delay*55).'ms"><button class="cheops-mobile-services-toggle" type="button" aria-expanded="false"><span>Services</span><b>＋</b></button><div class="cheops-mobile-services-panel"><div>';
-    foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'<span>'.cheops_arrow_icon().'</span></a>';
+    foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '</div></div></div>';
-    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span><b>'.cheops_arrow_icon().'</b></a></nav><div class="cheops-mobile-menu-foot"><a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential ↗</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative ↗</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
+    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span></a></nav><div class="cheops-mobile-menu-foot"><a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
 }
 
 
@@ -1108,7 +1108,7 @@ function cheops_site_footer() {
     echo '<div class="cheops-footer-col"><h4>Services</h4><a href="'.esc_url(home_url('/for-rent/')).'">For Rent</a><a href="'.esc_url(home_url('/for-sale/')).'">For Sale</a><a href="'.esc_url(home_url('/income-property/')).'">Income Property</a><a href="'.esc_url(home_url('/private-consultation/')).'">Private Consultation</a></div>';
     echo '<div class="cheops-footer-col cheops-footer-contact"><h4>Contact</h4><p>'.esc_html(cheops_address()).'</p><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div>';
     echo '</div>';
-    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social"><a href="'.esc_url($fb).'" target="_blank" rel="noopener">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener">LinkedIn ↗</a></div><div class="cheops-footer-meta"><span>© '.esc_html(date('Y')).' Cheops Privé</span><span>Curated property in Egypt</span></div></div>';
+    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social">'.strtr('<a href="'.esc_url($fb).'" target="_blank" rel="noopener" aria-label="Facebook">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener" aria-label="Instagram">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn ↗</a>', cheops_footer_social_icons()).'</div><div class="cheops-footer-meta"><span>© '.esc_html(date('Y')).' Cheops Privé</span><span>Curated property in Egypt</span></div></div>';
     echo '</div></footer>';
 }
 add_action('wp_footer','cheops_site_footer',5);

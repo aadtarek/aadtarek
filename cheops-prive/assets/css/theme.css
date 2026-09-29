@@ -680,3 +680,32 @@ body.tax-project_city .btn{
 .cheops-status-badge.is-available{background:#e5cfa7!important;color:#171717!important}
 .cheops-status-badge.is-leased{background:rgba(255,255,255,.94)!important;color:#171717!important}
 .cheops-card-badges .eyebrow{margin:0!important}
+
+/* unified-footer: the Home footer (icon social links, compact spacing) on every page */
+body.cheops-prive-theme .cheops-site-footer{padding:34px 30px 22px!important}
+body.cheops-prive-theme .cheops-footer-main{gap:32px!important;padding-bottom:24px!important}
+body.cheops-prive-theme .cheops-footer-wordmark .cheops-wordmark{justify-items:center!important;text-align:center!important}
+body.cheops-prive-theme .cheops-footer-wordmark .cheops-wordmark small{justify-self:center!important;margin-left:0!important;margin-right:0!important;text-align:center!important}
+body.cheops-prive-theme .cheops-footer-brand>p{margin-top:14px!important}
+body.cheops-prive-theme .cheops-footer-cta{margin-top:14px!important}
+body.cheops-prive-theme .cheops-footer-col h4{font-family:"Neue Montreal",Arial,Helvetica,sans-serif!important;font-weight:500!important;font-size:11px!important;margin-bottom:12px!important}
+body.cheops-prive-theme .cheops-footer-lower{padding-top:14px!important;gap:16px!important}
+body.cheops-prive-theme .cheops-footer-social{gap:8px!important}
+body.cheops-prive-theme .cheops-footer-social a{display:inline-flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;padding:0!important;line-height:1!important;color:#f4f1ec!important}
+body.cheops-prive-theme .cheops-footer-social a svg{display:block;width:20px;height:20px;fill:currentColor;flex-shrink:0}
+body.cheops-prive-theme .cheops-footer-social a:hover{color:#e5cfa7!important}
+body.cheops-prive-theme .cheops-footer-social a:focus-visible{outline:2px solid #e5cfa7;outline-offset:2px}
+@media(max-width:980px){body.cheops-prive-theme .cheops-footer-main{gap:24px!important}}
+@media(max-width:600px){body.cheops-prive-theme .cheops-site-footer{padding:28px 20px 20px!important} body.cheops-prive-theme .cheops-footer-main{gap:24px 20px!important;padding-bottom:20px!important} body.cheops-prive-theme .cheops-footer-lower{gap:12px!important}}
+body.cheops-prive-theme footer.cheops-site-footer .cheops-footer-cta{text-transform:uppercase!important}
+body.cheops-prive-theme footer.cheops-site-footer a[href^="mailto:"]{text-transform:none!important}
+.cheops-home-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+
+/* unified-menu: one Services chevron everywhere, no arrow icons beside menu links */
+.cheops-site-header .cheops-nav-drop button .cheops-chev{display:inline-block!important;width:10px!important;height:6px!important;margin-left:6px;border:0!important;background:none!important;transform:none;transition:transform .3s;vertical-align:middle}
+.cheops-site-header .cheops-nav-drop button .cheops-chev:before,.cheops-site-header .cheops-nav-drop button .cheops-chev:after{content:none!important}
+.cheops-site-header .cheops-nav-drop:hover button .cheops-chev,.cheops-site-header .cheops-nav-drop:focus-within button .cheops-chev{transform:rotate(180deg)}
+/* footer wordmark is always light (light-page header rules must not reach it); room for the floating buttons */
+body.cheops-prive-theme .cheops-site-footer .cheops-wordmark{color:#fff!important}
+body.cheops-prive-theme .cheops-site-footer{padding-bottom:92px!important}
+@media(max-width:600px){body.cheops-prive-theme .cheops-site-footer{padding-bottom:84px!important}}
