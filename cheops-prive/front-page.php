@@ -195,19 +195,7 @@
     </div>
   </div>
 </section>
-<?php
-// Keep the live tenant logos and add a shortcut using the existing Properties filters.
-$cheops_home_rental_url = add_query_arg(
-    ['project' => 'Lake Town', 'type' => 'Office', 'deal' => 'rent'],
-    home_url('/properties/')
-);
-ob_start();
-cheops_render_business_tenants();
-$cheops_home_tenants = ob_get_clean();
-$cheops_home_tenants_title = '<p class="cheops-logo-band-title">Our Business Tenants</p>';
-$cheops_home_tenants_button = '<a class="btn btn-ghost cheops-tenants-rentals" href="' . esc_url($cheops_home_rental_url) . '" aria-label="Explore administrative offices for rent in Lake Town">Offices For Rent <span class="ar">→</span></a>';
-echo str_replace($cheops_home_tenants_title, $cheops_home_tenants_title . $cheops_home_tenants_button, $cheops_home_tenants);
-?>
+<?php cheops_render_tenants_band(); ?>
 <?php
 // City cards use the image assigned to each City in WordPress.
 $cheops_home_cities = get_terms(['taxonomy' => 'project_city', 'hide_empty' => false, 'orderby' => 'term_id', 'order' => 'ASC']);
@@ -344,6 +332,7 @@ if (!is_wp_error($cheops_home_cities) && $cheops_home_cities) :
 </div>
 </section>
 
+<?php cheops_render_projects_band(); ?>
 <?php cheops_render_developers_band(); ?>
 
 <section class="sec" id="insights" style="background:#f7f5f2">

@@ -373,14 +373,6 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
   addEventListener('scroll',()=>{const h=document.documentElement;
     p.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';},{passive:true});
 
-  /* marquee band after intro */
-  const about=document.getElementById('about');
-  if(about){
-    const words=['New Cairo','Shorouk','Mostakbal City','North Coast'];
-    const m=document.createElement('div');m.className='marq';
-    const row='<div>'+[...words,...words,...words,...words].map(w=>'<span>'+w+' &nbsp;&#9670;</span>').join('')+'</div>';
-    m.innerHTML=row;about.after(m);
-  }
 
   /* decorative blobs */
   ['#projects','#destinations','#properties'].forEach((s,i)=>{

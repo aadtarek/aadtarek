@@ -139,13 +139,14 @@
     </div>
   </div>
 </section>
-<?php cheops_render_business_tenants(); ?>
+<?php cheops_render_tenants_band(); ?>
+<?php cheops_render_projects_band(); ?>
 <?php cheops_render_developers_band(); ?>
 
 <section class="sec" id="insights" style="background:#f7f5f2">
 <div class="wrap">
-<div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:24px">
-<div><p class="eyebrow gold">Insights</p><h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Notes from</span></span><span class="rl"><span>the market.</span></span></h2></div>
+<div class="home-section-heading" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px">
+<div><p class="eyebrow gold">Insights</p><h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span style="white-space:nowrap">Notes from the market.</span></span></h2></div>
 <div><a class="btn" href="<?php echo esc_url(cheops_insights_url()); ?>">All articles <span class="ar">→</span></a></div></div>
 <?php cheops_render_insight_cards(4); ?>
 </div>
@@ -326,14 +327,6 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
   addEventListener('scroll',()=>{const h=document.documentElement;
     p.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';},{passive:true});
 
-  /* marquee band after intro */
-  const about=document.getElementById('about');
-  if(about){
-    const words=['New Cairo','Shorouk','Mostakbal City','North Coast'];
-    const m=document.createElement('div');m.className='marq';
-    const row='<div>'+[...words,...words,...words,...words].map(w=>'<span>'+w+' &nbsp;&#9670;</span>').join('')+'</div>';
-    m.innerHTML=row;about.after(m);
-  }
 
   /* decorative blobs */
   ['#projects','#destinations','#properties'].forEach((s,i)=>{

@@ -713,4 +713,8 @@ body.cheops-prive-theme .cheops-site-footer{padding-bottom:92px!important}
 .cheops-of{font-family:"Romie",Georgia,serif!important;font-style:italic!important;font-weight:400!important}
 #about .about-title{font-family:"Romie",Georgia,serif!important;font-weight:400!important}
 body.cheops-prive-theme .cheops-site-footer .cheops-footer-line{font-family:"Romie",Georgia,serif!important;font-weight:400!important;font-size:13px!important;letter-spacing:.14em!important;color:rgba(244,241,236,.72)!important}
-.cheops-of{padding-right:.1em}
+.cheops-of{padding-right:.04em;font-synthesis:none}
+/* logo-band-static: short logo groups (e.g. Our Projects) do not scroll */
+.cheops-logo-band.is-static .cheops-logo-track{animation:none!important;transform:none!important;width:auto!important;justify-content:flex-start}
+.cheops-logo-band.is-static .cheops-logo-marquee{max-width:1560px;margin:0 auto;padding-left:24px;padding-right:24px}
+.cheops-logo-band.is-static .cheops-logo-set{flex-wrap:wrap;padding-right:0!important}
