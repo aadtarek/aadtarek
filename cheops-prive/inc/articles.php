@@ -85,7 +85,7 @@ function cheops_render_insight_cards($limit = 4, $class = 'grid4') {
         $id = get_the_ID();
         $title = get_the_title();
         echo '<a class="reveal cheops-insight-card" data-cursor="Read" href="' . esc_url(get_permalink()) . '" style="display:block">';
-        echo '<div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="' . esc_attr(wp_strip_all_tags($title)) . '" loading="lazy" decoding="async" src="' . esc_url(cheops_article_image_url($id)) . '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/></div>';
+        echo '<div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="' . esc_attr(wp_strip_all_tags($title)) . '" loading="lazy" decoding="async" src="' . esc_url(cheops_img_variant(cheops_article_image_url($id), 800)) . '" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/></div>';
         echo '<p class="meta" style="margin-top:18px">' . esc_html(cheops_article_category($id) . ' · ' . get_the_date('d M Y')) . '</p>';
         echo '<h3 class="d" style="font-size:1.305rem;margin-top:10px;line-height:1.15">' . esc_html(wp_strip_all_tags($title)) . '</h3>';
         echo '<span class="link-arrow eyebrow" style="margin-top:14px;display:inline-block">Read <span class="ar">→</span></span></a>';

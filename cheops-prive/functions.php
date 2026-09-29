@@ -37,7 +37,7 @@ function cheops_register_front_assets() {
 }
 
 function cheops_enqueue_front_styles() {
-    if (is_admin()) return;
+    if (is_admin() || !empty($GLOBALS['cheops_css_bundled'])) return;
     cheops_register_front_assets();
     wp_enqueue_style('cheops-theme');
 }
@@ -46,26 +46,76 @@ add_action('wp_enqueue_scripts', 'cheops_enqueue_front_styles', 99);
 /**
  * Enqueue a template's own stylesheet(s); call before wp_head().
  * $shared: extra files from assets/css/ loaded after the page's late styles.
+ * All of a page's files are served as one combined, cached stylesheet (fewer
+ * render-blocking requests); if that cannot be written, they load separately.
  */
 function cheops_page_css($slug, $shared = []) {
     $GLOBALS['cheops_custom_template'] = true;
     cheops_register_front_assets();
     $slug = sanitize_file_name($slug);
+    $dir = get_template_directory();
+    $files = ['assets/css/fonts.css'];
+    if (file_exists("$dir/assets/css/pages/$slug.css")) $files[] = "assets/css/pages/$slug.css";
+    $files[] = 'assets/css/theme.css';
+    if (file_exists("$dir/assets/css/pages/$slug-late.css")) $files[] = "assets/css/pages/$slug-late.css";
+    foreach ((array) $shared as $name) $files[] = 'assets/css/' . sanitize_file_name($name) . '.css';
+
+    $bundle = cheops_css_bundle($slug, $files);
+    if ($bundle) {
+        $GLOBALS['cheops_css_bundled'] = true;
+        wp_enqueue_style('cheops-bundle-' . $slug, $bundle, [], null);
+        return;
+    }
+    // Fallback: the individual files, in the same order.
     $uri = get_template_directory_uri();
-    $last = 'cheops-theme';
-    foreach (['' => ['cheops-fonts'], '-late' => ['cheops-theme']] as $suffix => $deps) {
-        $rel = 'assets/css/pages/' . $slug . $suffix . '.css';
-        if (file_exists(get_template_directory() . '/' . $rel)) {
-            wp_enqueue_style('cheops-page-' . $slug . $suffix, $uri . '/' . $rel, $deps, cheops_asset_ver($rel));
-            if ($suffix === '-late') $last = 'cheops-page-' . $slug . $suffix;
-        }
+    $prev = [];
+    foreach ($files as $i => $rel) {
+        $handle = $rel === 'assets/css/fonts.css' ? 'cheops-fonts' : ($rel === 'assets/css/theme.css' ? 'cheops-theme' : 'cheops-css-' . $slug . '-' . $i);
+        if (in_array($handle, ['cheops-fonts', 'cheops-theme'], true)) { wp_enqueue_style($handle); }
+        else { wp_enqueue_style($handle, $uri . '/' . $rel, $prev, cheops_asset_ver($rel)); }
+        $prev = [$handle];
     }
-    foreach ((array) $shared as $name) {
-        $name = sanitize_file_name($name);
-        $rel = 'assets/css/' . $name . '.css';
-        wp_enqueue_style('cheops-' . $name, $uri . '/' . $rel, [$last], cheops_asset_ver($rel));
-        $last = 'cheops-' . $name;
+}
+
+/** Concatenate theme CSS files into uploads/cheops-css/, rewriting relative url()s. */
+function cheops_css_bundle($slug, $files) {
+    if (defined('CHEOPS_NO_CSS_BUNDLE') && CHEOPS_NO_CSS_BUNDLE) return false;
+    $dir = get_template_directory();
+    $sig = '';
+    foreach ($files as $rel) {
+        if (!is_file("$dir/$rel")) return false;
+        $sig .= $rel . filemtime("$dir/$rel") . filesize("$dir/$rel");
     }
+    $uploads = wp_upload_dir(null, false);
+    if (!empty($uploads['error'])) return false;
+    $name = $slug . '-' . substr(md5($sig . get_template_directory_uri()), 0, 12) . '.css';
+    $path = trailingslashit($uploads['basedir']) . 'cheops-css/' . $name;
+    $url = trailingslashit($uploads['baseurl']) . 'cheops-css/' . $name;
+    if (is_file($path)) return $url;
+    if (!wp_mkdir_p(dirname($path))) return false;
+    $theme_uri = get_template_directory_uri();
+    $css = '';
+    foreach ($files as $rel) {
+        $base = $theme_uri . '/' . dirname($rel) . '/';
+        $body = (string) file_get_contents("$dir/$rel");
+        $body = preg_replace_callback('/url\(\s*([\'"]?)([^\'")]+)\1\s*\)/i', static function ($m) use ($base) {
+            $u = trim($m[2]);
+            if (preg_match('#^(data:|https?:|//|/|\#)#i', $u)) return $m[0];
+            $abs = $base . $u;
+            while (preg_match('#/[^/]+/\.\./#', $abs)) $abs = preg_replace('#/[^/]+/\.\./#', '/', $abs, 1);
+            $abs = str_replace('/./', '/', $abs);
+            return 'url("' . $abs . '")';
+        }, $body);
+        $css .= "/* $rel */\n" . $body . "\n";
+    }
+    $tmp = $path . '.' . uniqid('', true) . '.tmp';
+    if (file_put_contents($tmp, $css) === false) return false;
+    if (!@rename($tmp, $path)) { @unlink($tmp); return false; }
+    // Remove older bundles for this page.
+    foreach ((array) glob(dirname($path) . '/' . $slug . '-*.css') as $old) {
+        if ($old !== $path) @unlink($old);
+    }
+    return $url;
 }
 
 function cheops_footer_social_icons() {
@@ -75,6 +125,7 @@ function cheops_footer_social_icons() {
         'LinkedIn ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M5.4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3.7 8.5H7V21H3.7Zm5.5 0h3.2v1.7h.1c.5-1 1.6-2 3.6-2 3.8 0 4.5 2.4 4.5 5.5V21h-3.4v-6.5c0-1.6 0-3.5-2.1-3.5s-2.5 1.7-2.5 3.4V21H9.2Z"/></svg><span class="cheops-home-sr-only">LinkedIn</span>',
     ];
 }
+
 
 /** Footer with SVG social icons instead of "Facebook ↗" text links (Home and About). */
 function cheops_use_icon_footer() {
@@ -281,6 +332,13 @@ function cheops_customize_register( $wp_customize ) {
         $wp_customize->add_setting($id, ['default' => $cfg[1], 'sanitize_callback' => 'sanitize_text_field']);
         $wp_customize->add_control($id, ['section' => 'cheops_theme_options', 'label' => __($cfg[0], 'cheops-prive'), 'type' => 'text']);
     }
+
+    // Intro video on the first visit to Home. It covers the page for up to 4 seconds and
+    // downloads ~570KB, so switching it off gives a faster first view.
+    $wp_customize->add_setting('cheops_intro_video', ['default' => true, 'sanitize_callback' => 'wp_validate_boolean']);
+    $wp_customize->add_control('cheops_intro_video', ['section' => 'cheops_theme_options', 'type' => 'checkbox',
+        'label' => __('Play the intro video on the first visit to Home', 'cheops-prive'),
+        'description' => __('Looks great but slows the first view (lower PageSpeed score).', 'cheops-prive')]);
 
     // Choose, for each logo, whether it appears under Our Projects, Our Developers, or not at all.
     $wp_customize->add_setting('cheops_logo_groups', [
@@ -602,6 +660,57 @@ function cheops_unit_status_label($post_id) {
     return cheops_unit_status($post_id) === 'leased' ? 'Leased' : 'Available';
 }
 
+/*
+ * Responsive images. Theme images have smaller copies (name-800.jpg,
+ * name-1200.jpg) so phones download a fraction of the full file.
+ */
+function cheops_theme_asset_path($url) {
+    $base = get_template_directory_uri() . '/';
+    $url = (string) $url;
+    if (strpos($url, $base) !== 0) return '';
+    $rel = strtok(substr($url, strlen($base)), '?');
+    $file = get_template_directory() . '/' . $rel;
+    return is_file($file) ? $file : '';
+}
+
+/** Same image at a smaller width when a theme copy exists, otherwise the original URL. */
+function cheops_img_variant($url, $width) {
+    $file = cheops_theme_asset_path($url);
+    if (!$file) return $url;
+    $variant = preg_replace('/\.(jpe?g|png)$/i', '-' . (int) $width . '.$1', $file);
+    if ($variant === $file || !is_file($variant)) return $url;
+    return preg_replace('/\.(jpe?g|png)(\?.*)?$/i', '-' . (int) $width . '.$1$2', strtok((string) $url, '?'));
+}
+
+/** srcset for a theme image: its smaller copies plus the original. */
+function cheops_srcset($url) {
+    static $cache = [];
+    if (isset($cache[$url])) return $cache[$url];
+    $file = cheops_theme_asset_path($url);
+    if (!$file) return $cache[$url] = '';
+    $size = @getimagesize($file);
+    if (!$size) return $cache[$url] = '';
+    $set = [];
+    foreach ([800, 1200] as $w) {
+        $v = cheops_img_variant($url, $w);
+        if ($v !== $url && $w < $size[0]) $set[] = esc_url($v) . ' ' . $w . 'w';
+    }
+    if (!$set) return $cache[$url] = '';
+    $set[] = esc_url($url) . ' ' . (int) $size[0] . 'w';
+    return $cache[$url] = implode(', ', $set);
+}
+
+/** srcset/sizes attributes for a full-width hero image (empty when no copies exist). */
+function cheops_hero_img_attrs($url, $preload = false) {
+    $set = cheops_srcset($url);
+    if (!$set) return '';
+    return $preload ? ' imagesrcset="' . esc_attr($set) . '" imagesizes="100vw"' : ' srcset="' . esc_attr($set) . '" sizes="100vw"';
+}
+
+function cheops_intro_video_enabled() {
+    return (bool) get_theme_mod('cheops_intro_video', true);
+}
+
 /** Price shown on the site; leased units never show one. */
 function cheops_unit_price_text($post_id) {
     if (cheops_unit_status($post_id) === 'leased') return 'Leased';
@@ -902,7 +1011,7 @@ function cheops_render_unit_card($post_id) {
     }
     echo '<article class="pcard reveal cheops-unit-card" data-beds="'.esc_attr($beds).'" data-loc="'.esc_attr($loc).'" data-price="'.esc_attr((int)$price).'" data-type="'.esc_attr($type).'" data-deal="'.esc_attr($deal).'" data-status="'.esc_attr($status).'" data-project="'.esc_attr($project).'">';
     echo '<a href="'.esc_url($url).'" class="zoom cheops-card-media" data-cursor="View property" style="position:relative;aspect-ratio:4/3;display:block;overflow:hidden;background:#ded9d1">';
-    if($img) echo '<img alt="'.esc_attr($title).'" loading="lazy" decoding="async" src="'.esc_url($img).'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">';
+    if($img) echo '<img alt="'.esc_attr($title).'" loading="lazy" decoding="async" src="'.esc_url(cheops_img_variant($img,800)).'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">';
     else echo '<span style="position:absolute;inset:0;background:linear-gradient(135deg,#d9d2c5,#f4f1eb)"></span>';
     echo '<span class="eyebrow" style="position:absolute;top:14px;left:14px;background:rgba(255,255,255,.92);padding:7px 12px">'.esc_html($label ?: $type).'</span>';
     echo '<span class="cheops-card-badges" style="position:absolute;bottom:14px;left:14px;display:flex;gap:6px;flex-wrap:wrap"><span class="eyebrow" style="background:#171717;color:#fff;padding:7px 12px">'.esc_html($deal_label).'</span><span class="eyebrow cheops-status-badge is-'.esc_attr($status).'">'.esc_html(cheops_unit_status_label($post_id)).'</span></span>';
@@ -1083,7 +1192,7 @@ function cheops_render_city_projects_section() {
     echo '<section class="wrap cheops-city-projects" id="projects"><div class="cheops-city-projects-head"><div><p class="eyebrow gold">Explore by city</p><h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Choose your</span></span><span class="rl"><span>dream home.</span></span></h2></div><a class="btn btn-ghost" href="'.esc_url(home_url('/properties/')).'">All properties <span class="ar">→</span></a></div>';
     echo '<div class="cheops-city-links" aria-label="Project cities">';
     foreach($cities as $city){
-        $cover=cheops_city_cover_url($city->term_id);
+        $cover=cheops_img_variant(cheops_city_cover_url($city->term_id),800);
         $url=get_term_link($city);
         if (is_wp_error($url)) continue;
         $count_label=$city->count>0 ? $city->count.' '.($city->count===1?'project':'projects') : 'New destination';
@@ -1262,19 +1371,22 @@ function cheops_v6_motion_js() { ?>
     if(!window.gsap||!window.ScrollTrigger)return setTimeout(boot,120);
     gsap.registerPlugin(ScrollTrigger);
 
-    document.querySelectorAll('.tax-project_city h1.d,.tax-project_city h2.d,.tax-project_city h3.d,.cheops-contact-page h1.d,.single-cheops_unit h1,.single-cheops_unit h2').forEach(h=>{
+    // Prepare each animation only as its element approaches the viewport (same effect, less work at load).
+    const near=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;near.unobserve(e.target);const f=e.target.__cheopsNear;delete e.target.__cheopsNear;f&&f();}),{rootMargin:'300px 0px'});
+    const whenNear=(el,fn)=>{el.__cheopsNear=fn;near.observe(el);};
+    document.querySelectorAll('.tax-project_city h1.d,.tax-project_city h2.d,.tax-project_city h3.d,.cheops-contact-page h1.d,.single-cheops_unit h1,.single-cheops_unit h2').forEach(h=>whenNear(h,()=>{
       if(h.dataset.cheopsSplit)return;h.dataset.cheopsSplit='1';
       const walker=(node)=>[...node.childNodes].forEach(n=>{if(n.nodeType===3&&n.textContent.trim()){const frag=document.createDocumentFragment();n.textContent.split('').forEach(c=>{const sp=document.createElement('span');sp.className='ch';sp.style.display='inline-block';sp.textContent=c===' '?'\u00a0':c;frag.appendChild(sp)});n.replaceWith(frag)}else if(n.nodeType===1&&!['SCRIPT','STYLE'].includes(n.tagName))walker(n)});
       walker(h);const chars=h.querySelectorAll('.ch');if(chars.length)gsap.from(chars,{yPercent:115,opacity:0,rotate:5,duration:.95,ease:'expo.out',stagger:.012,scrollTrigger:{trigger:h,start:'top 90%',once:true}});
-    });
+    }));
 
-    document.querySelectorAll('.tax-project_city .zoom img,.single-cheops_unit .sp-gallery img,.single-cheops_unit .sp-related-card img,.cheops-contact-page .contact-hero-media').forEach(img=>{
+    document.querySelectorAll('.tax-project_city .zoom img,.single-cheops_unit .sp-gallery a:not(:first-child) img,.single-cheops_unit .sp-related-card img,.cheops-contact-page .contact-hero-media').forEach(img=>whenNear(img,()=>{
       if(img.dataset.cheopsMotion)return;img.dataset.cheopsMotion='1';
       if(img.tagName==='IMG'){
         gsap.fromTo(img,{clipPath:'inset(12% 12% 12% 12% round 18px)',scale:1.12},{clipPath:'inset(0% 0% 0% 0% round 0px)',scale:1,duration:1.45,ease:'expo.out',scrollTrigger:{trigger:img,start:'top 94%',once:true}});
         gsap.to(img,{yPercent:-7,ease:'none',scrollTrigger:{trigger:img,start:'top bottom',end:'bottom top',scrub:true}});
       }
-    });
+    }));
 
     const cityHero=document.querySelector('.cheops-city-hero-media');if(cityHero)gsap.to(cityHero,{yPercent:10,ease:'none',scrollTrigger:{trigger:'.cheops-city-hero',start:'top top',end:'bottom top',scrub:true}});
 

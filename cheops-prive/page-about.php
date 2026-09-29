@@ -7,7 +7,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>About Cheops Privé | A Private Approach to Property in Egypt</title>
-<link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>">
+<link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg', true); ?>>
 
 
 <meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast." name="description"/>
@@ -71,7 +71,7 @@
 </div>
 <main id="top">
 <section class="hero" id="hero">
-<img alt="Luxury residential architecture in New Cairo" id="heroImg" fetchpriority="high" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"/>
+<img alt="Luxury residential architecture in New Cairo" id="heroImg" fetchpriority="high" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg'); ?>/>
 <div class="overlay" style="position:absolute;inset:0"></div>
 <div class="about-frame"></div>
 <span class="hero-side">Cheops Privé · Private property office</span>
@@ -344,7 +344,11 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
     gsap.registerPlugin(ScrollTrigger);
 
     /* split-char reveal for display headings (word-safe: letters stay grouped per word) */
-    document.querySelectorAll('h2.d, h3.d').forEach(h=>{
+    /* Headings are split and animated only as they approach the viewport, so the page
+       does not build and animate thousands of letters up front. Same effect as before. */
+    const near=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;near.unobserve(e.target);const f=e.target.__cheopsNear;delete e.target.__cheopsNear;f&&f();}),{rootMargin:'300px 0px'});
+    const whenNear=(el,fn)=>{el.__cheopsNear=fn;near.observe(el);};
+    document.querySelectorAll('h2.d, h3.d').forEach(h=>whenNear(h,()=>{
       if(h.dataset.split)return;h.dataset.split='1';
       const walk=(node)=>{
         [...node.childNodes].forEach(n=>{
@@ -369,15 +373,15 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
       if(!chars.length)return;
       gsap.from(chars,{yPercent:120,opacity:0,rotate:6,duration:.9,ease:'expo.out',stagger:.014,
         scrollTrigger:{trigger:h,start:'top 88%'}});
-    });
+    }));
 
     /* image mask reveals + parallax */
-    document.querySelectorAll('.zoom img, .pcard img, .story-card img').forEach(img=>{
+    document.querySelectorAll('.zoom img, .pcard img, .story-card img').forEach(img=>whenNear(img,()=>{
       gsap.fromTo(img,{clipPath:'inset(14% 14% 14% 14% round 22px)',scale:1.14},
         {clipPath:'inset(0% 0% 0% 0% round 22px)',scale:1,duration:1.5,ease:'expo.out',
          scrollTrigger:{trigger:img,start:'top 92%'}});
       gsap.to(img,{yPercent:-8,ease:'none',scrollTrigger:{trigger:img,start:'top bottom',end:'bottom top',scrub:true}});
-    });
+    }));
 
     /* staggered card entrances (IntersectionObserver = pin-safe) */
     const cio=new IntersectionObserver((es)=>{es.forEach(e=>{if(!e.isIntersecting)return;cio.unobserve(e.target);

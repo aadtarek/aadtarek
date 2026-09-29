@@ -8,7 +8,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>Cheops Privé | Luxury Property in New Cairo &amp; Beyond</title>
-<link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>">
+<link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg', true); ?>>
 
 
 <meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast." name="description"/>
@@ -30,6 +30,7 @@
 </head>
 <body <?php body_class('cheops-home-edited'); ?>><?php cheops_site_header(); ?>
 <?php wp_body_open(); ?>
+<?php if (cheops_intro_video_enabled()) : ?>
 <!-- CHEOPS VIDEO PRELOADER: added without changing existing page content -->
 <div aria-label="Loading" id="cheops-video-preloader">
 <video id="cheops-preloader-video" muted playsinline preload="auto" aria-hidden="true"
@@ -73,6 +74,7 @@
   setTimeout(function(){if(!closed)closePreloader();},4000);
 })();
 </script>
+<?php endif; ?>
 <div class="cursor" id="cursor"><b></b></div>
 <header class="nav" id="nav">
 <div class="wrap nav-inner">
@@ -119,7 +121,7 @@
 })();
 </script>
 
-<img alt="Luxury residential architecture in New Cairo" id="heroImg" fetchpriority="high" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"/>
+<img alt="Luxury residential architecture in New Cairo" id="heroImg" fetchpriority="high" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg'); ?>/>
 <div class="overlay" style="position:absolute;inset:0"></div>
 <div class="wrap" style="position:relative;z-index:2;color:#fff;padding-bottom:56px;width:100%">
 <p class="eyebrow hero-eyebrow">Define your next address</p>
@@ -210,7 +212,7 @@ if (!is_wp_error($cheops_home_cities) && $cheops_home_cities) :
     <?php foreach ($cheops_home_cities as $cheops_home_city) :
         $cheops_home_city_url = get_term_link($cheops_home_city);
         if (is_wp_error($cheops_home_city_url)) continue;
-        $cheops_home_city_cover = cheops_city_cover_url($cheops_home_city->term_id);
+        $cheops_home_city_cover = cheops_img_variant(cheops_city_cover_url($cheops_home_city->term_id), 800);
         $cheops_home_city_count = $cheops_home_city->count > 0
             ? $cheops_home_city->count . ' ' . ($cheops_home_city->count === 1 ? 'project' : 'projects')
             : 'New destination';
@@ -554,7 +556,11 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
     gsap.registerPlugin(ScrollTrigger);
 
     /* split-char reveal for display headings (word-safe: letters stay grouped per word) */
-    document.querySelectorAll('h2.d, h3.d').forEach(h=>{
+    /* Headings are split and animated only as they approach the viewport, so the page
+       does not build and animate thousands of letters up front. Same effect as before. */
+    const near=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;near.unobserve(e.target);const f=e.target.__cheopsNear;delete e.target.__cheopsNear;f&&f();}),{rootMargin:'300px 0px'});
+    const whenNear=(el,fn)=>{el.__cheopsNear=fn;near.observe(el);};
+    document.querySelectorAll('h2.d, h3.d').forEach(h=>whenNear(h,()=>{
       if(h.dataset.split)return;h.dataset.split='1';
       const walk=(node)=>{
         [...node.childNodes].forEach(n=>{
@@ -579,15 +585,15 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
       if(!chars.length)return;
       gsap.from(chars,{yPercent:120,opacity:0,rotate:6,duration:.9,ease:'expo.out',stagger:.014,
         scrollTrigger:{trigger:h,start:'top 88%'}});
-    });
+    }));
 
     /* image mask reveals + parallax */
-    document.querySelectorAll('.zoom img, .pcard img, .story-card img').forEach(img=>{
+    document.querySelectorAll('.zoom img, .pcard img, .story-card img').forEach(img=>whenNear(img,()=>{
       gsap.fromTo(img,{clipPath:'inset(14% 14% 14% 14% round 22px)',scale:1.14},
         {clipPath:'inset(0% 0% 0% 0% round 22px)',scale:1,duration:1.5,ease:'expo.out',
          scrollTrigger:{trigger:img,start:'top 92%'}});
       gsap.to(img,{yPercent:-8,ease:'none',scrollTrigger:{trigger:img,start:'top bottom',end:'bottom top',scrub:true}});
-    });
+    }));
 
     /* staggered card entrances (IntersectionObserver = pin-safe) */
     const cio=new IntersectionObserver((es)=>{es.forEach(e=>{if(!e.isIntersecting)return;cio.unobserve(e.target);

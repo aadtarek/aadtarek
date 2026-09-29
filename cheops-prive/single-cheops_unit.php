@@ -58,7 +58,7 @@ if($is_leased){ $payment=$down=$installment=$remaining=$maintenance=$due=''; }
   <nav class="sp-breadcrumbs" aria-label="Breadcrumb"><a href="<?php echo esc_url(home_url('/')); ?>">Home</a><span>›</span><a href="<?php echo esc_url(home_url('/properties/')); ?>">Properties</a><?php if($loc): ?><span>›</span><span><?php echo esc_html($loc); ?></span><?php endif; ?><span>›</span><b><?php the_title(); ?></b></nav>
   <?php if($gallery_urls): ?>
   <section class="sp-gallery" id="propertyGallery">
-    <?php foreach(array_slice($gallery_urls,0,5) as $index=>$media_url): ?><a href="<?php echo esc_url($media_url); ?>" class="sp-gallery-item" data-index="<?php echo esc_attr($index); ?>"><img src="<?php echo esc_url($media_url); ?>" alt="<?php the_title_attribute(); ?>"></a><?php endforeach; ?>
+    <?php foreach(array_slice($gallery_urls,0,5) as $index=>$media_url): ?><a href="<?php echo esc_url($media_url); ?>" class="sp-gallery-item" data-index="<?php echo esc_attr($index); ?>"><?php if($index===0): ?><img src="<?php echo esc_url($media_url); ?>"<?php echo cheops_srcset($media_url) ? ' srcset="'.esc_attr(cheops_srcset($media_url)).'" sizes="(max-width: 900px) 100vw, 60vw"' : ''; ?> fetchpriority="high" alt="<?php the_title_attribute(); ?>"><?php else: ?><img src="<?php echo esc_url(cheops_img_variant($media_url, 800)); ?>" loading="lazy" decoding="async" alt="<?php the_title_attribute(); ?>"><?php endif; ?></a><?php endforeach; ?>
     <button class="sp-gallery-more" type="button" id="openGallery">▦ View all <?php echo count($gallery_urls); ?> photos</button>
   </section>
   <?php else: ?><div class="sp-empty-gallery">Add a Featured Image or Property Gallery from the dashboard.</div><?php endif; ?>
@@ -112,7 +112,7 @@ $rq=new WP_Query(['post_type'=>'cheops_unit','post_status'=>'publish','posts_per
 if(!$rq->have_posts())$rq=new WP_Query(['post_type'=>'cheops_unit','post_status'=>'publish','posts_per_page'=>3,'post__not_in'=>[$id]]);
 while($rq->have_posts()):$rq->the_post();$rid=get_the_ID();$rimg=get_the_post_thumbnail_url($rid,'medium_large');
 if(!$rimg && function_exists('cheops_portfolio_asset_url')){$rasset=get_post_meta($rid,'_cheops_portfolio_cover',true);if($rasset)$rimg=cheops_portfolio_asset_url($rasset);}
-?><a class="sp-related-card" href="<?php the_permalink(); ?>"><?php if($rimg): ?><img src="<?php echo esc_url($rimg); ?>" alt="<?php the_title_attribute(); ?>"><?php endif; ?><div class="sp-related-card-body"><h3><?php the_title(); ?></h3><p><?php echo esc_html(implode(' · ',array_filter([cheops_first_term_name($rid,'unit_type',''),cheops_first_term_name($rid,'unit_location','')]))); ?></p><div class="rprice"><?php echo esc_html(cheops_unit_price_text($rid)); ?></div></div></a><?php endwhile;wp_reset_postdata(); ?>
+?><a class="sp-related-card" href="<?php the_permalink(); ?>"><?php if($rimg): ?><img src="<?php echo esc_url(cheops_img_variant($rimg, 800)); ?>" loading="lazy" decoding="async" alt="<?php the_title_attribute(); ?>"><?php endif; ?><div class="sp-related-card-body"><h3><?php the_title(); ?></h3><p><?php echo esc_html(implode(' · ',array_filter([cheops_first_term_name($rid,'unit_type',''),cheops_first_term_name($rid,'unit_location','')]))); ?></p><div class="rprice"><?php echo esc_html(cheops_unit_price_text($rid)); ?></div></div></a><?php endwhile;wp_reset_postdata(); ?>
 </div></div></section>
 </main>
 

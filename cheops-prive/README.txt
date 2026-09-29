@@ -115,3 +115,16 @@ Pages
 - If a service page (For Sale, For Rent, Income Property, Private Consultation,
   About, Properties, Contact) is missing, trashed or saved with a "-2" slug,
   the theme re-creates or re-routes it so the menu links keep working.
+
+PageSpeed (mobile, lab) after the speed pass
+- Lazy animations: headings are split into letters and animated only as they
+  approach the screen (same look, far less work at load).
+- One combined stylesheet per page, written to wp-content/uploads/cheops-css/
+  and rebuilt automatically when a CSS file changes. Define
+  CHEOPS_NO_CSS_BUNDLE in wp-config.php to load the separate files instead.
+- Smaller copies (-800 / -1200) of hero, city, project and article images are
+  served with srcset.
+- Appearance > Customize > Cheops Theme Options > "Play the intro video on the
+  first visit to Home": switch off for a faster first view.
+Hosting still matters: use a page-cache plugin (e.g. LiteSpeed Cache or
+WP Super Cache) and keep the tenant/developer logo PNGs small.

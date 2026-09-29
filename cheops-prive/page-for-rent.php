@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 
 <html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title><?php echo esc_html(cheops_service_page('for-rent')['title']); ?></title>
-<link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/ed8441727632.jpg' ); ?>">
+<link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/ed8441727632.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/ed8441727632.jpg', true); ?>>
 
 <meta content="<?php echo esc_attr(cheops_service_page('for-rent')['description']); ?>" name="description"/><link href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c9193073bb12.png' ); ?>" rel="icon"/><!-- CHEOPS PRIVÉ / SERVICE-PAGE MOTION SYSTEM -->
 <script>document.documentElement.classList.add('motion-ready');</script>

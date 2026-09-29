@@ -16,7 +16,7 @@ $cheops_more = new WP_Query(['post_type' => 'post', 'post_status' => 'publish', 
 <body <?php body_class('cheops-home-edited cheops-article-page'); ?>><?php wp_body_open(); cheops_site_header(); ?>
 <main id="top" class="cheops-article">
   <header class="cheops-article-hero">
-    <img class="cheops-article-hero-img" src="<?php echo esc_url(cheops_article_image_url($id, 'full')); ?>" alt="" fetchpriority="high">
+    <?php $cheops_hero = cheops_article_image_url($id, 'full'); ?><img class="cheops-article-hero-img" src="<?php echo esc_url($cheops_hero); ?>"<?php echo cheops_hero_img_attrs($cheops_hero); ?> alt="" fetchpriority="high">
     <div class="cheops-article-hero-shade"></div>
     <div class="wrap cheops-article-hero-copy">
       <p class="eyebrow"><?php echo esc_html(cheops_article_category($id) . ' · ' . get_the_date('d M Y')); ?></p>
@@ -48,7 +48,7 @@ $cheops_more = new WP_Query(['post_type' => 'post', 'post_status' => 'publish', 
       <div class="cheops-insight-grid cheops-insight-grid-3">
         <?php while ($cheops_more->have_posts()) : $cheops_more->the_post(); $mid = get_the_ID(); ?>
         <a class="cheops-insight-card" href="<?php the_permalink(); ?>">
-          <div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async" src="<?php echo esc_url(cheops_article_image_url($mid)); ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></div>
+          <div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="<?php the_title_attribute(); ?>" loading="lazy" decoding="async" src="<?php echo esc_url(cheops_img_variant(cheops_article_image_url($mid), 800)); ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></div>
           <p class="meta"><?php echo esc_html(cheops_article_category($mid) . ' · ' . get_the_date('d M Y')); ?></p>
           <h3 class="d"><?php the_title(); ?></h3>
           <span class="link-arrow eyebrow">Read <span class="ar">→</span></span>
