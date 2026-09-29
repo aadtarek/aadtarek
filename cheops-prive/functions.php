@@ -308,7 +308,6 @@ add_action('customize_register', function () {
             $hidden = cheops_hidden_developer_logos();
             echo '<span class="customize-control-title">' . esc_html($this->label) . '</span>';
             if ($this->description) echo '<span class="description customize-control-description">' . esc_html($this->description) . '</span>';
-            echo '<input type="hidden" class="cheops-logo-picker-value" ' . $this->get_link() . ' value="' . esc_attr(implode(',', $hidden)) . '">';
             echo '<div class="cheops-logo-picker" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">';
             foreach (cheops_developer_logo_numbers() as $n) {
                 echo '<label style="display:grid;gap:6px;justify-items:center;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff;cursor:pointer">';
@@ -316,20 +315,26 @@ add_action('customize_register', function () {
                 echo '<span><input type="checkbox" value="' . esc_attr($n) . '" ' . checked(in_array($n, $hidden, true), true, false) . '> Hide</span></label>';
             }
             echo '</div>';
-            ?>
-<script>
-(function(){
-  var root=document.currentScript.previousElementSibling, input=root.previousElementSibling;
-  root.addEventListener('change',function(){
-    var v=[].slice.call(root.querySelectorAll('input:checked')).map(function(c){return c.value;}).join(',');
-    input.value=v; input.dispatchEvent(new Event('change',{bubbles:true}));
-  });
-})();
-</script>
-            <?php
         }
     }
 }, 1);
+
+/* Push ticked logos into the Customizer setting so Publish becomes available. */
+add_action('customize_controls_print_footer_scripts', function () { ?>
+<script>
+(function(api){
+  if(!api) return;
+  api.control('cheops_hidden_developer_logos', function(control){
+    control.deferred.embedded.done(function(){
+      control.container.on('change', '.cheops-logo-picker input[type=checkbox]', function(){
+        var v=control.container.find('.cheops-logo-picker input:checked').map(function(){ return this.value; }).get().join(',');
+        control.setting.set(v);
+      });
+    });
+  });
+})(window.wp && wp.customize);
+</script>
+<?php });
 
 function cheops_create_core_pages() {
     $pages = [
@@ -360,6 +365,62 @@ function cheops_create_core_pages() {
     }
 }
 add_action('after_switch_theme', 'cheops_create_core_pages');
+
+/*
+ * Service pages are matched to their template by slug. If a page is missing,
+ * trashed, or was re-created with a suffix (private-consultation-2), the link
+ * in the menu would 404 or fall back to a plain page. Repair both cases.
+ */
+function cheops_service_templates() {
+    return [
+        'for-sale' => 'page-for-sale.php',
+        'for-rent' => 'page-for-rent.php',
+        'income-property' => 'page-income-property.php',
+        'private-consultation' => 'page-private-consultation.php',
+        'about' => 'page-about.php',
+        'properties' => 'page-properties.php',
+        'contact' => 'page-contact.php',
+        'insights' => 'page-insights.php',
+    ];
+}
+
+function cheops_ensure_service_pages() {
+    if (get_option('cheops_service_pages_checked') === '2') return;
+    update_option('cheops_service_pages_checked', '2', false);
+    $titles = ['for-sale' => 'For Sale', 'for-rent' => 'For Rent', 'income-property' => 'Income Property',
+        'private-consultation' => 'Private Consultation', 'about' => 'About', 'properties' => 'Properties', 'contact' => 'Contact Us'];
+    foreach ($titles as $slug => $title) {
+        $page = get_page_by_path($slug);
+        if ($page && $page->post_status !== 'publish') {
+            wp_update_post(['ID' => $page->ID, 'post_status' => 'publish']);
+        } elseif (!$page) {
+            wp_insert_post(['post_type' => 'page', 'post_status' => 'publish', 'post_title' => $title, 'post_name' => $slug, 'post_content' => '']);
+        }
+    }
+}
+add_action('init', 'cheops_ensure_service_pages', 26);
+
+function cheops_service_template_fallback($template) {
+    $map = cheops_service_templates();
+    $slug = '';
+    if (is_page()) {
+        $post = get_queried_object();
+        $name = $post ? $post->post_name : '';
+        $base = preg_replace('/-\d+$/', '', (string) $name);
+        if ($name !== $base && isset($map[$base])) $slug = $base; // e.g. private-consultation-2
+    } elseif (is_404()) {
+        $path = trim((string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+        $home = trim((string) wp_parse_url(home_url('/'), PHP_URL_PATH), '/');
+        if ($home !== '' && strpos($path, $home) === 0) $path = trim(substr($path, strlen($home)), '/');
+        if (isset($map[$path])) { $slug = $path; status_header(200); }
+    }
+    if ($slug) {
+        $file = locate_template($map[$slug]);
+        if ($file) return $file;
+    }
+    return $template;
+}
+add_filter('template_include', 'cheops_service_template_fallback', 20);
 
 // Keep the converted front-end clean while preserving the WordPress admin experience.
 function cheops_body_class($classes) { $classes[] = 'cheops-prive-theme'; return $classes; }
@@ -1806,6 +1867,7 @@ add_action('admin_post_cheops_import_lake_town_units', 'cheops_import_lake_town_
 /* Curated Portfolio AUG26 — projects + units importer */
 require_once get_template_directory() . '/inc/portfolio-aug26-import.php';
 require_once get_template_directory() . '/inc/service-pages.php';
+require_once get_template_directory() . '/inc/articles.php';
 
 
 /* =========================================================

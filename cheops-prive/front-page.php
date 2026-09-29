@@ -353,24 +353,8 @@ if (!is_wp_error($cheops_home_cities) && $cheops_home_cities) :
 <div class="wrap">
 <div class="home-section-heading" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px">
 <div><p class="eyebrow gold">Insights</p><h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span style="white-space:nowrap">Notes from the market.</span></span></h2></div>
-<div></div></div>
-<div class="grid4" style="margin-top:0;display:grid;gap:32px"><a class="reveal" data-cursor="Read" href="#insights" style="display:block">
-<div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="The Art of Modern Living" loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/681a7aa58f9a.jpg' ); ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/></div>
-<p class="meta" style="margin-top:18px">Market · 19 Aug 2026</p>
-<h3 class="d" style="font-size:1.305rem;margin-top:10px;line-height:1.15">The Art of Modern Living</h3>
-<span class="link-arrow eyebrow" style="margin-top:14px;display:inline-block">Read <span class="ar">→</span></span></a><a class="reveal" data-cursor="Read" href="#insights" style="display:block">
-<div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="Where Cairo Is Moving Next" loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c08f3f70cf69.jpg' ); ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/></div>
-<p class="meta" style="margin-top:18px">Cities · 02 Aug 2026</p>
-<h3 class="d" style="font-size:1.305rem;margin-top:10px;line-height:1.15">Where Cairo Is Moving Next</h3>
-<span class="link-arrow eyebrow" style="margin-top:14px;display:inline-block">Read <span class="ar">→</span></span></a><a class="reveal" data-cursor="Read" href="#insights" style="display:block">
-<div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="Investing in Tomorrow's Communities" loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/fb144638dcc9.jpg' ); ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/></div>
-<p class="meta" style="margin-top:18px">Investment · 21 Jul 2026</p>
-<h3 class="d" style="font-size:1.305rem;margin-top:10px;line-height:1.15">Investing in Tomorrow's Communities</h3>
-<span class="link-arrow eyebrow" style="margin-top:14px;display:inline-block">Read <span class="ar">→</span></span></a><a class="reveal" data-cursor="Read" href="#insights" style="display:block">
-<div class="zoom" style="position:relative;aspect-ratio:4/3;background:#eee"><img alt="How to Choose Your Next Home" loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/80b3ea65ee72.jpg' ); ?>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"/></div>
-<p class="meta" style="margin-top:18px">Guides · 08 Jul 2026</p>
-<h3 class="d" style="font-size:1.305rem;margin-top:10px;line-height:1.15">How to Choose Your Next Home</h3>
-<span class="link-arrow eyebrow" style="margin-top:14px;display:inline-block">Read <span class="ar">→</span></span></a></div>
+<div><a class="btn" href="<?php echo esc_url(cheops_insights_url()); ?>">All articles <span class="ar">→</span></a></div></div>
+<?php cheops_render_insight_cards(4); ?>
 </div>
 </section>
 <?php

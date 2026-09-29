@@ -102,3 +102,16 @@ Content
   content lives in inc/service-pages.php.
 - Floating buttons have an (x) to hide them for the visit; the meeting form has
   mobile-friendly date/time fields and an animated send button.
+
+Insights / Articles
+- Articles are normal WordPress Posts (Dashboard > Posts): edit, add or delete
+  them there. The six launch articles are imported once, automatically, the
+  first time an admin opens the dashboard after this update.
+- Each article keeps the site image it was imported with; set a Featured Image
+  on a post to replace it.
+- Home and About show the four latest articles; /insights/ lists them all.
+
+Pages
+- If a service page (For Sale, For Rent, Income Property, Private Consultation,
+  About, Properties, Contact) is missing, trashed or saved with a "-2" slug,
+  the theme re-creates or re-routes it so the menu links keep working.
