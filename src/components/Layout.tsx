@@ -8,7 +8,11 @@ import { QuickAddModal } from './QuickAddModal'
 
 export function Layout() {
   const { pathname } = useLocation()
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  // Braces matter: some browser extensions make scrollTo return a value, and an
+  // effect that returns a non-function crashes React on the next navigation.
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   return (
     <div className="flex min-h-screen flex-col">

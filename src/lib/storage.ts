@@ -49,6 +49,8 @@ export function clearSiteStorage() {
 /** useState that persists to localStorage. */
 export function usePersistentState<T>(key: string, fallback: T, sanitize?: Sanitize<T>) {
   const [value, setValue] = useState<T>(() => readStorage(key, fallback, sanitize))
-  useEffect(() => writeStorage(key, value), [key, value])
+  useEffect(() => {
+    writeStorage(key, value)
+  }, [key, value])
   return [value, setValue] as const
 }

@@ -50,8 +50,8 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
               Back to home
             </button>
           </div>
-          <pre className="mt-8 overflow-x-auto rounded-md bg-card p-4 text-left text-[12px] whitespace-pre-wrap text-muted">
-            {error.name}: {error.message}
+          <pre className="mt-8 max-h-72 overflow-auto rounded-md bg-card p-4 text-left text-[12px] whitespace-pre-wrap text-muted">
+            {`${error.name}: ${error.message}\nPage: ${window.location.pathname}${window.location.search}\nBrowser: ${navigator.userAgent}\n\n${(error.stack ?? '').split('\n').slice(1, 7).join('\n')}`}
           </pre>
         </div>
       </div>

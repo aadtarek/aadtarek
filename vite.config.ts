@@ -9,4 +9,10 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom', 'react-dom/client', 'react-router-dom', 'lucide-react'],
   },
+  build: {
+    // TEMPORARY while debugging a browser-specific error: keep real function
+    // names in the bundle so error messages are readable. Re-enable before launch.
+    minify: false,
+    sourcemap: true,
+  },
 })

@@ -8,6 +8,7 @@ import { SizePicker } from '../components/SizePicker'
 import { collections, findCollection, type Collection } from '../data/collections'
 import { formatPrice } from '../lib/format'
 import { useCart } from '../store/cart'
+import type { Product } from '../types'
 import { NotFound } from './NotFound'
 
 export function CollectionsIndex() {
@@ -173,14 +174,20 @@ function DiscoveryBuilder() {
   )
 }
 
+/** Largest full-size bottle (variations are listed smallest → largest). */
+function lastSize(p: Product) {
+  const sizes = fullSizeVariations(p)
+  return sizes[sizes.length - 1]
+}
+
 function GiftBuilder() {
   const cart = useCart()
   const products = getAllProducts()
   const [productId, setProductId] = useState(products[0].id)
   const product = products.find((p) => p.id === productId)!
-  const [variationId, setVariationId] = useState(fullSizeVariations(product).at(-1)!.id)
+  const [variationId, setVariationId] = useState(lastSize(product).id)
   const [message, setMessage] = useState('')
-  const variation = product.variations.find((v) => v.id === variationId) ?? fullSizeVariations(product).at(-1)!
+  const variation = product.variations.find((v) => v.id === variationId) ?? lastSize(product)!
   const MAX = 200
 
   return (
@@ -194,7 +201,7 @@ function GiftBuilder() {
                 type="button"
                 onClick={() => {
                   setProductId(p.id)
-                  setVariationId(fullSizeVariations(p).at(-1)!.id)
+                  setVariationId(lastSize(p).id)
                 }}
                 aria-pressed={p.id === productId}
                 className={`w-full overflow-hidden rounded-lg border bg-card text-left transition ${
