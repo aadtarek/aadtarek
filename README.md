@@ -7,9 +7,14 @@ WordPress / WooCommerce (headless) later.
 
 ```bash
 npm install
-npm run dev      # http://localhost:5173
+npm start        # builds and opens the site at http://localhost:4173 — easiest way to view it
+npm run dev      # development mode with live reload (http://localhost:5173)
 npm run build    # production build in dist/
 ```
+
+> If `npm run dev` shows the page for a second and then keeps reloading, something on the
+> machine (a browser extension, Brave Shields, antivirus or VPN) is dropping Vite's live-reload
+> WebSocket. Use `npm start` instead, or try another browser / disable the extension for localhost.
 
 ## What works now
 
