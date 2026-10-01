@@ -1,0 +1,93 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/dm-sans';
+@import '@fontsource-variable/playfair-display';
+
+@theme {
+  --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Playfair Display Variable', ui-serif, Georgia, serif;
+
+  --color-olive: #2a2f1b;
+  --color-olive-hover: #3a412a;
+  --color-ink: #18140b;
+  --color-ink-soft: #3d3a33;
+  --color-muted: #6f6a60;
+  --color-cream: #f9f6f1;
+  --color-sand: #f6f1eb;
+  --color-card: #fcf8f2;
+  --color-chip: #f0ebe2;
+  --color-line: #e6e1d8;
+  --color-line-strong: #c9c3b8;
+  --color-dot: #cfc6bd;
+
+  --breakpoint-xs: 26rem;
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-slide-in: slide-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes slide-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
+}
+
+@layer base {
+  .font-serif {
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-sand font-sans text-ink;
+  }
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-olive);
+    outline-offset: 2px;
+  }
+}
+
+@utility container-x {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @variant sm {
+    padding-inline: 1.5rem;
+  }
+  @variant lg {
+    padding-inline: 2.5rem;
+  }
+  @variant xl {
+    padding-inline: 78px;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
