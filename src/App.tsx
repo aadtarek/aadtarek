@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
 import { About } from './pages/About'
 import { Account } from './pages/Account'
@@ -24,6 +25,7 @@ import { WishlistProvider } from './store/wishlist'
 
 export default function App() {
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <AccountProvider>
         <WishlistProvider>
@@ -58,5 +60,6 @@ export default function App() {
         </WishlistProvider>
       </AccountProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   )
 }

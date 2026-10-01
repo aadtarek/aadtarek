@@ -39,7 +39,14 @@ function hash(s: string) {
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = usePersistentState<CartItem[]>('rfaheya.cart', [])
+  const [items, setItems] = usePersistentState<CartItem[]>('rfaheya.cart', [], (raw) =>
+    Array.isArray(raw)
+      ? raw.filter(
+          (i): i is CartItem =>
+            !!i && typeof i.key === 'string' && typeof i.productId === 'number' && typeof i.variationId === 'number' && i.quantity > 0,
+        )
+      : undefined,
+  )
   const [isOpen, setOpen] = useState(false)
   const [quickAdd, setQuickAdd] = useState<Product | null>(null)
 

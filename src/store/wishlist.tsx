@@ -10,7 +10,9 @@ interface WishlistContextValue {
 const WishlistContext = createContext<WishlistContextValue | null>(null)
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
-  const [ids, setIds] = usePersistentState<number[]>('rfaheya.wishlist', [])
+  const [ids, setIds] = usePersistentState<number[]>('rfaheya.wishlist', [], (raw) =>
+    Array.isArray(raw) ? raw.filter((x): x is number => typeof x === 'number') : undefined,
+  )
 
   const toggle = useCallback(
     (id: number) => setIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),

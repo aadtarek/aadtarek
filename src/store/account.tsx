@@ -27,7 +27,9 @@ const USERS_KEY = 'rfaheya.users'
 
 export function AccountProvider({ children }: { children: ReactNode }) {
   const [customer, setCustomer] = usePersistentState<Customer | null>('rfaheya.customer', null)
-  const [orders, setOrders] = usePersistentState<Order[]>('rfaheya.orders', [])
+  const [orders, setOrders] = usePersistentState<Order[]>('rfaheya.orders', [], (raw) =>
+    Array.isArray(raw) ? raw.filter((o): o is Order => !!o && typeof o.number === 'string' && Array.isArray(o.items)) : undefined,
+  )
 
   const login = useCallback(
     (email: string, password: string) => {

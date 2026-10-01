@@ -21,6 +21,7 @@ import {
   allNotes,
   emptyAnswers,
   firstOpenStep,
+  fromSearch,
   genderOptions,
   label,
   longevityOptions,
@@ -43,7 +44,15 @@ import { usePersistentState } from '../../lib/storage'
 const stepIcons: LucideIcon[] = [UserRound, MapPin, Waves, Flower2, Sun, Waves, Clock]
 
 export function FinderQuiz() {
-  const [answers, setAnswers] = usePersistentState<FinderAnswers>('rfaheya.finder', emptyAnswers)
+  const [answers, setAnswers] = usePersistentState<FinderAnswers>('rfaheya.finder', emptyAnswers, (raw) =>
+    raw && typeof raw === 'object'
+      ? fromSearch(
+          new URLSearchParams(
+            toSearch({ ...(raw as FinderAnswers), notes: Array.isArray((raw as FinderAnswers).notes) ? (raw as FinderAnswers).notes : [] }),
+          ),
+        )
+      : undefined,
+  )
   const [params, setParams] = useSearchParams()
   const navigate = useNavigate()
   const [reviewOpen, setReviewOpen] = useState(false)
