@@ -3,6 +3,14 @@ export const FREE_SHIPPING_THRESHOLD = 1000
 export const FREE_SHIPPING_GOVERNORATES = ['Cairo', 'Alexandria']
 export const FLAT_SHIPPING_RATE = 70
 
+/** TODO: replace with the brand's real profile URLs. */
+export const SOCIAL_LINKS = {
+  instagram: 'https://www.instagram.com/',
+  tiktok: 'https://www.tiktok.com/',
+  youtube: 'https://www.youtube.com/',
+  facebook: 'https://www.facebook.com/',
+}
+
 export const GOVERNORATES = [
   'Cairo',
   'Giza',

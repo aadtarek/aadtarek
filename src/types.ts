@@ -43,11 +43,34 @@ export interface Product {
   inspiredBy: string
   images: ProductImage[]
   categories: string[]
+  /** Fragrance families used by "Explore by what you love" */
+  families: FamilySlug[]
   variations: ProductVariation[]
   /** Total units sold — drives the Best Sellers ordering */
   totalSales: number
   /** ISO date — drives New Arrivals ordering */
   dateCreated: string
+}
+
+export type FamilySlug = 'fresh' | 'oriental' | 'floral' | 'fruity' | 'sweet'
+
+export interface FragranceFamily {
+  slug: FamilySlug
+  name: string
+  tagline: string
+  keywords: string[]
+  image: string
+}
+
+export interface Review {
+  id: number
+  productId: number
+  size: string
+  author: string
+  rating: number
+  text: string
+  verified: boolean
+  date: string
 }
 
 export interface CartItem {

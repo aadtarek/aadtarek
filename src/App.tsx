@@ -2,11 +2,13 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { Account } from './pages/Account'
 import { Checkout } from './pages/Checkout'
-import { ComingSoon } from './pages/ComingSoon'
 import { Home } from './pages/Home'
+import { CollectionPage, InfoPage } from './pages/InfoPage'
 import { NotFound } from './pages/NotFound'
 import { ProductPage } from './pages/ProductPage'
+import { Reviews } from './pages/Reviews'
 import { Shop } from './pages/Shop'
+import { TrackOrder } from './pages/TrackOrder'
 import { Wishlist } from './pages/Wishlist'
 import { AccountProvider } from './store/account'
 import { CartProvider } from './store/cart'
@@ -26,10 +28,10 @@ export default function App() {
                 <Route path="wishlist" element={<Wishlist />} />
                 <Route path="account" element={<Account />} />
                 <Route path="checkout" element={<Checkout />} />
-                <Route path="discover" element={<ComingSoon title="Find Your Scent" />} />
-                <Route path="collections" element={<ComingSoon title="Collections" />} />
-                <Route path="our-standard" element={<ComingSoon title="Our Standard" />} />
-                <Route path="journal" element={<ComingSoon title="Journal" />} />
+                <Route path="reviews" element={<Reviews />} />
+                <Route path="track-order" element={<TrackOrder />} />
+                <Route path="collections/:slug" element={<CollectionPage />} />
+                <Route path=":page" element={<InfoPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>

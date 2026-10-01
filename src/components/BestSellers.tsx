@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { getProducts, type ProductSort } from '../api/catalog'
 import type { Product } from '../types'
 import { ProductCard } from './ProductCard'
-import { ProductCarousel } from './ProductCarousel'
+import { Carousel } from './Carousel'
 
 type Tab = 'new' | 'best'
 
@@ -81,7 +81,7 @@ export function BestSellers() {
 
         <div className="mt-6 lg:mt-[30px]" role="tabpanel" aria-labelledby="best-sellers-title">
           {products.length > 0 && (
-            <ProductCarousel
+            <Carousel
               label={t.label}
               items={products}
               getKey={(p) => p.id}

@@ -1,7 +1,7 @@
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { getAllAccords, getProducts, type ProductSort } from '../api/catalog'
+import { findFamily, getAllAccords, getProducts, type ProductSort } from '../api/catalog'
 import { PageHeader } from '../components/PageHeader'
 import { ProductCard } from '../components/ProductCard'
 import type { Product } from '../types'
@@ -18,16 +18,17 @@ export function Shop() {
   const [params, setParams] = useSearchParams()
   const q = params.get('q') ?? ''
   const accord = params.get('accord') ?? ''
+  const family = findFamily(params.get('family') ?? '')
   const sort = (params.get('sort') as ProductSort) || 'best-sellers'
   const [products, setProducts] = useState<Product[] | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    getProducts({ search: q, accord: accord || undefined, sort }).then((list) => !cancelled && setProducts(list))
+    getProducts({ search: q, accord: accord || undefined, family: family?.slug, sort }).then((list) => !cancelled && setProducts(list))
     return () => {
       cancelled = true
     }
-  }, [q, accord, sort])
+  }, [q, accord, family, sort])
 
   const update = (key: string, value: string) => {
     const next = new URLSearchParams(params)
@@ -43,7 +44,15 @@ export function Shop() {
 
   return (
     <div className="pb-16">
-      <PageHeader eyebrow="The collection" title={q ? `Results for “${q}”` : 'Shop All Fragrances.'}>
+      <PageHeader
+        eyebrow={family ? family.tagline : 'The collection'}
+        title={q ? `Results for “${q}”` : family ? `${family.name} Fragrances.` : 'Shop All Fragrances.'}
+      >
+        {family && !q && (
+          <button type="button" onClick={() => update('family', '')} className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
+            <X className="size-4" /> Show all families
+          </button>
+        )}
         {q && (
           <button type="button" onClick={() => update('q', '')} className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink">
             <X className="size-4" /> Clear search

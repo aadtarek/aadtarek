@@ -18,6 +18,8 @@
   --color-line: #e6e1d8;
   --color-line-strong: #c9c3b8;
   --color-dot: #cfc6bd;
+  --color-gold: #c98a2b;
+  --color-footer: #f7efe4;
 
   --breakpoint-xs: 26rem;
   --animate-fade-in: fade-in 0.2s ease-out;

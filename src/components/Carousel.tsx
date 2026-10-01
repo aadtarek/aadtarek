@@ -6,12 +6,18 @@ interface Props<T> {
   getKey: (item: T) => string | number
   renderItem: (item: T) => ReactNode
   label: string
+  /** Cards visible for a given viewport width; fractional values leave a "peek" of the next card. */
+  perViewFor?: (width: number) => number
+  /** Vertical centre of the arrows, given the rendered card width. Defaults to the middle. */
+  arrowTop?: number | string | ((itemWidth: number) => number | string)
+  gap?: number
+  /** Extra classes for the arrow buttons' horizontal placement. */
+  arrowClass?: { prev: string; next: string }
+  itemLabel?: string
 }
 
-const GAP = 18
-
-/** Cards visible per breakpoint; fractional values leave a "peek" of the next card. */
-function perViewFor(width: number) {
+/** Product cards: 4 / 3 / 2 / 1 per view. */
+export function productsPerView(width: number) {
   if (width >= 1180) return 4
   if (width >= 860) return 3
   if (width >= 560) return 2.15
@@ -23,7 +29,17 @@ function perViewFor(width: number) {
  * silently jumps back to the middle copy after each transition, so it loops
  * in both directions. Dots map 1:1 to items.
  */
-export function ProductCarousel<T>({ items, getKey, renderItem, label }: Props<T>) {
+export function Carousel<T>({
+  items,
+  getKey,
+  renderItem,
+  label,
+  perViewFor = productsPerView,
+  arrowTop = (w) => w / (348 / 229) - 23,
+  gap: GAP = 18,
+  arrowClass = { prev: '-left-3 xl:-left-[63px]', next: '-right-3 xl:-right-[55px]' },
+  itemLabel = 'product',
+}: Props<T>) {
   const viewport = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const n = items.length
@@ -62,6 +78,8 @@ export function ProductCarousel<T>({ items, getKey, renderItem, label }: Props<T
   const list = loop ? [...items, ...items, ...items] : items
   const offset = loop ? pos : 0
   const active = ((pos % n) + n) % n
+
+  const arrowTopValue = typeof arrowTop === 'function' ? arrowTop(itemWidth) : arrowTop
 
   const go = useCallback((delta: number) => setPos((p) => p + delta), [])
 
@@ -119,26 +137,26 @@ export function ProductCarousel<T>({ items, getKey, renderItem, label }: Props<T
         <>
           <button
             type="button"
-            aria-label="Previous products"
+            aria-label={`Previous ${itemLabel}s`}
             onClick={() => go(-1)}
-            className={`${arrow} -left-3 xl:-left-[63px]`}
-            style={{ top: itemWidth / (348 / 229) - 23 }}
+            className={`${arrow} ${arrowClass.prev}`}
+            style={{ top: arrowTopValue }}
           >
             <ArrowLeft className="size-5" strokeWidth={1.5} />
           </button>
           <button
             type="button"
-            aria-label="Next products"
+            aria-label={`Next ${itemLabel}s`}
             onClick={() => go(1)}
-            className={`${arrow} -right-3 xl:-right-[55px]`}
-            style={{ top: itemWidth / (348 / 229) - 23 }}
+            className={`${arrow} ${arrowClass.next}`}
+            style={{ top: arrowTopValue }}
           >
             <ArrowRight className="size-5" strokeWidth={1.5} />
           </button>
         </>
       )}
 
-      <div ref={viewport} className="-mx-4 -my-5 overflow-hidden px-4 py-5">
+      <div ref={viewport} className="-mx-2 -my-5 overflow-hidden px-2 py-5">
         <ul
           className="flex touch-pan-y select-none"
           style={{
@@ -183,7 +201,7 @@ export function ProductCarousel<T>({ items, getKey, renderItem, label }: Props<T
             <button
               key={getKey(item)}
               type="button"
-              aria-label={`Go to product ${i + 1} of ${n}`}
+              aria-label={`Go to ${itemLabel} ${i + 1} of ${n}`}
               aria-current={i === active}
               onClick={() => goTo(i)}
               className="group py-2"

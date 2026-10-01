@@ -1,5 +1,7 @@
+import { families } from '../data/families'
 import { products } from '../data/products'
-import type { Product } from '../types'
+import { reviews } from '../data/reviews'
+import type { FamilySlug, Product, Review } from '../types'
 
 /**
  * Catalogue data access. Every page/component reads products through here,
@@ -12,6 +14,7 @@ export type ProductSort = 'best-sellers' | 'newest' | 'price-asc' | 'price-desc'
 export interface ProductQuery {
   search?: string
   accord?: string
+  family?: FamilySlug
   sort?: ProductSort
 }
 
@@ -54,6 +57,7 @@ export function sortProducts(list: Product[], sort: ProductSort = 'best-sellers'
 export async function getProducts(query: ProductQuery = {}): Promise<Product[]> {
   let list = products.filter((p) => matchesSearch(p, query.search ?? ''))
   if (query.accord) list = list.filter((p) => p.accords.includes(query.accord!))
+  if (query.family) list = list.filter((p) => p.families.includes(query.family!))
   return delay(sortProducts(list, query.sort))
 }
 
@@ -82,4 +86,24 @@ export function sampleVariation(product: Product) {
 
 export function fullSizeVariations(product: Product) {
   return product.variations.filter((v) => !v.isSample)
+}
+
+export function getFamilies() {
+  return families
+}
+
+export function findFamily(slug: string) {
+  return families.find((f) => f.slug === slug)
+}
+
+export async function getReviews(productId?: number): Promise<Review[]> {
+  const list = productId ? reviews.filter((r) => r.productId === productId) : reviews
+  return delay([...list].sort((a, b) => b.date.localeCompare(a.date)))
+}
+
+/** Store-wide rating summary. */
+export function ratingSummary(list: Review[] = reviews) {
+  const count = list.length
+  const average = count ? list.reduce((n, r) => n + r.rating, 0) / count : 0
+  return { average, count }
 }
