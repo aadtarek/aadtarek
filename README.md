@@ -24,8 +24,27 @@ npm run build    # production build in dist/
 - Rfaheya Standard section, customer reviews carousel + `/reviews` page with rating summary
 - Footer: CTA banner, link columns (every link routes), newsletter sign-up, currency picker,
   order tracking (`/track-order`)
-- Shop page (accord / family filters, sorting), product page, wishlist, account (sign up / sign in / orders)
+- **Shop** (`/shop`): family tiles, multi-select family/accord filters with live counts, sort,
+  active-filter pills, mobile filter drawer — all state in the URL so filtered views are shareable
+- **Product** (`/product/:slug`): gallery, size picker (10 / 50 / 100 ML), quantity, wishlist,
+  "try 10 ML first", accordions, notes, Rfaheya Standard, product reviews, related products,
+  sticky add-to-cart bar on mobile
+- **About** (`/about`) and **Contact** (`/contact`, form + FAQs; `/faqs` on its own)
+- Wishlist, account (sign up / sign in / orders)
 - Cart, wishlist, account and orders persist in `localStorage`
+
+## Before launch — content to replace
+
+- `src/config.ts` → `CONTACT` (email, phone, WhatsApp, hours) and `SOCIAL_LINKS` are placeholders
+- `src/data/reviews.ts` → placeholder reviews from the mock-up
+- `src/data/faqs.ts`, About page copy → review against real policies
+- `FLAT_SHIPPING_RATE` (70 EGP) is an assumption
+
+## Deploying
+
+`npm run build` outputs a static site in `dist/`. It uses client-side routing, so the host must
+serve `index.html` for unknown paths (Netlify/Vercel do this with a one-line rewrite; on Apache
+use a `.htaccess` fallback).
 
 ## Structure
 

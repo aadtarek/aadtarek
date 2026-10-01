@@ -11,6 +11,15 @@ export const SOCIAL_LINKS = {
   facebook: 'https://www.facebook.com/',
 }
 
+/** TODO: replace with the brand's real contact details before launch. */
+export const CONTACT = {
+  email: 'hello@rfaheya.com',
+  phone: '+20 100 000 0000',
+  whatsapp: '201000000000', // international format, digits only
+  hours: 'Sat – Thu · 10 AM – 8 PM',
+  location: 'Cairo, Egypt',
+}
+
 export const GOVERNORATES = [
   'Cairo',
   'Giza',

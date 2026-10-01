@@ -1,7 +1,9 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
+import { About } from './pages/About'
 import { Account } from './pages/Account'
 import { Checkout } from './pages/Checkout'
+import { Contact, FaqSection } from './pages/Contact'
 import { Home } from './pages/Home'
 import { CollectionPage, InfoPage } from './pages/InfoPage'
 import { NotFound } from './pages/NotFound'
@@ -30,6 +32,9 @@ export default function App() {
                 <Route path="checkout" element={<Checkout />} />
                 <Route path="reviews" element={<Reviews />} />
                 <Route path="track-order" element={<TrackOrder />} />
+                <Route path="about" element={<About />} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="faqs" element={<div className="pt-2 pb-24"><FaqSection asPage /></div>} />
                 <Route path="collections/:slug" element={<CollectionPage />} />
                 <Route path=":page" element={<InfoPage />} />
                 <Route path="*" element={<NotFound />} />

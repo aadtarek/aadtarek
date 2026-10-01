@@ -13,8 +13,10 @@ export type ProductSort = 'best-sellers' | 'newest' | 'price-asc' | 'price-desc'
 
 export interface ProductQuery {
   search?: string
-  accord?: string
-  family?: FamilySlug
+  /** Match products having ANY of these accords */
+  accords?: string[]
+  /** Match products in ANY of these families */
+  families?: FamilySlug[]
   sort?: ProductSort
 }
 
@@ -56,13 +58,27 @@ export function sortProducts(list: Product[], sort: ProductSort = 'best-sellers'
 
 export async function getProducts(query: ProductQuery = {}): Promise<Product[]> {
   let list = products.filter((p) => matchesSearch(p, query.search ?? ''))
-  if (query.accord) list = list.filter((p) => p.accords.includes(query.accord!))
-  if (query.family) list = list.filter((p) => p.families.includes(query.family!))
+  const { accords, families: fams } = query
+  if (accords?.length) list = list.filter((p) => p.accords.some((a) => accords.includes(a)))
+  if (fams?.length) list = list.filter((p) => p.families.some((f) => fams.includes(f)))
   return delay(sortProducts(list, query.sort))
 }
 
 export async function getProduct(slug: string): Promise<Product | undefined> {
   return delay(products.find((p) => p.slug === slug))
+}
+
+export function getAllProducts(): Product[] {
+  return products
+}
+
+/** Other products sharing a family or accord, best matches first. */
+export function relatedProducts(product: Product, limit = 4): Product[] {
+  const score = (p: Product) =>
+    p.families.filter((f) => product.families.includes(f)).length * 2 + p.accords.filter((a) => product.accords.includes(a)).length
+  return sortProducts(products.filter((p) => p.id !== product.id))
+    .sort((a, b) => score(b) - score(a))
+    .slice(0, limit)
 }
 
 export function getAllAccords(): string[] {

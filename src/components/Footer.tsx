@@ -73,10 +73,10 @@ export function Footer() {
       <CtaBanner />
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[45px]">
         <div className="h-px bg-line-strong/50" />
-        <div className="grid gap-10 py-10 lg:grid-cols-[minmax(0,385px)_1px_minmax(0,1fr)_1px_minmax(0,471px)] lg:gap-0 lg:pt-[47px] lg:pb-[40px]">
+        <div className="grid gap-10 py-10 md:grid-cols-2 xl:grid-cols-[minmax(0,0.85fr)_1px_minmax(0,1.45fr)_1px_minmax(0,1fr)] xl:gap-0 xl:pt-[47px] xl:pb-[40px]">
           <BrandColumn />
-          <span aria-hidden className="hidden bg-line-strong/60 lg:block" />
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-[1.05fr_1fr_1fr] lg:gap-4 lg:pr-4 lg:pl-[41px]">
+          <span aria-hidden className="hidden bg-line-strong/60 xl:block" />
+          <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-[1.05fr_1fr_1fr] md:order-last md:col-span-2 xl:order-none xl:col-span-1 xl:gap-4 xl:pr-4 xl:pl-[41px]">
             {columns.map((c) => (
               <div key={c.title}>
                 <h2 className="text-[15px] font-medium tracking-[0.15em] uppercase">{c.title}</h2>
@@ -92,7 +92,7 @@ export function Footer() {
               </div>
             ))}
           </nav>
-          <span aria-hidden className="hidden bg-line-strong/60 lg:block" />
+          <span aria-hidden className="hidden bg-line-strong/60 xl:block" />
           <Newsletter />
         </div>
         <div className="h-px bg-line-strong/50" />
@@ -130,7 +130,7 @@ function CtaBanner() {
 
 function BrandColumn() {
   return (
-    <div className="lg:pr-8 lg:pl-[50px]">
+    <div className="xl:pr-8 xl:pl-[50px]">
       <Link to="/" aria-label="Rfaheya — home" className="block w-[192px]">
         <img src={wordmark} alt="Rfaheya" className="w-full" />
       </Link>
@@ -180,7 +180,7 @@ function Newsletter() {
   ]
 
   return (
-    <div className="lg:pr-[25px] lg:pl-[55px]">
+    <div className="xl:pr-[25px] xl:pl-[55px]">
       <h2 className="text-[15px] font-medium tracking-[0.15em] uppercase">Join our scent circle</h2>
       <p className="mt-[12px] max-w-[330px] text-[15.5px] leading-[1.5] text-ink-soft">
         Be the first to know about new releases, exclusive offers, and fragrance insights.

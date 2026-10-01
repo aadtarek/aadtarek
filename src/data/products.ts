@@ -3,6 +3,9 @@ import vanillaOud from '../assets/products/vanilla-oud.webp'
 import roseNoir from '../assets/products/rose-noir.webp'
 import citrusLeather from '../assets/products/citrus-leather.webp'
 import deepCurrent from '../assets/products/deep-current.webp'
+import vanillaOudPortrait from '../assets/reviews/vanilla-oud.webp'
+import roseNoirPortrait from '../assets/reviews/rose-noir.webp'
+import deepCurrentPortrait from '../assets/reviews/deep-current.webp'
 
 /**
  * Mock catalogue used until WooCommerce is connected.
@@ -43,7 +46,10 @@ export const products: Product[] = [
       note('Musks', 'musk'),
     ],
     inspiredBy: 'Vanilla 28 by Kayali',
-    images: [{ src: vanillaOud, alt: 'Rfaheya Vanilla Oud eau de parfum with vanilla pods and white flowers' }],
+    images: [
+      { src: vanillaOud, alt: 'Rfaheya Vanilla Oud eau de parfum with vanilla pods and white flowers' },
+      { src: vanillaOudPortrait, alt: 'Rfaheya Vanilla Oud bottle, close-up' },
+    ],
     categories: ['Oriental', 'Gourmand', 'Unisex'],
     families: ['oriental', 'sweet'],
     variations: sizes(101),
@@ -66,7 +72,10 @@ export const products: Product[] = [
       note('Musk', 'musk-2'),
     ],
     inspiredBy: 'Oud Satin Mood by MFK',
-    images: [{ src: roseNoir, alt: 'Rfaheya Rose Noir eau de parfum surrounded by red roses' }],
+    images: [
+      { src: roseNoir, alt: 'Rfaheya Rose Noir eau de parfum surrounded by red roses' },
+      { src: roseNoirPortrait, alt: 'Rfaheya Rose Noir bottle, close-up' },
+    ],
     categories: ['Floral', 'Women'],
     families: ['floral'],
     variations: sizes(102),
@@ -112,7 +121,10 @@ export const products: Product[] = [
       note('Musk', 'musk-3'),
     ],
     inspiredBy: 'Davidoff Cool Water Parfum',
-    images: [{ src: deepCurrent, alt: 'Rfaheya Deep Current eau de parfum on rocks with ocean spray' }],
+    images: [
+      { src: deepCurrent, alt: 'Rfaheya Deep Current eau de parfum on rocks with ocean spray' },
+      { src: deepCurrentPortrait, alt: 'Rfaheya Deep Current bottle, close-up' },
+    ],
     categories: ['Fresh', 'Aquatic', 'Men'],
     families: ['fresh'],
     variations: sizes(104),
