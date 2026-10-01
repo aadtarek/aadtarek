@@ -1,4 +1,4 @@
-import { Handbag, Trash2, X } from 'lucide-react'
+import { Gift, Handbag, Trash2, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { FREE_SHIPPING_THRESHOLD } from '../config'
 import { formatPrice } from '../lib/format'
@@ -70,6 +70,12 @@ export function CartDrawer() {
                           {line.variation.size}
                           {line.variation.isSample && ' · Sample'}
                         </p>
+                        {line.giftMessage && (
+                          <p className="mt-1 flex gap-1.5 text-[12px] text-ink-soft italic">
+                            <Gift className="mt-0.5 size-3.5 shrink-0 not-italic" strokeWidth={1.5} />
+                            <span className="line-clamp-2">“{line.giftMessage}”</span>
+                          </p>
+                        )}
                       </div>
                       <button
                         type="button"

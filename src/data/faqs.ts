@@ -18,7 +18,7 @@ export const faqs: { q: string; a: string }[] = [
   },
   {
     q: 'How do I pay?',
-    a: 'We currently accept cash on delivery. You pay when your order arrives.',
+    a: 'Pay cash on delivery, or by InstaPay transfer — you’ll see the transfer details right after placing your order. Card, Meeza and valU payments are coming soon.',
   },
   {
     q: 'What is the zero risk guarantee?',

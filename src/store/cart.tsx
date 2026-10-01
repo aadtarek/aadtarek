@@ -13,7 +13,9 @@ interface CartContextValue {
   lines: CartLine[]
   count: number
   subtotal: number
-  add: (productId: number, variationId: number, quantity?: number) => void
+  add: (productId: number, variationId: number, quantity?: number, options?: { giftMessage?: string; open?: boolean }) => void
+  /** Add several lines at once (e.g. a discovery set) and open the cart once. */
+  addMany: (lines: { productId: number; variationId: number; quantity?: number }[]) => void
   setQuantity: (key: string, quantity: number) => void
   remove: (key: string) => void
   clear: () => void
@@ -29,6 +31,12 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null)
 
 const MAX_QTY = 20
+
+function hash(s: string) {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0
+  return (h >>> 0).toString(36)
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = usePersistentState<CartItem[]>('rfaheya.cart', [])
@@ -47,18 +55,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   const add = useCallback(
-    (productId: number, variationId: number, quantity = 1) => {
-      const key = `${productId}:${variationId}`
+    (productId: number, variationId: number, quantity = 1, options: { giftMessage?: string; open?: boolean } = {}) => {
+      const giftMessage = options.giftMessage?.trim() || undefined
+      // Gift lines are kept separate so each box keeps its own message.
+      const key = giftMessage ? `${productId}:${variationId}:gift:${hash(giftMessage)}` : `${productId}:${variationId}`
       setItems((prev) => {
         const existing = prev.find((i) => i.key === key)
         if (existing)
           return prev.map((i) => (i.key === key ? { ...i, quantity: Math.min(MAX_QTY, i.quantity + quantity) } : i))
-        return [...prev, { key, productId, variationId, quantity: Math.min(MAX_QTY, quantity) }]
+        return [...prev, { key, productId, variationId, quantity: Math.min(MAX_QTY, quantity), giftMessage }]
       })
       setQuickAdd(null)
-      setOpen(true)
+      if (options.open !== false) setOpen(true)
     },
     [setItems],
+  )
+
+  const addMany = useCallback<CartContextValue['addMany']>(
+    (list) => {
+      list.forEach((l) => add(l.productId, l.variationId, l.quantity ?? 1, { open: false }))
+      setOpen(true)
+    },
+    [add],
   )
 
   const setQuantity = useCallback(
@@ -80,6 +98,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       count: lines.reduce((n, l) => n + l.quantity, 0),
       subtotal: lines.reduce((n, l) => n + l.lineTotal, 0),
       add,
+      addMany,
       setQuantity,
       remove,
       clear,
@@ -90,7 +109,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       openQuickAdd: setQuickAdd,
       closeQuickAdd: () => setQuickAdd(null),
     }),
-    [lines, add, setQuantity, remove, clear, isOpen, quickAdd],
+    [lines, add, addMany, setQuantity, remove, clear, isOpen, quickAdd],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

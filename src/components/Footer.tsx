@@ -67,10 +67,10 @@ const payments = [
   { src: valu, alt: 'valU', h: 'h-[30px]' },
 ]
 
-export function Footer() {
+export function Footer({ showCta = true }: { showCta?: boolean }) {
   return (
     <footer className="bg-footer">
-      <CtaBanner />
+      {showCta && <CtaBanner />}
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[45px]">
         <div className="h-px bg-line-strong/50" />
         <div className="grid gap-10 py-10 md:grid-cols-2 xl:grid-cols-[minmax(0,0.85fr)_1px_minmax(0,1.45fr)_1px_minmax(0,1fr)] xl:gap-0 xl:pt-[47px] xl:pb-[40px]">

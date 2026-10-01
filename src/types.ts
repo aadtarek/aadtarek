@@ -45,11 +45,27 @@ export interface Product {
   categories: string[]
   /** Fragrance families used by "Explore by what you love" */
   families: FamilySlug[]
+  /** Attributes used by the Rfaheya Finder (→ WooCommerce attributes / ACF on integration) */
+  profile: ScentProfile
   variations: ProductVariation[]
   /** Total units sold — drives the Best Sellers ordering */
   totalSales: number
   /** ISO date — drives New Arrivals ordering */
   dateCreated: string
+}
+
+export type Gender = 'men' | 'women' | 'unisex'
+export type Occasion = 'everyday' | 'work' | 'date' | 'special' | 'club'
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter' | 'all'
+export type Presence = 'soft' | 'balanced' | 'bold'
+export type Longevity = 'standard' | 'extended' | 'eternal'
+
+export interface ScentProfile {
+  gender: Gender
+  occasions: Occasion[]
+  seasons: Season[]
+  presence: Presence
+  longevity: Longevity
 }
 
 export type FamilySlug = 'fresh' | 'oriental' | 'floral' | 'fruity' | 'sweet'
@@ -74,10 +90,12 @@ export interface Review {
 }
 
 export interface CartItem {
-  key: string // `${productId}:${variationId}`
+  key: string // `${productId}:${variationId}` (+ `:gift:<hash>` for gift lines)
   productId: number
   variationId: number
   quantity: number
+  /** Optional gift message printed on a card inside the box */
+  giftMessage?: string
 }
 
 export interface ShippingAddress {
@@ -96,11 +114,11 @@ export interface Order {
   number: string
   createdAt: string
   status: 'processing'
-  items: { productId: number; variationId: number; name: string; size: string; price: Money; quantity: number }[]
+  items: { productId: number; variationId: number; name: string; size: string; price: Money; quantity: number; giftMessage?: string }[]
   subtotal: Money
   shipping: Money
   total: Money
-  paymentMethod: 'cod'
+  paymentMethod: 'cod' | 'instapay'
   shippingAddress: ShippingAddress
 }
 

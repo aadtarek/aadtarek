@@ -324,7 +324,7 @@ function TryFirstBanner() {
         <p className="mt-2 max-w-lg text-[15px] text-cream/75">Live with it for a few days — then commit to the full bottle.</p>
       </div>
       <Link
-        to="/discover"
+        to="/finder"
         className="inline-flex h-[50px] items-center justify-center rounded-[3px] border border-cream/70 px-8 text-[12px] font-medium tracking-[0.12em] uppercase transition hover:bg-cream hover:text-olive"
       >
         Find your scent

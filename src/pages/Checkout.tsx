@@ -3,7 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Field, TextInput, inputClass } from '../components/Field'
 import { PageHeader } from '../components/PageHeader'
-import { GOVERNORATES, shippingCost } from '../config'
+import { CONTACT, GOVERNORATES, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
 import { useAccount } from '../store/account'
 import { useCart } from '../store/cart'
@@ -27,6 +27,7 @@ export function Checkout() {
   const cart = useCart()
   const account = useAccount()
   const [placed, setPlaced] = useState<Order | null>(null)
+  const [payment, setPayment] = useState<Order['paymentMethod']>('cod')
   const [errors, setErrors] = useState<Errors>({})
   const [address, setAddress] = useState<ShippingAddress>({
     firstName: account.customer?.firstName ?? '',
@@ -63,11 +64,12 @@ export function Checkout() {
         size: l.variation.size,
         price: l.variation.price,
         quantity: l.quantity,
+        giftMessage: l.giftMessage,
       })),
       subtotal: cart.subtotal,
       shipping,
       total,
-      paymentMethod: 'cod',
+      paymentMethod: payment,
       shippingAddress: address,
     })
     cart.clear()
@@ -83,7 +85,19 @@ export function Checkout() {
         <p className="mt-2 text-ink-soft">
           Your order <strong>{placed.number}</strong> has been received. We’ll call you on {placed.shippingAddress.phone} to confirm delivery.
         </p>
-        <p className="mt-1 text-ink-soft">Total due on delivery: <strong>{formatPrice(placed.total)}</strong></p>
+        {placed.paymentMethod === 'instapay' ? (
+          <div className="mt-6 max-w-md rounded-lg bg-card p-5 text-left shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
+            <p className="text-[13px] font-semibold tracking-[0.12em] uppercase">Complete your InstaPay transfer</p>
+            <p className="mt-2 text-[15px] text-ink-soft">
+              Send <strong className="text-ink">{formatPrice(placed.total)}</strong> to <strong className="text-ink">{CONTACT.instapay}</strong> and
+              include your order number <strong className="text-ink">{placed.number}</strong> in the note. We’ll confirm once it arrives.
+            </p>
+          </div>
+        ) : (
+          <p className="mt-1 text-ink-soft">
+            Total due on delivery: <strong>{formatPrice(placed.total)}</strong>
+          </p>
+        )}
         <Link
           to="/shop"
           className="mt-8 inline-flex h-12 items-center rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
@@ -157,13 +171,28 @@ export function Checkout() {
 
           <fieldset>
             <legend className="mb-4 text-[13px] font-semibold tracking-[0.14em] uppercase">Payment</legend>
-            <label className="flex items-center gap-3 rounded-[3px] border border-olive bg-card p-4">
-              <input type="radio" checked readOnly className="accent-olive" />
-              <span>
-                <span className="block text-[14px] font-medium">Cash on delivery</span>
-                <span className="block text-[12px] text-muted">Pay when your order arrives.</span>
-              </span>
-            </label>
+            <div className="space-y-3" role="radiogroup" aria-label="Payment method">
+              {(
+                [
+                  { value: 'cod', title: 'Cash on delivery', text: 'Pay in cash when your order arrives.' },
+                  { value: 'instapay', title: 'InstaPay transfer', text: `Transfer to ${CONTACT.instapay} — instructions after you place the order.` },
+                ] as const
+              ).map((m) => (
+                <label
+                  key={m.value}
+                  className={`flex cursor-pointer items-center gap-3 rounded-[3px] border bg-card p-4 transition ${
+                    payment === m.value ? 'border-olive ring-1 ring-olive' : 'border-line-strong hover:border-ink'
+                  }`}
+                >
+                  <input type="radio" name="payment" checked={payment === m.value} onChange={() => setPayment(m.value)} className="size-4 accent-olive" />
+                  <span>
+                    <span className="block text-[14px] font-medium">{m.title}</span>
+                    <span className="block text-[12.5px] text-muted">{m.text}</span>
+                  </span>
+                </label>
+              ))}
+              <p className="text-[12.5px] text-muted">Card, Meeza and valU payments will be available soon.</p>
+            </div>
           </fieldset>
         </div>
 
@@ -178,7 +207,10 @@ export function Checkout() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="font-serif text-[15px] uppercase">{l.product.name}</p>
-                  <p className="text-[12px] text-muted">{l.variation.size}</p>
+                  <p className="text-[12px] text-muted">
+                    {l.variation.size}
+                    {l.giftMessage && ' · Gift'}
+                  </p>
                 </div>
                 <p className="text-[14px] font-medium">{formatPrice(l.lineTotal)}</p>
               </li>

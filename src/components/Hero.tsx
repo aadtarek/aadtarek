@@ -40,7 +40,7 @@ export function Hero() {
             <ArrowRight className="size-4 transition group-hover:translate-x-0.5" strokeWidth={1.5} />
           </Link>
           <Link
-            to="/discover"
+            to="/finder"
             className="inline-flex h-[43px] items-center justify-center rounded-[3px] border border-ink/80 px-[33px] text-[12px] font-medium tracking-[0.1em] text-ink uppercase transition hover:bg-ink hover:text-cream"
           >
             Find your scent

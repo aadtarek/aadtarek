@@ -18,6 +18,8 @@ export const CONTACT = {
   whatsapp: '201000000000', // international format, digits only
   hours: 'Sat – Thu · 10 AM – 8 PM',
   location: 'Cairo, Egypt',
+  /** InstaPay address customers transfer to (shown at checkout). */
+  instapay: 'rfaheya@instapay',
 }
 
 export const GOVERNORATES = [

@@ -1,11 +1,17 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout'
 import { About } from './pages/About'
 import { Account } from './pages/Account'
 import { Checkout } from './pages/Checkout'
 import { Contact, FaqSection } from './pages/Contact'
 import { Home } from './pages/Home'
-import { CollectionPage, InfoPage } from './pages/InfoPage'
+import { InfoPage } from './pages/InfoPage'
+import { CollectionPage, CollectionsIndex } from './pages/Collections'
+import { Article, Journal } from './pages/Journal'
+import { OurStandard } from './pages/OurStandard'
+import { FinderLanding } from './pages/finder/FinderLanding'
+import { FinderQuiz } from './pages/finder/FinderQuiz'
+import { FinderResult } from './pages/finder/FinderResult'
 import { NotFound } from './pages/NotFound'
 import { ProductPage } from './pages/ProductPage'
 import { Reviews } from './pages/Reviews'
@@ -23,6 +29,7 @@ export default function App() {
         <WishlistProvider>
           <CartProvider>
             <Routes>
+              <Route path="finder/quiz" element={<FinderQuiz />} />
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="shop" element={<Shop />} />
@@ -35,7 +42,14 @@ export default function App() {
                 <Route path="about" element={<About />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="faqs" element={<div className="pt-2 pb-24"><FaqSection asPage /></div>} />
+                <Route path="finder" element={<FinderLanding />} />
+                <Route path="finder/result" element={<FinderResult />} />
+                <Route path="discover" element={<Navigate to="/finder" replace />} />
+                <Route path="collections" element={<CollectionsIndex />} />
                 <Route path="collections/:slug" element={<CollectionPage />} />
+                <Route path="our-standard" element={<OurStandard />} />
+                <Route path="journal" element={<Journal />} />
+                <Route path="journal/:slug" element={<Article />} />
                 <Route path=":page" element={<InfoPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>

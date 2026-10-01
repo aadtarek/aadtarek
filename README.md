@@ -35,12 +35,24 @@ npm run build    # production build in dist/
   "try 10 ML first", accordions, notes, Rfaheya Standard, product reviews, related products,
   sticky add-to-cart bar on mobile
 - **About** (`/about`) and **Contact** (`/contact`, form + FAQs; `/faqs` on its own)
+- **Rfaheya Finder** (`/finder`): landing → 7-step quiz (`/finder/quiz`, full-screen) with answer chips,
+  "explore more notes" popup (max 3 notes) and a review/edit popup → results (`/finder/result?...`,
+  shareable URL). Matching logic lives in `src/finder/match.ts`; product attributes it uses are in
+  each product's `profile` in `src/data/products.ts`.
+- **Collections** (`/collections`): Perfume Lab, Ledger (men), Serenity (women), a build-your-own
+  Discovery Set, and Gift Boxes with a gift message that travels through cart → order
+- **Our Standard**, **Journal** (3 articles), Shipping, Returns, Size Guide, Ingredients,
+  Sustainability, Privacy, Terms
+- **Checkout**: cash on delivery or InstaPay transfer (instructions shown after ordering)
 - Wishlist, account (sign up / sign in / orders)
 - Cart, wishlist, account and orders persist in `localStorage`
 
 ## Before launch — content to replace
 
-- `src/config.ts` → `CONTACT` (email, phone, WhatsApp, hours) and `SOCIAL_LINKS` are placeholders
+- `src/config.ts` → `CONTACT` (email, phone, WhatsApp, hours, InstaPay address) and `SOCIAL_LINKS` are placeholders
+- `src/data/products.ts` → each product's Finder `profile` (gender, occasions, seasons, presence, longevity)
+- `src/data/content.ts` → Shipping / Returns / Privacy / Terms etc. are drafts — have them reviewed
+- Gift Boxes promise to include the message with the gift — make sure fulfilment does
 - `src/data/reviews.ts` → placeholder reviews from the mock-up
 - `src/data/faqs.ts`, About page copy → review against real policies
 - `FLAT_SHIPPING_RATE` (70 EGP) is an assumption

@@ -19,6 +19,10 @@
   --color-line-strong: #c9c3b8;
   --color-dot: #cfc6bd;
   --color-gold: #c98a2b;
+  --color-espresso: #4a2a17;
+  --color-espresso-hover: #5d3720;
+  --color-latte: #ecdfd0;
+  --color-mocha: #a0663a;
   --color-footer: #f7efe4;
 
   --breakpoint-xs: 26rem;

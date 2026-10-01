@@ -12,6 +12,10 @@ import deepCurrentPortrait from '../assets/reviews/deep-current.webp'
  * Swap `src/api/catalog.ts` to read from the Store API instead.
  */
 
+/**
+ * NOTE: `profile` values (who it's for, occasions, seasons, presence, longevity)
+ * are starting points for the Finder — review them against the real products.
+ */
 const noteImages = import.meta.glob<string>('../assets/notes/*.png', {
   eager: true,
   import: 'default',
@@ -52,6 +56,7 @@ export const products: Product[] = [
     ],
     categories: ['Oriental', 'Gourmand', 'Unisex'],
     families: ['oriental', 'sweet'],
+    profile: { gender: 'unisex', occasions: ['date', 'special', 'club'], seasons: ['autumn', 'winter'], presence: 'bold', longevity: 'eternal' },
     variations: sizes(101),
     totalSales: 1840,
     dateCreated: '2026-03-12',
@@ -78,6 +83,7 @@ export const products: Product[] = [
     ],
     categories: ['Floral', 'Women'],
     families: ['floral'],
+    profile: { gender: 'women', occasions: ['date', 'special', 'everyday'], seasons: ['spring', 'autumn', 'winter'], presence: 'balanced', longevity: 'extended' },
     variations: sizes(102),
     totalSales: 1520,
     dateCreated: '2026-05-02',
@@ -101,6 +107,7 @@ export const products: Product[] = [
     images: [{ src: citrusLeather, alt: 'Rfaheya Citrus Leather eau de parfum with lemons and green leaves' }],
     categories: ['Fresh', 'Men'],
     families: ['fresh'],
+    profile: { gender: 'men', occasions: ['work', 'everyday', 'special'], seasons: ['spring', 'summer', 'all'], presence: 'balanced', longevity: 'extended' },
     variations: sizes(103),
     totalSales: 1310,
     dateCreated: '2026-08-20',
@@ -127,6 +134,7 @@ export const products: Product[] = [
     ],
     categories: ['Fresh', 'Aquatic', 'Men'],
     families: ['fresh'],
+    profile: { gender: 'men', occasions: ['everyday', 'work', 'club'], seasons: ['summer', 'spring', 'all'], presence: 'balanced', longevity: 'standard' },
     variations: sizes(104),
     totalSales: 1185,
     dateCreated: '2026-09-15',

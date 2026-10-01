@@ -17,7 +17,7 @@ export function Layout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <Footer />
+      <Footer showCta={!pathname.startsWith('/finder')} />
       <CartDrawer />
       <QuickAddModal />
     </div>

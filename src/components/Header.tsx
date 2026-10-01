@@ -8,10 +8,11 @@ import { SearchBox } from './SearchBox'
 
 export const navLinks = [
   { to: '/shop', label: 'Shop' },
-  { to: '/discover', label: 'Discover' },
+  { to: '/shop?sort=best-sellers', label: 'Best Sellers' },
+  { to: '/finder', label: 'Rfaheya Finder' },
   { to: '/collections', label: 'Collections' },
-  { to: '/our-standard', label: 'Our Standard' },
-  { to: '/journal', label: 'Journal' },
+  { to: '/about', label: 'About' },
+  { to: '/contact', label: 'Contact' },
 ]
 
 export function Header() {
@@ -30,6 +31,15 @@ export function Header() {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
   }, [menuOpen])
 
+  /** "Shop" and "Best Sellers" share /shop, so the query string decides which is active. */
+  const isActive = (to: string) => {
+    const [path, query] = to.split('?')
+    if (!location.pathname.startsWith(path)) return false
+    const sort = new URLSearchParams(location.search).get('sort')
+    if (query) return location.search.includes(query)
+    return path !== '/shop' || sort !== 'best-sellers'
+  }
+
   const iconBtn = 'relative grid size-10 place-items-center rounded-full text-ink transition hover:bg-chip'
 
   return (
@@ -41,25 +51,24 @@ export function Header() {
 
         <Logo className="h-9 lg:h-[41px]" />
 
-        <nav aria-label="Main" className="ml-[6.2%] hidden items-center gap-12 lg:flex xl:ml-[6.3%]">
+        <nav aria-label="Main" className="ml-6 hidden items-center gap-6 lg:flex xl:ml-10 xl:gap-8 2xl:ml-[4.5%] 2xl:gap-10">
           {navLinks.map((l) => (
-            <NavLink
+            <Link
               key={l.to}
               to={l.to}
-              className={({ isActive }) =>
-                `relative py-2 text-[11.5px] font-medium tracking-[0.07em] whitespace-nowrap uppercase transition after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-ink after:transition-transform hover:after:scale-x-100 ${
-                  isActive ? 'after:scale-x-100' : 'after:scale-x-0'
-                }`
-              }
+              aria-current={isActive(l.to) ? 'page' : undefined}
+              className={`relative py-2 text-[11.5px] font-medium tracking-[0.07em] whitespace-nowrap uppercase transition after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-ink after:transition-transform hover:after:scale-x-100 ${
+                isActive(l.to) ? 'after:scale-x-100' : 'after:scale-x-0'
+              }`}
             >
               {l.label}
-            </NavLink>
+            </Link>
           ))}
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <SearchBox className="mr-6 hidden w-[245px] xl:block" />
-          <button type="button" aria-label="Search" className={`${iconBtn} xl:hidden`} onClick={() => setSearchOpen((s) => !s)}>
+          <SearchBox className="mr-4 hidden w-[220px] 2xl:block" />
+          <button type="button" aria-label="Search" className={`${iconBtn} 2xl:hidden`} onClick={() => setSearchOpen((s) => !s)}>
             <Search className="size-[21px]" strokeWidth={1.5} />
           </button>
           <Link to="/wishlist" aria-label={`Wishlist (${wishlist.ids.length})`} className={iconBtn}>
@@ -77,7 +86,7 @@ export function Header() {
       </div>
 
       {searchOpen && (
-        <div className="container-x animate-fade-in border-t border-line/70 py-3 xl:hidden">
+        <div className="container-x animate-fade-in border-t border-line/70 py-3 2xl:hidden">
           <SearchBox autoFocus onDone={() => setSearchOpen(false)} />
         </div>
       )}
