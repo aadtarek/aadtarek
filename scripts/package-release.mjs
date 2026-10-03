@@ -1,10 +1,10 @@
 /**
  * Packages a headless release after `npm run build:headless`:
  *
- *   release/dist.zip              the storefront: extract in public_html → public_html/dist
+ *   release/dist.zip              the storefront: extract its contents into public_html
  *   release/htaccess.txt          public_html/.htaccess (routes the storefront and WordPress)
  *   release/rfaheya.php           mu-plugin: upload to wp-content/mu-plugins/
- *   release/rfaheya-products.csv  WooCommerce product import (images from /dist/import)
+ *   release/rfaheya-products.csv  WooCommerce product import (images from /import)
  *
  * The site address for the CSV comes from SITE_URL (environment or .env.headless).
  */
@@ -29,7 +29,7 @@ if (!existsSync(join(dist, 'index.html'))) throw new Error('dist/ is missing: ru
 // Files for static hosts don't belong in the WordPress upload; the root .htaccess does the routing.
 for (const f of ['.htaccess', '_redirects']) rmSync(join(dist, f), { force: true })
 
-// Product images for the CSV import, served from /dist/import.
+// Product images for the CSV import, served from /import.
 mkdirSync(join(dist, 'import'), { recursive: true })
 for (const p of seed) for (const img of p.images) copyFileSync(join(root, 'src/assets', img.file), join(dist, 'import', importName(img.file)))
 
@@ -38,7 +38,7 @@ const walk = (dir) => {
   for (const name of readdirSync(dir)) {
     const full = join(dir, name)
     if (statSync(full).isDirectory()) walk(full)
-    else files[`dist/${relative(dist, full)}`] = new Uint8Array(readFileSync(full))
+    else files[relative(dist, full)] = new Uint8Array(readFileSync(full))
   }
 }
 walk(dist)
@@ -53,4 +53,4 @@ copyFileSync(join(root, 'wordpress/mu-plugins/rfaheya.php'), join(release, 'rfah
 console.log('release/htaccess.txt, release/rfaheya.php')
 
 writeFileSync(join(release, 'rfaheya-products.csv'), execFileSync('node', [join(root, 'scripts/products-csv.mjs'), site]))
-console.log(`release/rfaheya-products.csv — images from ${site}/dist/import/`)
+console.log(`release/rfaheya-products.csv — images from ${site}/import/`)

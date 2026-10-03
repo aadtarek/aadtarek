@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Serves a fake public_html with Apache on :8090, using the real
-# wordpress/htaccess: dist/ is the storefront build, and WordPress's
+# wordpress/htaccess: the storefront build sits in the root, and WordPress's
 # index.php is a CGI script that forwards to the mock (scripts/mock-wp/server.mjs on :8080).
 #
 #   npm run build:headless && node scripts/package-release.mjs
@@ -58,7 +58,6 @@ TypesConfig /etc/mime.types
 User www-data
 Group www-data
 DocumentRoot $www
-DirectoryIndex index.php index.html
 <Directory $www>
   AllowOverride All
   Options +ExecCGI +FollowSymLinks

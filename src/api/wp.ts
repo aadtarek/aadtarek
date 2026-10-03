@@ -1,10 +1,10 @@
 /**
  * Headless WordPress / WooCommerce connection.
  *
- * Production setup: WordPress + WooCommerce on the domain, the built
- * storefront uploaded next to it in /dist, and .htaccess (see
- * wordpress/htaccess) sending storefront URLs to /dist/index.html and
- * WordPress URLs (/wp-admin, /wp-json, /my-account, …) to WordPress.
+ * Production setup: WordPress + WooCommerce in public_html, the built
+ * storefront (dist/ contents) uploaded next to it, and .htaccess (see
+ * wordpress/htaccess) sending storefront URLs to index.html and WordPress
+ * URLs (/wp-admin, /wp-json, /my-account, …) to WordPress.
  *
  * The WordPress address is set at build time in .env.headless:
  *

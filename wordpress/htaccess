@@ -1,14 +1,16 @@
-# Rfaheya: headless WordPress + React storefront on one domain.
+# Rfaheya: headless WordPress + React storefront in the same public_html.
 #
 # public_html/
-#   .htaccess        <- this file
-#   dist/            <- the storefront build (npm run release)
-#   wp-admin/ wp-content/ wp-includes/ index.php …   <- WordPress
+#   .htaccess                        <- this file
+#   index.html  assets/  import/ …   <- the storefront (contents of dist.zip)
+#   index.php  wp-admin/  wp-content/  wp-includes/ …   <- WordPress
 #
 # Storefront pages (/, /shop, /product/…, /checkout, …) are served by
-# dist/index.html. WordPress keeps wp-admin, the REST API (/wp-json),
-# My Account and payment pages. Add any other WordPress path you want to
-# keep (e.g. a blog) to the list in step 2.
+# index.html. WordPress keeps wp-admin, the REST API (/wp-json), My Account
+# and payment pages. To keep another WordPress path (e.g. a blog), add it
+# to the "WordPress pages" rule.
+
+DirectoryIndex index.html index.php
 
 # BEGIN Rfaheya
 <IfModule mod_rewrite.c>
@@ -16,22 +18,31 @@ RewriteEngine On
 RewriteBase /
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-# 1. Home page -> storefront (it is a directory, so it must come first).
-RewriteCond %{QUERY_STRING} !(^|&)(rest_route|wc-api|wc-ajax|preview|p|page_id|post_type|s|customize_changeset_uuid)= [NC]
-RewriteRule ^$ dist/index.html [L]
+# WordPress admin & files
+RewriteRule ^wp-admin - [L]
+RewriteRule ^wp-content - [L]
+RewriteRule ^wp-includes - [L]
+RewriteRule ^wp-login\.php - [L]
+RewriteRule ^wp-cron\.php - [L]
+RewriteRule ^xmlrpc\.php - [L]
 
-# 2. WordPress routes.
-RewriteRule ^(wp-json|my-account|checkout/order-pay|wc-api|wp-sitemap|feed)(/|\.|$) index.php [L]
+# REST API -> WordPress (the storefront reads products and the cart from here)
+RewriteRule ^wp-json/(.*)$ index.php?rest_route=/$1 [QSA,L]
+RewriteRule ^wp-json/?$ index.php?rest_route=/ [QSA,L]
+
+# WordPress pages: My Account, payment pages, gateway callbacks, sitemap, feed
+RewriteRule ^(my-account|checkout/order-pay|wc-api|wp-sitemap|feed)(/|\.|$) index.php [L]
+# WordPress links by query string (?p=, ?preview=, ?wc-ajax=, ?rest_route=, …)
 RewriteCond %{QUERY_STRING} (^|&)(rest_route|wc-api|wc-ajax|preview|p|page_id|post_type|s|customize_changeset_uuid)= [NC]
 RewriteRule ^ index.php [L]
 
-# 3. Real files and folders (wp-admin, wp-content uploads, dist assets, …).
+# Existing files (React assets, product images, …)
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# 4. Everything else is a storefront page.
-RewriteRule ^ dist/index.html [L]
+# React SPA routes
+RewriteRule ^ index.html [L]
 </IfModule>
 
 # Always fetch a fresh page shell, so a new upload shows up straight away.
@@ -41,17 +52,3 @@ Header set Cache-Control "no-cache"
 </FilesMatch>
 </IfModule>
 # END Rfaheya
-
-# BEGIN WordPress
-# WordPress may rewrite the lines between these markers; keep the Rfaheya
-# block above it.
-<IfModule mod_rewrite.c>
-RewriteEngine On
-RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-RewriteBase /
-RewriteRule ^index\.php$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.php [L]
-</IfModule>
-# END WordPress
