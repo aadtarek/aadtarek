@@ -10,7 +10,9 @@
 # and payment pages. To keep another WordPress path (e.g. a blog), add it
 # to the "WordPress pages" rule.
 
-DirectoryIndex index.html index.php
+# index.php first so folders like wp-admin/ open WordPress; the home page
+# is sent to the storefront by an explicit rule below.
+DirectoryIndex index.php index.html
 
 # BEGIN Rfaheya
 <IfModule mod_rewrite.c>
@@ -18,7 +20,9 @@ RewriteEngine On
 RewriteBase /
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-# WordPress admin & files
+# WordPress admin & files (the dashboard explicitly, some servers pick the
+# wrong folder index otherwise)
+RewriteRule ^wp-admin/?$ wp-admin/index.php [L]
 RewriteRule ^wp-admin - [L]
 RewriteRule ^wp-content - [L]
 RewriteRule ^wp-includes - [L]
@@ -35,6 +39,9 @@ RewriteRule ^(my-account|checkout/order-pay|wc-api|wp-sitemap|feed)(/|\.|$) inde
 # WordPress links by query string (?p=, ?preview=, ?wc-ajax=, ?rest_route=, …)
 RewriteCond %{QUERY_STRING} (^|&)(rest_route|wc-api|wc-ajax|preview|p|page_id|post_type|s|customize_changeset_uuid)= [NC]
 RewriteRule ^ index.php [L]
+
+# Home page -> storefront
+RewriteRule ^$ index.html [L]
 
 # Existing files (React assets, product images, …)
 RewriteCond %{REQUEST_FILENAME} -f [OR]
