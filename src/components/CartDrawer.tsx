@@ -24,7 +24,23 @@ export function CartDrawer() {
           </button>
         </header>
 
-        {cart.lines.length === 0 ? (
+        {cart.busy && (
+          <span aria-hidden className="block h-[2px] w-full overflow-hidden bg-line">
+            <span className="block h-full w-1/3 animate-[splash_1.1s_ease-in-out_infinite] bg-olive" />
+          </span>
+        )}
+        {cart.error && (
+          <div role="alert" className="flex items-start justify-between gap-3 border-b border-red-200 bg-red-50 px-5 py-3 text-[13px] text-red-800">
+            <span>{cart.error}</span>
+            <button type="button" onClick={cart.dismissError} aria-label="Dismiss" className="shrink-0">
+              <X className="size-4" />
+            </button>
+          </div>
+        )}
+
+        {cart.lines.length === 0 && cart.busy ? (
+          <div className="flex-1" />
+        ) : cart.lines.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
             <Handbag className="size-10 text-muted" strokeWidth={1.2} />
             <p className="mt-4 font-serif text-2xl">Your cart is empty.</p>

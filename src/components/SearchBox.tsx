@@ -1,8 +1,7 @@
 import { Search, X } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { matchesSearch, priceRange, sortProducts } from '../api/catalog'
-import { products } from '../data/products'
+import { getAllProducts, matchesSearch, priceRange, sortProducts } from '../api/catalog'
 import { formatPriceRange } from '../lib/format'
 
 export function SearchBox({ className = '', autoFocus = false, onDone }: { className?: string; autoFocus?: boolean; onDone?: () => void }) {
@@ -14,7 +13,7 @@ export function SearchBox({ className = '', autoFocus = false, onDone }: { class
   const listId = useId()
 
   const results = useMemo(
-    () => (term.trim() ? sortProducts(products.filter((p) => matchesSearch(p, term))).slice(0, 5) : []),
+    () => (term.trim() ? sortProducts(getAllProducts().filter((p) => matchesSearch(p, term))).slice(0, 5) : []),
     [term],
   )
 

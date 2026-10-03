@@ -19,6 +19,8 @@ export function ReviewsSection() {
     getReviews().then(setReviews)
   }, [])
   const { average } = ratingSummary(reviews)
+  // No reviews yet (e.g. a fresh WooCommerce store): hide the section rather than show an empty one.
+  if (reviews.length === 0) return null
 
   return (
     <section aria-labelledby="reviews-title" className="bg-sand pt-12 pb-10 lg:pt-[62px] lg:pb-[50px]">

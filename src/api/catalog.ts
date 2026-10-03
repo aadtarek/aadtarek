@@ -1,7 +1,34 @@
 import { families } from '../data/families'
-import { products } from '../data/products'
-import { reviews } from '../data/reviews'
+import { products as demoProducts } from '../data/products'
+import { reviews as demoReviews } from '../data/reviews'
 import type { FamilySlug, Product, Review } from '../types'
+import { fetchWooCatalog, fetchWooReviews } from './woo'
+import { isWoo } from './wp'
+
+/**
+ * The catalogue is loaded once at start-up (see main.tsx) and then read
+ * synchronously everywhere. With WordPress connected it comes from
+ * WooCommerce; otherwise from the demo data in src/data.
+ */
+let products: Product[] = isWoo ? [] : demoProducts
+let reviews: Review[] = isWoo ? [] : demoReviews
+
+export async function loadCatalog(): Promise<void> {
+  if (!isWoo) return
+  const [list, revs] = await Promise.all([fetchWooCatalog(), fetchWooReviews().catch(() => [] as Review[])])
+  products = list
+  // Only show reviews for products that are actually in the catalogue.
+  reviews = revs.filter((r) => list.some((p) => p.id === r.productId))
+}
+
+/** Product + variation for a variation id (cart lines reference variations). */
+export function findByVariationId(variationId: number) {
+  for (const product of products) {
+    const variation = product.variations.find((v) => v.id === variationId)
+    if (variation) return { product, variation }
+  }
+  return undefined
+}
 
 /**
  * Catalogue data access. Every page/component reads products through here,

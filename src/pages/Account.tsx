@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { wp } from '../api/wp'
 import { Field, TextInput } from '../components/Field'
 import { PageHeader } from '../components/PageHeader'
 import { formatPrice } from '../lib/format'
@@ -6,6 +7,11 @@ import { useAccount } from '../store/account'
 
 export function Account() {
   const account = useAccount()
+  // With WordPress connected, sign-in, registration and order history live in WooCommerce's My Account.
+  useEffect(() => {
+    if (wp) window.location.assign(wp.myAccountUrl)
+  }, [])
+  if (wp) return <div className="min-h-[50vh]" />
   if (!account.customer) return <AuthForms />
 
   return (

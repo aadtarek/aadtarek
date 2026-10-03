@@ -1,0 +1,332 @@
+[
+  {
+    "id": 101,
+    "slug": "vanilla-oud",
+    "name": "Vanilla Oud",
+    "tagline": "Warm. Dark. Addictive.",
+    "description": "A rich gourmand built on smooth Madagascan vanilla and smoky oud, wrapped in glowing amber and tonka for a trail that lingers long after you leave the room.",
+    "accords": [
+      "Vanilla",
+      "Oud",
+      "Amber"
+    ],
+    "notes": [
+      {
+        "name": "Vanilla",
+        "icon": "vanilla"
+      },
+      {
+        "name": "Oud",
+        "icon": "oud"
+      },
+      {
+        "name": "Amber",
+        "icon": "amber"
+      },
+      {
+        "name": "Tonka Bean",
+        "icon": "tonka-bean"
+      },
+      {
+        "name": "Musks",
+        "icon": "musk"
+      }
+    ],
+    "inspiredBy": "Vanilla 28 by Kayali",
+    "images": [
+      {
+        "file": "products/vanilla-oud.webp",
+        "alt": "Rfaheya Vanilla Oud eau de parfum with vanilla pods and white flowers"
+      },
+      {
+        "file": "reviews/vanilla-oud.webp",
+        "alt": "Rfaheya Vanilla Oud bottle, close-up"
+      }
+    ],
+    "categories": [
+      "Oriental",
+      "Gourmand",
+      "Unisex"
+    ],
+    "families": [
+      "oriental",
+      "sweet"
+    ],
+    "profile": {
+      "gender": "unisex",
+      "occasions": [
+        "date",
+        "special",
+        "club"
+      ],
+      "seasons": [
+        "autumn",
+        "winter"
+      ],
+      "presence": "bold",
+      "longevity": "eternal"
+    },
+    "sizes": [
+      {
+        "size": "10 ML",
+        "price": 60
+      },
+      {
+        "size": "50 ML",
+        "price": 800
+      },
+      {
+        "size": "100 ML",
+        "price": 1200
+      }
+    ],
+    "totalSales": 1840,
+    "dateCreated": "2026-03-12"
+  },
+  {
+    "id": 102,
+    "slug": "rose-noir",
+    "name": "Rose Noir",
+    "tagline": "Elegant. Sophisticated. Timeless.",
+    "description": "Velvet rose petals meet dark incense and earthy patchouli, lifted by a thread of saffron. Polished, mysterious and made for evenings.",
+    "accords": [
+      "Floral",
+      "Rose",
+      "Musky"
+    ],
+    "notes": [
+      {
+        "name": "Rose",
+        "icon": "rose"
+      },
+      {
+        "name": "Incense",
+        "icon": "incense"
+      },
+      {
+        "name": "Patchouli",
+        "icon": "patchouli"
+      },
+      {
+        "name": "Saffron",
+        "icon": "saffron"
+      },
+      {
+        "name": "Musk",
+        "icon": "musk-2"
+      }
+    ],
+    "inspiredBy": "Oud Satin Mood by MFK",
+    "images": [
+      {
+        "file": "products/rose-noir.webp",
+        "alt": "Rfaheya Rose Noir eau de parfum surrounded by red roses"
+      },
+      {
+        "file": "reviews/rose-noir.webp",
+        "alt": "Rfaheya Rose Noir bottle, close-up"
+      }
+    ],
+    "categories": [
+      "Floral",
+      "Women"
+    ],
+    "families": [
+      "floral"
+    ],
+    "profile": {
+      "gender": "women",
+      "occasions": [
+        "date",
+        "special",
+        "everyday"
+      ],
+      "seasons": [
+        "spring",
+        "autumn",
+        "winter"
+      ],
+      "presence": "balanced",
+      "longevity": "extended"
+    },
+    "sizes": [
+      {
+        "size": "10 ML",
+        "price": 60
+      },
+      {
+        "size": "50 ML",
+        "price": 800
+      },
+      {
+        "size": "100 ML",
+        "price": 1200
+      }
+    ],
+    "totalSales": 1520,
+    "dateCreated": "2026-05-02"
+  },
+  {
+    "id": 103,
+    "slug": "citrus-leather",
+    "name": "Citrus Leather",
+    "tagline": "Fresh. Refined. Confident.",
+    "description": "Sparkling bergamot and lemon cut through a spark of pink pepper before settling into supple leather and dry cedarwood.",
+    "accords": [
+      "Citrus",
+      "Leather",
+      "Woody"
+    ],
+    "notes": [
+      {
+        "name": "Bergamot",
+        "icon": "bergamot"
+      },
+      {
+        "name": "Lemon",
+        "icon": "lemon"
+      },
+      {
+        "name": "Pink Pepper",
+        "icon": "pink-pepper"
+      },
+      {
+        "name": "Leather",
+        "icon": "leather"
+      },
+      {
+        "name": "Cedarwood",
+        "icon": "cedarwood"
+      }
+    ],
+    "inspiredBy": "Kologne Shield by Kilian",
+    "images": [
+      {
+        "file": "products/citrus-leather.webp",
+        "alt": "Rfaheya Citrus Leather eau de parfum with lemons and green leaves"
+      }
+    ],
+    "categories": [
+      "Fresh",
+      "Men"
+    ],
+    "families": [
+      "fresh"
+    ],
+    "profile": {
+      "gender": "men",
+      "occasions": [
+        "work",
+        "everyday",
+        "special"
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "all"
+      ],
+      "presence": "balanced",
+      "longevity": "extended"
+    },
+    "sizes": [
+      {
+        "size": "10 ML",
+        "price": 60
+      },
+      {
+        "size": "50 ML",
+        "price": 800
+      },
+      {
+        "size": "100 ML",
+        "price": 1200
+      }
+    ],
+    "totalSales": 1310,
+    "dateCreated": "2026-08-20"
+  },
+  {
+    "id": 104,
+    "slug": "deep-current",
+    "name": "Deep Current",
+    "tagline": "Clean. Modern. Versatile.",
+    "description": "A rush of sea air and cool aquatic notes brightened by bergamot and lavender, grounded by cedarwood and clean musk. Effortless from morning to night.",
+    "accords": [
+      "Fresh",
+      "Aquatic",
+      "Citrus"
+    ],
+    "notes": [
+      {
+        "name": "Sea Notes",
+        "icon": "sea-notes"
+      },
+      {
+        "name": "Bergamot",
+        "icon": "bergamot-2"
+      },
+      {
+        "name": "Lavender",
+        "icon": "lavender"
+      },
+      {
+        "name": "Cedarwood",
+        "icon": "cedarwood-2"
+      },
+      {
+        "name": "Musk",
+        "icon": "musk-3"
+      }
+    ],
+    "inspiredBy": "Davidoff Cool Water Parfum",
+    "images": [
+      {
+        "file": "products/deep-current.webp",
+        "alt": "Rfaheya Deep Current eau de parfum on rocks with ocean spray"
+      },
+      {
+        "file": "reviews/deep-current.webp",
+        "alt": "Rfaheya Deep Current bottle, close-up"
+      }
+    ],
+    "categories": [
+      "Fresh",
+      "Aquatic",
+      "Men"
+    ],
+    "families": [
+      "fresh"
+    ],
+    "profile": {
+      "gender": "men",
+      "occasions": [
+        "everyday",
+        "work",
+        "club"
+      ],
+      "seasons": [
+        "summer",
+        "spring",
+        "all"
+      ],
+      "presence": "balanced",
+      "longevity": "standard"
+    },
+    "sizes": [
+      {
+        "size": "10 ML",
+        "price": 60
+      },
+      {
+        "size": "50 ML",
+        "price": 800
+      },
+      {
+        "size": "100 ML",
+        "price": 1200
+      }
+    ],
+    "totalSales": 1185,
+    "dateCreated": "2026-09-15"
+  }
+]

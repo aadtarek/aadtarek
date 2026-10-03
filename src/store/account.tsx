@@ -19,7 +19,7 @@ interface AccountContextValue {
   login: (email: string, password: string) => string | null
   register: (data: { firstName: string; lastName: string; email: string; password: string }) => string | null
   logout: () => void
-  placeOrder: (order: Omit<Order, 'id' | 'number' | 'createdAt' | 'status'>) => Order
+  placeOrder: (order: Omit<Order, 'id' | 'number' | 'createdAt' | 'status'>, number?: string) => Order
 }
 
 const AccountContext = createContext<AccountContextValue | null>(null)
@@ -57,12 +57,12 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   )
 
   const placeOrder = useCallback<AccountContextValue['placeOrder']>(
-    (data) => {
+    (data, number) => {
       const id = Date.now()
       const order: Order = {
         ...data,
         id,
-        number: `RF-${String(id).slice(-6)}`,
+        number: number ?? `RF-${String(id).slice(-6)}`,
         createdAt: new Date().toISOString(),
         status: 'processing',
       }

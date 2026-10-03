@@ -136,3 +136,8 @@ button, a, input, select, textarea {
   }
   .motion-product-card:hover { transform: none; }
 }
+
+@keyframes splash {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}

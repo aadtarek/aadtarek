@@ -26,7 +26,8 @@ export function ReviewCard({ review }: { review: Review }) {
             {review.verified && <VerifiedBadge />}
           </p>
           <p className="mt-[5px] text-[13.5px] tracking-[0.12em] text-muted uppercase">
-            {product.name} · {review.size}
+            {product.name}
+            {review.size && ` · ${review.size}`}
           </p>
         </div>
         <Link

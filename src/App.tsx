@@ -14,6 +14,7 @@ import { FinderLanding } from './pages/finder/FinderLanding'
 import { FinderQuiz } from './pages/finder/FinderQuiz'
 import { FinderResult } from './pages/finder/FinderResult'
 import { NotFound } from './pages/NotFound'
+import { OrderReceived } from './pages/OrderReceived'
 import { ProductPage } from './pages/ProductPage'
 import { Reviews } from './pages/Reviews'
 import { Shop } from './pages/Shop'
@@ -39,6 +40,8 @@ export default function App() {
                 <Route path="wishlist" element={<Wishlist />} />
                 <Route path="account" element={<Account />} />
                 <Route path="checkout" element={<Checkout />} />
+                <Route path="checkout/order-received/:id" element={<OrderReceived />} />
+                <Route path="cart" element={<Navigate to="/checkout" replace />} />
                 <Route path="reviews" element={<Reviews />} />
                 <Route path="track-order" element={<TrackOrder />} />
                 <Route path="about" element={<About />} />

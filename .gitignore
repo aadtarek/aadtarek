@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# WordPress build output
+wordpress/rfaheya/dist
+wordpress/rfaheya/import
+wordpress/rfaheya/favicon.svg
+wordpress/rfaheya/logo.svg
+release

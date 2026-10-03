@@ -118,7 +118,8 @@ export interface Order {
   subtotal: Money
   shipping: Money
   total: Money
-  paymentMethod: 'cod' | 'instapay'
+  /** 'cod', 'instapay' (demo) or a WooCommerce gateway id such as 'bacs' */
+  paymentMethod: string
   shippingAddress: ShippingAddress
 }
 
