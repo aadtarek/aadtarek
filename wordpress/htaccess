@@ -1,0 +1,57 @@
+# Rfaheya: headless WordPress + React storefront on one domain.
+#
+# public_html/
+#   .htaccess        <- this file
+#   dist/            <- the storefront build (npm run release)
+#   wp-admin/ wp-content/ wp-includes/ index.php …   <- WordPress
+#
+# Storefront pages (/, /shop, /product/…, /checkout, …) are served by
+# dist/index.html. WordPress keeps wp-admin, the REST API (/wp-json),
+# My Account and payment pages. Add any other WordPress path you want to
+# keep (e.g. a blog) to the list in step 2.
+
+# BEGIN Rfaheya
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# 1. Home page -> storefront (it is a directory, so it must come first).
+RewriteCond %{QUERY_STRING} !(^|&)(rest_route|wc-api|wc-ajax|preview|p|page_id|post_type|s|customize_changeset_uuid)= [NC]
+RewriteRule ^$ dist/index.html [L]
+
+# 2. WordPress routes.
+RewriteRule ^(wp-json|my-account|checkout/order-pay|wc-api|wp-sitemap|feed)(/|\.|$) index.php [L]
+RewriteCond %{QUERY_STRING} (^|&)(rest_route|wc-api|wc-ajax|preview|p|page_id|post_type|s|customize_changeset_uuid)= [NC]
+RewriteRule ^ index.php [L]
+
+# 3. Real files and folders (wp-admin, wp-content uploads, dist assets, …).
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 4. Everything else is a storefront page.
+RewriteRule ^ dist/index.html [L]
+</IfModule>
+
+# Always fetch a fresh page shell, so a new upload shows up straight away.
+<IfModule mod_headers.c>
+<FilesMatch "^index\.html$">
+Header set Cache-Control "no-cache"
+</FilesMatch>
+</IfModule>
+# END Rfaheya
+
+# BEGIN WordPress
+# WordPress may rewrite the lines between these markers; keep the Rfaheya
+# block above it.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress

@@ -5,7 +5,7 @@ export const FREE_SHIPPING_THRESHOLD = 1000
 export const FREE_SHIPPING_GOVERNORATES = ['Cairo', 'Alexandria']
 export const FLAT_SHIPPING_RATE = 70
 
-/** Defaults; with WordPress connected these are overridden from Settings → Rfaheya Headless. */
+/** Defaults; with WordPress connected these are overridden from Settings → Rfaheya Store. */
 const DEFAULT_SOCIAL_LINKS = {
   instagram: 'https://www.instagram.com/',
   tiktok: 'https://www.tiktok.com/',

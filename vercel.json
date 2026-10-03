@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:headless",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
 }

@@ -1,20 +1,21 @@
-# Rfaheya — headless WordPress + WooCommerce
+# Rfaheya: headless WordPress + WooCommerce on one domain
+
+WordPress and the storefront live on the same hosting
+(`aquamarine-mole-770867.hostingersite.com`). There is no theme, no separate
+hosting and no CORS. `.htaccess` decides who answers each URL.
 
 ```
- Customers ──► Storefront (React, static)          WordPress + WooCommerce
-               Vercel / Netlify / any host  ──API──►  aquamarine-mole-770867.hostingersite.com
-               /, /shop, /product/…, /checkout        wp-admin, Store API, My Account, emails
+public_html/
+  .htaccess     ← routes:   /, /shop, /product/…, /checkout, …  → dist/index.html (React)
+                            /wp-admin, /wp-json, /my-account, order-pay → WordPress
+  dist/         ← the storefront build (uploaded with File Manager)
+  wp-admin/  wp-content/  wp-includes/  index.php …   ← WordPress as usual
 ```
 
-- **WordPress** is the backend only: products, stock, prices, shipping zones, payment methods, orders, customer accounts and emails.
-- **The storefront** is the React app, deployed on its own. It reads and writes through the WooCommerce Store API (`/wp-json/wc/store/v1/`).
-- **Cart session**: kept in WooCommerce's `Cart-Token` header. No cookies are involved, so it works across domains.
-- **Rfaheya Headless plugin** (small companion plugin):
-  - lets the Store API's cart headers through CORS;
-  - serves contact details and social links to the storefront (`/wp-json/rfaheya/v1/settings`);
-  - ships the product images used by the import;
-  - redirects anyone opening a WordPress front-end page to the storefront.
-  - These still open on WordPress: wp-admin, My Account and payment pages.
+WooCommerce is the backend: products, stock, prices, shipping, payments,
+orders, customer accounts and emails. The storefront reads and writes through the WooCommerce Store API
+(`/wp-json/wc/store/v1/`). The cart session is kept in WooCommerce's
+`Cart-Token` header, so page caching can't break it.
 
 ## Release files
 
@@ -22,82 +23,83 @@
 npm run release
 ```
 
-This uses `VITE_WP_URL` from `.env.headless` (currently `https://aquamarine-mole-770867.hostingersite.com`) and writes:
-
-| File | What it is |
+| File | Where it goes |
 | --- | --- |
-| `release/rfaheya-headless.zip` | the WordPress plugin |
-| `release/rfaheya-products.csv` | WooCommerce product import |
-| `release/rfaheya-storefront.zip` | the built storefront, ready for any static host |
+| `release/dist.zip` | extract in `public_html` to get `public_html/dist` |
+| `release/htaccess.txt` | contents of `public_html/.htaccess` |
+| `release/rfaheya.php` | `public_html/wp-content/mu-plugins/rfaheya.php` |
+| `release/rfaheya-products.csv` | Products → Import |
 
-## 1. WordPress (backend)
+`.env.headless` sets `VITE_WP_URL=/` (WordPress on the same domain) and
+`SITE_URL` (used for the image links in the CSV).
 
-1. **Plugins → Add New**: install and activate **WooCommerce**. You can skip the setup wizard.
-2. **Plugins → Add New → Upload Plugin**: upload `rfaheya-headless.zip` and activate it.
-3. **Settings → Permalinks**: choose **Post name** and save. The Store API needs pretty permalinks.
+## Setup
+
+1. **WooCommerce**:
+   - Plugins → Add New: install and activate WooCommerce. You can skip the wizard.
+2. **Permalinks**:
+   - Settings → Permalinks: choose **Post name** and save.
+   - The Store API needs pretty permalinks.
+3. **File Manager → public_html**:
+   - Upload `dist.zip` and **Extract** it. You should now have `public_html/dist/index.html`.
+   - Open `.htaccess` (enable "show hidden files"). Replace its contents with `htaccess.txt`. If it has other blocks (e.g. LiteSpeed Cache), keep them and paste the **Rfaheya** block above `# BEGIN WordPress`.
+   - Create the folder `wp-content/mu-plugins` if it doesn't exist and upload `rfaheya.php` into it. It runs automatically, with nothing to activate. It provides:
+     - **Settings → Rfaheya Store**: contact details, InstaPay address, social links;
+     - no postcode for Egyptian addresses.
 4. **WooCommerce → Settings → General**:
-   - Country **Egypt**.
-   - Sell to **Egypt**.
-   - Currency **EGP**.
-   - Thousand separator `,`, decimal separator `.`, number of decimals **0**.
-5. **Products → Import**: upload `rfaheya-products.csv` and click **Run the importer**.
-   - Result: 4 variable products with 10 ML / 50 ML / 100 ML sizes, families as categories, notes and profile attributes.
-6. **WooCommerce → Settings → Payments**:
+   - Country **Egypt**, sell to **Egypt**.
+   - Currency **EGP**, **0** decimals.
+5. **Products → Import**:
+   - Upload `rfaheya-products.csv` → Run the importer.
+   - Images are pulled from `/dist/import/`, so step 3 must be done first.
+6. **Payments**:
    - Enable **Cash on delivery**.
-   - Enable **Direct bank transfer**, rename its title to **InstaPay**, and put your InstaPay details in its instructions.
-7. **WooCommerce → Settings → Shipping**:
-   - Zone *Cairo & Alexandria* (regions: Cairo, Alexandria):
-     - **Free shipping** with a minimum order amount of 1000, listed first.
-     - **Flat rate** of 70.
-   - Zone *Egypt* (region: Egypt):
-     - **Flat rate** of 70.
-8. **Settings → Rfaheya Headless**:
-   - Contact details, InstaPay address and social links.
-   - The **Storefront URL**, once the storefront is deployed (step 2 below). From then on, opening the WordPress site's pages sends visitors to the storefront.
-9. **Caching (Hostinger)**: if LiteSpeed Cache is active, make sure *Cache REST API* stays **off**, or exclude `/wp-json/wc/store/`. Cart responses must never be cached.
+   - Enable **Direct bank transfer**, titled **InstaPay**, with your InstaPay details.
+7. **Shipping**:
+   - Zone *Cairo & Alexandria*:
+     - **Free shipping** (minimum order 1000), listed first.
+     - **Flat rate** 70.
+   - Zone *Egypt*:
+     - **Flat rate** 70.
+8. **Caching**: in LiteSpeed Cache, keep *Cache REST API* off, or exclude `/wp-json/wc/store/`.
 
-## 2. Storefront (frontend)
+## Updating the storefront
 
-Pick one.
+Run `npm run release`. In File Manager, delete `public_html/dist`, then upload and extract the new `dist.zip`.
+WordPress and the products are untouched.
 
-- **Vercel or Netlify (recommended)**:
-  - Import the Git repository. `vercel.json` / `netlify.toml` already set the build command (`npm run build:headless`) and the SPA rewrites.
-  - To point at a different WordPress, set the environment variable `VITE_WP_URL`.
-- **Any static host** (e.g. a Hostinger subdomain or second site):
-  - Upload the contents of `rfaheya-storefront.zip` to its `public_html`.
-  - The included `.htaccess` makes deep links like `/shop` work.
+## What goes where (`.htaccess`)
 
-Then put the storefront's address in **Settings → Rfaheya Headless → Storefront URL**.
+| URL | Served by |
+| --- | --- |
+| `/`, `/shop`, `/product/…`, `/collections/…`, `/finder…`, `/checkout`, `/checkout/order-received/…`, any other page | storefront (`dist/index.html`) |
+| `/wp-admin`, `/wp-login.php`, `/wp-content/…`, real files | as-is |
+| `/wp-json/…`, `/my-account/…`, `/checkout/order-pay/…`, `/wc-api/…`, `/wp-sitemap…`, `/feed`, `?rest_route=`, `?wc-ajax=`, `?p=`, `?preview=`, `?s=` | WordPress |
 
-## How the pieces connect
+To keep another WordPress path (for example a blog at `/blog`), add it to the
+list in rule 2 of the Rfaheya block.
 
-- **Catalog**: prices, sizes, stock, images and reviews come from WooCommerce on every page load. Edit a product in wp-admin and the storefront shows it on the next load.
-- **Checkout**:
-  - The storefront sends the address to WooCommerce, which picks the shipping rate from your zones and places the order with the chosen payment method.
-  - Orders appear in **WooCommerce → Orders**, and WooCommerce sends its emails.
-  - Gift messages are added to the order note.
-- **Online card gateways** (if you add one later): the customer pays on WordPress's payment page and returns to the storefront's order confirmation. The plugin handles the redirect.
-- **My Account**: the storefront's account icon opens WooCommerce's My Account on the WordPress site (sign in, orders, addresses).
+- **My Account**: the storefront's account icon opens WooCommerce's My Account (sign in, orders, addresses).
+- **Online card gateways** (if you add one later): they use `/checkout/order-pay/…` on WordPress, then return to the storefront's order confirmation.
 
-## Developing
+## Developing and testing
 
 ```bash
 npm run dev            # demo data, no WordPress
-npm run dev:headless   # live data from VITE_WP_URL
 ```
 
-`scripts/mock-wp/server.mjs` is a local stand-in for the headless backend. It provides:
+`scripts/mock-wp/` tests the whole setup locally with real Apache and the real
+`.htaccess`:
 
-- the Store API with CORS and Cart-Token sessions;
-- shipping zones and COD/InstaPay checkout;
-- an out-of-stock size;
-- an expired-session check.
-
-It's used for end-to-end tests without a real site:
+- `server.mjs` stands in for WordPress/WooCommerce. It provides:
+  - the Store API with Cart-Token sessions;
+  - shipping zones;
+  - COD/InstaPay checkout;
+  - the settings endpoint.
+- `apache-test.sh` builds a fake `public_html` (dist + `.htaccess` + an `index.php` that forwards to the mock) and serves it on :8090.
 
 ```bash
-node scripts/products-csv.mjs http://localhost:8080 > /tmp/p.csv
-node scripts/mock-wp/server.mjs 8080 /tmp/p.csv http://localhost:4174
-VITE_WP_URL=http://localhost:8080 npx vite build --mode headless --outDir dist-woo
-npx vite preview --port 4174 --outDir dist-woo
+npm run build:headless && SITE_URL=http://localhost:8090 node scripts/package-release.mjs
+node scripts/mock-wp/server.mjs 8080 release/rfaheya-products.csv http://localhost:8090 &
+scripts/mock-wp/apache-test.sh
 ```

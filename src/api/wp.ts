@@ -1,17 +1,21 @@
 /**
  * Headless WordPress / WooCommerce connection.
  *
- * The storefront is deployed on its own (Vercel, Netlify, any static host)
- * and talks to WooCommerce on the WordPress site through the Store API.
- * Set the WordPress address at build time:
+ * Production setup: WordPress + WooCommerce on the domain, the built
+ * storefront uploaded next to it in /dist, and .htaccess (see
+ * wordpress/htaccess) sending storefront URLs to /dist/index.html and
+ * WordPress URLs (/wp-admin, /wp-json, /my-account, …) to WordPress.
  *
- *   VITE_WP_URL=https://your-wordpress-site.com
+ * The WordPress address is set at build time in .env.headless:
  *
- * (see .env.headless). Without it the app runs on the built-in demo data.
+ *   VITE_WP_URL=/                         same domain as the storefront
+ *   VITE_WP_URL=https://shop.example.com  WordPress on another domain
  *
- * Cart sessions use WooCommerce's `Cart-Token` header rather than cookies,
- * so they work across domains: the token is kept in localStorage and sent
- * with every request; write requests carrying a valid token need no nonce.
+ * Without it the app runs on the built-in demo data.
+ *
+ * Cart sessions use WooCommerce's `Cart-Token` header (kept in
+ * localStorage) instead of cookies; write requests carrying a valid token
+ * need no nonce, so cached pages can't break the cart.
  */
 
 export interface WpConfig {
@@ -23,18 +27,17 @@ export interface WpConfig {
   myAccountUrl: string
 }
 
-/** Editable in WordPress: Settings → Rfaheya Headless (served by the companion plugin). */
+/** Editable in WordPress: Settings → Rfaheya Store (wordpress/mu-plugins/rfaheya.php). */
 export interface StoreSettings {
   contact?: Partial<Record<'email' | 'phone' | 'whatsapp' | 'hours' | 'location' | 'instapay', string>>
   social?: Partial<Record<'instagram' | 'tiktok' | 'youtube' | 'facebook', string>>
   myAccountUrl?: string
 }
 
-const siteUrl = String(import.meta.env.VITE_WP_URL ?? '')
-  .trim()
-  .replace(/\/+$/, '')
+const configured = String(import.meta.env.VITE_WP_URL ?? '').trim()
+const siteUrl = configured === '/' ? window.location.origin : configured.replace(/\/+$/, '')
 
-export const isWoo = Boolean(siteUrl)
+export const isWoo = Boolean(configured)
 
 export const wp: WpConfig | undefined = isWoo
   ? { siteUrl, storeApi: `${siteUrl}/wp-json/wc/store/v1/`, myAccountUrl: `${siteUrl}/my-account/` }
@@ -125,7 +128,7 @@ async function request<T>(path: string, init: Init = {}): Promise<T> {
   return data as T
 }
 
-/** Contact details and social links set in WordPress (companion plugin). */
+/** Contact details and social links set in WordPress (rfaheya.php mu-plugin). */
 export async function fetchStoreSettings(): Promise<StoreSettings> {
   if (!wp) return {}
   const res = await fetch(`${wp.siteUrl}/wp-json/rfaheya/v1/settings`, { credentials: 'omit', headers: { Accept: 'application/json' } })

@@ -19,7 +19,7 @@ export async function loadCatalog(): Promise<void> {
   const [list, revs, settings] = await Promise.all([
     fetchWooCatalog(),
     fetchWooReviews().catch(() => [] as Review[]),
-    // Optional: without the companion plugin the defaults in config.ts stay.
+    // Optional: without the rfaheya.php mu-plugin the defaults in config.ts stay.
     fetchStoreSettings().catch(() => ({})),
   ])
   applyStoreSettings(settings)

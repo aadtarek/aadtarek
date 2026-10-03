@@ -1,36 +1,34 @@
 /**
- * Local stand-in for a headless WordPress + WooCommerce backend, for testing
- * the storefront's WooCommerce mode without a real site.
+ * Local stand-in for WordPress + WooCommerce, for testing the storefront's
+ * WooCommerce mode without a real site.
  *
- *   node scripts/products-csv.mjs http://localhost:8080 > /tmp/p.csv
- *   node scripts/mock-wp/server.mjs [port] [csv] [storefront-url]
+ *   node scripts/products-csv.mjs http://localhost:8090 > /tmp/p.csv
+ *   node scripts/mock-wp/server.mjs [port] [csv] [public-url]
  *
- * Then build the storefront against it (VITE_WP_URL=http://localhost:8080)
- * and serve it on another origin, e.g. `vite preview --port 4174`.
+ * It plays the part of WordPress's index.php: put it behind Apache with
+ * wordpress/htaccess (see scripts/mock-wp/apache-test.sh), so the real
+ * .htaccess decides what reaches WordPress and what the storefront serves.
  *
  * - Implements the Store API endpoints the app uses, following WooCommerce's
  *   documented request/response shapes: products (incl. variations), reviews,
  *   cart, add/update/remove item, update-customer (shipping), checkout.
- * - Cross-origin like the real thing: CORS with the headers the Rfaheya
- *   Headless plugin allows, sessions via the Cart-Token header (no cookies),
- *   and writes without a valid Cart-Token fail the nonce check.
- * - Serves the plugin's settings endpoint and import images, and redirects
- *   other front-end URLs to the storefront like the plugin does.
+ * - Sessions via the Cart-Token header (no cookies); writes without a valid
+ *   Cart-Token fail the nonce check, as they would from a cached page.
+ * - Serves the rfaheya.php settings endpoint and stub My Account pages.
  * - Products come from the same CSV used for the WooCommerce import.
  * - Test helpers: GET /__orders lists placed orders, POST /__expire drops
  *   every cart session (to exercise the expired-token retry).
  */
 import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
-import { existsSync, readFileSync } from 'node:fs'
-import { extname, join, normalize } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 
 const root = new URL('../..', import.meta.url).pathname
 const port = Number(process.argv[2] || 8080)
-const site = `http://localhost:${port}`
+// Public address (Apache in front), used in image, account and order links.
+const site = (process.argv[4] || `http://localhost:${port}`).replace(/\/$/, '')
 const csvPath = process.argv[3] || join(root, 'release/rfaheya-products.csv')
-const pluginDir = join(root, 'wordpress/rfaheya-headless')
-const storefront = (process.argv[4] || 'http://localhost:4174').replace(/\/$/, '')
 
 // ------------------------------------------------------------------ CSV → products
 
@@ -211,8 +209,6 @@ function cartJson(s) {
 
 // ------------------------------------------------------------------ HTTP
 
-const types = { '.js': 'text/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.woff': 'font/woff', '.json': 'application/json' }
-
 function send(res, status, body, headers = {}) {
   res.writeHead(status, { 'Content-Type': 'application/json', ...headers })
   res.end(typeof body === 'string' ? body : JSON.stringify(body))
@@ -241,13 +237,6 @@ createServer(async (req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()
-  }
-
-  if (path.startsWith('/wp-content/plugins/rfaheya-headless/')) {
-    const file = normalize(join(pluginDir, path.replace('/wp-content/plugins/rfaheya-headless/', '')))
-    if (!file.startsWith(pluginDir) || !existsSync(file)) return send(res, 404, 'not found', { 'Content-Type': 'text/plain' })
-    res.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream' })
-    return res.end(readFileSync(file))
   }
 
   if (path.startsWith('/wp-json/wc/store/v1/')) {
@@ -346,7 +335,7 @@ createServer(async (req, res) => {
     return res.end('<!doctype html><title>My account</title><h1>My account (WooCommerce)</h1>')
   }
 
-  // Everything else: the plugin sends visitors to the storefront.
-  res.writeHead(302, { Location: storefront + path + url.search })
-  res.end()
-}).listen(port, () => console.log(`mock WordPress (headless) on ${site}, storefront ${storefront} — ${products.length} products, ${variations.length} variations`))
+  // Anything else reaching WordPress (only what .htaccess sends here).
+  res.writeHead(200, { 'Content-Type': 'text/html', 'X-Served-By': 'wordpress' })
+  res.end(`<!doctype html><title>WordPress</title><h1>WordPress: ${path}</h1>`)
+}).listen(port, () => console.log(`mock WordPress on ${site} — ${products.length} products, ${variations.length} variations`))

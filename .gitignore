@@ -23,8 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# WordPress plugin build output
-wordpress/rfaheya-headless/import
 release
 deliver
 dist-woo
