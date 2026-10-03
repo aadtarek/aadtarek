@@ -65,6 +65,8 @@ const content = {
 }
 
 writeFileSync(join(target, 'content.json'), JSON.stringify(content, null, 2) + '\n')
+// Logo for the My Account page shell.
+copyFileSync(join(root, 'src/assets/logo.svg'), join(target, 'logo.svg'))
 console.log(
   `wordpress/mu-plugins/rfaheya/content.json — ${content.posts.length} posts, ${content.pages.length} pages, ${content.faqs.length} FAQs, ${content.families.length} families`,
 )

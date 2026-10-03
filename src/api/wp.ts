@@ -138,7 +138,8 @@ export async function fetchStoreSettings(): Promise<StoreSettings> {
   const res = await fetch(`${wp.siteUrl}/wp-json/rfaheya/v1/settings`, { credentials: 'omit', headers: { Accept: 'application/json' } })
   if (!res.ok) throw new Error(`Settings request failed (${res.status})`)
   const settings = (await res.json()) as StoreSettings
-  if (settings.myAccountUrl) wp.myAccountUrl = settings.myAccountUrl
+  // WooCommerce returns the home URL when no My Account page is set; keep /my-account/ then.
+  if (settings.myAccountUrl && new URL(settings.myAccountUrl, wp.siteUrl).pathname.replace(/\/+$/, '') !== '') wp.myAccountUrl = settings.myAccountUrl
   return settings
 }
 

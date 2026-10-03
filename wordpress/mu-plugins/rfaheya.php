@@ -786,6 +786,184 @@ function rfaheya_import_content() {
 	);
 }
 
+// ==================================================================== My Account
+
+/**
+ * The storefront's account icon opens /my-account/ (routed to WordPress by
+ * .htaccess). Make sure WooCommerce's My Account page exists there.
+ */
+add_action(
+	'wp_loaded',
+	function () {
+		if ( ! function_exists( 'wc_get_page_id' ) ) {
+			return;
+		}
+		$id      = wc_get_page_id( 'myaccount' );
+		$page    = $id > 0 ? get_post( $id ) : null;
+		$page    = $page && 'page' === $page->post_type && 'trash' !== $page->post_status ? $page : null;
+		$by_slug = get_page_by_path( 'my-account' );
+		$by_slug = $by_slug && 'trash' !== $by_slug->post_status ? $by_slug : null;
+		// A /my-account/ page with the account shortcode is the one to use.
+		if ( $by_slug && ( ! $page || $page->ID !== $by_slug->ID ) && false !== strpos( $by_slug->post_content, 'woocommerce_my_account' ) ) {
+			$page = $by_slug;
+			update_option( 'woocommerce_myaccount_page_id', $page->ID );
+		}
+		if ( ! $page ) {
+			$page = $by_slug;
+			if ( ! $page ) {
+				$new = wp_insert_post(
+					array(
+						'post_type'      => 'page',
+						'post_status'    => 'publish',
+						'post_name'      => 'my-account',
+						'post_title'     => 'My account',
+						'post_content'   => '<!-- wp:shortcode -->[woocommerce_my_account]<!-- /wp:shortcode -->',
+						'comment_status' => 'closed',
+					)
+				);
+				if ( ! $new || is_wp_error( $new ) ) {
+					return;
+				}
+				$page = get_post( $new );
+			}
+			update_option( 'woocommerce_myaccount_page_id', $page->ID );
+		}
+		$changes = array();
+		if ( 'publish' !== $page->post_status ) {
+			$changes['post_status'] = 'publish';
+		}
+		if ( 'my-account' !== $page->post_name && ! $by_slug ) {
+			$changes['post_name'] = 'my-account';
+		}
+		if ( '' === trim( $page->post_content ) ) {
+			$changes['post_content'] = '<!-- wp:shortcode -->[woocommerce_my_account]<!-- /wp:shortcode -->';
+		}
+		if ( $changes ) {
+			wp_update_post( array( 'ID' => $page->ID ) + $changes );
+		}
+	}
+);
+
+/** My Account is shown in a shell that matches the storefront, whatever the WordPress theme. */
+function rfaheya_is_account() {
+	return function_exists( 'is_account_page' ) && is_account_page();
+}
+
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		if ( ! rfaheya_is_account() ) {
+			return;
+		}
+		// The theme's own styles would fight the storefront look.
+		foreach ( wp_styles()->queue as $handle ) {
+			$src = isset( wp_styles()->registered[ $handle ] ) ? (string) wp_styles()->registered[ $handle ]->src : '';
+			if ( false !== strpos( $src, '/wp-content/themes/' ) || in_array( $handle, array( 'global-styles', 'classic-theme-styles' ), true ) ) {
+				wp_dequeue_style( $handle );
+			}
+		}
+	},
+	100
+);
+
+add_action(
+	'template_redirect',
+	function () {
+		if ( ! rfaheya_is_account() ) {
+			return;
+		}
+		$logo = file_exists( __DIR__ . '/rfaheya/logo.svg' ) ? WPMU_PLUGIN_URL . '/rfaheya/logo.svg' : '';
+		$home = home_url( '/' );
+		$link = function ( $path, $label ) use ( $home ) {
+			echo '<a href="' . esc_url( $home . ltrim( $path, '/' ) ) . '">' . esc_html( $label ) . '</a>';
+		};
+		?><!doctype html>
+<html <?php language_attributes(); ?>>
+<head>
+<meta charset="<?php bloginfo( 'charset' ); ?>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php if ( ! current_theme_supports( 'title-tag' ) ) : ?>
+<title><?php echo esc_html( wp_get_document_title() ); ?></title>
+<?php endif; ?>
+<link rel="icon" type="image/svg+xml" href="<?php echo esc_url( $home . 'favicon.svg' ); ?>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@400;500&display=swap">
+<?php wp_head(); ?>
+<style>
+body.rfaheya-account { margin: 0; background: #f6f1eb; color: #18140b; font-family: "DM Sans", system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
+.rf-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 5vw, 78px); background: #f9f6f1; border-bottom: 1px solid #e6e1d8; }
+.rf-logo img { display: block; height: 40px; width: auto; }
+.rf-logo span { font-family: "Playfair Display", serif; font-size: 28px; letter-spacing: .04em; color: #18140b; }
+.rf-nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+.rf-nav a { color: #18140b; text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
+.rf-nav a:hover { color: #2a2f1b; text-decoration: underline; text-underline-offset: 4px; }
+.rf-main { max-width: 1100px; margin: 0 auto; padding: 48px 16px 96px; }
+.rf-eyebrow { margin: 0; font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: #3d3a33; }
+.rf-title { font-family: "Playfair Display", serif; font-weight: 400; font-size: clamp(38px, 6vw, 56px); line-height: 1.05; margin: 8px 0 36px; }
+.rfaheya-account .woocommerce { font-size: 16px; }
+.rfaheya-account .woocommerce a { color: #18140b; text-underline-offset: 4px; }
+.rfaheya-account .woocommerce h2, .rfaheya-account .woocommerce h3 { font-family: "Playfair Display", serif; font-weight: 400; }
+.rfaheya-account .woocommerce .button, .rfaheya-account .woocommerce button.button, .rfaheya-account .woocommerce input.button { background: #2a2f1b; color: #f9f6f1; border: 0; border-radius: 3px; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 500; padding: 15px 26px; cursor: pointer; }
+.rfaheya-account .woocommerce .button:hover, .rfaheya-account .woocommerce button.button:hover { background: #3a412a; color: #f9f6f1; }
+.rfaheya-account .woocommerce input.input-text, .rfaheya-account .woocommerce select, .rfaheya-account .woocommerce textarea { width: 100%; box-sizing: border-box; padding: 13px 14px; border: 1px solid #c9c3b8; border-radius: 3px; background: #fcf8f2; font: inherit; }
+.rfaheya-account .woocommerce form .form-row { margin: 0 0 16px; }
+.rfaheya-account .woocommerce form .form-row label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+.rfaheya-account .woocommerce form.login, .rfaheya-account .woocommerce form.register { border: 1px solid #e6e1d8; border-radius: 8px; padding: 28px; background: #fcf8f2; }
+.rfaheya-account .woocommerce .u-columns { display: grid; gap: 32px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.rfaheya-account .woocommerce .u-columns .col-1, .rfaheya-account .woocommerce .u-columns .col-2 { width: auto; float: none; }
+.rfaheya-account .woocommerce-MyAccount-navigation ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid #e6e1d8; }
+.rfaheya-account .woocommerce-MyAccount-navigation li { border-bottom: 1px solid #e6e1d8; }
+.rfaheya-account .woocommerce-MyAccount-navigation li a { display: block; padding: 13px 0; text-decoration: none; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
+.rfaheya-account .woocommerce-MyAccount-navigation li.is-active a { font-weight: 600; color: #2a2f1b; }
+.rfaheya-account .woocommerce table.shop_table { width: 100%; border-collapse: collapse; background: #fcf8f2; border: 1px solid #e6e1d8; border-radius: 8px; }
+.rfaheya-account .woocommerce table.shop_table th, .rfaheya-account .woocommerce table.shop_table td { padding: 12px 14px; border-bottom: 1px solid #e6e1d8; text-align: left; }
+.rfaheya-account .woocommerce-message, .rfaheya-account .woocommerce-info, .rfaheya-account .woocommerce-error { list-style: none; margin: 0 0 24px; padding: 14px 18px; border-radius: 6px; background: #f0ebe2; border: 0; }
+.rfaheya-account .woocommerce-error { background: #f6e3df; }
+@media (min-width: 768px) { .rfaheya-account .woocommerce-MyAccount-navigation { float: left; width: 24%; } .rfaheya-account .woocommerce-MyAccount-content { float: right; width: 70%; } }
+.rf-foot a { color: #18140b; text-underline-offset: 4px; }
+.rf-foot { padding: 28px 16px; text-align: center; font-size: 13px; color: #6f6a60; border-top: 1px solid #e6e1d8; }
+</style>
+</head>
+<body <?php body_class( 'rfaheya-account' ); ?>>
+<?php wp_body_open(); ?>
+<header class="rf-bar">
+	<a class="rf-logo" href="<?php echo esc_url( $home ); ?>">
+		<?php if ( $logo ) : ?>
+			<img src="<?php echo esc_url( $logo ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="140" height="44">
+		<?php else : ?>
+			<span>RFAHEYA</span>
+		<?php endif; ?>
+	</a>
+	<nav class="rf-nav" aria-label="Store">
+		<?php
+		$link( 'shop', 'Shop' );
+		$link( 'finder', 'Rfaheya Finder' );
+		$link( 'journal', 'Journal' );
+		$link( 'contact', 'Contact' );
+		?>
+	</nav>
+</header>
+<main class="rf-main">
+	<p class="rf-eyebrow">My account</p>
+	<?php
+	while ( have_posts() ) {
+		the_post();
+		echo '<h1 class="rf-title">' . esc_html( get_the_title() ) . '</h1>';
+		the_content();
+	}
+	?>
+</main>
+<footer class="rf-foot">&copy; <?php echo esc_html( gmdate( 'Y' ) . ' ' . get_bloginfo( 'name' ) ); ?> · <a href="<?php echo esc_url( $home ); ?>">Back to the store</a></footer>
+<?php wp_footer(); ?>
+</body>
+</html>
+		<?php
+		exit;
+	},
+	99
+);
+
 // ==================================================================== WooCommerce
 
 /** Egypt doesn't use postcodes in the storefront checkout. */

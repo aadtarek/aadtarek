@@ -1,6 +1,7 @@
 import { Handbag, Heart, Menu, Search, UserRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { wp } from '../api/wp'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
 import { Logo } from './Logo'
@@ -75,9 +76,16 @@ export function Header() {
             <Heart className="size-[22px]" strokeWidth={1.5} />
             {wishlist.ids.length > 0 && <CountBadge count={wishlist.ids.length} />}
           </Link>
-          <Link to="/account" aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
-            <UserRound className="size-[22px]" strokeWidth={1.5} />
-          </Link>
+          {/* With WordPress, the account lives in WooCommerce's My Account page. */}
+          {wp ? (
+            <a href={wp.myAccountUrl} aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
+              <UserRound className="size-[22px]" strokeWidth={1.5} />
+            </a>
+          ) : (
+            <Link to="/account" aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
+              <UserRound className="size-[22px]" strokeWidth={1.5} />
+            </Link>
+          )}
           <button type="button" aria-label={`Cart (${count} items)`} onClick={open} className={iconBtn}>
             <Handbag className="size-[22px]" strokeWidth={1.5} />
             <CountBadge count={count} />
@@ -113,9 +121,15 @@ export function Header() {
                   {l.label}
                 </NavLink>
               ))}
-              <NavLink to="/account" className="border-b border-line py-4 text-[13px] font-medium tracking-[0.1em] uppercase">
-                My Account
-              </NavLink>
+              {wp ? (
+                <a href={wp.myAccountUrl} className="border-b border-line py-4 text-[13px] font-medium tracking-[0.1em] uppercase">
+                  My Account
+                </a>
+              ) : (
+                <NavLink to="/account" className="border-b border-line py-4 text-[13px] font-medium tracking-[0.1em] uppercase">
+                  My Account
+                </NavLink>
+              )}
               <NavLink to="/wishlist" className="py-4 text-[13px] font-medium tracking-[0.1em] uppercase">
                 Wishlist ({wishlist.ids.length})
               </NavLink>
