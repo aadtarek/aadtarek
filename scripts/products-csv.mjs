@@ -3,14 +3,14 @@
  *
  *   node scripts/products-csv.mjs https://your-site.com > rfaheya-products.csv
  *
- * Images are referenced from the theme's /import folder on that site, so
- * upload and activate the Rfaheya theme before running the import.
+ * Images are referenced from the Rfaheya Headless plugin's /import folder on
+ * that site, so install the plugin before running the import.
  */
 import { readFileSync } from 'node:fs'
 
 const site = (process.argv[2] || 'https://example.com').replace(/\/$/, '')
 const seed = JSON.parse(readFileSync(new URL('../src/data/catalog-seed.json', import.meta.url), 'utf8'))
-const imageBase = `${site}/wp-content/themes/rfaheya/import/`
+const imageBase = `${site}/wp-content/plugins/rfaheya-headless/import/`
 
 const LABELS = {
   gender: { men: 'Men', women: 'Women', unisex: 'Unisex' },
@@ -21,7 +21,7 @@ const LABELS = {
   family: { fresh: 'Fresh', oriental: 'Oriental', floral: 'Floral', fruity: 'Fruity', sweet: 'Sweet' },
 }
 
-/** Image file in the theme's import folder for a seed image path. */
+/** Image file in the plugin's import folder for a seed image path. */
 export const importName = (file) => file.replace(/^products\//, '').replace(/^reviews\/(.*)\.webp$/, '$1-portrait.webp')
 
 const ATTRS = ['Size', 'Accords', 'Notes', 'Inspired By', 'For', 'Occasion', 'Season', 'Presence', 'Longevity']

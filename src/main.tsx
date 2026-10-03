@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
 import { loadCatalog } from './api/catalog'
 import { isWoo } from './api/wp'
 
@@ -33,7 +32,10 @@ function Splash({ error }: { error?: string }) {
   )
 }
 
-function render() {
+// App is imported after the WordPress settings are applied, so modules that
+// read contact details or social links at load time see the real values.
+async function render() {
+  const { default: App } = await import('./App.tsx')
   root.render(
     <StrictMode>
       <App />
@@ -41,11 +43,11 @@ function render() {
   )
 }
 
+const fail = (e: unknown) => root.render(<Splash error={e instanceof Error ? e.message : String(e)} />)
+
 if (isWoo) {
   root.render(<Splash />)
-  loadCatalog()
-    .then(render)
-    .catch((e: unknown) => root.render(<Splash error={e instanceof Error ? e.message : String(e)} />))
+  loadCatalog().then(render).catch(fail)
 } else {
-  render()
+  render().catch(fail)
 }

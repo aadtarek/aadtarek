@@ -1,17 +1,24 @@
 /**
- * Local stand-in for WordPress + WooCommerce, for testing the storefront's
- * WooCommerce mode without a real site.
+ * Local stand-in for a headless WordPress + WooCommerce backend, for testing
+ * the storefront's WooCommerce mode without a real site.
  *
- *   npm run build:wp && SITE_URL=http://localhost:8080 node scripts/products-csv.mjs http://localhost:8080 > /tmp/p.csv
- *   node scripts/mock-wp/server.mjs [port] [csv]
+ *   node scripts/products-csv.mjs http://localhost:8080 > /tmp/p.csv
+ *   node scripts/mock-wp/server.mjs [port] [csv] [storefront-url]
  *
- * - Serves the theme like index.php does (injects window.__RFAHEYA__).
+ * Then build the storefront against it (VITE_WP_URL=http://localhost:8080)
+ * and serve it on another origin, e.g. `vite preview --port 4174`.
+ *
  * - Implements the Store API endpoints the app uses, following WooCommerce's
  *   documented request/response shapes: products (incl. variations), reviews,
  *   cart, add/update/remove item, update-customer (shipping), checkout.
+ * - Cross-origin like the real thing: CORS with the headers the Rfaheya
+ *   Headless plugin allows, sessions via the Cart-Token header (no cookies),
+ *   and writes without a valid Cart-Token fail the nonce check.
+ * - Serves the plugin's settings endpoint and import images, and redirects
+ *   other front-end URLs to the storefront like the plugin does.
  * - Products come from the same CSV used for the WooCommerce import.
- * - The page is served with a stale nonce on purpose, to exercise the app's
- *   nonce-refresh retry.
+ * - Test helpers: GET /__orders lists placed orders, POST /__expire drops
+ *   every cart session (to exercise the expired-token retry).
  */
 import { randomBytes } from 'node:crypto'
 import { createServer } from 'node:http'
@@ -22,7 +29,8 @@ const root = new URL('../..', import.meta.url).pathname
 const port = Number(process.argv[2] || 8080)
 const site = `http://localhost:${port}`
 const csvPath = process.argv[3] || join(root, 'release/rfaheya-products.csv')
-const themeDir = join(root, 'wordpress/rfaheya')
+const pluginDir = join(root, 'wordpress/rfaheya-headless')
+const storefront = (process.argv[4] || 'http://localhost:4174').replace(/\/$/, '')
 
 // ------------------------------------------------------------------ CSV → products
 
@@ -146,18 +154,22 @@ const publicProduct = ({ sku, position, created, ...p }) => p
 
 // ------------------------------------------------------------------ sessions & cart
 
-const VALID_NONCE = 'valid-nonce-123'
+const VALID_NONCE = 'nonce-for-cookie-session'
 const sessions = new Map()
 export const orders = []
 
+/** Cart session from the Cart-Token header; a missing or unknown token starts a new one. */
 function session(req, res) {
-  const id = /wc_session=([a-f0-9]+)/.exec(req.headers.cookie || '')?.[1]
-  if (id && sessions.has(id)) return sessions.get(id)
-  const fresh = randomBytes(8).toString('hex')
-  const s = { id: fresh, items: [], address: { state: '' } }
-  sessions.set(fresh, s)
-  res.setHeader('Set-Cookie', `wc_session=${fresh}; Path=/; HttpOnly`)
-  return s
+  const token = req.headers['cart-token']
+  let s = token && sessions.get(token)
+  const valid = Boolean(s)
+  if (!s) {
+    const fresh = `ct_${randomBytes(12).toString('hex')}`
+    s = { id: fresh, items: [], address: { state: '' } }
+    sessions.set(fresh, s)
+  }
+  res.setHeader('Cart-Token', s.id)
+  return { s, valid }
 }
 
 function shippingRates(s, subtotal) {
@@ -201,26 +213,6 @@ function cartJson(s) {
 
 const types = { '.js': 'text/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.woff': 'font/woff', '.json': 'application/json' }
 
-function themePage(nonce) {
-  const manifest = JSON.parse(readFileSync(join(themeDir, 'dist/.vite/manifest.json'), 'utf8'))
-  const entry = Object.values(manifest).find((c) => c.isEntry)
-  const base = `${site}/wp-content/themes/rfaheya/dist/`
-  const config = {
-    storeApi: `${site}/wp-json/wc/store/v1/`,
-    nonce,
-    siteUrl: `${site}/`,
-    myAccountUrl: `${site}/my-account/`,
-    currency: 'EGP',
-    contact: { email: 'shop@example.test', instapay: 'test@instapay' },
-    social: {},
-  }
-  return `<!doctype html><html lang="en-US"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rfaheya</title>
-${(entry.css || []).map((c) => `<link rel="stylesheet" href="${base}${c}">`).join('')}
-</head><body class="rfaheya-app"><div id="root"></div>
-<script id="rfaheya-app-0-js-before">window.__RFAHEYA__ = ${JSON.stringify(config)};</script>
-<script type="module" src="${base}${entry.file}" id="rfaheya-app-0-js"></script></body></html>`
-}
-
 function send(res, status, body, headers = {}) {
   res.writeHead(status, { 'Content-Type': 'application/json', ...headers })
   res.end(typeof body === 'string' ? body : JSON.stringify(body))
@@ -237,21 +229,38 @@ createServer(async (req, res) => {
   const url = new URL(req.url, site)
   const path = url.pathname
 
-  if (path.startsWith('/wp-content/themes/rfaheya/')) {
-    const file = normalize(join(themeDir, path.replace('/wp-content/themes/rfaheya/', '')))
-    if (!file.startsWith(themeDir) || !existsSync(file)) return send(res, 404, 'not found', { 'Content-Type': 'text/plain' })
+  const origin = req.headers.origin
+  if (path.startsWith('/wp-json/') && origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE')
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, X-WP-Nonce, Content-Disposition, Content-MD5, Content-Type, Cart-Token, Nonce')
+    res.setHeader('Access-Control-Expose-Headers', 'X-WP-Total, X-WP-TotalPages, Link, Cart-Token, Nonce')
+    res.setHeader('Vary', 'Origin')
+  }
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204)
+    return res.end()
+  }
+
+  if (path.startsWith('/wp-content/plugins/rfaheya-headless/')) {
+    const file = normalize(join(pluginDir, path.replace('/wp-content/plugins/rfaheya-headless/', '')))
+    if (!file.startsWith(pluginDir) || !existsSync(file)) return send(res, 404, 'not found', { 'Content-Type': 'text/plain' })
     res.writeHead(200, { 'Content-Type': types[extname(file)] || 'application/octet-stream' })
     return res.end(readFileSync(file))
   }
 
   if (path.startsWith('/wp-json/wc/store/v1/')) {
     const route = path.replace('/wp-json/wc/store/v1/', '').replace(/\/$/, '')
-    const s = session(req, res)
+    const { s, valid } = session(req, res)
     res.setHeader('Nonce', VALID_NONCE)
-    if (req.method === 'POST') {
+    // Like WooCommerce: a valid Cart-Token skips the nonce check. Without one
+    // the nonce is checked against the cookie session, which a cross-origin
+    // request doesn't have, so it never passes.
+    if (req.method === 'POST' && !valid) {
       const nonce = req.headers.nonce
       if (!nonce) return err(res, 401, 'woocommerce_rest_missing_nonce', 'Missing the Nonce header. This endpoint requires a valid nonce.')
-      if (nonce !== VALID_NONCE) return err(res, 403, 'woocommerce_rest_invalid_nonce', 'Nonce is invalid.')
+      return err(res, 403, 'woocommerce_rest_invalid_nonce', 'Nonce is invalid.')
     }
     const body = req.method === 'POST' ? await readBody(req) : {}
 
@@ -316,7 +325,20 @@ createServer(async (req, res) => {
     return err(res, 404, 'rest_no_route', 'No route was found matching the URL and request method.')
   }
 
-  // Test helper: inspect placed orders.
+  if (path === '/wp-json/rfaheya/v1/settings') {
+    return send(res, 200, {
+      contact: { email: 'shop@example.test', phone: '+20 100 000 0000', whatsapp: '201000000000', hours: 'Daily', location: 'Cairo, Egypt', instapay: 'test@instapay' },
+      social: { instagram: 'https://www.instagram.com/rfaheya.test' },
+      myAccountUrl: `${site}/my-account/`,
+      currency: 'EGP',
+    })
+  }
+
+  // Test helpers.
+  if (path === '/__expire' && req.method === 'POST') {
+    sessions.clear()
+    return send(res, 200, { ok: true })
+  }
   if (path === '/__orders') return send(res, 200, orders.map((o) => ({ id: o.id, payment: o.body.payment_method, note: o.body.customer_note, state: o.body.shipping_address.state, total: o.cart.totals.total_price })))
 
   if (path.startsWith('/my-account')) {
@@ -324,7 +346,7 @@ createServer(async (req, res) => {
     return res.end('<!doctype html><title>My account</title><h1>My account (WooCommerce)</h1>')
   }
 
-  // Everything else is the storefront (index.php). Stale nonce on purpose.
-  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' })
-  res.end(themePage('stale-nonce-from-cache'))
-}).listen(port, () => console.log(`mock WordPress on ${site} — ${products.length} products, ${variations.length} variations`))
+  // Everything else: the plugin sends visitors to the storefront.
+  res.writeHead(302, { Location: storefront + path + url.search })
+  res.end()
+}).listen(port, () => console.log(`mock WordPress (headless) on ${site}, storefront ${storefront} — ${products.length} products, ${variations.length} variations`))

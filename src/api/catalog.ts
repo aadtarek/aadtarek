@@ -3,7 +3,8 @@ import { products as demoProducts } from '../data/products'
 import { reviews as demoReviews } from '../data/reviews'
 import type { FamilySlug, Product, Review } from '../types'
 import { fetchWooCatalog, fetchWooReviews } from './woo'
-import { isWoo } from './wp'
+import { applyStoreSettings } from '../config'
+import { fetchStoreSettings, isWoo } from './wp'
 
 /**
  * The catalogue is loaded once at start-up (see main.tsx) and then read
@@ -15,7 +16,13 @@ let reviews: Review[] = isWoo ? [] : demoReviews
 
 export async function loadCatalog(): Promise<void> {
   if (!isWoo) return
-  const [list, revs] = await Promise.all([fetchWooCatalog(), fetchWooReviews().catch(() => [] as Review[])])
+  const [list, revs, settings] = await Promise.all([
+    fetchWooCatalog(),
+    fetchWooReviews().catch(() => [] as Review[]),
+    // Optional: without the companion plugin the defaults in config.ts stay.
+    fetchStoreSettings().catch(() => ({})),
+  ])
+  applyStoreSettings(settings)
   products = list
   // Only show reviews for products that are actually in the catalogue.
   reviews = revs.filter((r) => list.some((p) => p.id === r.productId))

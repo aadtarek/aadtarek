@@ -23,10 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 
-# WordPress build output
-wordpress/rfaheya/dist
-wordpress/rfaheya/import
-wordpress/rfaheya/favicon.svg
-wordpress/rfaheya/logo.svg
+# WordPress plugin build output
+wordpress/rfaheya-headless/import
 release
 deliver
+dist-woo
