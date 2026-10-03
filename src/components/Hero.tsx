@@ -18,7 +18,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#ebe3d9] via-[#ebe3d9]/70 to-transparent md:block xl:via-transparent xl:from-[#ebe3d9]/40"
       />
 
-      <div className="container-x relative py-8 md:flex md:h-[clamp(332px,21.6vw,420px)] md:flex-col md:justify-center md:py-0">
+      <div className="hero-copy container-x relative py-8 md:flex md:h-[clamp(332px,21.6vw,420px)] md:flex-col md:justify-center md:py-0">
         <p className="text-[10px] font-medium tracking-[0.32em] text-ink-soft uppercase sm:text-[11px]">
           Fragrances made personal
         </p>

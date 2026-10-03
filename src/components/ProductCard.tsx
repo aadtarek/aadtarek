@@ -15,7 +15,7 @@ export function ProductCard({ product, badge }: { product: Product; badge?: stri
   const href = `/product/${product.slug}`
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-lg bg-card shadow-[0_1px_2px_rgba(60,45,20,0.06),0_0_0_1px_rgba(60,45,20,0.04)] transition-shadow hover:shadow-[0_10px_30px_-12px_rgba(60,45,20,0.25),0_0_0_1px_rgba(60,45,20,0.05)]">
+    <article className="motion-product-card flex h-full flex-col overflow-hidden rounded-lg bg-card shadow-[0_1px_2px_rgba(60,45,20,0.06),0_0_0_1px_rgba(60,45,20,0.04)] transition-shadow hover:shadow-[0_10px_30px_-12px_rgba(60,45,20,0.25),0_0_0_1px_rgba(60,45,20,0.05)]">
       <div className="relative aspect-[348/229] overflow-hidden">
         <Link to={href} tabIndex={-1} aria-hidden>
           <img
