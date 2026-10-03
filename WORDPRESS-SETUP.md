@@ -66,6 +66,23 @@ This writes **one** file, `release/rfaheya-public_html.zip`. It mirrors `public_
      - **Flat rate** 70.
 8. **Caching**: in LiteSpeed Cache, keep *Cache REST API* off, or exclude `/wp-json/wc/store/`.
 
+## What you edit where
+
+Everything on the storefront comes from WordPress. Once, click **Settings → Rfaheya Store → Import starter content**. It copies the built-in articles, pages, FAQs, home texts and images into WordPress, and fills each product's details box from its attributes. It is safe to run again: existing content is left untouched.
+
+| On the storefront | In WordPress |
+| --- | --- |
+| Journal (`/journal`) | **Posts**: title, featured image, content, category, excerpt |
+| Info pages (`/shipping`, `/returns`, any `/page-slug`) | **Pages**: the excerpt is the intro, and the "Storefront" box sets the section label. Pages with the same label are listed as Related. |
+| FAQs (`/faqs`, Contact) | **FAQs**: the question is the title, the answer is the content, and Order sets the order |
+| Announcement bar, hero text and image | **Settings → Rfaheya Store → Home page** |
+| Contact details, InstaPay, social links | **Settings → Rfaheya Store** |
+| Fragrance families (name, tagline, image) | **Products → Categories**: description and thumbnail |
+| Products, sizes, prices, stock, gallery | **Products** (variations) |
+| Inspired by, accords, notes, Finder profile | **Product edit → "Rfaheya details"** box. Empty fields fall back to the attributes. |
+| Reviews | **Products → Reviews** |
+| Images in any of the above | **Media** |
+
 ## Updating the storefront
 
 Run `npm run release`. In File Manager, delete `index.html` and `assets/`, then upload and extract the new `rfaheya-public_html.zip`.

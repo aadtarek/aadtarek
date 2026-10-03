@@ -1,11 +1,15 @@
 import { Badge, ChevronLeft, ChevronRight, FlaskConical, Truck, type LucideIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { HOME } from '../config'
 
-const messages: { icon: LucideIcon; text: string }[] = [
-  { icon: Truck, text: 'Free shipping in Cairo & Alexandria on orders over 1000 EGP' },
-  { icon: FlaskConical, text: 'Try 10 ML first — discover your scent before committing' },
-  { icon: Badge, text: 'Zero risk guarantee' },
-]
+/** Icon for a message, picked from its wording. */
+function iconFor(text: string): LucideIcon {
+  if (/ship|deliver/i.test(text)) return Truck
+  if (/\b10\s*ml\b|sample|try/i.test(text)) return FlaskConical
+  return Badge
+}
+
+const messages = HOME.announcements.map((text) => ({ icon: iconFor(text), text }))
 
 export function AnnouncementBar() {
   const [index, setIndex] = useState(0)

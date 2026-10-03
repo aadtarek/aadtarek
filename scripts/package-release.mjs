@@ -4,7 +4,8 @@
  *
  *   index.html  assets/  import/ …          the storefront
  *   .htaccess                               routes the storefront and WordPress
- *   wp-content/mu-plugins/rfaheya.php       store settings + no postcode for Egypt
+ *   wp-content/mu-plugins/rfaheya.php       store settings, FAQs, product details box, content import
+ *   wp-content/mu-plugins/rfaheya/          starter content for the import (npm run export:content)
  *   rfaheya-setup/rfaheya-products.csv      WooCommerce product import
  *   rfaheya-setup/README.txt                the steps
  *
@@ -47,6 +48,15 @@ walk(dist)
 
 files['.htaccess'] = new Uint8Array(readFileSync(join(root, 'wordpress/htaccess')))
 files['wp-content/mu-plugins/rfaheya.php'] = new Uint8Array(readFileSync(join(root, 'wordpress/mu-plugins/rfaheya.php')))
+const starter = join(root, 'wordpress/mu-plugins/rfaheya')
+if (!existsSync(join(starter, 'content.json'))) throw new Error('Starter content missing: run npm run export:content first')
+for (const f of readdirSync(starter)) {
+  if (f === 'media') continue
+  files[`wp-content/mu-plugins/rfaheya/${f}`] = new Uint8Array(readFileSync(join(starter, f)))
+}
+for (const f of readdirSync(join(starter, 'media'))) {
+  files[`wp-content/mu-plugins/rfaheya/media/${f}`] = new Uint8Array(readFileSync(join(starter, 'media', f)))
+}
 files['rfaheya-setup/rfaheya-products.csv'] = new Uint8Array(execFileSync('node', [join(root, 'scripts/products-csv.mjs'), site]))
 files['rfaheya-setup/README.txt'] = new Uint8Array(readFileSync(join(root, 'wordpress/README.txt')))
 

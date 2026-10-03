@@ -1,14 +1,17 @@
 import { ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import hero from '../assets/hero.webp'
+import { HOME } from '../config'
 
 export function Hero() {
+  const copy = HOME.hero
+  const lines = copy.title.split(/\r?\n/)
   return (
     <section className="relative overflow-hidden bg-[#e9e1d6]">
       {/* Mobile: image on top, copy below */}
       <img
-        src={hero}
-        alt="Rfaheya Vanilla Oud bottle on a stone plinth with vanilla pods, flowers and oud wood"
+        src={copy.image || hero}
+        alt={copy.image ? '' : 'Rfaheya Vanilla Oud bottle on a stone plinth with vanilla pods, flowers and oud wood'}
         className="h-56 w-full object-cover object-[78%_center] xs:h-64 sm:h-80 md:absolute md:inset-0 md:h-full md:object-[right_center]"
         fetchPriority="high"
       />
@@ -20,16 +23,18 @@ export function Hero() {
 
       <div className="hero-copy container-x relative py-8 md:flex md:h-[clamp(332px,21.6vw,420px)] md:flex-col md:justify-center md:py-0">
         <p className="text-[10px] font-medium tracking-[0.32em] text-ink-soft uppercase sm:text-[11px]">
-          Fragrances made personal
+          {copy.eyebrow}
         </p>
         <h1 className="mt-3 text-[44px] leading-[0.9] font-bold tracking-[-0.015em] uppercase sm:text-[56px] lg:mt-[14px] lg:text-[61px]">
-          Speak
-          <br />
-          your scent.
+          {lines.map((line, i) => (
+            <span key={i}>
+              {i > 0 && <br />}
+              {line}
+            </span>
+          ))}
         </h1>
         <p className="mt-3 max-w-[372px] text-[15px] leading-[1.25] text-ink sm:text-[16px] lg:mt-[16px]">
-          Discover inspired fragrances crafted with quality materials, high concentration and a signature Rfaheya
-          experience.
+          {copy.text}
         </p>
         <div className="mt-4 flex flex-wrap gap-3 lg:mt-[18px] lg:gap-[11px]">
           <Link

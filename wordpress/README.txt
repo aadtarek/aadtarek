@@ -30,7 +30,18 @@ RFAHEYA — HEADLESS WOOCOMMERCE (one zip)
    - Zone "Egypt": Flat rate 70.
 
 7) Settings > Rfaheya Store:
-   - Contact details, InstaPay, social links.
+   - Contact details, InstaPay, social links, home page texts and hero image.
+   - Click "Import starter content" once: it copies the storefront's articles,
+     pages, FAQs and images into WordPress so you can edit them.
+
+What you edit where:
+   - Articles (Journal)      > Posts (title, featured image, content, category)
+   - Info pages (/shipping…) > Pages (excerpt = intro, "Storefront" box = section label)
+   - FAQs                    > FAQs
+   - Home page               > Settings > Rfaheya Store
+   - Fragrance families      > Products > Categories (description + thumbnail)
+   - Product extras          > Product edit > "Rfaheya details" box
+   - Reviews                 > Products > Reviews
 
 8) LiteSpeed Cache: keep "Cache REST API" off.
 

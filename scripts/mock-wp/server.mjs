@@ -267,6 +267,11 @@ createServer(async (req, res) => {
       return send(res, 200, list.map(publicProduct))
     }
     if (route === 'products/reviews') return send(res, 200, reviews)
+    if (route === 'products/categories') {
+      const cats = new Map()
+      for (const p of products) for (const c of p.categories) cats.set(c.slug, c)
+      return send(res, 200, [...cats.values()].map((c) => ({ id: c.id, name: c.name, slug: c.slug, description: c.slug === 'fresh' ? 'Mock fresh tagline.' : '', image: null })))
+    }
     if (route === 'cart' && req.method === 'GET') return send(res, 200, cartJson(s))
     if (route === 'cart/add-item') {
       const v = variations.find((x) => x.id === body.id)

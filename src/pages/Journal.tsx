@@ -1,14 +1,33 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { fetchPost, fetchPosts, useWp, type WpArticle } from '../api/content'
+import { isWoo } from '../api/wp'
 import { Breadcrumbs } from '../components/Breadcrumbs'
-import { articles, findArticle } from '../data/journal'
+import { PageLoading, WpHtml } from '../components/WpHtml'
+import { articles as demoArticles, findArticle, type Article as ArticleData } from '../data/journal'
 import { NotFound } from './NotFound'
 
 const date = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
 export function Journal() {
+  const { data, error } = useWp(isWoo ? 'posts' : null, fetchPosts)
+  if (!isWoo) return <JournalView articles={demoArticles} />
+  if (error) return <NotFound />
+  if (!data) return <PageLoading />
+  return <JournalView articles={data} />
+}
+
+function JournalView({ articles }: { articles: ArticleData[] }) {
   const [lead, ...rest] = articles
+  if (!lead)
+    return (
+      <div className="container-x pt-6 pb-24 lg:pt-8">
+        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Journal' }]} />
+        <h1 className="mt-8 font-serif text-[44px] leading-[1] sm:text-[60px]">Notes on fragrance.</h1>
+        <p className="mt-4 text-ink-soft">New articles are on their way.</p>
+      </div>
+    )
   return (
     <div className="pb-16 lg:pb-24">
       <div className="container-x pt-6 lg:pt-8">
@@ -19,7 +38,7 @@ export function Journal() {
 
       <div className="container-x mt-10">
         <Link to={`/journal/${lead.slug}`} className="group grid overflow-hidden rounded-lg bg-card shadow-[0_0_0_1px_rgba(60,45,20,0.06)] lg:grid-cols-2">
-          <img src={lead.image} alt="" className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] lg:aspect-auto lg:h-full" />
+          <img src={lead.image || undefined} alt="" className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] lg:aspect-auto lg:h-full" />
           <div className="flex flex-col justify-center p-6 sm:p-10">
             <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
               {lead.category} · {lead.readMinutes} min read
@@ -36,7 +55,7 @@ export function Journal() {
           {rest.map((a) => (
             <li key={a.slug}>
               <Link to={`/journal/${a.slug}`} className="group block h-full overflow-hidden rounded-lg bg-card shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
-                <img src={a.image} alt="" loading="lazy" className="aspect-[16/9] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
+                {a.image && <img src={a.image} alt="" loading="lazy" className="aspect-[16/9] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />}
                 <div className="p-6">
                   <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
                     {a.category} · {a.readMinutes} min read
@@ -55,7 +74,18 @@ export function Journal() {
 
 export function Article() {
   const { slug = '' } = useParams()
-  const a = findArticle(slug)
+  const post = useWp(isWoo ? `post:${slug}` : null, () => fetchPost(slug))
+  const list = useWp(isWoo ? 'posts' : null, fetchPosts)
+  if (!isWoo) {
+    const a = findArticle(slug)
+    return a ? <ArticleView a={a} others={demoArticles.filter((x) => x.slug !== a.slug)} /> : <NotFound />
+  }
+  if (post.error || post.data === null) return <NotFound />
+  if (!post.data) return <PageLoading />
+  return <ArticleView a={post.data} others={(list.data ?? []).filter((x) => x.slug !== slug).slice(0, 4)} />
+}
+
+function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: ArticleData[] }) {
   useEffect(() => {
     if (!a) return
     document.title = `${a.title} — Rfaheya Journal`
@@ -63,9 +93,6 @@ export function Article() {
       document.title = 'Rfaheya — Speak Your Scent'
     }
   }, [a])
-  if (!a) return <NotFound />
-  const others = articles.filter((x) => x.slug !== a.slug)
-
   return (
     <article className="pb-16 lg:pb-24">
       <div className="container-x pt-6 lg:pt-8">
@@ -78,10 +105,13 @@ export function Article() {
         <h1 className="mt-4 font-serif text-[40px] leading-[1.05] sm:text-[58px]">{a.title}</h1>
         <p className="mx-auto mt-4 max-w-xl text-[18px] text-ink-soft">{a.excerpt}</p>
       </header>
-      <div className="container-x mt-10">
-        <img src={a.image} alt="" className="aspect-[21/9] w-full rounded-lg object-cover" />
-      </div>
+      {a.image && (
+        <div className="container-x mt-10">
+          <img src={a.image} alt="" className="aspect-[21/9] w-full rounded-lg object-cover" />
+        </div>
+      )}
       <div className="container-x mt-12 max-w-[44rem] text-[17.5px] leading-[1.8] text-ink-soft">
+        {'html' in a && <WpHtml html={a.html} />}
         {a.body.map((s, i) => (
           <section key={i} className="mt-8 first:mt-0">
             {s.heading && <h2 className="mb-3 font-serif text-[28px] leading-tight text-ink">{s.heading}</h2>}
@@ -103,6 +133,7 @@ export function Article() {
           </Link>
         </div>
       </div>
+      {others.length > 0 && (
       <div className="container-x mt-16 max-w-5xl">
         <div className="flex items-end justify-between">
           <h2 className="font-serif text-[30px]">Keep reading</h2>
@@ -114,13 +145,14 @@ export function Article() {
           {others.map((o) => (
             <li key={o.slug}>
               <Link to={`/journal/${o.slug}`} className="group flex items-center gap-4 overflow-hidden rounded-lg bg-card p-3 shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
-                <img src={o.image} alt="" loading="lazy" className="size-24 shrink-0 rounded object-cover" />
+                {o.image && <img src={o.image} alt="" loading="lazy" className="size-24 shrink-0 rounded object-cover" />}
                 <span className="font-serif text-[20px] leading-tight group-hover:underline">{o.title}</span>
               </Link>
             </li>
           ))}
         </ul>
       </div>
+      )}
     </article>
   )
 }

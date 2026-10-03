@@ -32,6 +32,10 @@ export interface StoreSettings {
   contact?: Partial<Record<'email' | 'phone' | 'whatsapp' | 'hours' | 'location' | 'instapay', string>>
   social?: Partial<Record<'instagram' | 'tiktok' | 'youtube' | 'facebook', string>>
   myAccountUrl?: string
+  home?: {
+    announcements?: string[]
+    hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image', string>>
+  }
 }
 
 const configured = String(import.meta.env.VITE_WP_URL ?? '').trim()

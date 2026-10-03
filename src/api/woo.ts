@@ -1,4 +1,5 @@
 import type { FamilySlug, Gender, Longevity, Occasion, Presence, Product, ProductVariation, Review, Season } from '../types'
+import type { ProductDetails } from './content'
 import { money, storeApi, stripHtml } from './wp'
 
 /**
@@ -149,7 +150,15 @@ function sizeOf(parent: RawProduct, v: RawProduct['variations'][number]): string
   return (term?.name ?? raw.replace(/-/g, ' ')).toUpperCase()
 }
 
-function mapProduct(p: RawProduct, variationsById: Map<number, RawProduct>, rank: { sales: number; date: number }): Product {
+/** The product editor's "Rfaheya details" box wins over attributes when filled in. */
+const filled = (list: string[] | undefined) => (list && list.length ? list : undefined)
+
+function mapProduct(
+  p: RawProduct,
+  variationsById: Map<number, RawProduct>,
+  rank: { sales: number; date: number },
+  d: ProductDetails = {},
+): Product {
   const minor = p.prices.currency_minor_unit ?? 2
   let variations: ProductVariation[] = p.variations.map((v) => {
     const full = variationsById.get(v.id)
@@ -163,7 +172,7 @@ function mapProduct(p: RawProduct, variationsById: Map<number, RawProduct>, rank
     variations = [{ id: p.id, size: attr(p, 'Size')[0] ?? 'One size', price: money(p.prices.price, minor), isSample: false, inStock: p.is_in_stock }]
   }
 
-  const notes = attr(p, 'Notes', 'Fragrance Notes')
+  const notes = filled(d.notes) ?? attr(p, 'Notes', 'Fragrance Notes')
   const families = p.categories.map((c) => c.slug.toLowerCase()).filter((s): s is FamilySlug => FAMILIES.includes(s as FamilySlug))
 
   return {
@@ -172,20 +181,20 @@ function mapProduct(p: RawProduct, variationsById: Map<number, RawProduct>, rank
     name: stripHtml(p.name),
     tagline: stripHtml(p.short_description),
     description: stripHtml(p.description),
-    accords: attr(p, 'Accords', 'Main Accords'),
+    accords: filled(d.accords) ?? attr(p, 'Accords', 'Main Accords'),
     notes: notes.map((n) => ({ name: n, image: noteImage(n) })),
-    inspiredBy: attr(p, 'Inspired By', 'Inspired')[0] ?? '',
+    inspiredBy: d.inspired_by?.trim() || (attr(p, 'Inspired By', 'Inspired')[0] ?? ''),
     images: p.images.length
       ? p.images.map((i) => ({ src: i.src, alt: i.alt || stripHtml(p.name) }))
       : [{ src: FALLBACK_NOTE, alt: stripHtml(p.name) }],
     categories: p.categories.map((c) => stripHtml(c.name)),
     families,
     profile: {
-      gender: pickOne(attr(p, 'For', 'Gender'), GENDER, 'unisex'),
-      occasions: pickMany(attr(p, 'Occasion', 'Occasions'), OCCASION),
-      seasons: pickMany(attr(p, 'Season', 'Seasons'), SEASON),
-      presence: pickOne(attr(p, 'Presence', 'Projection'), PRESENCE, 'balanced'),
-      longevity: pickOne(attr(p, 'Longevity'), LONGEVITY, 'extended'),
+      gender: pickOne(d.gender ? [d.gender] : attr(p, 'For', 'Gender'), GENDER, 'unisex'),
+      occasions: pickMany(filled(d.occasions) ?? attr(p, 'Occasion', 'Occasions'), OCCASION),
+      seasons: pickMany(filled(d.seasons) ?? attr(p, 'Season', 'Seasons'), SEASON),
+      presence: pickOne(d.presence ? [d.presence] : attr(p, 'Presence', 'Projection'), PRESENCE, 'balanced'),
+      longevity: pickOne(d.longevity ? [d.longevity] : attr(p, 'Longevity'), LONGEVITY, 'extended'),
     },
     variations,
     totalSales: rank.sales,
@@ -194,7 +203,7 @@ function mapProduct(p: RawProduct, variationsById: Map<number, RawProduct>, rank
 }
 
 /** Loads every published product (with variation prices) from WooCommerce. */
-export async function fetchWooCatalog(): Promise<Product[]> {
+export async function fetchWooCatalog(details: Record<string, ProductDetails> = {}): Promise<Product[]> {
   const [byPopularity, byDate] = await Promise.all([
     storeApi<RawProduct[]>('products?per_page=100&orderby=popularity&order=desc'),
     storeApi<RawProduct[]>('products?per_page=100&orderby=date&order=asc'),
@@ -213,7 +222,7 @@ export async function fetchWooCatalog(): Promise<Product[]> {
       mapProduct(p, variationsById, {
         sales: n - i,
         date: Math.max(0, byDate.findIndex((d) => d.id === p.id)),
-      }),
+      }, details[p.id]),
     )
 }
 

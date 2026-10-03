@@ -6,7 +6,10 @@ import { Breadcrumbs } from '../components/Breadcrumbs'
 import { Field, TextInput, inputClass } from '../components/Field'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from '../components/SocialIcons'
 import { CONTACT, SOCIAL_LINKS } from '../config'
-import { faqs } from '../data/faqs'
+import { fetchFaqs, useWp } from '../api/content'
+import { isWoo } from '../api/wp'
+import { WpHtml } from '../components/WpHtml'
+import { faqs as demoFaqs } from '../data/faqs'
 import { usePersistentState } from '../lib/storage'
 
 const topics = ['Question about a fragrance', 'My order', 'Returns & exchanges', 'Wholesale & gifting', 'Something else']
@@ -211,6 +214,9 @@ export function Contact() {
 }
 
 export function FaqSection({ asPage = false }: { asPage?: boolean }) {
+  const wpFaqs = useWp(isWoo ? 'faqs' : null, fetchFaqs)
+  // WordPress answers are HTML from the editor; the demo answers are plain text.
+  const faqs: { q: string; html?: string; text?: string }[] = isWoo ? (wpFaqs.data ?? []) : demoFaqs.map((f) => ({ q: f.q, text: f.a }))
   const Heading = asPage ? 'h1' : 'h2'
   return (
     <section className="container-x mt-16 grid gap-8 lg:mt-24 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-14" aria-labelledby="faq-title">
@@ -230,7 +236,7 @@ export function FaqSection({ asPage = false }: { asPage?: boolean }) {
       <div className="border-t border-line">
         {faqs.map((f, i) => (
           <AccordionItem key={f.q} title={f.q} open={i === 0}>
-            <p>{f.a}</p>
+            {f.html !== undefined ? <WpHtml html={f.html} /> : <p>{f.text}</p>}
           </AccordionItem>
         ))}
       </div>

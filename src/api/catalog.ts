@@ -2,9 +2,10 @@ import { families } from '../data/families'
 import { products as demoProducts } from '../data/products'
 import { reviews as demoReviews } from '../data/reviews'
 import type { FamilySlug, Product, Review } from '../types'
+import { fetchProductCategories, fetchProductDetails } from './content'
 import { fetchWooCatalog, fetchWooReviews } from './woo'
 import { applyStoreSettings } from '../config'
-import { fetchStoreSettings, isWoo } from './wp'
+import { fetchStoreSettings, isWoo, stripHtml } from './wp'
 
 /**
  * The catalogue is loaded once at start-up (see main.tsx) and then read
@@ -16,16 +17,25 @@ let reviews: Review[] = isWoo ? [] : demoReviews
 
 export async function loadCatalog(): Promise<void> {
   if (!isWoo) return
-  const [list, revs, settings] = await Promise.all([
-    fetchWooCatalog(),
-    fetchWooReviews().catch(() => [] as Review[]),
-    // Optional: without the rfaheya.php mu-plugin the defaults in config.ts stay.
+  // Optional extras: without the rfaheya.php mu-plugin (or with no categories) the defaults stay.
+  const [details, categories, settings] = await Promise.all([
+    fetchProductDetails().catch(() => ({})),
+    fetchProductCategories().catch(() => []),
     fetchStoreSettings().catch(() => ({})),
   ])
-  applyStoreSettings(settings)
+  const [list, revs] = await Promise.all([fetchWooCatalog(details), fetchWooReviews().catch(() => [] as Review[])])
   products = list
   // Only show reviews for products that are actually in the catalogue.
   reviews = revs.filter((r) => list.some((p) => p.id === r.productId))
+  applyStoreSettings(settings)
+  // Fragrance families take their name, tagline and image from the product categories.
+  for (const family of families) {
+    const c = categories.find((x) => x.slug === family.slug)
+    if (!c) continue
+    family.name = stripHtml(c.name) || family.name
+    family.tagline = stripHtml(c.description) || family.tagline
+    if (c.image?.src) family.image = c.image.src
+  }
 }
 
 /** Product + variation for a variation id (cart lines reference variations). */
