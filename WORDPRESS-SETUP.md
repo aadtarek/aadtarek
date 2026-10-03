@@ -7,7 +7,7 @@ hosting and no CORS. `.htaccess` decides who answers each URL.
 ```
 public_html/
   .htaccess                       ← DirectoryIndex index.html index.php + routing
-  index.html  assets/  import/    ← the storefront (contents of dist.zip)
+  index.html  assets/  import/    ← the storefront
   index.php  wp-admin/  wp-content/  wp-includes/ …   ← WordPress as usual
 ```
 
@@ -16,18 +16,21 @@ orders, customer accounts and emails. The storefront reads and writes through th
 (`/wp-json/wc/store/v1/`). The cart session is kept in WooCommerce's
 `Cart-Token` header, so page caching can't break it.
 
-## Release files
+## Release file
 
 ```bash
 npm run release
 ```
 
-| File | Where it goes |
+This writes **one** file, `release/rfaheya-public_html.zip`. It mirrors `public_html`, so extracting it there puts everything in place:
+
+| In the zip | What it is |
 | --- | --- |
-| `release/dist.zip` | extract into `public_html` (index.html, assets/, import/ next to WordPress) |
-| `release/htaccess.txt` | contents of `public_html/.htaccess` |
-| `release/rfaheya.php` | `public_html/wp-content/mu-plugins/rfaheya.php` |
-| `release/rfaheya-products.csv` | Products → Import |
+| `index.html`, `assets/`, `import/` | the storefront (product images for the import are in `import/`) |
+| `.htaccess` | routing between the storefront and WordPress |
+| `wp-content/mu-plugins/rfaheya.php` | store settings page + no postcode for Egypt; runs automatically |
+| `rfaheya-setup/rfaheya-products.csv` | WooCommerce product import |
+| `rfaheya-setup/README.txt` | these steps, short version |
 
 `.env.headless` sets `VITE_WP_URL=/` (WordPress on the same domain) and
 `SITE_URL` (used for the image links in the CSV).
@@ -40,16 +43,17 @@ npm run release
    - Settings → Permalinks: choose **Post name** and save.
    - The Store API needs pretty permalinks.
 3. **File Manager → public_html**:
-   - Upload `dist.zip` and **Extract** it right there. You should now have `public_html/index.html`, `assets/` and `import/` next to WordPress's files. Remove any old storefront files first.
-   - Open `.htaccess` (enable "show hidden files"). Replace its contents with `htaccess.txt`. If it has other blocks (e.g. LiteSpeed Cache), keep them below.
-   - Create the folder `wp-content/mu-plugins` if it doesn't exist and upload `rfaheya.php` into it. It runs automatically, with nothing to activate. It provides:
+   - Delete the old storefront files (`index.html`, `assets/`). Leave WordPress's files alone.
+   - Upload `rfaheya-public_html.zip` and **Extract** it right there, overwriting.
+   - If your `.htaccess` had other blocks (e.g. LiteSpeed Cache), add them back below the Rfaheya block.
+   - The mu-plugin runs automatically, with nothing to activate. It provides:
      - **Settings → Rfaheya Store**: contact details, InstaPay address, social links;
      - no postcode for Egyptian addresses.
 4. **WooCommerce → Settings → General**:
    - Country **Egypt**, sell to **Egypt**.
    - Currency **EGP**, **0** decimals.
 5. **Products → Import**:
-   - Upload `rfaheya-products.csv` → Run the importer.
+   - Download `rfaheya-setup/rfaheya-products.csv` from File Manager, choose it here → Run the importer. You can delete `rfaheya-setup/` afterwards.
    - Images are pulled from `/import/`, so step 3 must be done first.
 6. **Payments**:
    - Enable **Cash on delivery**.
@@ -64,7 +68,7 @@ npm run release
 
 ## Updating the storefront
 
-Run `npm run release`. In File Manager, delete `index.html` and `assets/`, then upload and extract the new `dist.zip`.
+Run `npm run release`. In File Manager, delete `index.html` and `assets/`, then upload and extract the new `rfaheya-public_html.zip`.
 WordPress and the products are untouched.
 
 ## What goes where (`.htaccess`)
@@ -99,6 +103,7 @@ npm run dev            # demo data, no WordPress
 
 ```bash
 npm run build:headless && SITE_URL=http://localhost:8090 node scripts/package-release.mjs
-node scripts/mock-wp/server.mjs 8080 release/rfaheya-products.csv http://localhost:8090 &
+unzip -p release/rfaheya-public_html.zip rfaheya-setup/rfaheya-products.csv > /tmp/p.csv
+node scripts/mock-wp/server.mjs 8080 /tmp/p.csv http://localhost:8090 &
 scripts/mock-wp/apache-test.sh
 ```

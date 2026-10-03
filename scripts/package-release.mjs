@@ -1,10 +1,12 @@
 /**
- * Packages a headless release after `npm run build:headless`:
+ * Packages a headless release after `npm run build:headless` as ONE zip that
+ * mirrors public_html. Extract it in public_html (File Manager → Extract):
  *
- *   release/dist.zip              the storefront: extract its contents into public_html
- *   release/htaccess.txt          public_html/.htaccess (routes the storefront and WordPress)
- *   release/rfaheya.php           mu-plugin: upload to wp-content/mu-plugins/
- *   release/rfaheya-products.csv  WooCommerce product import (images from /import)
+ *   index.html  assets/  import/ …          the storefront
+ *   .htaccess                               routes the storefront and WordPress
+ *   wp-content/mu-plugins/rfaheya.php       store settings + no postcode for Egypt
+ *   rfaheya-setup/rfaheya-products.csv      WooCommerce product import
+ *   rfaheya-setup/README.txt                the steps
  *
  * The site address for the CSV comes from SITE_URL (environment or .env.headless).
  */
@@ -43,14 +45,12 @@ const walk = (dir) => {
 }
 walk(dist)
 
+files['.htaccess'] = new Uint8Array(readFileSync(join(root, 'wordpress/htaccess')))
+files['wp-content/mu-plugins/rfaheya.php'] = new Uint8Array(readFileSync(join(root, 'wordpress/mu-plugins/rfaheya.php')))
+files['rfaheya-setup/rfaheya-products.csv'] = new Uint8Array(execFileSync('node', [join(root, 'scripts/products-csv.mjs'), site]))
+files['rfaheya-setup/README.txt'] = new Uint8Array(readFileSync(join(root, 'wordpress/README.txt')))
+
 rmSync(release, { recursive: true, force: true })
 mkdirSync(release, { recursive: true })
-writeFileSync(join(release, 'dist.zip'), zipSync(files, { level: 9 }))
-console.log(`release/dist.zip — ${Object.keys(files).length} files`)
-
-copyFileSync(join(root, 'wordpress/htaccess'), join(release, 'htaccess.txt'))
-copyFileSync(join(root, 'wordpress/mu-plugins/rfaheya.php'), join(release, 'rfaheya.php'))
-console.log('release/htaccess.txt, release/rfaheya.php')
-
-writeFileSync(join(release, 'rfaheya-products.csv'), execFileSync('node', [join(root, 'scripts/products-csv.mjs'), site]))
-console.log(`release/rfaheya-products.csv — images from ${site}/import/`)
+writeFileSync(join(release, 'rfaheya-public_html.zip'), zipSync(files, { level: 9 }))
+console.log(`release/rfaheya-public_html.zip — ${Object.keys(files).length} files, product images from ${site}/import/`)

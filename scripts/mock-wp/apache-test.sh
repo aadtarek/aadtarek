@@ -3,15 +3,15 @@
 # wordpress/htaccess: the storefront build sits in the root, and WordPress's
 # index.php is a CGI script that forwards to the mock (scripts/mock-wp/server.mjs on :8080).
 #
-#   npm run build:headless && node scripts/package-release.mjs
-#   node scripts/mock-wp/server.mjs 8080 release/rfaheya-products.csv http://localhost:8090 &
+#   npm run build:headless && SITE_URL=http://localhost:8090 node scripts/package-release.mjs
+#   unzip -p release/rfaheya-public_html.zip rfaheya-setup/rfaheya-products.csv > /tmp/p.csv
+#   node scripts/mock-wp/server.mjs 8080 /tmp/p.csv http://localhost:8090 &
 #   scripts/mock-wp/apache-test.sh
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 www=/tmp/rfaheya-public_html
 rm -rf "$www" && mkdir -p "$www/wp-admin" "$www/wp-content/uploads"
-cp "$root/wordpress/htaccess" "$www/.htaccess"
-(cd "$www" && unzip -q "$root/release/dist.zip")
+(cd "$www" && unzip -q "$root/release/rfaheya-public_html.zip")
 echo '<h1>wp-admin</h1>' > "$www/wp-admin/index.html"
 echo 'uploaded' > "$www/wp-content/uploads/file.txt"
 cat > "$www/index.php" <<'PHP'
