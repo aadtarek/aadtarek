@@ -741,7 +741,7 @@ function cheops_taxonomy_options_html($taxonomy,$defaults=[]) {
  * with Office and Clinic last. Types not listed here go after the homes.
  */
 function cheops_sort_unit_types($names) {
-    $order = ['residential','studio','apartment','chalet','duplex','penthouse','townhouse','town house','twinhouse','twin house','villa','standalone villa','retail','office','administrative','clinic','medical'];
+    $order = ['apartment','chalet','duplex','penthouse','townhouse','town house','twinhouse','twin house','villa','standalone villa','retail','office','administrative','clinic','medical'];
     $rank = function ($name) use ($order) {
         $key = strtolower(trim($name));
         $i = array_search($key, $order, true);
