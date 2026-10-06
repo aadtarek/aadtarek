@@ -727,10 +727,11 @@ function cheops_unit_price_text($post_id) {
     return 'EGP ' . number_format_i18n($price,0) . $suffix;
 }
 function cheops_taxonomy_options_html($taxonomy,$defaults=[]) {
-    $terms = get_terms(['taxonomy'=>$taxonomy,'hide_empty'=>false]);
+    // Property types: only types that have at least one published unit.
+    $terms = get_terms(['taxonomy'=>$taxonomy,'hide_empty'=>$taxonomy==='unit_type']);
     $names=[];
     if (!is_wp_error($terms)) foreach($terms as $term) $names[]=$term->name;
-    if (!$names) $names=$defaults;
+    if (!$names && $taxonomy!=='unit_type') $names=$defaults;
     $names=array_values(array_unique($names));
     if ($taxonomy==='unit_type') $names=cheops_sort_unit_types($names);
     foreach($names as $name) echo '<option value="'.esc_attr($name).'">'.esc_html($name).'</option>';
@@ -741,11 +742,11 @@ function cheops_taxonomy_options_html($taxonomy,$defaults=[]) {
  * with Office and Clinic last. Types not listed here go after the homes.
  */
 function cheops_sort_unit_types($names) {
-    $order = ['apartment','chalet','duplex','penthouse','townhouse','town house','twinhouse','twin house','villa','standalone villa','retail','office','administrative','clinic','medical'];
+    $order = ['apartment','chalet','duplex','penthouse','townhouse','town house','twinhouse','twin house','villa','standalone villa','office','administrative','clinic','medical'];
     $rank = function ($name) use ($order) {
         $key = strtolower(trim($name));
         $i = array_search($key, $order, true);
-        if ($i === false) return array_search('retail', $order, true) - 0.5; // unknown types: after Villa, before commercial
+        if ($i === false) return array_search('office', $order, true) - 0.5; // unknown types: after Villa, before Office
         return $i;
     };
     usort($names, function ($a, $b) use ($rank) {
@@ -1320,7 +1321,7 @@ function cheops_unified_front_js() {
       const count=document.getElementById('resultCount');if(count){const n=document.querySelectorAll('#propGrid > article.pcard').length;count.textContent=n+' '+(n===1?'property':'properties');}
       // Query-driven office/property shortcuts.
       const params=new URLSearchParams(location.search), searchForm=document.querySelector('#property-search form[data-search], form[data-search]');
-      if(searchForm && (params.has('deal')||params.has('type')||params.has('loc')||params.has('project')||params.has('beds')||params.has('min')||params.has('max'))){['deal','type','loc','project','beds','min','max'].forEach(n=>{const el=searchForm.querySelector('[name="'+n+'"]');if(el&&params.get(n)!==null)el.value=params.get(n);});if(params.get('type')==='Residential'){const sel=searchForm.querySelector('select[name="type"]');if(sel)sel.value='';const g=document.createElement('input');g.type='hidden';g.name='type_group';g.value='Residential';searchForm.appendChild(g);}setTimeout(()=>searchForm.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})),80);}
+      if(searchForm && (params.has('deal')||params.has('type')||params.has('loc')||params.has('project')||params.has('beds')||params.has('min')||params.has('max'))){['deal','type','loc','project','beds','min','max'].forEach(n=>{const el=searchForm.querySelector('[name="'+n+'"]');if(el&&params.get(n)!==null)el.value=params.get(n);});const tp=params.get('type'),tsel=searchForm.querySelector('select[name="type"]');if(tp&&tsel&&tsel.value!==tp){tsel.value='';const g=document.createElement('input');g.type='hidden';g.name='type_group';g.value=tp;searchForm.appendChild(g);}setTimeout(()=>searchForm.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})),80);}
       // City -> Projects interaction.
       const cityTabs=[...document.querySelectorAll('.cheops-city-tab')],groups=[...document.querySelectorAll('.cheops-project-group')];cityTabs.forEach(tab=>tab.addEventListener('click',()=>{const key=tab.dataset.city;cityTabs.forEach(b=>{const on=b===tab;b.classList.toggle('is-active',on);b.setAttribute('aria-selected',String(on));});groups.forEach(g=>g.classList.toggle('is-active',g.dataset.projectCity===key));const stage=document.querySelector('.cheops-project-stage');if(stage&&window.innerWidth<700)stage.scrollIntoView({behavior:'smooth',block:'start'});}));
     })();
