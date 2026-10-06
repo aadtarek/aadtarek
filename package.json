@@ -13,7 +13,8 @@
     "start:headless": "vite build --mode headless && vite preview --open",
     "build:headless": "tsc -b && vite build --mode headless",
     "release": "npm run export:content && npm run build:headless && node scripts/package-release.mjs",
-    "export:content": "vite build --mode export --ssr scripts/export-content.ts && node .export-content/export-content.js"
+    "export:content": "vite build --mode export --ssr scripts/export-content.ts && node .export-content/export-content.js",
+    "build:preview": "VITE_HASH_ROUTER=1 vite build --base ./ --outDir dist-preview"
   },
   "dependencies": {
     "@fontsource-variable/dm-sans": "^5.3.0",

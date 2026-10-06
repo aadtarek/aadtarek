@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
 import { About } from './pages/About'
@@ -24,10 +24,13 @@ import { AccountProvider } from './store/account'
 import { CartProvider } from './store/cart'
 import { WishlistProvider } from './store/wishlist'
 
+/** `npm run build:preview` uses #/ URLs so the site works from a single static file host (shareable preview link). */
+const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter
+
 export default function App() {
   return (
     <ErrorBoundary>
-    <BrowserRouter>
+    <Router>
       <AccountProvider>
         <WishlistProvider>
           <CartProvider>
@@ -62,7 +65,7 @@ export default function App() {
           </CartProvider>
         </WishlistProvider>
       </AccountProvider>
-    </BrowserRouter>
+    </Router>
     </ErrorBoundary>
   )
 }
