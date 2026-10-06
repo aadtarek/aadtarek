@@ -94,7 +94,7 @@
       <div class="fields">
         <div class="field"><label>Search by</label><select name="loc"><option value="">Location, compound or developer</option><?php cheops_taxonomy_options_html('unit_location',['New Cairo','Mostakbal City','New Capital','North Coast','Ain Sokhna','Sheikh Zayed']); ?></select></div>
         <div class="field"><label>Project</label><select name="project"><option value="">Any project</option><?php cheops_project_options_html(); ?></select></div>
-        <div class="field"><label>Listing</label><select name="deal"><option value="">Sale or Rent</option><option value="sale">For Sale</option><option value="rent">For Rent</option></select></div><div class="field"><label>Property type</label><select name="type"><option value="">Any type</option><option value="Residential" hidden>Residential</option><?php cheops_taxonomy_options_html('unit_type',['Apartment','Villa','Townhouse','Twinhouse','Duplex','Penthouse','Chalet','Office','Clinic','Retail']); ?></select></div>
+        <div class="field"><label>Listing</label><select name="deal"><option value="">Sale or Rent</option><option value="sale">For Sale</option><option value="rent">For Rent</option></select></div><div class="field"><label>Property type</label><select name="type"><option value="">Any type</option><?php cheops_taxonomy_options_html('unit_type',['Apartment','Villa','Townhouse','Twinhouse','Duplex','Penthouse','Chalet','Office','Clinic','Retail']); ?></select></div>
         <div class="field"><label>Bedrooms</label><select name="beds"><option value="">Any</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option><option value="5">5+</option></select></div>
         <div class="field"><label>Price range (EGP)</label><div style="display:flex;gap:10px"><input inputmode="numeric" name="min" placeholder="Min"/><input inputmode="numeric" name="max" placeholder="Max"/></div></div>
       </div>
@@ -338,8 +338,10 @@ function filter(f){
   renderPage(1);
 }
 document.querySelectorAll('form[data-search]').forEach(fm=>{
-  fm.addEventListener('submit',e=>{e.preventDefault();const d=new FormData(fm);filter({deal:d.get('deal'),type:d.get('type'),loc:d.get('loc'),project:d.get('project'),beds:d.get('beds'),min:d.get('min'),max:d.get('max')});document.getElementById('properties').scrollIntoView({behavior:'smooth',block:'start'});});
-  fm.addEventListener('reset',()=>setTimeout(()=>filter({}),0));
+  fm.addEventListener('submit',e=>{e.preventDefault();const d=new FormData(fm);filter({deal:d.get('deal'),type:d.get('type')||d.get('type_group'),loc:d.get('loc'),project:d.get('project'),beds:d.get('beds'),min:d.get('min'),max:d.get('max')});document.getElementById('properties').scrollIntoView({behavior:'smooth',block:'start'});});
+  fm.addEventListener('reset',()=>{const g=fm.querySelector('input[name="type_group"]');if(g)g.remove();setTimeout(()=>filter({}),0);});
+  // Picking a type replaces the "homes only" filter that the Residential links set.
+  const typeSel=fm.querySelector('select[name="type"]');if(typeSel)typeSel.addEventListener('change',()=>{const g=fm.querySelector('input[name="type_group"]');if(g)g.remove();});
 });
 document.querySelectorAll('#propGrid > article.pcard').forEach(c=>c.dataset.matches='1');renderPage(1);
 
