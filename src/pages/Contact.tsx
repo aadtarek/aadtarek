@@ -221,7 +221,7 @@ export function FaqSection({ asPage = false }: { asPage?: boolean }) {
   return (
     <section className="container-x mt-16 grid gap-8 lg:mt-24 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-14" aria-labelledby="faq-title">
       <div>
-        <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">FAQs</p>
+        <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">Frequently asked questions</p>
         <Heading id="faq-title" className="mt-2 font-serif text-[38px] leading-[1.05] sm:text-[48px]">
           Good to know.
         </Heading>
@@ -235,7 +235,7 @@ export function FaqSection({ asPage = false }: { asPage?: boolean }) {
       </div>
       <div className="border-t border-line">
         {faqs.map((f, i) => (
-          <AccordionItem key={f.q} title={f.q} open={i === 0}>
+          <AccordionItem key={f.q} title={`${String(i + 1).padStart(2, '0')} — ${f.q}`} open={i === 0}>
             {f.html !== undefined ? <WpHtml html={f.html} /> : <p>{f.text}</p>}
           </AccordionItem>
         ))}

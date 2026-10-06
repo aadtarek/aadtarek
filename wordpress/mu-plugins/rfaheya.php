@@ -198,6 +198,63 @@ function rfaheya_settings_page() {
 
 // ==================================================================== FAQs
 
+/**
+ * One-time FAQ refresh: replaces the first starter FAQs (if they were
+ * imported) with the current set from rfaheya/content.json. FAQs written
+ * in WordPress are left alone.
+ */
+add_action(
+	'init',
+	function () {
+		if ( (int) get_option( 'rfaheya_faq_set', 1 ) >= 2 ) {
+			return;
+		}
+		$file = __DIR__ . '/rfaheya/content.json';
+		$data = is_readable( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null;
+		if ( ! is_array( $data ) || empty( $data['faqs'] ) ) {
+			return;
+		}
+		$old = array(
+			'What does “inspired by” mean?',
+			'How does “Try 10 ML first” work?',
+			'How much is shipping?',
+			'How do I pay?',
+			'What is the zero risk guarantee?',
+			'How can I track my order?',
+		);
+		$faqs   = get_posts( array( 'post_type' => 'rfaheya_faq', 'post_status' => 'any', 'numberposts' => -1 ) );
+		$titles = array();
+		$had    = false;
+		foreach ( $faqs as $f ) {
+			if ( in_array( $f->post_title, $old, true ) ) {
+				wp_trash_post( $f->ID );
+				$had = true;
+			} else {
+				$titles[] = $f->post_title;
+			}
+		}
+		// Only add the new set where the starter FAQs had been imported (otherwise the import adds them).
+		if ( $had ) {
+			foreach ( $data['faqs'] as $i => $f ) {
+				if ( in_array( $f['q'], $titles, true ) ) {
+					continue;
+				}
+				wp_insert_post(
+					array(
+						'post_type'    => 'rfaheya_faq',
+						'post_status'  => 'publish',
+						'post_title'   => $f['q'],
+						'post_content' => $f['a'],
+						'menu_order'   => $i,
+					)
+				);
+			}
+		}
+		update_option( 'rfaheya_faq_set', 2 );
+	},
+	20
+);
+
 add_action(
 	'init',
 	function () {

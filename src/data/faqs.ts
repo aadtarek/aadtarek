@@ -1,31 +1,35 @@
-import { FLAT_SHIPPING_RATE, FREE_SHIPPING_THRESHOLD } from '../config'
-
-const threshold = FREE_SHIPPING_THRESHOLD.toLocaleString('en-US')
-
-/** Review these answers against the store's real policies before launch. */
+/** Frequently asked questions (also the starter FAQs imported into WordPress). */
 export const faqs: { q: string; a: string }[] = [
   {
-    q: 'What does “inspired by” mean?',
-    a: 'Each Rfaheya fragrance takes inspiration from a well-known scent, then is composed with our own quality materials and high concentration. They are original Rfaheya creations — not the original brands’ products.',
+    q: 'What does DNA mean?',
+    a: 'DNA refers to the original fragrance that a Rfaheya fragrance is based on. It helps you understand the olfactive direction and character behind the fragrance. A DNA fragrance is not the original product, nor is it intended to be an exact copy.',
   },
   {
-    q: 'How does “Try 10 ML first” work?',
-    a: 'Every fragrance is available as a 10 ML discovery size for 60 EGP. Wear it for a few days, and when it feels like you, choose the full 50 or 100 ML bottle.',
+    q: 'What is Rfaheya Standard™?',
+    a: 'Rfaheya Standard™ is our framework for evaluating the complete fragrance experience. We look beyond how a fragrance smells, considering six dimensions: Character, Comfort, Density, Projection, Longevity, and Evolution.',
   },
   {
-    q: 'How much is shipping?',
-    a: `Shipping is free in Cairo & Alexandria on orders over ${threshold} EGP. Other orders ship for a flat ${FLAT_SHIPPING_RATE} EGP.`,
+    q: 'What is your exchange & return policy?',
+    a: 'If the fragrance simply isn’t the right match for you, you can request an exchange. If there is a problem with your order or the product, you can request a return according to our policy.',
   },
   {
-    q: 'How do I pay?',
-    a: 'Pay cash on delivery, or by InstaPay transfer — you’ll see the transfer details right after placing your order. Card, Meeza and valU payments are coming soon.',
+    q: 'Is the fragrance exactly the same as the original?',
+    a: 'No. Our DNA fragrances are created around the olfactive direction of their DNA, but they are not exact copies of the original fragrance. Differences may occur in the composition, development, and overall wearing experience.',
   },
   {
-    q: 'What is the zero risk guarantee?',
-    a: 'If a fragrance isn’t right for you, contact us and we’ll arrange an easy return — even if used.',
+    q: 'How does Rfaheya reinterpret its DNA?',
+    a: 'Every fragrance is inspired by its DNA and crafted with the distinctive Rfaheya signature.',
   },
   {
-    q: 'How can I track my order?',
-    a: 'Use the Track Your Order page with your order number and mobile number, or message us and we’ll update you.',
+    q: 'Does the fragrance need to be macerated before use?',
+    a: 'No additional maceration is required before use. Every Rfaheya fragrance goes through a sufficient maceration period before it reaches you, allowing the fragrance to settle and develop for a better overall wearing experience.',
+  },
+  {
+    q: 'Why should I let my fragrance rest for 2 days after delivery?',
+    a: 'We recommend letting your fragrance rest for 2 days after delivery to allow it to settle after transportation and temperature changes before its first use.',
+  },
+  {
+    q: 'Are the smaller sizes different from the larger sizes?',
+    a: 'No. The fragrance itself is the same. Our smaller and larger sizes use the same fragrance; the difference is simply the amount of fragrance in the bottle.',
   },
 ]
