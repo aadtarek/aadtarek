@@ -348,7 +348,7 @@ function cheops_customize_register( $wp_customize ) {
     $wp_customize->add_control(new Cheops_Logo_Picker_Control($wp_customize, 'cheops_logo_groups', [
         'section' => 'cheops_theme_options',
         'label' => __('Project and developer logos', 'cheops-prive'),
-        'description' => __('Choose where each logo appears: Our Projects, Our Developers, or hidden.', 'cheops-prive'),
+        'description' => __('Choose where each logo appears: Our Projects, Our Developers, or hidden. Use Add logos to upload new ones.', 'cheops-prive'),
     ]));
 }
 add_action('customize_register', 'cheops_customize_register');
@@ -388,30 +388,55 @@ function cheops_developer_logo_url($n) {
     return 'https://cheopsprive.com/wp-content/uploads/2026/09/' . (int) $n . '-2.png?v=20260924d';
 }
 
-/** Logo number => 'developer' | 'project' | 'hidden'. */
+/**
+ * Logos for the Our Projects / Our Developers bands, in display order.
+ * Key => group ('project' | 'developer' | 'hidden'). Keys are the original
+ * logo numbers (10-21, files on the site) or "a<ID>" for logos uploaded to the
+ * Media Library from the Customizer.
+ */
 function cheops_logo_groups() {
-    $groups = array_fill_keys(cheops_developer_logo_numbers(), 'developer');
-    $groups[13] = $groups[14] = 'hidden'; // left out of the original band
+    $groups = [];
+    foreach (cheops_developer_logo_numbers() as $n) $groups[(string) $n] = 'developer';
+    $groups['13'] = $groups['14'] = 'hidden'; // left out of the original band
     // The two Lake Town logos taken out of the developers band earlier are project logos.
     foreach (array_filter(array_map('intval', explode(',', (string) get_theme_mod('cheops_hidden_developer_logos', '')))) as $n) {
-        if (isset($groups[$n])) $groups[$n] = 'project';
+        if (isset($groups[(string) $n])) $groups[(string) $n] = 'project';
     }
-    foreach (explode(',', (string) get_theme_mod('cheops_logo_groups', '')) as $pair) {
+    $saved = (string) get_theme_mod('cheops_logo_groups', '');
+    if ($saved === '') return $groups;
+    // A saved list defines both the groups and the order (uploaded logos included).
+    $ordered = [];
+    foreach (explode(',', $saved) as $pair) {
         $parts = explode(':', $pair);
-        if (count($parts) !== 2) continue;
-        $n = (int) $parts[0];
-        if (isset($groups[$n]) && in_array($parts[1], ['developer', 'project', 'hidden'], true)) $groups[$n] = $parts[1];
+        if (count($parts) !== 2 || !in_array($parts[1], ['developer', 'project', 'hidden'], true)) continue;
+        $key = $parts[0];
+        if (isset($groups[$key]) || cheops_logo_upload_id($key)) $ordered[$key] = $parts[1];
     }
-    return $groups;
+    foreach ($groups as $key => $group) if (!isset($ordered[(string) $key])) $ordered[(string) $key] = $group;
+    return $ordered;
+}
+
+/** Attachment ID for an uploaded logo key ("a123"), or 0. */
+function cheops_logo_upload_id($key) {
+    if (!preg_match('/^a(\d+)$/', (string) $key, $m)) return 0;
+    $id = (int) $m[1];
+    return ($id && wp_attachment_is_image($id)) ? $id : 0;
+}
+
+function cheops_logo_url($key) {
+    $id = cheops_logo_upload_id($key);
+    if ($id) return (string) wp_get_attachment_image_url($id, 'medium');
+    return cheops_developer_logo_url((int) $key);
 }
 
 function cheops_sanitize_logo_groups($value) {
     $out = [];
+    $builtin = array_map('strval', cheops_developer_logo_numbers());
     foreach (explode(',', (string) $value) as $pair) {
         $parts = explode(':', $pair);
-        if (count($parts) === 2 && in_array((int) $parts[0], cheops_developer_logo_numbers(), true) && in_array($parts[1], ['developer', 'project', 'hidden'], true)) {
-            $out[] = (int) $parts[0] . ':' . $parts[1];
-        }
+        if (count($parts) !== 2 || !in_array($parts[1], ['developer', 'project', 'hidden'], true)) continue;
+        $key = trim($parts[0]);
+        if (in_array($key, $builtin, true) || cheops_logo_upload_id($key)) $out[$key] = $key . ':' . $parts[1];
     }
     return implode(',', $out);
 }
@@ -421,38 +446,71 @@ add_action('customize_register', function () {
     class Cheops_Logo_Picker_Control extends WP_Customize_Control {
         public $type = 'cheops_logo_picker';
         public function render_content() {
-            $groups = cheops_logo_groups();
             echo '<span class="customize-control-title">' . esc_html($this->label) . '</span>';
             if ($this->description) echo '<span class="description customize-control-description">' . esc_html($this->description) . '</span>';
             echo '<div class="cheops-logo-picker" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">';
-            foreach ($groups as $n => $group) {
-                echo '<label style="display:grid;gap:6px;justify-items:center;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff">';
-                echo '<img src="' . esc_url(cheops_developer_logo_url($n)) . '" alt="" style="max-width:100%;height:44px;object-fit:contain">';
-                echo '<select data-logo="' . esc_attr($n) . '" style="width:100%;min-height:28px">';
-                foreach (['project' => 'Our Projects', 'developer' => 'Our Developers', 'hidden' => 'Hidden'] as $key => $text) {
-                    echo '<option value="' . esc_attr($key) . '" ' . selected($group, $key, false) . '>' . esc_html($text) . '</option>';
-                }
-                echo '</select></label>';
-            }
+            foreach (cheops_logo_groups() as $key => $group) echo cheops_logo_picker_tile((string) $key, $group);
             echo '</div>';
+            echo '<p style="margin-top:10px"><button type="button" class="button cheops-logo-add">' . esc_html__('Add logos', 'cheops-prive') . '</button></p>';
         }
     }
 }, 1);
 
-/* Push ticked logos into the Customizer setting so Publish becomes available. */
+/** One logo tile in the Customizer picker. */
+function cheops_logo_picker_tile($key, $group) {
+    $uploaded = (bool) cheops_logo_upload_id($key);
+    $html = '<div class="cheops-logo-tile" data-logo="' . esc_attr($key) . '" style="position:relative;display:grid;gap:6px;justify-items:center;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff">';
+    if ($uploaded) $html .= '<button type="button" class="cheops-logo-remove" aria-label="' . esc_attr__('Remove logo', 'cheops-prive') . '" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border:0;border-radius:50%;background:#f0f0f1;cursor:pointer;line-height:1">&times;</button>';
+    $html .= '<img src="' . esc_url(cheops_logo_url($key)) . '" alt="" style="max-width:100%;height:44px;object-fit:contain">';
+    $html .= '<select style="width:100%;min-height:28px">';
+    foreach (['project' => 'Our Projects', 'developer' => 'Our Developers', 'hidden' => 'Hidden'] as $value => $text) {
+        $html .= '<option value="' . esc_attr($value) . '" ' . selected($group, $value, false) . '>' . esc_html($text) . '</option>';
+    }
+    return $html . '</select></div>';
+}
+
+/* The Media Library is needed for "Add logos". */
+add_action('customize_controls_enqueue_scripts', function () { wp_enqueue_media(); });
+
+/* Keep the setting in sync with the tiles so Publish becomes available. */
 add_action('customize_controls_print_footer_scripts', function () { ?>
 <script>
-(function(api){
-  if(!api) return;
+(function(api, $){
+  if(!api || !$) return;
   api.control('cheops_logo_groups', function(control){
     control.deferred.embedded.done(function(){
-      control.container.on('change', '.cheops-logo-picker select', function(){
-        var v=control.container.find('.cheops-logo-picker select').map(function(){ return this.getAttribute('data-logo')+':'+this.value; }).get().join(',');
+      var box=control.container, grid=box.find('.cheops-logo-picker');
+      function sync(){
+        var v=grid.find('.cheops-logo-tile').map(function(){ return this.getAttribute('data-logo')+':'+$(this).find('select').val(); }).get().join(',');
         control.setting.set(v);
+      }
+      box.on('change', '.cheops-logo-picker select', sync);
+      box.on('click', '.cheops-logo-remove', function(){ $(this).closest('.cheops-logo-tile').remove(); sync(); });
+      var frame;
+      box.on('click', '.cheops-logo-add', function(e){
+        e.preventDefault();
+        if(!window.wp || !wp.media) return;
+        if(!frame){
+          frame=wp.media({title:'Add logos', button:{text:'Add logos'}, library:{type:'image'}, multiple:true});
+          frame.on('select', function(){
+            frame.state().get('selection').each(function(att){
+              var a=att.toJSON(), key='a'+a.id;
+              if(grid.find('[data-logo="'+key+'"]').length) return;
+              var url=(a.sizes && a.sizes.medium ? a.sizes.medium.url : a.url);
+              var tile=$('<div class="cheops-logo-tile" style="position:relative;display:grid;gap:6px;justify-items:center;padding:8px;border:1px solid #ddd;border-radius:6px;background:#fff"></div>').attr('data-logo', key);
+              tile.append('<button type="button" class="cheops-logo-remove" aria-label="Remove logo" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border:0;border-radius:50%;background:#f0f0f1;cursor:pointer;line-height:1">&times;</button>');
+              tile.append($('<img alt="" style="max-width:100%;height:44px;object-fit:contain">').attr('src', url));
+              tile.append('<select style="width:100%;min-height:28px"><option value="project">Our Projects</option><option value="developer" selected>Our Developers</option><option value="hidden">Hidden</option></select>');
+              grid.append(tile);
+            });
+            sync();
+          });
+        }
+        frame.open();
       });
     });
   });
-})(window.wp && wp.customize);
+})(window.wp && wp.customize, window.jQuery);
 </script>
 <?php });
 
@@ -2199,7 +2257,7 @@ function cheops_render_logo_band($kind='tenants') {
         $label = 'Business tenant logo';
     } else {
         $group = $kind === 'projects' ? 'project' : 'developer';
-        $numbers = array_keys(array_filter(cheops_logo_groups(), function ($g) use ($group) { return $g === $group; }));
+        $numbers = array_map('strval', array_keys(array_filter(cheops_logo_groups(), function ($g) use ($group) { return $g === $group; })));
         $title = $kind === 'projects' ? 'Our Projects' : 'Our Developers';
         $label = $kind === 'projects' ? 'Project logo' : 'Developer logo';
     }
@@ -2210,7 +2268,8 @@ function cheops_render_logo_band($kind='tenants') {
     for($copy=0;$copy<($static?1:2);$copy++){
         echo '<div class="cheops-logo-set"'.($copy?' aria-hidden="true"':'').'>';
         foreach($numbers as $i){
-            echo '<span class="cheops-logo-item"><img src="'.esc_url(cheops_developer_logo_url($i)).'" alt="'.esc_attr($copy?'':$label).'" loading="lazy" decoding="async"></span>';
+            $src = $kind === 'tenants' ? cheops_developer_logo_url($i) : cheops_logo_url($i);
+            if ($src) echo '<span class="cheops-logo-item"><img src="'.esc_url($src).'" alt="'.esc_attr($copy?'':$label).'" loading="lazy" decoding="async"></span>';
         }
         echo '</div>';
     }
