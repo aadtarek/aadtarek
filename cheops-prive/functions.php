@@ -731,7 +731,28 @@ function cheops_taxonomy_options_html($taxonomy,$defaults=[]) {
     $names=[];
     if (!is_wp_error($terms)) foreach($terms as $term) $names[]=$term->name;
     if (!$names) $names=$defaults;
-    foreach(array_values(array_unique($names)) as $name) echo '<option value="'.esc_attr($name).'">'.esc_html($name).'</option>';
+    $names=array_values(array_unique($names));
+    if ($taxonomy==='unit_type') $names=cheops_sort_unit_types($names);
+    foreach($names as $name) echo '<option value="'.esc_attr($name).'">'.esc_html($name).'</option>';
+}
+
+/**
+ * Property types from the smallest home to the largest, then commercial,
+ * with Office and Clinic last. Types not listed here go after the homes.
+ */
+function cheops_sort_unit_types($names) {
+    $order = ['residential','studio','apartment','chalet','duplex','penthouse','townhouse','town house','twinhouse','twin house','villa','standalone villa','retail','office','administrative','clinic','medical'];
+    $rank = function ($name) use ($order) {
+        $key = strtolower(trim($name));
+        $i = array_search($key, $order, true);
+        if ($i === false) return array_search('retail', $order, true) - 0.5; // unknown types: after Villa, before commercial
+        return $i;
+    };
+    usort($names, function ($a, $b) use ($rank) {
+        $d = $rank($a) <=> $rank($b);
+        return $d ?: strcasecmp($a, $b);
+    });
+    return $names;
 }
 
 function cheops_unit_fields() {
