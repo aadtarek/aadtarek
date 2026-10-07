@@ -1175,7 +1175,8 @@ function rfaheya_bootstrap() {
 		'reviews'    => rfaheya_store_data( '/wc/store/v1/products/reviews', array( 'per_page' => 50, 'orderby' => 'date_gmt', 'order' => 'desc' ) ),
 		'faqs'       => rfaheya_faqs_data(),
 	);
-	set_transient( 'rfaheya_bootstrap', $data, MINUTE_IN_SECONDS );
+	// Rebuilt whenever products, stock, settings or content change (hooks below), so it can be kept a while.
+	set_transient( 'rfaheya_bootstrap', $data, HOUR_IN_SECONDS );
 	return $data;
 }
 
@@ -1238,13 +1239,13 @@ function rfaheya_storefront_shell() {
 		$pre   = '<div class="rf-pre rf-pre-' . $img[0] . '"><p class="rf-pre-brand">RFAHEYA</p><img ' . $attrs . ' alt="" fetchpriority="high"></div>';
 		$html  = preg_replace( '#<!--rf-splash-->.*?<!--/rf-splash-->#s', $pre, $html, 1 );
 	}
-	// Run the app once the image has painted (it still downloads straight away), so the image shows first.
+	// The app's code starts downloading as soon as the page has painted, and runs once the main
+	// image is on screen (waiting at most a moment for it), so the image shows first without holding the page back.
 	if ( preg_match( '#<script type="module" crossorigin src="([^"]+)"></script>#', $html, $script ) ) {
-		// The scripts start downloading right after the first paint (not before it).
 		preg_match_all( '#<link rel="modulepreload" crossorigin href="([^"]+)">#', $html, $preloads );
 		$html  = str_replace( array_merge( array( $script[0] ), $preloads[0] ), '', $html );
 		$early = wp_json_encode( array_merge( array( $script[1] ), $preloads[1] ), JSON_UNESCAPED_SLASHES );
-		$run  = '<script>requestAnimationFrame(function(){setTimeout(function(){' . $early . '.forEach(function(h){var l=document.createElement("link");l.rel="modulepreload";l.crossOrigin="";l.href=h;document.head.appendChild(l)});if(window.__rfPage)__rfPage()},0)});(function(){var done=0;function go(){if(done++)return;var s=document.createElement("script");s.type="module";s.crossOrigin="";s.src=' . wp_json_encode( $script[1], JSON_UNESCAPED_SLASHES ) . ';document.head.appendChild(s)}function later(){var d=i.decode?i.decode():Promise.resolve();d.catch(function(){}).then(function(){requestAnimationFrame(function(){requestAnimationFrame(go)})})}var i=null,imgs=[].slice.call(document.querySelectorAll(".rf-pre img")).filter(function(x){var r=x.getBoundingClientRect();return x.loading!=="lazy"&&r.width>0&&r.top<innerHeight});if(!imgs.length)requestAnimationFrame(function(){requestAnimationFrame(go)});else{i=imgs.reduce(function(a,b){var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();return rb.width*rb.height>ra.width*ra.height?b:a});if(i.complete)later();else{i.addEventListener("load",later);i.addEventListener("error",go);setTimeout(go,2500)}}})()</script>';
+		$run   = '<script>requestAnimationFrame(function(){setTimeout(function(){' . $early . '.forEach(function(h){var l=document.createElement("link");l.rel="modulepreload";l.crossOrigin="";l.href=h;document.head.appendChild(l)});if(window.__rfPage)__rfPage()},0)});(function(){var done=0;function go(){if(done++)return;var s=document.createElement("script");s.type="module";s.crossOrigin="";s.src=' . wp_json_encode( $script[1], JSON_UNESCAPED_SLASHES ) . ';document.head.appendChild(s)}function later(){var d=i.decode?i.decode():Promise.resolve();d.catch(function(){}).then(function(){requestAnimationFrame(function(){requestAnimationFrame(go)})})}var i=null,imgs=[].slice.call(document.querySelectorAll(".rf-pre img")).filter(function(x){var r=x.getBoundingClientRect();return x.loading!=="lazy"&&r.width>0&&r.top<innerHeight});if(!imgs.length)requestAnimationFrame(function(){requestAnimationFrame(go)});else{i=imgs.reduce(function(a,b){var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();return rb.width*rb.height>ra.width*ra.height?b:a});if(i.complete)later();else{i.addEventListener("load",later);i.addEventListener("error",go);setTimeout(go,600)}}})()</script>';
 		$html = str_replace( '</body>', $run . '</body>', $html );
 	}
 	// The stylesheet inline: one request less before the first paint.
@@ -1252,6 +1253,14 @@ function rfaheya_storefront_shell() {
 		$html = str_replace( $css[0], '<style>' . str_replace( '</style', '<\/style', (string) file_get_contents( ABSPATH . $css[1] ) ) . '</style>', $html );
 	}
 	$html = preg_replace( '#<head>#', '<head>' . $head, $html, 1 );
+	// Sent as is: page optimisers (LiteSpeed Cache "delay / defer JS", minify…) would
+	// hold back or reorder the storefront's own start-up scripts.
+	if ( ! defined( 'LITESPEED_NO_OPTM' ) ) {
+		define( 'LITESPEED_NO_OPTM', true );
+	}
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
 	nocache_headers();
 	header( 'Content-Type: text/html; charset=utf-8' );
 	// Page caches (LiteSpeed) may keep it for a minute, like the bootstrap data.
