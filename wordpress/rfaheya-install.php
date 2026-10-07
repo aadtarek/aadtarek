@@ -11,14 +11,19 @@ header( 'Content-Type: text/plain; charset=utf-8' );
 header( 'Cache-Control: no-store' );
 
 $root = __DIR__;
-$zip  = "$root/rfaheya-public_html.zip";
 
 if ( ! class_exists( 'ZipArchive' ) ) {
 	exit( "ERROR: PHP zip extension is not available on this hosting.\n" );
 }
-if ( ! file_exists( $zip ) ) {
-	exit( "ERROR: rfaheya-public_html.zip is not in this folder ($root). Upload it next to this file.\n" );
+// The newest rfaheya*.zip here (the browser may have renamed it, e.g. "rfaheya-public_html (1).zip").
+$zips = glob( "$root/rfaheya*.zip" ) ?: array();
+usort( $zips, fn( $a, $b ) => filemtime( $b ) - filemtime( $a ) );
+$zip = $zips ? $zips[0] : '';
+if ( ! $zip ) {
+	$all = glob( "$root/*.zip" ) ?: array();
+	exit( "ERROR: no rfaheya*.zip in this folder ($root). Upload it next to this file.\nZip files here: " . ( $all ? implode( ', ', array_map( 'basename', $all ) ) : 'none' ) . "\n" );
 }
+echo 'Using ' . basename( $zip ) . "\n";
 if ( ! file_exists( "$root/wp-config.php" ) ) {
 	exit( "ERROR: WordPress (wp-config.php) is not in this folder. Put both files in the WordPress folder (public_html).\n" );
 }
