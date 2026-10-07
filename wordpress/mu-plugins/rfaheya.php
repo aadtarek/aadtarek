@@ -1114,10 +1114,20 @@ function rfaheya_faqs_data() {
 
 /** Calls a WooCommerce Store API route internally and returns its JSON data. */
 function rfaheya_store_data( $route, $params ) {
-	$request = new WP_REST_Request( 'GET', $route );
-	$request->set_query_params( $params );
-	$response = rest_do_request( $request );
-	return $response->is_error() ? array() : rest_get_server()->response_to_data( $response, false );
+	// WooCommerce's Store API expects the cart to be loaded (outside REST requests it may not be yet).
+	if ( function_exists( 'WC' ) && function_exists( 'wc_load_cart' ) && null === WC()->cart && did_action( 'woocommerce_init' ) ) {
+		wc_load_cart();
+	}
+	try {
+		$request = new WP_REST_Request( 'GET', $route );
+		$request->set_query_params( $params );
+		$response = rest_do_request( $request );
+		return $response->is_error() ? array() : rest_get_server()->response_to_data( $response, false );
+	} catch ( Throwable $e ) {
+		// Without it the storefront loads the same data with its own requests.
+		error_log( 'Rfaheya: ' . $route . ' failed: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		return array();
+	}
 }
 
 /**
@@ -1256,10 +1266,22 @@ add_action(
 	function () {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page request
 		if ( isset( $_GET['rfaheya_shell'] ) && ! is_admin() && ! wp_doing_ajax() ) {
-			rfaheya_storefront_shell();
+			try {
+				rfaheya_storefront_shell();
+			} catch ( Throwable $e ) {
+				// Never a blank error page: serve the plain storefront, which loads its data itself.
+				error_log( 'Rfaheya: page shell failed: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+				if ( ! headers_sent() && is_readable( ABSPATH . 'index.html' ) ) {
+					header( 'Content-Type: text/html; charset=utf-8' );
+					header( 'Cache-Control: no-cache' );
+					readfile( ABSPATH . 'index.html' );
+					exit;
+				}
+			}
 		}
 	},
-	1
+	// After WooCommerce has loaded the session and cart.
+	99
 );
 
 /** Content changes show up right away. */
