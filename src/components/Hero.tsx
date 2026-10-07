@@ -27,7 +27,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#ebe3d9] via-[#ebe3d9]/70 to-transparent md:block xl:via-transparent xl:from-[#ebe3d9]/40"
       />
 
-      <div className="hero-copy container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
+      <div className="container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
         <p className="text-[10px] font-medium tracking-[0.32em] text-ink-soft uppercase sm:text-[11px]">
           {copy.eyebrow}
         </p>

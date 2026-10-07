@@ -63,6 +63,8 @@ if ( file_exists( "$root/wp-load.php" ) && isset( $_GET['speed'] ) ) {
 	require "$root/wp-load.php";
 	printf( "WordPress loads in:        %.2f s\n", microtime( true ) - $t );
 	echo 'Memory limit:              ' . ini_get( 'memory_limit' ) . "\n";
+	echo 'Last Rfaheya error:        ' . ( get_option( 'rfaheya_last_error' ) ? get_option( 'rfaheya_last_error' ) : '(none)' ) . "\n";
+	echo 'WooCommerce:               ' . ( defined( 'WC_VERSION' ) ? WC_VERSION : 'not active' ) . "\n";
 	echo "Active plugins:\n";
 	foreach ( (array) get_option( 'active_plugins', array() ) as $plugin ) {
 		echo "  $plugin\n";
