@@ -1141,6 +1141,9 @@ function rfaheya_bootstrap() {
 	if ( is_array( $cached ) ) {
 		return $cached;
 	}
+	if ( get_transient( 'rfaheya_bootstrap_failed' ) ) {
+		return array( 'products' => array() );
+	}
 	$products   = rfaheya_store_data( '/wc/store/v1/products', array( 'per_page' => 100, 'orderby' => 'popularity', 'order' => 'desc' ) );
 	$ids        = array();
 	foreach ( $products as $p ) {
@@ -1179,38 +1182,17 @@ function rfaheya_bootstrap() {
 	// Rebuilt whenever products, stock, settings or content change (hooks below), so it can be kept a while.
 	if ( ! empty( $data['products'] ) ) {
 		set_transient( 'rfaheya_bootstrap', $data, HOUR_IN_SECONDS );
+	} else {
+		// The storefront loads its data with separate requests then; don't rebuild on every visit.
+		set_transient( 'rfaheya_bootstrap_failed', 1, 10 * MINUTE_IN_SECONDS );
 	}
 	return $data;
 }
 
 /**
- * The home hero as the storefront draws it (src/components/Hero.tsx, same classes),
- * so the page looks finished before the app's JavaScript has run.
- */
-function rfaheya_hero_markup( $hero, $img_attrs ) {
-	$field = function ( $key ) use ( $hero ) {
-		return isset( $hero[ $key ] ) ? (string) $hero[ $key ] : '';
-	};
-	$title = implode( '<br>', array_map( 'esc_html', preg_split( '/\r?\n/', $field( 'title' ) ) ) );
-	$arrow = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
-	return '<div class="rf-pre rf-pre-page rf-pre-home"><div class="h-9 bg-olive"></div><p class="rf-pre-brand">RFAHEYA</p>'
-		. '<section class="relative overflow-hidden bg-[#e9e1d6]">'
-		. '<img ' . $img_attrs . ' width="1600" height="900" alt="" fetchpriority="high" class="h-[340px] w-full object-cover object-[78%_center] xs:h-[380px] sm:h-[460px] md:absolute md:inset-0 md:h-full md:object-[right_center]">'
-		. '<div aria-hidden="true" class="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#ebe3d9] via-[#ebe3d9]/70 to-transparent md:block xl:via-transparent xl:from-[#ebe3d9]/40"></div>'
-		. '<div class="container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">'
-		. '<p class="text-[10px] font-medium tracking-[0.32em] text-ink-soft uppercase sm:text-[11px]">' . esc_html( $field( 'eyebrow' ) ) . '</p>'
-		. '<h1 class="mt-3 text-[44px] leading-[0.9] font-bold tracking-[-0.015em] uppercase sm:text-[56px] lg:mt-[14px] lg:text-[61px]">' . $title . '</h1>'
-		. '<p class="mt-3 max-w-[372px] text-[15px] leading-[1.25] text-ink sm:text-[16px] lg:mt-[16px]">' . esc_html( $field( 'text' ) ) . '</p>'
-		. '<div class="mt-4 flex flex-wrap gap-3 lg:mt-[18px] lg:gap-[11px]">'
-		. '<a href="/shop" class="inline-flex h-[43px] items-center justify-center gap-2.5 rounded-[3px] bg-olive px-[34px] text-[12px] font-medium tracking-[0.1em] text-cream uppercase">Explore fragrances' . $arrow . '</a>'
-		. '<a href="/finder" class="inline-flex h-[43px] items-center justify-center rounded-[3px] border border-ink/80 px-[33px] text-[12px] font-medium tracking-[0.1em] text-ink uppercase">Find your scent</a>'
-		. '</div></div></section></div>';
-}
-
-/**
- * Storefront page shell with its data inside (/ and /product/… are routed
- * here by .htaccess): index.html plus the bootstrap data, and the page's main
- * image already in the HTML, so it shows before the app's JavaScript has run.
+ * Storefront page (every storefront URL is routed here by .htaccess):
+ * index.html as is, plus the shop data when it is already built, so the
+ * storefront doesn't have to request it. Nothing else is changed.
  */
 function rfaheya_storefront_shell() {
 	$file = ABSPATH . 'index.html';
@@ -1218,76 +1200,16 @@ function rfaheya_storefront_shell() {
 		return;
 	}
 	$html = (string) file_get_contents( $file );
-	// The store data goes in the page only when it is already built (the storefront's own
-	// /bootstrap request builds it); building it here, outside a REST request, can fail on
-	// some WooCommerce setups. Without it the storefront simply loads it itself.
-	$data     = get_transient( 'rfaheya_bootstrap' );
-	$data     = is_array( $data ) && ! empty( $data['products'] ) ? $data : null;
-	$settings = $data ? $data['settings'] : rfaheya_settings_data();
-	$hero     = isset( $settings['home']['hero'] ) ? (array) $settings['home']['hero'] : array();
-	$path     = (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/', PHP_URL_PATH );
-	$head     = $data ? '<script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>' : '';
-	$img      = null;
-	if ( '/' === $path && ! empty( $hero['image'] ) ) {
-		$img = array( 'hero', $hero['image'], isset( $hero['srcset'] ) ? $hero['srcset'] : '', '(max-width: 767px) 250vw, 100vw' );
-	} elseif ( $data && preg_match( '#^/product/([^/]+)/?$#', $path, $m ) ) {
-		foreach ( (array) $data['products'] as $p ) {
-			if ( isset( $p['slug'] ) && rawurldecode( $m[1] ) === $p['slug'] && ! empty( $p['images'][0]['src'] ) ) {
-				$img = array( 'product', $p['images'][0]['src'], isset( $p['images'][0]['srcset'] ) ? $p['images'][0]['srcset'] : '', '100vw' );
-				break;
-			}
-		}
+	$data = get_transient( 'rfaheya_bootstrap' );
+	if ( is_array( $data ) && ! empty( $data['products'] ) ) {
+		$html = str_replace( '<head>', '<head><script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>', $html );
 	}
-	// The journal: its posts in the page, and the newest post's photo shown straight away.
-	if ( ! $img && preg_match( '#^/journal/?$#', $path ) ) {
-		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_query_params( array( 'per_page' => 100 ) );
-		$response = rest_do_request( $request );
-		if ( ! $response->is_error() ) {
-			$posts = rest_get_server()->response_to_data( $response, array( 'wp:featuredmedia', 'wp:term' ) );
-			$head .= '<script>window.__rfPosts=' . wp_json_encode( $posts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . '</script>';
-			$media = isset( $posts[0]['_embedded']['wp:featuredmedia'][0] ) ? $posts[0]['_embedded']['wp:featuredmedia'][0] : null;
-			if ( ! empty( $media['source_url'] ) ) {
-				// Same candidates as the app's srcset (src/api/content.ts), so this request is reused.
-				$set = array();
-				foreach ( isset( $media['media_details']['sizes'] ) ? (array) $media['media_details']['sizes'] : array() as $size ) {
-					if ( ! empty( $size['width'] ) && $size['width'] >= 600 && ! isset( $set[ $size['width'] ] ) ) {
-						$set[ $size['width'] ] = $size['source_url'] . ' ' . $size['width'] . 'w';
-					}
-				}
-				$img = array( 'journal', $media['source_url'], implode( ', ', $set ), '(max-width: 1023px) 100vw, 50vw' );
-			}
-		}
-	}
-	// Static content pages pre-rendered at release time (scripts/prerender.mjs).
-	$snapshot = preg_match( '#^/([a-z0-9-]+)/?$#', $path, $page ) ? ABSPATH . 'prerender/' . $page[1] . '.html' : '';
-	if ( ! $img && $snapshot && is_readable( $snapshot ) ) {
-		$html  = preg_replace( '#<!--rf-splash-->.*?<!--/rf-splash-->#s', '<div class="rf-pre rf-pre-page">' . str_replace( '$', '&#36;', (string) file_get_contents( $snapshot ) ) . '</div>', $html, 1 );
-		$img   = 'page';
-	}
-	if ( is_array( $img ) ) {
-		$attrs = 'src="' . esc_url( $img[1] ) . '"' . ( $img[2] ? ' srcset="' . esc_attr( $img[2] ) . '" sizes="' . esc_attr( $img[3] ) . '"' : '' );
-		$head .= '<link rel="preload" as="image" href="' . esc_url( $img[1] ) . '"' . ( $img[2] ? ' imagesrcset="' . esc_attr( $img[2] ) . '" imagesizes="' . esc_attr( $img[3] ) . '"' : '' ) . ' fetchpriority="high">';
-		$head .= '<style>.rf-pre{position:relative;min-height:100vh;background:#f6f1eb;padding-top:36px}.rf-pre-brand{position:absolute;z-index:1;top:50px;left:50%;transform:translateX(-50%);margin:0;font:32px/1 Georgia,serif;letter-spacing:.02em;color:#18140b}@media(min-width:1024px){.rf-pre-brand{left:78px;transform:none}}.rf-pre img{display:block;width:100%;object-fit:cover}.rf-pre-hero img{height:344px;object-position:78% center}@media(min-width:400px){.rf-pre-hero img{height:384px}}@media(min-width:640px){.rf-pre-hero img{height:464px}}@media(min-width:768px){.rf-pre-hero img{height:calc(clamp(560px,40vw,780px) + 4px);object-position:right center}}.rf-pre-product{padding:118px 14px 0}.rf-pre-page{padding-top:0;background:none}.rf-pre-product img{aspect-ratio:4/3;border-radius:8px}.rf-pre-journal{padding:329px 15px 0}@media(min-width:400px){.rf-pre-journal{padding-top:285px}}.rf-pre-journal img{aspect-ratio:16/10;border-radius:8px 8px 0 0}@media(min-width:640px){.rf-pre-journal{padding:304px 23px 0}}@media(min-width:1024px){.rf-pre-product,.rf-pre-journal{display:none}}</style>';
-		$pre   = 'hero' === $img[0] ? rfaheya_hero_markup( $hero, $attrs ) : '<div class="rf-pre rf-pre-' . $img[0] . '"><p class="rf-pre-brand">RFAHEYA</p><img ' . $attrs . ' alt="" fetchpriority="high"></div>';
-		$html  = preg_replace( '#<!--rf-splash-->.*?<!--/rf-splash-->#s', $pre, $html, 1 );
-	}
-	// The app's code starts downloading as soon as the page has painted, and runs once the main
-	// image is on screen (waiting at most a moment for it), so the image shows first without holding the page back.
-	if ( preg_match( '#<script type="module" crossorigin src="([^"]+)"></script>#', $html, $script ) ) {
-		preg_match_all( '#<link rel="modulepreload" crossorigin href="([^"]+)">#', $html, $preloads );
-		$html  = str_replace( array_merge( array( $script[0] ), $preloads[0] ), '', $html );
-		$early = wp_json_encode( array_merge( array( $script[1] ), $preloads[1] ), JSON_UNESCAPED_SLASHES );
-		$run   = '<script>requestAnimationFrame(function(){setTimeout(function(){' . $early . '.forEach(function(h){var l=document.createElement("link");l.rel="modulepreload";l.crossOrigin="";l.href=h;document.head.appendChild(l)});if(window.__rfPage)__rfPage()},0)});(function(){var done=0;function go(){if(done++)return;var s=document.createElement("script");s.type="module";s.crossOrigin="";s.src=' . wp_json_encode( $script[1], JSON_UNESCAPED_SLASHES ) . ';document.head.appendChild(s)}function later(){var d=i.decode?i.decode():Promise.resolve();d.catch(function(){}).then(function(){requestAnimationFrame(function(){requestAnimationFrame(go)})})}var i=null,imgs=[].slice.call(document.querySelectorAll(".rf-pre img")).filter(function(x){var r=x.getBoundingClientRect();return x.loading!=="lazy"&&r.width>0&&r.top<innerHeight});if(!imgs.length)requestAnimationFrame(function(){requestAnimationFrame(go)});else{i=imgs.reduce(function(a,b){var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();return rb.width*rb.height>ra.width*ra.height?b:a});if(i.complete)later();else{i.addEventListener("load",later);i.addEventListener("error",go);setTimeout(go,600)}}})()</script>';
-		$html = str_replace( '</body>', $run . '</body>', $html );
-	}
-	// The stylesheet inline: one request less before the first paint.
+	// The stylesheet inline: one request less before the page shows.
 	if ( preg_match( '#<link rel="stylesheet" crossorigin href="/([^"]+\.css)">#', $html, $css ) && is_readable( ABSPATH . $css[1] ) && filesize( ABSPATH . $css[1] ) < 300000 ) {
 		$html = str_replace( $css[0], '<style>' . str_replace( '</style', '<\/style', (string) file_get_contents( ABSPATH . $css[1] ) ) . '</style>', $html );
 	}
-	$html = preg_replace( '#<head>#', '<head>' . $head, $html, 1 );
 	// Sent as is: page optimisers (LiteSpeed Cache "delay / defer JS", minify…) would
-	// hold back or reorder the storefront's own start-up scripts.
+	// hold back or reorder the storefront's start-up scripts.
 	if ( ! defined( 'LITESPEED_NO_OPTM' ) ) {
 		define( 'LITESPEED_NO_OPTM', true );
 	}
@@ -1296,9 +1218,7 @@ function rfaheya_storefront_shell() {
 	}
 	nocache_headers();
 	header( 'Content-Type: text/html; charset=utf-8' );
-	// Page caches (LiteSpeed) may keep it for a minute, like the bootstrap data.
-	header( 'Cache-Control: public, max-age=0, s-maxage=60' );
-	header( 'X-LiteSpeed-Cache-Control: public,max-age=60' );
+	header( 'Cache-Control: no-cache' );
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the storefront's own index.html plus escaped data
 	exit;
 }
@@ -1329,7 +1249,13 @@ add_action(
 
 /** Content changes show up right away. */
 foreach ( array( 'save_post', 'deleted_post', 'edited_term', 'created_term', 'delete_term', 'update_option_' . RFAHEYA_OPTION, 'woocommerce_product_set_stock', 'woocommerce_variation_set_stock', 'comment_post' ) as $rfaheya_hook ) {
-	add_action( $rfaheya_hook, fn() => delete_transient( 'rfaheya_bootstrap' ) );
+	add_action(
+		$rfaheya_hook,
+		function () {
+			delete_transient( 'rfaheya_bootstrap' );
+			delete_transient( 'rfaheya_bootstrap_failed' );
+		}
+	);
 }
 
 add_action(

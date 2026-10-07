@@ -197,14 +197,20 @@ export interface Bootstrap {
 
 declare global {
   interface Window {
-    /** Started by index.html (see vite.config.ts) so it loads alongside the JavaScript. */
+    /** The shop data, put in the page by WordPress (rfaheya.php) */
     __rfBoot?: Promise<Bootstrap | null>
     /** The journal's posts, put in the /journal page by WordPress (rfaheya.php) */
     __rfPosts?: unknown[]
   }
 }
 
+/**
+ * The shop data WordPress put in the page (rfaheya.php), when it had it ready.
+ * Otherwise the storefront loads it with separate requests in parallel, and the
+ * server builds its copy in the background for the next pages.
+ */
 export async function fetchBootstrap(): Promise<Bootstrap | null> {
-  const early = window.__rfBoot ? await window.__rfBoot : null
-  return early ?? wpGet<Bootstrap>('rfaheya/v1/bootstrap')
+  if (window.__rfBoot) return window.__rfBoot
+  setTimeout(() => wpGet('rfaheya/v1/bootstrap').catch(() => undefined), 5000)
+  return null
 }
