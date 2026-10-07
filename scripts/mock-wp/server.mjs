@@ -255,8 +255,11 @@ createServer(async (req, res) => {
 
     if (route === 'products' && req.method === 'GET') {
       if (url.searchParams.get('type') === 'variation') {
-        const include = (url.searchParams.get('include') || '').split(',').map(Number)
-        return send(res, 200, variations.filter((v) => include.includes(v.id)))
+        const include = (url.searchParams.get('include') || '').split(',').filter(Boolean).map(Number)
+        const perPage = Number(url.searchParams.get('per_page') || 10)
+        const page = Number(url.searchParams.get('page') || 1)
+        const list = include.length ? variations.filter((v) => include.includes(v.id)) : variations
+        return send(res, 200, list.slice((page - 1) * perPage, page * perPage))
       }
       const orderby = url.searchParams.get('orderby')
       const order = url.searchParams.get('order')

@@ -1201,7 +1201,15 @@ function rfaheya_storefront_shell() {
 	}
 	$html = (string) file_get_contents( $file );
 	$data = get_transient( 'rfaheya_bootstrap' );
-	if ( is_array( $data ) && ! empty( $data['products'] ) ) {
+	$data = is_array( $data ) && ! empty( $data['products'] ) ? $data : null;
+	// A new upload: pages cached by LiteSpeed still point at the old files.
+	$build = (string) filemtime( $file );
+	$fresh = get_option( 'rfaheya_index_build' ) !== $build;
+	if ( $fresh ) {
+		update_option( 'rfaheya_index_build', $build, false );
+		rfaheya_purge_page_cache();
+	}
+	if ( $data ) {
 		$html = str_replace( '<head>', '<head><script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>', $html );
 	}
 	// The stylesheet inline: one request less before the page shows.
@@ -1218,9 +1226,37 @@ function rfaheya_storefront_shell() {
 	}
 	nocache_headers();
 	header( 'Content-Type: text/html; charset=utf-8' );
-	header( 'Cache-Control: no-cache' );
+	if ( $data && ! $fresh ) {
+		// The same page for every visitor; LiteSpeed keeps it until products, stock,
+		// settings or content change (rfaheya_purge_page_cache).
+		header( 'Cache-Control: public, max-age=0, s-maxage=3600' );
+		header( 'X-LiteSpeed-Cache-Control: public,max-age=3600' );
+		header( 'X-LiteSpeed-Tag: rfaheya_page' );
+	} else {
+		header( 'Cache-Control: no-cache' );
+		header( 'X-LiteSpeed-Cache-Control: no-cache' );
+	}
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the storefront's own index.html plus escaped data
+	// No shop data in the page yet: build it after the page has been sent, for the next visitors.
+	if ( ! $data && ( function_exists( 'litespeed_finish_request' ) || function_exists( 'fastcgi_finish_request' ) ) && ! get_transient( 'rfaheya_bootstrap_building' ) ) {
+		set_transient( 'rfaheya_bootstrap_building', 1, MINUTE_IN_SECONDS );
+		function_exists( 'litespeed_finish_request' ) ? litespeed_finish_request() : fastcgi_finish_request();
+		try {
+			rfaheya_bootstrap();
+		} catch ( Throwable $e ) {
+			update_option( 'rfaheya_last_error', gmdate( 'Y-m-d H:i' ) . ' build: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine(), false );
+		}
+		delete_transient( 'rfaheya_bootstrap_building' );
+	}
 	exit;
+}
+
+/** Drops the storefront pages LiteSpeed has cached. */
+function rfaheya_purge_page_cache() {
+	if ( ! headers_sent() ) {
+		header( 'X-LiteSpeed-Purge: tag=rfaheya_page', false );
+	}
+	do_action( 'litespeed_purge', 'rfaheya_page' );
 }
 
 add_action(
@@ -1254,6 +1290,7 @@ foreach ( array( 'save_post', 'deleted_post', 'edited_term', 'created_term', 'de
 		function () {
 			delete_transient( 'rfaheya_bootstrap' );
 			delete_transient( 'rfaheya_bootstrap_failed' );
+			rfaheya_purge_page_cache();
 		}
 	);
 }

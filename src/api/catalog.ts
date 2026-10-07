@@ -1,7 +1,7 @@
 import { families } from '../data/families'
 import type { FamilySlug, Product, Review, WearVideo } from '../types'
 import { fetchBootstrap, primeCache, fetchNotes, fetchProductCategories, fetchProductDetails, fetchVideos, type RawCategory } from './content'
-import { buildCatalog, fetchWooCatalog, fetchWooReviews, mapReviews, setNoteLibrary } from './woo'
+import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, setNoteLibrary } from './woo'
 import { applyStoreSettings } from '../config'
 import { fetchStoreSettings, isWoo, stripHtml, type StoreSettings } from './wp'
 
@@ -33,16 +33,18 @@ export async function loadCatalog(): Promise<void> {
   }
   // …otherwise the individual WooCommerce / WordPress requests.
   // Optional extras: without the rfaheya.php mu-plugin (or with no categories) the defaults stay.
-  const [details, categories, settings, notes, vids] = await Promise.all([
+  // All at once: on shared hosting every request takes a while, so none waits for another.
+  const [details, categories, settings, notes, vids, raw, revs] = await Promise.all([
     fetchProductDetails().catch(() => ({})),
     fetchProductCategories().catch(() => []),
     fetchStoreSettings().catch(() => ({})),
     fetchNotes().catch(() => []),
     fetchVideos().catch(() => [] as WearVideo[]),
+    fetchWooRaw(),
+    fetchWooReviews().catch(() => [] as Review[]),
   ])
   setNoteLibrary(notes)
-  const [list, revs] = await Promise.all([fetchWooCatalog(details), fetchWooReviews().catch(() => [] as Review[])])
-  products = list
+  products = buildCatalog(raw.byPopularity, raw.dateOrder, raw.variations, details)
   applyLoaded(revs, vids, settings, categories)
 }
 

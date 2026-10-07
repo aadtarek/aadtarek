@@ -253,23 +253,20 @@ export function buildCatalog(
 }
 
 /** Loads every published product (with variation prices) from WooCommerce. */
-export async function fetchWooCatalog(details: Record<string, ProductDetails> = {}): Promise<Product[]> {
-  const [byPopularity, byDate] = await Promise.all([
+/** Products in both orders and all their variations, requested at the same time. */
+export async function fetchWooRaw(): Promise<{ byPopularity: RawProduct[]; dateOrder: number[]; variations: RawProduct[] }> {
+  const variationPage = (page: number) => storeApi<RawProduct[]>(`products?type=variation&per_page=100&page=${page}`)
+  const [byPopularity, byDate, first] = await Promise.all([
     storeApi<RawProduct[]>('products?per_page=100&orderby=popularity&order=desc'),
     storeApi<RawProduct[]>('products?per_page=100&orderby=date&order=asc'),
+    variationPage(1).catch(() => [] as RawProduct[]),
   ])
-  const ids = byPopularity.flatMap((p) => p.variations.map((v) => v.id))
-  const variations: RawProduct[] = []
-  for (let i = 0; i < ids.length; i += 100) {
-    const chunk = ids.slice(i, i + 100)
-    variations.push(...(await storeApi<RawProduct[]>(`products?type=variation&per_page=100&include=${chunk.join(',')}`).catch(() => [])))
+  const variations = [...first]
+  for (let page = 2, last = first; last.length === 100 && page <= 10; page++) {
+    last = await variationPage(page).catch(() => [])
+    variations.push(...last)
   }
-  return buildCatalog(
-    byPopularity,
-    byDate.map((d) => d.id),
-    variations,
-    details,
-  )
+  return { byPopularity, dateOrder: byDate.map((d) => d.id), variations }
 }
 
 export function mapReviews(raw: RawReview[]): Review[] {
