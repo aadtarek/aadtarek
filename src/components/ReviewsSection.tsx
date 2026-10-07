@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getReviews, ratingSummary } from '../api/catalog'
+import { getReviews, ratingSummary, useCatalogReady } from '../api/catalog'
 import type { Review } from '../types'
 import { Carousel } from './Carousel'
 import { ReviewCard } from './ReviewCard'
@@ -15,9 +15,10 @@ function reviewsPerView(width: number) {
 
 export function ReviewsSection() {
   const [reviews, setReviews] = useState<Review[]>([])
+  const ready = useCatalogReady()
   useEffect(() => {
     getReviews().then(setReviews)
-  }, [])
+  }, [ready])
   const { average } = ratingSummary(reviews)
   // No reviews yet (e.g. a fresh WooCommerce store): hide the section rather than show an empty one.
   if (reviews.length === 0) return null

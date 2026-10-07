@@ -1,7 +1,7 @@
 import { Search, X } from 'lucide-react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getAllProducts, matchesSearch, priceRange, sortProducts } from '../api/catalog'
+import { getAllProducts, matchesSearch, priceRange, sortProducts, useCatalogReady } from '../api/catalog'
 import { formatPriceRange } from '../lib/format'
 
 export function SearchBox({ className = '', autoFocus = false, onDone }: { className?: string; autoFocus?: boolean; onDone?: () => void }) {
@@ -11,10 +11,12 @@ export function SearchBox({ className = '', autoFocus = false, onDone }: { class
   const navigate = useNavigate()
   const wrapper = useRef<HTMLDivElement>(null)
   const listId = useId()
+  const ready = useCatalogReady()
 
   const results = useMemo(
     () => (term.trim() ? sortProducts(getAllProducts().filter((p) => matchesSearch(p, term))).slice(0, 5) : []),
-    [term],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the products may arrive after the search box shows
+    [term, ready],
   )
 
   useEffect(() => {

@@ -1,5 +1,6 @@
-import { Suspense } from 'react'
+import { Suspense, type ReactNode } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { useCatalogReady } from './api/catalog'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
 import { Home } from './pages/Home'
@@ -13,6 +14,10 @@ import { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage
 const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter
 
 export default function App() {
+  // The pages show before the products have loaded.
+  const ready = useCatalogReady()
+  // Pages that are mostly products: their content waits for them (header and footer show already).
+  const products = (page: ReactNode) => (ready ? page : <div className="min-h-screen" />)
   return (
     <ErrorBoundary>
     <Router>
@@ -23,23 +28,23 @@ export default function App() {
               <Route path="finder/quiz" element={<Suspense fallback={<div className="min-h-screen bg-sand" />}><FinderQuiz /></Suspense>} />
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
-                <Route path="shop" element={<Shop />} />
-                <Route path="product/:slug" element={<ProductPage />} />
-                <Route path="wishlist" element={<Wishlist />} />
+                <Route path="shop" element={products(<Shop />)} />
+                <Route path="product/:slug" element={products(<ProductPage />)} />
+                <Route path="wishlist" element={products(<Wishlist />)} />
                 <Route path="account" element={<Account />} />
-                <Route path="checkout" element={<Checkout />} />
-                <Route path="checkout/order-received/:id" element={<OrderReceived />} />
+                <Route path="checkout" element={products(<Checkout />)} />
+                <Route path="checkout/order-received/:id" element={products(<OrderReceived />)} />
                 <Route path="cart" element={<Navigate to="/checkout" replace />} />
-                <Route path="reviews" element={<Reviews />} />
+                <Route path="reviews" element={products(<Reviews />)} />
                 <Route path="track-order" element={<TrackOrder />} />
                 <Route path="about" element={<About />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="faqs" element={<div className="pt-2 pb-24"><FaqSection asPage /></div>} />
                 <Route path="finder" element={<FinderLanding />} />
-                <Route path="finder/result" element={<FinderResult />} />
+                <Route path="finder/result" element={products(<FinderResult />)} />
                 <Route path="discover" element={<Navigate to="/finder" replace />} />
-                <Route path="collections" element={<CollectionsIndex />} />
-                <Route path="collections/:slug" element={<CollectionPage />} />
+                <Route path="collections" element={products(<CollectionsIndex />)} />
+                <Route path="collections/:slug" element={products(<CollectionPage />)} />
                 <Route path="our-standard" element={<OurStandard />} />
                 <Route path="journal" element={<Journal />} />
                 <Route path="journal/:slug" element={<Article />} />

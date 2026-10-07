@@ -1,9 +1,11 @@
 import { ArrowRight } from 'lucide-react'
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
-import { getFamilies } from '../api/catalog'
+import { getFamilies, useCatalogReady } from '../api/catalog'
 
 export function ExploreFamilies() {
+  // Family names and images come from the product categories.
+  useCatalogReady()
   return (
     <section aria-labelledby="explore-title" className="bg-sand pt-10 pb-12 lg:pt-[34px] lg:pb-[62px]">
       <div className="container-x flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between xl:pr-[77px] xl:pl-[68px]">

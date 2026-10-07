@@ -1209,9 +1209,21 @@ function rfaheya_storefront_shell() {
 		update_option( 'rfaheya_index_build', $build, false );
 		rfaheya_purge_page_cache();
 	}
+	// The store settings (hero, announcements…) always, so the page shows right with the first view.
+	$settings = $data ? $data['settings'] : rfaheya_settings_data();
+	$inline   = '<script>window.__rfSettings=' . wp_json_encode( $settings, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ';';
 	if ( $data ) {
-		$html = str_replace( '<head>', '<head><script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>', $html );
+		$inline .= 'window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ');';
 	}
+	$inline .= '</script>';
+	// The home hero image starts downloading with the page (same srcset/sizes as src/components/Hero.tsx).
+	$path = (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/', PHP_URL_PATH );
+	$hero = isset( $settings['home']['hero'] ) ? (array) $settings['home']['hero'] : array();
+	if ( '/' === $path && ! empty( $hero['image'] ) ) {
+		$set     = isset( $hero['srcset'] ) ? (string) $hero['srcset'] : '';
+		$inline .= '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $hero['image'] ) . '"' . ( $set ? ' imagesrcset="' . esc_attr( $set ) . '" imagesizes="(max-width: 767px) 250vw, 100vw"' : '' ) . '>';
+	}
+	$html = str_replace( '<head>', '<head>' . $inline, $html );
 	// The stylesheet inline: one request less before the page shows.
 	if ( preg_match( '#<link rel="stylesheet" crossorigin href="/([^"]+\.css)">#', $html, $css ) && is_readable( ABSPATH . $css[1] ) && filesize( ABSPATH . $css[1] ) < 300000 ) {
 		$html = str_replace( $css[0], '<style>' . str_replace( '</style', '<\/style', (string) file_get_contents( ABSPATH . $css[1] ) ) . '</style>', $html );

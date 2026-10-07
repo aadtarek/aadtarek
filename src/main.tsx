@@ -3,7 +3,8 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { loadCatalog } from './api/catalog'
 import { fetchPosts } from './api/content'
-import { isWoo } from './api/wp'
+import { isWoo, type StoreSettings } from './api/wp'
+import { applyStoreSettings } from './config'
 import App from './App.tsx'
 import { preloadRoute } from './routes'
 
@@ -36,9 +37,17 @@ function Splash({ error }: { error?: string }) {
   )
 }
 
-// Renders once the catalogue is loaded (components read the WordPress settings at render time).
-async function render() {
-  // From here on the early image paint in index.html (vite.config.ts) leaves the page alone.
+declare global {
+  interface Window {
+    /** Store settings put in the page by WordPress (rfaheya.php), so the first view already uses them */
+    __rfSettings?: StoreSettings
+  }
+}
+
+let failed = false
+
+function render() {
+  if (failed) return
   container.setAttribute('data-app', '')
   root.render(
     <StrictMode>
@@ -47,12 +56,18 @@ async function render() {
   )
 }
 
-const fail = (e: unknown) => root.render(<Splash error={e instanceof Error ? e.message : String(e)} />)
+const fail = (e: unknown) => {
+  failed = true
+  root.render(<Splash error={e instanceof Error ? e.message : String(e)} />)
+}
 
 // The hash-router preview keeps the path after "#".
 const path = import.meta.env.VITE_HASH_ROUTER ? window.location.hash.replace(/^#/, '') || '/' : window.location.pathname
 // The journal's posts download alongside, so its first render already has them.
 if (isWoo && /^\/journal\/?$/.test(path)) fetchPosts().catch(() => undefined)
-Promise.all([loadCatalog(), preloadRoute(path).catch(() => undefined)])
+if (window.__rfSettings) applyStoreSettings(window.__rfSettings)
+// The page shows as soon as its code is here; the products fill in when they arrive.
+loadCatalog().catch(fail)
+preloadRoute(path)
+  .catch(() => undefined)
   .then(render)
-  .catch(fail)

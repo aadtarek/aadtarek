@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import { families } from '../data/families'
 import type { FamilySlug, Product, Review, WearVideo } from '../types'
 import { fetchBootstrap, primeCache, fetchNotes, fetchProductCategories, fetchProductDetails, fetchVideos, type RawCategory } from './content'
@@ -9,12 +10,34 @@ import { fetchStoreSettings, isWoo, stripHtml, type StoreSettings } from './wp'
  * The catalogue is loaded once at start-up (see main.tsx) and then read
  * synchronously everywhere. With WordPress connected it comes from
  * WooCommerce; otherwise from the demo data in src/data (loaded only then).
+ * The storefront shows straight away; parts that list products wait for
+ * useCatalogReady().
  */
 let products: Product[] = []
 let reviews: Review[] = []
 let videos: WearVideo[] = []
+let ready = false
+const listeners = new Set<() => void>()
+
+const subscribe = (listener: () => void) => {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+export const isCatalogReady = () => ready
+/** True once the products have loaded; re-renders the caller when they do. */
+export function useCatalogReady(): boolean {
+  return useSyncExternalStore(subscribe, isCatalogReady)
+}
 
 export async function loadCatalog(): Promise<void> {
+  await loadData()
+  ready = true
+  listeners.forEach((listener) => listener())
+}
+
+async function loadData(): Promise<void> {
   if (!isWoo) {
     const [p, r, v] = await Promise.all([import('../data/products'), import('../data/reviews'), import('../data/videos')])
     products = p.products

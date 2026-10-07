@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, Play, ShoppingBag, Volume2, VolumeX, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { familyName, findProductById, fullSizeVariations, getVideos, sampleVariation } from '../api/catalog'
+import { familyName, findProductById, fullSizeVariations, getVideos, sampleVariation, useCatalogReady } from '../api/catalog'
 import { formatPrice } from '../lib/format'
 import { profileChips } from '../lib/profile'
 import { useCart } from '../store/cart'
@@ -74,6 +74,7 @@ export function WearVideoCard({ video, index, onOpen }: { video: WearVideo; inde
 
 /** "Wear reports" carousel (home page / product page). Hidden when there are no videos. */
 export function WearVideosSection({ productId, title = 'Worn by you.' }: { productId?: number; title?: string }) {
+  useCatalogReady()
   const videos = getVideos(productId)
   const [open, setOpen] = useState<number | null>(null)
   if (videos.length === 0) return null

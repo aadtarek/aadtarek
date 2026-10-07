@@ -1,7 +1,7 @@
 import { Check, Plus, ShoppingBag, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getAllProducts } from '../api/catalog'
+import { getAllProducts, useCatalogReady } from '../api/catalog'
 import { BUNDLE } from '../config'
 import { formatPrice } from '../lib/format'
 import { useCart } from '../store/cart'
@@ -16,6 +16,7 @@ const sameSize = (a: string, b: string) => a.replace(/\s+/g, '').toLowerCase() =
 export function BundleBuilder() {
   const cart = useCart()
   const [picks, setPicks] = useState<{ product: Product; variation: ProductVariation }[]>([])
+  useCatalogReady()
   if (!BUNDLE.enabled) return null
 
   const options = getAllProducts().flatMap((product) => {
