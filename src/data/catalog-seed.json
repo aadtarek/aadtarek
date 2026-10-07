@@ -81,7 +81,34 @@
       }
     ],
     "totalSales": 1840,
-    "dateCreated": "2026-03-12"
+    "dateCreated": "2026-03-12",
+    "badge": "Best Seller",
+    "composition": {
+      "opening": [
+        "Vanilla",
+        "Saffron"
+      ],
+      "heart": [
+        "Oud",
+        "Amber"
+      ],
+      "drydown": [
+        "Tonka Bean",
+        "Musks"
+      ]
+    },
+    "standard": {
+      "character": "Universal",
+      "comfort": "Balanced",
+      "density": "Dense",
+      "projection": "Balanced",
+      "longevity": "Long-lasting",
+      "evolution": "Evolving"
+    },
+    "story": [
+      "Vanilla Oud brings together creamy vanilla and deep oud in a warm, dark and addictive composition.",
+      "The sweetness of vanilla meets the richness of oud, while amber and tonka bean add warmth, depth and smoothness. The result is a confident fragrance with a rich presence, made for evenings, colder days, and moments that call for something memorable."
+    ]
   },
   {
     "id": 102,
@@ -164,7 +191,33 @@
       }
     ],
     "totalSales": 1520,
-    "dateCreated": "2026-05-02"
+    "dateCreated": "2026-05-02",
+    "badge": "New",
+    "composition": {
+      "opening": [
+        "Saffron",
+        "Rose"
+      ],
+      "heart": [
+        "Incense",
+        "Patchouli"
+      ],
+      "drydown": [
+        "Musk"
+      ]
+    },
+    "standard": {
+      "character": "Selective",
+      "comfort": "Balanced",
+      "density": "Balanced",
+      "projection": "Balanced",
+      "longevity": "Extended",
+      "evolution": "Evolving"
+    },
+    "story": [
+      "Rose Noir wraps velvet rose petals in dark incense and earthy patchouli for a rose that feels mysterious rather than sweet.",
+      "A thread of saffron lifts the opening, while a soft musk base keeps it close and elegant — a modern rose for evenings and special moments."
+    ]
   },
   {
     "id": 103,
@@ -243,7 +296,33 @@
       }
     ],
     "totalSales": 1310,
-    "dateCreated": "2026-08-20"
+    "dateCreated": "2026-08-20",
+    "badge": "",
+    "composition": {
+      "opening": [
+        "Bergamot",
+        "Lemon",
+        "Pink Pepper"
+      ],
+      "heart": [
+        "Leather"
+      ],
+      "drydown": [
+        "Cedarwood"
+      ]
+    },
+    "standard": {
+      "character": "Universal",
+      "comfort": "Relaxed",
+      "density": "Balanced",
+      "projection": "Balanced",
+      "longevity": "Extended",
+      "evolution": "Linear"
+    },
+    "story": [
+      "Citrus Leather opens with sparkling bergamot and lemon, sharpened by a spark of pink pepper.",
+      "It settles into smooth leather and dry cedarwood — fresh enough for the office, polished enough for the evening."
+    ]
   },
   {
     "id": 104,
@@ -327,6 +406,32 @@
       }
     ],
     "totalSales": 1185,
-    "dateCreated": "2026-09-15"
+    "dateCreated": "2026-09-15",
+    "badge": "",
+    "composition": {
+      "opening": [
+        "Sea Notes",
+        "Bergamot"
+      ],
+      "heart": [
+        "Lavender"
+      ],
+      "drydown": [
+        "Cedarwood",
+        "Musk"
+      ]
+    },
+    "standard": {
+      "character": "Universal",
+      "comfort": "Relaxed",
+      "density": "Airy",
+      "projection": "Intimate",
+      "longevity": "Moderate",
+      "evolution": "Linear"
+    },
+    "story": [
+      "Deep Current is a rush of sea air and cool aquatic notes, brightened by bergamot and lavender.",
+      "Clean cedarwood and musk ground it into an easy, everyday freshness that feels effortless in warm weather."
+    ]
   }
 ]

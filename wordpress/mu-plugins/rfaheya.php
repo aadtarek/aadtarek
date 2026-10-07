@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Rfaheya Store
- * Description: WordPress side of the headless Rfaheya storefront: store settings (contact, social, home page), FAQs, page section labels, the "Rfaheya details" box on products, starter-content import, and the REST routes the storefront reads.
- * Version:     2.0.0
+ * Description: WordPress side of the headless Rfaheya storefront: store settings (contact, social, home page), FAQs, page section labels, the "Rfaheya details" box on products, the fragrance notes library, wear-report videos, starter-content import, and the REST routes the storefront reads.
+ * Version:     3.0.0
  *
  * Must-use plugin: lives in wp-content/mu-plugins/ and runs automatically.
  * Starter content (articles, pages, FAQs, images) ships in mu-plugins/rfaheya/.
@@ -374,6 +374,23 @@ function rfaheya_choices() {
 	);
 }
 
+/** Small label on the product image. */
+function rfaheya_badges() {
+	return array( 'Best Seller', 'New', 'Limited Edition' );
+}
+
+/** Rfaheya Standard™ dimensions and their levels (same names as the storefront's Standard page). */
+function rfaheya_standard_levels() {
+	return array(
+		'character'  => array( 'Character', array( 'Universal', 'Selective', 'Enthusiast' ) ),
+		'comfort'    => array( 'Comfort', array( 'Relaxed', 'Balanced', 'Intense' ) ),
+		'density'    => array( 'Density', array( 'Airy', 'Balanced', 'Dense' ) ),
+		'projection' => array( 'Projection', array( 'Intimate', 'Balanced', 'Enormous' ) ),
+		'longevity'  => array( 'Longevity', array( 'Moderate', 'Extended', 'Long-lasting' ) ),
+		'evolution'  => array( 'Evolution', array( 'Linear', 'Evolving' ) ),
+	);
+}
+
 function rfaheya_details( $product_id ) {
 	$d = get_post_meta( $product_id, '_rfaheya_details', true );
 	return is_array( $d ) ? $d : array();
@@ -381,7 +398,10 @@ function rfaheya_details( $product_id ) {
 
 /** "a, b , c" or "a\nb" -> ['a', 'b', 'c'] */
 function rfaheya_list( $text ) {
-	return array_values( array_filter( array_map( 'trim', preg_split( '/[,\n]+/', (string) $text ) ) ) );
+	if ( is_array( $text ) ) {
+		$text = implode( ',', $text );
+	}
+	return array_values( array_unique( array_filter( array_map( 'trim', preg_split( '/[,\n]+/', (string) $text ) ) ) ) );
 }
 
 add_action(
@@ -391,64 +411,228 @@ add_action(
 	}
 );
 
+/** Pill buttons (radio = pick one, checkbox = pick several). Works without JavaScript. */
+function rfaheya_pills( $name, $options, $current, $multiple = false ) {
+	echo '<div class="rf-pills">';
+	foreach ( $options as $value => $label ) {
+		$on = $multiple ? in_array( (string) $value, array_map( 'strval', (array) $current ), true ) : (string) $current === (string) $value;
+		printf(
+			'<label class="rf-pill"><input type="%s" name="%s" value="%s"%s><span>%s</span></label>',
+			$multiple ? 'checkbox' : 'radio',
+			esc_attr( $multiple ? $name . '[]' : $name ),
+			esc_attr( $value ),
+			$on ? ' checked' : '',
+			esc_html( $label )
+		);
+	}
+	echo '</div>';
+}
+
+/** Note picker: chosen notes as chips with their icons, picked from Products → Fragrance notes. */
+function rfaheya_note_picker( $name, $current, $hint = '' ) {
+	$value = implode( ', ', (array) $current );
+	printf(
+		'<div class="rf-notes" data-hint="%s"><input type="text" class="rf-notes-value large-text" name="%s" value="%s" placeholder="Vanilla, Oud, Amber"></div>',
+		esc_attr( $hint ),
+		esc_attr( $name ),
+		esc_attr( $value )
+	);
+}
+
+/** Image picker (Media Library). */
+function rfaheya_media_field( $id, $name, $attachment_id, $type = 'image' ) {
+	$attachment_id = (int) $attachment_id;
+	$preview       = '';
+	if ( $attachment_id ) {
+		$preview = 'video' === $type
+			? '<video src="' . esc_url( (string) wp_get_attachment_url( $attachment_id ) ) . '" muted playsinline></video>'
+			: wp_get_attachment_image( $attachment_id, 'medium' );
+	}
+	printf(
+		'<div class="rf-media" data-type="%1$s"><input type="hidden" id="%2$s" name="%3$s" value="%4$s"><div class="rf-media-preview" id="%2$s-preview">%5$s</div><button type="button" class="button rfaheya-media" data-target="%2$s" data-type="%1$s">%6$s</button> <button type="button" class="button-link rfaheya-media-clear" data-target="%2$s">Remove</button></div>',
+		esc_attr( $type ),
+		esc_attr( $id ),
+		esc_attr( $name ),
+		$attachment_id ? esc_attr( (string) $attachment_id ) : '',
+		$preview, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts / wp_get_attachment_image
+		'video' === $type ? 'Choose video' : 'Choose image'
+	);
+}
+
 function rfaheya_details_box( $post ) {
 	wp_nonce_field( 'rfaheya_details', 'rfaheya_details_nonce' );
 	$d       = rfaheya_details( $post->ID );
 	$choices = rfaheya_choices();
-	$val     = function ( $key ) use ( $d ) {
-		return isset( $d[ $key ] ) ? $d[ $key ] : '';
+	$val     = function ( $key, $default = '' ) use ( $d ) {
+		return isset( $d[ $key ] ) ? $d[ $key ] : $default;
 	};
-	$text_row = function ( $key, $label, $help, $list = false ) use ( $val ) {
-		$value = $val( $key );
-		$value = is_array( $value ) ? implode( ', ', $value ) : $value;
-		echo '<tr><th scope="row"><label for="rfaheya-' . esc_attr( $key ) . '">' . esc_html( $label ) . '</label></th><td>';
-		echo '<input id="rfaheya-' . esc_attr( $key ) . '" name="rfaheya[' . esc_attr( $key ) . ']" class="large-text" value="' . esc_attr( $value ) . '">';
-		echo '<p class="description">' . esc_html( $help ) . '</p></td></tr>';
+	$row     = function ( $label, $help, $render ) {
+		echo '<div class="rf-row"><div class="rf-label">' . esc_html( $label ) . ( $help ? '<small>' . esc_html( $help ) . '</small>' : '' ) . '</div><div class="rf-field">';
+		$render();
+		echo '</div></div>';
 	};
-	$select_row = function ( $key, $label ) use ( $val, $choices ) {
-		echo '<tr><th scope="row"><label for="rfaheya-' . esc_attr( $key ) . '">' . esc_html( $label ) . '</label></th><td><select id="rfaheya-' . esc_attr( $key ) . '" name="rfaheya[' . esc_attr( $key ) . ']"><option value="">— from attributes —</option>';
-		foreach ( $choices[ $key ] as $k => $l ) {
-			echo '<option value="' . esc_attr( $k ) . '"' . selected( $val( $key ), $k, false ) . '>' . esc_html( $l ) . '</option>';
-		}
-		echo '</select></td></tr>';
-	};
-	$checks_row = function ( $key, $label ) use ( $val, $choices ) {
-		$current = (array) $val( $key );
-		echo '<tr><th scope="row">' . esc_html( $label ) . '</th><td><fieldset>';
-		foreach ( $choices[ $key ] as $k => $l ) {
-			echo '<label style="margin-right:16px;display:inline-block"><input type="checkbox" name="rfaheya[' . esc_attr( $key ) . '][]" value="' . esc_attr( $k ) . '"' . checked( in_array( $k, $current, true ), true, false ) . '> ' . esc_html( $l ) . '</label>';
-		}
-		echo '</fieldset></td></tr>';
-	};
+	$auto    = array( '' => 'Auto' );
+	$notes   = admin_url( 'edit-tags.php?taxonomy=rfaheya_note&post_type=product' );
+	?>
+	<div class="rf-box">
+		<p class="rf-intro">What the storefront shows for this fragrance. The tagline is the product’s <em>Short description</em>, the story is the main description, and sizes / prices are the variations.</p>
 
-	echo '<p>What the storefront shows for this fragrance. Empty fields fall back to the product attributes. The tagline is the product’s <em>Short description</em>; sizes and prices are the variations.</p>';
-	echo '<table class="form-table" role="presentation">';
-	$text_row( 'inspired_by', 'Inspired by', 'The scent it is inspired by, e.g. “Tobacco Vanille”.' );
-	$text_row( 'accords', 'Main accords', 'Comma separated, e.g. Sweet, Oud, Amber. Shown as chips and used by Search and the Shop filters.' );
-	$text_row( 'notes', 'Notes', 'Comma separated, e.g. Vanilla, Oud, Amber, Tonka Bean. Shown with their illustrations.' );
-	$select_row( 'gender', 'For' );
-	$checks_row( 'occasions', 'Occasions' );
-	$checks_row( 'seasons', 'Seasons' );
-	$select_row( 'presence', 'Presence' );
-	$select_row( 'longevity', 'Longevity' );
-	echo '</table><p class="description">For, Occasions, Seasons, Presence and Longevity drive the Rfaheya Finder’s recommendations.</p>';
+		<h3 class="rf-section">Identity</h3>
+		<?php
+		$row(
+			'Badge',
+			'Shown on the product image.',
+			function () use ( $val ) {
+				rfaheya_pills( 'rfaheya[badge]', array_merge( array( '' => 'None' ), array_combine( rfaheya_badges(), rfaheya_badges() ) ), $val( 'badge' ) );
+			}
+		);
+		$row(
+			'DNA',
+			'The original fragrance it is based on.',
+			function () use ( $val ) {
+				echo '<input id="rfaheya-inspired_by" name="rfaheya[inspired_by]" class="large-text" placeholder="e.g. Vanilla 28 by Kayali" value="' . esc_attr( $val( 'inspired_by' ) ) . '">';
+			}
+		);
+		$row(
+			'DNA bottle image',
+			'Optional, shown in the DNA card.',
+			function () use ( $val ) {
+				rfaheya_media_field( 'rfaheya-dna-image', 'rfaheya[dna_image]', $val( 'dna_image', 0 ) );
+			}
+		);
+		?>
+
+		<h3 class="rf-section">Notes &amp; accords <a href="<?php echo esc_url( $notes ); ?>" target="_blank" rel="noopener">Manage notes &amp; icons ↗</a></h3>
+		<?php
+		$row(
+			'Main accords',
+			'Used by Search and the Shop.',
+			function () use ( $val ) {
+				echo '<div class="rf-tags"><input type="text" class="rf-tags-value large-text" id="rfaheya-accords" name="rfaheya[accords]" value="' . esc_attr( implode( ', ', (array) $val( 'accords', array() ) ) ) . '" placeholder="Sweet, Oud, Amber"></div>';
+			}
+		);
+		$row(
+			'Key notes',
+			'Shown on the card (first 4) and the product page.',
+			function () use ( $val ) {
+				rfaheya_note_picker( 'rfaheya[notes]', $val( 'notes', array() ), 'Pick up to 5' );
+			}
+		);
+		$row(
+			'Opening',
+			'The composition: first impression.',
+			function () use ( $val ) {
+				rfaheya_note_picker( 'rfaheya[opening]', $val( 'opening', array() ) );
+			}
+		);
+		$row(
+			'Heart',
+			'',
+			function () use ( $val ) {
+				rfaheya_note_picker( 'rfaheya[heart]', $val( 'heart', array() ) );
+			}
+		);
+		$row(
+			'Dry down',
+			'',
+			function () use ( $val ) {
+				rfaheya_note_picker( 'rfaheya[drydown]', $val( 'drydown', array() ) );
+			}
+		);
+		?>
+
+		<h3 class="rf-section">Profile <small>Chips on the card, Shop filters and the Rfaheya Finder.</small></h3>
+		<?php
+		$row(
+			'For',
+			'',
+			function () use ( $val, $choices, $auto ) {
+				rfaheya_pills( 'rfaheya[gender]', $auto + $choices['gender'], $val( 'gender' ) );
+			}
+		);
+		$row(
+			'Occasions',
+			'The first one shows on the card.',
+			function () use ( $val, $choices ) {
+				rfaheya_pills( 'rfaheya[occasions]', $choices['occasions'], $val( 'occasions', array() ), true );
+			}
+		);
+		$row(
+			'Seasons',
+			'The first one shows on the card.',
+			function () use ( $val, $choices ) {
+				rfaheya_pills( 'rfaheya[seasons]', $choices['seasons'], $val( 'seasons', array() ), true );
+			}
+		);
+		$row(
+			'Presence',
+			'',
+			function () use ( $val, $choices, $auto ) {
+				rfaheya_pills( 'rfaheya[presence]', $auto + $choices['presence'], $val( 'presence' ) );
+			}
+		);
+		$row(
+			'Longevity',
+			'',
+			function () use ( $val, $choices, $auto ) {
+				rfaheya_pills( 'rfaheya[longevity]', $auto + $choices['longevity'], $val( 'longevity' ) );
+			}
+		);
+		?>
+
+		<h3 class="rf-section">Rfaheya Standard™ <small>The six dimensions on the product page.</small></h3>
+		<?php
+		$standard = (array) $val( 'standard', array() );
+		foreach ( rfaheya_standard_levels() as $key => $dim ) {
+			$row(
+				$dim[0],
+				'',
+				function () use ( $key, $dim, $standard ) {
+					rfaheya_pills( "rfaheya[standard][$key]", array_merge( array( '' => '—' ), array_combine( $dim[1], $dim[1] ) ), isset( $standard[ $key ] ) ? $standard[ $key ] : '' );
+				}
+			);
+		}
+		?>
+	</div>
+	<?php
 }
 
 /** Cleans the posted details box values. */
 function rfaheya_clean_details( $input ) {
 	$choices = rfaheya_choices();
 	$input   = is_array( $input ) ? $input : array();
+	$text    = function ( $key ) use ( $input ) {
+		return sanitize_text_field( isset( $input[ $key ] ) ? (string) $input[ $key ] : '' );
+	};
+	$names   = function ( $key ) use ( $input ) {
+		return array_map( 'sanitize_text_field', rfaheya_list( isset( $input[ $key ] ) ? $input[ $key ] : '' ) );
+	};
+	$badge   = $text( 'badge' );
 	$out     = array(
-		'inspired_by' => sanitize_text_field( isset( $input['inspired_by'] ) ? $input['inspired_by'] : '' ),
-		'accords'     => array_map( 'sanitize_text_field', rfaheya_list( isset( $input['accords'] ) ? $input['accords'] : '' ) ),
-		'notes'       => array_map( 'sanitize_text_field', rfaheya_list( isset( $input['notes'] ) ? $input['notes'] : '' ) ),
+		'inspired_by' => $text( 'inspired_by' ),
+		'dna_image'   => isset( $input['dna_image'] ) ? absint( $input['dna_image'] ) : 0,
+		'badge'       => $badge,
+		'accords'     => $names( 'accords' ),
+		'notes'       => $names( 'notes' ),
+		'opening'     => $names( 'opening' ),
+		'heart'       => $names( 'heart' ),
+		'drydown'     => $names( 'drydown' ),
+		'standard'    => array(),
 	);
 	foreach ( array( 'gender', 'presence', 'longevity' ) as $key ) {
 		$v           = isset( $input[ $key ] ) ? (string) $input[ $key ] : '';
 		$out[ $key ] = isset( $choices[ $key ][ $v ] ) ? $v : '';
 	}
 	foreach ( array( 'occasions', 'seasons' ) as $key ) {
-		$out[ $key ] = array_values( array_intersect( array_keys( $choices[ $key ] ), isset( $input[ $key ] ) ? (array) $input[ $key ] : array() ) );
+		$picked      = isset( $input[ $key ] ) ? (array) $input[ $key ] : array();
+		$out[ $key ] = array_values( array_filter( array_map( 'strval', $picked ), fn( $k ) => isset( $choices[ $key ][ $k ] ) ) );
+	}
+	$standard = isset( $input['standard'] ) && is_array( $input['standard'] ) ? $input['standard'] : array();
+	foreach ( rfaheya_standard_levels() as $key => $dim ) {
+		$v = isset( $standard[ $key ] ) ? (string) $standard[ $key ] : '';
+		if ( in_array( $v, $dim[1], true ) ) {
+			$out['standard'][ $key ] = $v;
+		}
 	}
 	return $out;
 }
@@ -464,6 +648,311 @@ add_action(
 		}
 		$input = isset( $_POST['rfaheya'] ) ? wp_unslash( $_POST['rfaheya'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned below
 		update_post_meta( $post_id, '_rfaheya_details', rfaheya_clean_details( $input ) );
+	}
+);
+
+// ==================================================================== fragrance notes library
+
+add_action(
+	'init',
+	function () {
+		register_taxonomy(
+			'rfaheya_note',
+			'product',
+			array(
+				'labels'            => array(
+					'name'          => 'Fragrance notes',
+					'singular_name' => 'Note',
+					'menu_name'     => 'Fragrance notes',
+					'add_new_item'  => 'Add note',
+					'edit_item'     => 'Edit note',
+					'search_items'  => 'Search notes',
+					'not_found'     => 'No notes yet.',
+				),
+				'public'            => false,
+				'show_ui'           => true,
+				'show_in_menu'      => true,
+				'show_admin_column' => false,
+				'meta_box_cb'       => false,
+				'show_in_rest'      => false,
+				'rewrite'           => false,
+				'hierarchical'      => false,
+			)
+		);
+	}
+);
+
+/** Icon URL of a note term ('' when none). */
+function rfaheya_note_icon( $term_id ) {
+	$id = (int) get_term_meta( $term_id, 'rfaheya_icon', true );
+	return $id ? (string) wp_get_attachment_image_url( $id, 'thumbnail' ) : '';
+}
+
+/** Every note in the library: name and icon. */
+function rfaheya_note_library() {
+	$terms = get_terms(
+		array(
+			'taxonomy'   => 'rfaheya_note',
+			'hide_empty' => false,
+			'orderby'    => 'name',
+		)
+	);
+	if ( is_wp_error( $terms ) ) {
+		return array();
+	}
+	return array_map(
+		fn( $t ) => array(
+			'name' => html_entity_decode( $t->name, ENT_QUOTES ),
+			'icon' => rfaheya_note_icon( $t->term_id ),
+		),
+		$terms
+	);
+}
+
+add_action(
+	'rfaheya_note_add_form_fields',
+	function () {
+		echo '<div class="form-field"><label>Icon</label>';
+		rfaheya_media_field( 'rfaheya-note-icon', 'rfaheya_icon', 0 );
+		echo '<p>A transparent PNG works best (about 200 × 200).</p></div>';
+	}
+);
+add_action(
+	'rfaheya_note_edit_form_fields',
+	function ( $term ) {
+		echo '<tr class="form-field"><th scope="row"><label>Icon</label></th><td>';
+		rfaheya_media_field( 'rfaheya-note-icon', 'rfaheya_icon', get_term_meta( $term->term_id, 'rfaheya_icon', true ) );
+		echo '<p class="description">A transparent PNG works best (about 200 × 200).</p></td></tr>';
+	}
+);
+$rfaheya_save_note = function ( $term_id ) {
+	if ( ! current_user_can( 'manage_product_terms' ) && ! current_user_can( 'manage_categories' ) ) {
+		return;
+	}
+	// The term screens verify their own nonce before these hooks run.
+	if ( isset( $_POST['rfaheya_icon'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		update_term_meta( $term_id, 'rfaheya_icon', absint( $_POST['rfaheya_icon'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	}
+};
+add_action( 'created_rfaheya_note', $rfaheya_save_note );
+add_action( 'edited_rfaheya_note', $rfaheya_save_note );
+
+add_filter(
+	'manage_edit-rfaheya_note_columns',
+	function ( $cols ) {
+		unset( $cols['description'], $cols['slug'], $cols['posts'] );
+		return array_merge( array( 'cb' => $cols['cb'], 'rf_icon' => 'Icon' ), $cols );
+	}
+);
+add_filter(
+	'manage_rfaheya_note_custom_column',
+	function ( $out, $col, $term_id ) {
+		if ( 'rf_icon' !== $col ) {
+			return $out;
+		}
+		$url = rfaheya_note_icon( $term_id );
+		return $url ? '<img src="' . esc_url( $url ) . '" alt="" style="width:44px;height:44px;object-fit:contain">' : '—';
+	},
+	10,
+	3
+);
+
+// ==================================================================== wear-report videos
+
+add_action(
+	'init',
+	function () {
+		register_post_type(
+			'rfaheya_video',
+			array(
+				'labels'        => array(
+					'name'          => 'Videos',
+					'singular_name' => 'Video',
+					'add_new'       => 'Add video',
+					'add_new_item'  => 'Add video',
+					'edit_item'     => 'Edit video',
+					'all_items'     => 'Videos',
+				),
+				'public'        => false,
+				'show_ui'       => true,
+				'show_in_menu'  => 'edit.php?post_type=product',
+				'supports'      => array( 'title', 'page-attributes' ),
+				'menu_icon'     => 'dashicons-video-alt3',
+			)
+		);
+	}
+);
+
+add_filter(
+	'enter_title_here',
+	fn( $text, $post ) => 'rfaheya_video' === $post->post_type ? 'Title shown on the video, e.g. Drunk Gold + Mawj' : $text,
+	10,
+	2
+);
+
+add_action(
+	'add_meta_boxes_rfaheya_video',
+	function () {
+		add_meta_box( 'rfaheya_video', 'Video', 'rfaheya_video_box', 'rfaheya_video', 'normal', 'high' );
+	}
+);
+
+function rfaheya_video_meta( $post_id ) {
+	$m = get_post_meta( $post_id, '_rfaheya_video', true );
+	return wp_parse_args(
+		is_array( $m ) ? $m : array(),
+		array(
+			'video'   => 0,
+			'poster'  => 0,
+			'product' => 0,
+			'label'   => 'Rfaheya Wear Report',
+			'tags'    => '',
+		)
+	);
+}
+
+function rfaheya_video_box( $post ) {
+	wp_nonce_field( 'rfaheya_video', 'rfaheya_video_nonce' );
+	$m        = rfaheya_video_meta( $post->ID );
+	$products = get_posts(
+		array(
+			'post_type'   => 'product',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'orderby'     => 'title',
+			'order'       => 'ASC',
+		)
+	);
+	?>
+	<div class="rf-box">
+		<div class="rf-row"><div class="rf-label">Video file<small>MP4, vertical (9:16) looks best.</small></div><div class="rf-field"><?php rfaheya_media_field( 'rfaheya-video-file', 'rfaheya_video[video]', $m['video'], 'video' ); ?></div></div>
+		<div class="rf-row"><div class="rf-label">Cover image<small>Optional: shown before the video plays.</small></div><div class="rf-field"><?php rfaheya_media_field( 'rfaheya-video-poster', 'rfaheya_video[poster]', $m['poster'] ); ?></div></div>
+		<div class="rf-row"><div class="rf-label">Small label</div><div class="rf-field"><input class="regular-text" name="rfaheya_video[label]" value="<?php echo esc_attr( $m['label'] ); ?>"></div></div>
+		<div class="rf-row"><div class="rf-label">Tags line<small>e.g. Warm · Bold · Evening</small></div><div class="rf-field"><input class="regular-text" name="rfaheya_video[tags]" value="<?php echo esc_attr( $m['tags'] ); ?>"></div></div>
+		<div class="rf-row"><div class="rf-label">Product<small>Shown on the video, with Add to cart.</small></div><div class="rf-field">
+			<input type="search" class="rf-product-search regular-text" placeholder="Search products…">
+			<div class="rf-products">
+				<?php foreach ( $products as $p ) : ?>
+					<label class="rf-product" data-name="<?php echo esc_attr( strtolower( get_the_title( $p ) ) ); ?>">
+						<input type="radio" name="rfaheya_video[product]" value="<?php echo esc_attr( (string) $p->ID ); ?>" <?php checked( (int) $m['product'], $p->ID ); ?>>
+						<span><?php echo get_the_post_thumbnail( $p, 'thumbnail' ); ?><b><?php echo esc_html( get_the_title( $p ) ); ?></b></span>
+					</label>
+				<?php endforeach; ?>
+				<?php if ( ! $products ) : ?>
+					<p>No published products yet.</p>
+				<?php endif; ?>
+			</div>
+		</div></div>
+	</div>
+	<?php
+}
+
+add_action(
+	'save_post_rfaheya_video',
+	function ( $post_id ) {
+		if ( ! isset( $_POST['rfaheya_video_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rfaheya_video_nonce'] ) ), 'rfaheya_video' ) ) {
+			return;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE || ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+		$in = isset( $_POST['rfaheya_video'] ) && is_array( $_POST['rfaheya_video'] ) ? wp_unslash( $_POST['rfaheya_video'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned below
+		update_post_meta(
+			$post_id,
+			'_rfaheya_video',
+			array(
+				'video'   => absint( isset( $in['video'] ) ? $in['video'] : 0 ),
+				'poster'  => absint( isset( $in['poster'] ) ? $in['poster'] : 0 ),
+				'product' => absint( isset( $in['product'] ) ? $in['product'] : 0 ),
+				'label'   => sanitize_text_field( isset( $in['label'] ) ? $in['label'] : '' ),
+				'tags'    => sanitize_text_field( isset( $in['tags'] ) ? $in['tags'] : '' ),
+			)
+		);
+	}
+);
+
+add_filter(
+	'manage_rfaheya_video_posts_columns',
+	function ( $cols ) {
+		return array(
+			'cb'         => $cols['cb'],
+			'rf_preview' => '',
+			'title'      => 'Title',
+			'rf_product' => 'Product',
+			'date'       => $cols['date'],
+		);
+	}
+);
+add_action(
+	'manage_rfaheya_video_posts_custom_column',
+	function ( $col, $post_id ) {
+		$m = rfaheya_video_meta( $post_id );
+		if ( 'rf_preview' === $col && $m['video'] ) {
+			echo '<video src="' . esc_url( (string) wp_get_attachment_url( (int) $m['video'] ) ) . '" muted playsinline preload="metadata" style="width:54px;height:96px;object-fit:cover;border-radius:4px;background:#111"></video>';
+		}
+		if ( 'rf_product' === $col ) {
+			echo $m['product'] ? esc_html( get_the_title( (int) $m['product'] ) ) : '—';
+		}
+	},
+	10,
+	2
+);
+
+/** Published videos for the storefront. */
+function rfaheya_videos() {
+	$posts = get_posts(
+		array(
+			'post_type'   => 'rfaheya_video',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'orderby'     => array(
+				'menu_order' => 'ASC',
+				'date'       => 'DESC',
+			),
+		)
+	);
+	$out   = array();
+	foreach ( $posts as $p ) {
+		$m   = rfaheya_video_meta( $p->ID );
+		$src = $m['video'] ? (string) wp_get_attachment_url( (int) $m['video'] ) : '';
+		if ( ! $src ) {
+			continue;
+		}
+		$out[] = array(
+			'id'        => $p->ID,
+			'title'     => html_entity_decode( get_the_title( $p ), ENT_QUOTES ),
+			'label'     => $m['label'],
+			'tags'      => $m['tags'],
+			'src'       => $src,
+			'poster'    => $m['poster'] ? (string) wp_get_attachment_image_url( (int) $m['poster'], 'large' ) : '',
+			'productId' => (int) $m['product'],
+		);
+	}
+	return $out;
+}
+
+// ==================================================================== admin assets (details box, notes, videos)
+
+add_action(
+	'admin_enqueue_scripts',
+	function () {
+		$screen = get_current_screen();
+		if ( ! $screen || ! ( in_array( $screen->post_type, array( 'product', 'rfaheya_video' ), true ) && in_array( $screen->base, array( 'post', 'edit-tags', 'term' ), true ) ) ) {
+			return;
+		}
+		$base = content_url( 'mu-plugins/rfaheya-admin/' );
+		$ver  = '3.0.0';
+		wp_enqueue_media();
+		wp_enqueue_style( 'rfaheya-admin-ui', $base . 'admin.css', array(), $ver );
+		wp_enqueue_script( 'rfaheya-admin-ui', $base . 'admin.js', array( 'jquery' ), $ver, true );
+		wp_localize_script(
+			'rfaheya-admin-ui',
+			'rfaheyaAdmin',
+			array(
+				'notes'     => rfaheya_note_library(),
+				'notesUrl'  => admin_url( 'edit-tags.php?taxonomy=rfaheya_note&post_type=product' ),
+			)
+		);
 	}
 );
 
@@ -582,10 +1071,34 @@ add_action(
 					);
 					$out = array();
 					foreach ( $ids as $id ) {
-						$out[ (string) $id ] = rfaheya_details( $id );
+						$d = rfaheya_details( $id );
+						if ( ! empty( $d['dna_image'] ) ) {
+							$d['dna_image_url'] = (string) wp_get_attachment_image_url( (int) $d['dna_image'], 'medium' );
+						}
+						$out[ (string) $id ] = $d;
 					}
 					return rest_ensure_response( (object) $out );
 				},
+			)
+		);
+
+		register_rest_route(
+			'rfaheya/v1',
+			'/notes',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => $public,
+				'callback'            => fn() => rest_ensure_response( rfaheya_note_library() ),
+			)
+		);
+
+		register_rest_route(
+			'rfaheya/v1',
+			'/videos',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => $public,
+				'callback'            => fn() => rest_ensure_response( rfaheya_videos() ),
 			)
 		);
 	}
@@ -659,6 +1172,7 @@ function rfaheya_import_content() {
 		'posts'    => 0,
 		'pages'    => 0,
 		'faqs'     => 0,
+		'notes'    => 0,
 		'families' => 0,
 		'products' => 0,
 	);
@@ -825,6 +1339,9 @@ function rfaheya_import_content() {
 		}
 	}
 
+	$count['notes'] = rfaheya_import_notes( $data );
+	rfaheya_import_product_extras( $data );
+
 	// WordPress's sample content would otherwise show up in the journal.
 	foreach ( array( array( 'hello-world', 'post' ), array( 'sample-page', 'page' ) ) as $sample ) {
 		$post = get_page_by_path( $sample[0], OBJECT, $sample[1] );
@@ -834,14 +1351,73 @@ function rfaheya_import_content() {
 	}
 
 	return sprintf(
-		'Imported %d articles, %d pages, %d FAQs, %d family images and %d product detail boxes. Existing content was left as is.',
+		'Imported %d articles, %d pages, %d FAQs, %d notes, %d family images and %d product detail boxes. Existing content was left as is.',
 		$count['posts'],
 		$count['pages'],
 		$count['faqs'],
+		$count['notes'],
 		$count['families'],
 		$count['products']
 	);
 }
+
+/** Adds the starter notes (with their icons) that aren't in the library yet; returns how many. */
+function rfaheya_import_notes( $data ) {
+	$added = 0;
+	foreach ( (array) ( isset( $data['notes'] ) ? $data['notes'] : array() ) as $n ) {
+		if ( empty( $n['name'] ) || term_exists( $n['name'], 'rfaheya_note' ) ) {
+			continue;
+		}
+		$made = wp_insert_term( $n['name'], 'rfaheya_note' );
+		if ( is_wp_error( $made ) ) {
+			continue;
+		}
+		$icon = empty( $n['icon'] ) ? 0 : rfaheya_import_media( $n['icon'], $n['name'] );
+		if ( $icon ) {
+			update_term_meta( $made['term_id'], 'rfaheya_icon', $icon );
+		}
+		$added++;
+	}
+	return $added;
+}
+
+/** Fills empty badge / composition / Rfaheya Standard™ values of the starter products (matched by slug). */
+function rfaheya_import_product_extras( $data ) {
+	foreach ( (array) ( isset( $data['products'] ) ? $data['products'] : array() ) as $extra ) {
+		$post = get_page_by_path( $extra['slug'], OBJECT, 'product' );
+		if ( ! $post ) {
+			continue;
+		}
+		$d       = rfaheya_details( $post->ID );
+		$changed = false;
+		foreach ( array( 'badge', 'opening', 'heart', 'drydown', 'standard' ) as $key ) {
+			if ( empty( $d[ $key ] ) && ! empty( $extra[ $key ] ) ) {
+				$d[ $key ] = $extra[ $key ];
+				$changed   = true;
+			}
+		}
+		if ( $changed ) {
+			update_post_meta( $post->ID, '_rfaheya_details', rfaheya_clean_details( $d ) );
+		}
+	}
+}
+
+/** One-time upgrade for sites set up with an earlier version: fill the notes library and the new product fields. */
+add_action(
+	'admin_init',
+	function () {
+		if ( (int) get_option( 'rfaheya_version', 2 ) >= 3 || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		update_option( 'rfaheya_version', 3 );
+		$file = __DIR__ . '/rfaheya/content.json';
+		$data = is_readable( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null;
+		if ( is_array( $data ) ) {
+			rfaheya_import_notes( $data );
+			rfaheya_import_product_extras( $data );
+		}
+	}
+);
 
 // ==================================================================== My Account
 

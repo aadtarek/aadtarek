@@ -41,6 +41,10 @@ What you edit where:
    - Home page               > Settings > Rfaheya Store
    - Fragrance families      > Products > Categories (description + thumbnail)
    - Product extras          > Product edit > "Rfaheya details" box
+                               (badge, DNA, key notes, opening / heart / dry down,
+                               who it's for, occasions, seasons, Rfaheya Standard levels)
+   - Note icons              > Products > Fragrance notes (name + icon; pick them in each product)
+   - Wear-report videos      > Products > Videos (upload the video, pick its product)
    - Reviews                 > Products > Reviews
 
 8) LiteSpeed Cache: keep "Cache REST API" off.
