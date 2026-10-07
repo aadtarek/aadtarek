@@ -10,6 +10,9 @@
  *   rfaheya-setup/rfaheya-products.csv      WooCommerce product import
  *   rfaheya-setup/README.txt                the steps
  *
+ * Also release/rfaheya-storefront.zip: the same files as a WordPress plugin that copies
+ * them into place (wordpress/rfaheya-storefront.php).
+ *
  * The site address for the CSV comes from SITE_URL (environment or .env.headless).
  */
 import { execFileSync } from 'node:child_process'
@@ -68,3 +71,11 @@ rmSync(release, { recursive: true, force: true })
 mkdirSync(release, { recursive: true })
 writeFileSync(join(release, 'rfaheya-public_html.zip'), zipSync(files, { level: 9 }))
 console.log(`release/rfaheya-public_html.zip — ${Object.keys(files).length} files, product images from ${site}/import/`)
+
+// The same files as a WordPress plugin (Plugins → Add New → Upload Plugin), for hosts where
+// uploading and extracting a zip in File Manager doesn't work (wordpress/rfaheya-storefront.php).
+const build = new Date().toISOString().replace(/\D/g, '').slice(0, 12)
+const plugin = { 'rfaheya-storefront/rfaheya-storefront.php': new TextEncoder().encode(readFileSync(join(root, 'wordpress/rfaheya-storefront.php'), 'utf8').replaceAll('__BUILD__', build)) }
+for (const [path, data] of Object.entries(files)) plugin[`rfaheya-storefront/site/${path === '.htaccess' ? 'htaccess.txt' : path}`] = data
+writeFileSync(join(release, 'rfaheya-storefront.zip'), zipSync(plugin, { level: 9 }))
+console.log(`release/rfaheya-storefront.zip — WordPress plugin, version 1.0.${build}`)
