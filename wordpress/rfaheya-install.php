@@ -9,6 +9,27 @@
  */
 header( 'Content-Type: text/plain; charset=utf-8' );
 header( 'Cache-Control: no-store' );
+header( 'X-LiteSpeed-Cache-Control: no-cache' );
+
+// Show what went wrong instead of a blank page.
+ini_set( 'display_errors', '1' );
+error_reporting( E_ALL );
+@set_time_limit( 600 );
+@ini_set( 'memory_limit', '256M' );
+ignore_user_abort( true );
+while ( ob_get_level() > 0 ) {
+	ob_end_flush();
+}
+register_shutdown_function(
+	function () {
+		$e = error_get_last();
+		if ( $e && in_array( $e['type'], array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ), true ) ) {
+			echo "\nERROR: " . $e['message'] . ' (' . basename( $e['file'] ) . ':' . $e['line'] . ")\n";
+		}
+	}
+);
+echo "Rfaheya installer (PHP " . PHP_VERSION . ")\n";
+flush();
 
 $root = __DIR__;
 
@@ -16,11 +37,18 @@ if ( ! class_exists( 'ZipArchive' ) ) {
 	exit( "ERROR: PHP zip extension is not available on this hosting.\n" );
 }
 // The newest rfaheya*.zip here (the browser may have renamed it, e.g. "rfaheya-public_html (1).zip").
-$zips = glob( "$root/rfaheya*.zip" ) ?: array();
-usort( $zips, fn( $a, $b ) => filemtime( $b ) - filemtime( $a ) );
+$zips = glob( "$root/rfaheya*.zip" );
+$zips = $zips ? $zips : array();
+usort(
+	$zips,
+	function ( $a, $b ) {
+		return filemtime( $b ) - filemtime( $a );
+	}
+);
 $zip = $zips ? $zips[0] : '';
 if ( ! $zip ) {
-	$all = glob( "$root/*.zip" ) ?: array();
+	$all = glob( "$root/*.zip" );
+	$all = $all ? $all : array();
 	exit( "ERROR: no rfaheya*.zip in this folder ($root). Upload it next to this file.\nZip files here: " . ( $all ? implode( ', ', array_map( 'basename', $all ) ) : 'none' ) . "\n" );
 }
 echo 'Using ' . basename( $zip ) . "\n";
@@ -62,10 +90,19 @@ for ( $i = 0; $i < $archive->numFiles; $i++ ) {
 	if ( ! is_dir( dirname( $target ) ) ) {
 		mkdir( dirname( $target ), 0755, true );
 	}
-	if ( false === file_put_contents( $target, $archive->getFromIndex( $i ) ) ) {
-		exit( "ERROR: could not write $name\n" );
+	// Streamed, so big files (videos) don't need to fit in memory.
+	$in  = $archive->getStream( $name );
+	$out = $in ? fopen( $target, 'wb' ) : false;
+	if ( ! $in || ! $out || false === stream_copy_to_stream( $in, $out ) ) {
+		exit( "ERROR: could not write $name (check the folder permissions)\n" );
 	}
+	fclose( $in );
+	fclose( $out );
 	$count++;
+	if ( 0 === $count % 50 ) {
+		echo "  $count files…\n";
+		flush();
+	}
 }
 $archive->close();
 echo "Extracted $count files into $root\n";
