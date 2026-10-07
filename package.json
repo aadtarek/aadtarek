@@ -12,7 +12,7 @@
     "dev:headless": "vite --mode headless",
     "start:headless": "vite build --mode headless && vite preview --open",
     "build:headless": "tsc -b && vite build --mode headless",
-    "release": "npm run export:content && npm run build:headless && node scripts/package-release.mjs",
+    "release": "npm run export:content && npm run build:headless && node scripts/prerender.mjs && node scripts/package-release.mjs",
     "export:content": "vite build --mode export --ssr scripts/export-content.ts && node .export-content/export-content.js",
     "build:preview": "VITE_HASH_ROUTER=1 vite build --base ./ --outDir dist-preview"
   },
@@ -32,6 +32,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "fflate": "^0.8.3",
     "oxlint": "^1.81.0",
+    "playwright-core": "^1.63.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"

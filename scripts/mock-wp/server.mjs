@@ -104,7 +104,7 @@ for (const r of rows.filter((x) => x.Type === 'variation')) {
   const id = nextId++
   const size = r['Attribute 1 value(s)']
   // One deliberately out-of-stock variation, to exercise stock errors.
-  const inStock = !(parent.slug === 'deep-current' && size === '10 ML')
+  const inStock = !(parent.slug === 'deep-current' && size === '5 ML')
   const price = String(Math.round(Number(r['Regular price']) * 100))
   variations.push({
     id,
@@ -317,6 +317,26 @@ createServer(async (req, res) => {
       })
     }
     return err(res, 404, 'rest_no_route', 'No route was found matching the URL and request method.')
+  }
+
+  // rfaheya/v1/bootstrap: WordPress's own data (from the WordPress at `wpSite`, when set) plus this mock's store.
+  if (path === '/wp-json/rfaheya/v1/bootstrap') {
+    const wpSite = process.env.WP_SITE
+    const get = async (route, fallback) => (wpSite ? fetch(`${wpSite}/?rest_route=/${route}`).then((r) => r.json()).catch(() => fallback) : fallback)
+    const cats = new Map()
+    for (const p of products) for (const c of p.categories) cats.set(c.slug, c)
+    const list = [...products].sort((a, b) => a.position - b.position)
+    return send(res, 200, {
+      settings: await get('rfaheya/v1/settings', {}),
+      details: await get('rfaheya/v1/products', {}),
+      notes: await get('rfaheya/v1/notes', []),
+      videos: await get('rfaheya/v1/videos', []),
+      categories: [...cats.values()].map((c) => ({ id: c.id, name: c.name, slug: c.slug, description: '', image: null })),
+      products: list.map(publicProduct),
+      dateOrder: [...products].sort((a, b) => a.created - b.created).map((p) => p.id),
+      variations,
+      reviews,
+    })
   }
 
   if (path === '/wp-json/rfaheya/v1/settings') {

@@ -34,8 +34,9 @@ export interface StoreSettings {
   myAccountUrl?: string
   home?: {
     announcements?: string[]
-    hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image', string>>
+    hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image' | 'srcset', string>>
   }
+  bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
 }
 
 const configured = String(import.meta.env.VITE_WP_URL ?? '').trim()

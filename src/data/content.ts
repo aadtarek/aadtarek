@@ -64,7 +64,7 @@ export const contentPages: ContentPage[] = [
       {
         heading: 'Try before you commit',
         paragraphs: [
-          'The best way to avoid a return is to start with a 10 ML discovery size. Wear it for a few days, then choose the full bottle with confidence.',
+          'The best way to avoid a return is to start with a 5 ML discovery size. Wear it for a few days, then choose the full bottle with confidence.',
         ],
       },
       {
@@ -82,7 +82,7 @@ export const contentPages: ContentPage[] = [
       {
         heading: 'Choosing a size',
         list: [
-          '10 ML — the discovery size. Roughly 100 sprays; ideal for trying a scent or travelling.',
+          '5 ML — the discovery size. Roughly 50 sprays; ideal for trying a scent or travelling.',
           '50 ML — the everyday size. Roughly 500 sprays.',
           '100 ML — the signature size. Roughly 1,000 sprays; best value for a fragrance you love.',
         ],

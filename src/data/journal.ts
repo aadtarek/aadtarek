@@ -91,7 +91,7 @@ export const articles: Article[] = [
         ],
       },
       {
-        heading: 'Why we say “try 10 ML first”',
+        heading: 'Why we say “try 5 ML first”',
         paragraphs: [
           'Because a fragrance tells its full story over hours, a paper strip can’t tell you everything. Wearing a discovery size for a few days is the best way to know if it’s truly yours.',
         ],

@@ -7,12 +7,18 @@ export function Hero() {
   const copy = HOME.hero
   const lines = copy.title.split(/\r?\n/)
   return (
-    <section className="relative overflow-hidden bg-[#e9e1d6]">
+    // Pulled up under the transparent header (see Header).
+    <section className="relative -mt-16 overflow-hidden bg-[#e9e1d6] lg:-mt-[67px]">
       {/* Mobile: image on top, copy below */}
       <img
         src={copy.image || hero}
+        srcSet={copy.image ? copy.srcset || undefined : undefined}
+        // On phones the wide image is cropped to a tall box, so it needs a wider file (same as rfaheya.php).
+        sizes="(max-width: 767px) 250vw, 100vw"
+        width={1600}
+        height={900}
         alt={copy.image ? '' : 'Rfaheya Vanilla Oud bottle on a stone plinth with vanilla pods, flowers and oud wood'}
-        className="h-56 w-full object-cover object-[78%_center] xs:h-64 sm:h-80 md:absolute md:inset-0 md:h-full md:object-[right_center]"
+        className="h-[340px] w-full object-cover object-[78%_center] xs:h-[380px] sm:h-[460px] md:absolute md:inset-0 md:h-full md:object-[right_center]"
         fetchPriority="high"
       />
       {/* Soft wash so copy stays legible when the image narrows */}
@@ -21,7 +27,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#ebe3d9] via-[#ebe3d9]/70 to-transparent md:block xl:via-transparent xl:from-[#ebe3d9]/40"
       />
 
-      <div className="hero-copy container-x relative py-8 md:flex md:h-[clamp(332px,21.6vw,420px)] md:flex-col md:justify-center md:py-0">
+      <div className="hero-copy container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
         <p className="text-[10px] font-medium tracking-[0.32em] text-ink-soft uppercase sm:text-[11px]">
           {copy.eyebrow}
         </p>

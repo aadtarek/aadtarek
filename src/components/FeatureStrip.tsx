@@ -5,7 +5,7 @@ const features: { icon: LucideIcon; title: string; text: string }[] = [
   { icon: Leaf, title: 'Quality materials', text: 'Thoughtfully selected.' },
   { icon: FlaskConical, title: 'Thoughtfully crafted', text: 'Every detail has a purpose.' },
   { icon: ShieldCheck, title: 'Rfaheya Standard™', text: 'Our standard for fragrance.' },
-  { icon: Box, title: 'Try 10 ML first', text: 'Discover before you commit.' },
+  { icon: Box, title: 'Try 5 ML first', text: 'Discover before you commit.' },
   { icon: RotateCw, title: 'Zero risk guarantee', text: 'Shop with confidence.' },
 ]
 

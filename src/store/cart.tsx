@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { findByVariationId, findProductById } from '../api/catalog'
 import { isWoo, money, storeApi } from '../api/wp'
+import { bundleDiscount } from '../config'
 import { usePersistentState } from '../lib/storage'
 import type { CartItem, Product, ProductVariation } from '../types'
 
@@ -26,6 +27,8 @@ export interface WooCart {
     total_items: string
     total_shipping: string | null
     total_discount: string
+    /** Fees; the bundle discount is a negative fee */
+    total_fees?: string
     total_price: string
     currency_minor_unit: number
   }
@@ -38,6 +41,8 @@ interface CartContextValue {
   lines: CartLine[]
   count: number
   subtotal: number
+  /** Bundle discount (already taken off by WooCommerce's cart total in WooCommerce mode) */
+  discount: number
   add: (productId: number, variationId: number, quantity?: number, options?: AddOptions) => void
   /** Add several lines at once (e.g. a discovery set) and open the cart once. */
   addMany: (lines: { productId: number; variationId: number; quantity?: number }[]) => void
@@ -67,6 +72,8 @@ interface Backend {
   remove: (key: string) => Promise<void>
   clear: () => Promise<void>
   busy: boolean
+  /** Server-calculated discount, when the backend has one */
+  discount?: number
   woo?: CartContextValue['woo']
 }
 
@@ -189,6 +196,7 @@ function useWooCart(): Backend {
   return {
     lines,
     busy: pending > 0,
+    discount: cart ? Math.max(0, -money(cart.totals.total_fees ?? '0', cart.totals.currency_minor_unit)) : 0,
     add: async (_productId, variationId, quantity, giftMessage) => {
       const next = await run(() => storeApi<WooCart>('cart/add-item', { method: 'POST', body: { id: variationId, quantity } }))
       if (giftMessage) {
@@ -250,6 +258,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       lines: backend.lines,
       count: backend.lines.reduce((n, l) => n + l.quantity, 0),
       subtotal: backend.lines.reduce((n, l) => n + l.lineTotal, 0),
+      discount: backend.discount ?? bundleDiscount(backend.lines.map((l) => ({ size: l.variation.size, price: l.variation.price, quantity: l.quantity }))),
       add,
       addMany,
       setQuantity: (key, q) => report(backend.setQuantity(key, q)),

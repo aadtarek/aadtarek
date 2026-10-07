@@ -2,9 +2,13 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { loadCatalog } from './api/catalog'
+import { fetchPosts } from './api/content'
 import { isWoo } from './api/wp'
+import App from './App.tsx'
+import { preloadRoute } from './routes'
 
-const root = createRoot(document.getElementById('root')!)
+const container = document.getElementById('root')!
+const root = createRoot(container)
 
 function Splash({ error }: { error?: string }) {
   return (
@@ -32,10 +36,10 @@ function Splash({ error }: { error?: string }) {
   )
 }
 
-// App is imported after the WordPress settings are applied, so modules that
-// read contact details or social links at load time see the real values.
+// Renders once the catalogue is loaded (components read the WordPress settings at render time).
 async function render() {
-  const { default: App } = await import('./App.tsx')
+  // From here on the early image paint in index.html (vite.config.ts) leaves the page alone.
+  container.setAttribute('data-app', '')
   root.render(
     <StrictMode>
       <App />
@@ -45,9 +49,10 @@ async function render() {
 
 const fail = (e: unknown) => root.render(<Splash error={e instanceof Error ? e.message : String(e)} />)
 
-if (isWoo) {
-  root.render(<Splash />)
-  loadCatalog().then(render).catch(fail)
-} else {
-  render().catch(fail)
-}
+// The hash-router preview keeps the path after "#".
+const path = import.meta.env.VITE_HASH_ROUTER ? window.location.hash.replace(/^#/, '') || '/' : window.location.pathname
+// The journal's posts download alongside, so its first render already has them.
+if (isWoo && /^\/journal\/?$/.test(path)) fetchPosts().catch(() => undefined)
+Promise.all([loadCatalog(), preloadRoute(path).catch(() => undefined)])
+  .then(render)
+  .catch(fail)

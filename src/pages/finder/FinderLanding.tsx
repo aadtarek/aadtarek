@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react'
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 import { landing, TOTAL_STEPS } from '../../finder/data'
+import heroSmall from '../../assets/finder/landing-hero-1024.webp'
 
 export function FinderLanding() {
   const start = (
@@ -20,6 +21,10 @@ export function FinderLanding() {
       <section className="relative overflow-hidden bg-[#1c120b] text-cream">
         <img
           src={landing.hero}
+          srcSet={`${heroSmall} 1024w, ${landing.hero} 2048w`}
+          sizes="(max-width: 767px) 120vw, 100vw"
+          width={2048}
+          height={1092}
           alt="Rfaheya bottle on stone with vanilla, a white flower, amber and roses"
           className="h-72 w-full object-cover object-[70%_center] sm:h-96 md:absolute md:inset-0 md:h-full md:object-right"
           fetchPriority="high"

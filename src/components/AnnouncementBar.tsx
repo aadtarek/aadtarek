@@ -5,13 +5,13 @@ import { HOME } from '../config'
 /** Icon for a message, picked from its wording. */
 function iconFor(text: string): LucideIcon {
   if (/ship|deliver/i.test(text)) return Truck
-  if (/\b10\s*ml\b|sample|try/i.test(text)) return FlaskConical
+  if (/\b\d+\s*ml\b|sample|try/i.test(text)) return FlaskConical
   return Badge
 }
 
-const messages = HOME.announcements.map((text) => ({ icon: iconFor(text), text }))
 
 export function AnnouncementBar() {
+  const messages = HOME.announcements.map((text) => ({ icon: iconFor(text), text }))
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const step = (dir: number) => setIndex((i) => (i + dir + messages.length) % messages.length)
@@ -21,7 +21,7 @@ export function AnnouncementBar() {
     if (paused) return
     const t = setInterval(() => setIndex((i) => (i + 1) % messages.length), 5000)
     return () => clearInterval(t)
-  }, [paused])
+  }, [paused, messages.length])
 
   // On desktop all three are shown; the arrows rotate their order.
   const ordered = messages.map((_, i) => messages[(index + i) % messages.length])

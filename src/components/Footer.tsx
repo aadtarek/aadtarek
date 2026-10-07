@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import cta from '../assets/cta.webp'
 import wordmark from '../assets/logo-wordmark.svg'
-import flag from '../assets/payments/egypt-flag.png'
+import flag from '../assets/payments/egypt-flag.webp'
 import instapay from '../assets/payments/instapay.png'
 import mastercard from '../assets/payments/mastercard.png'
 import meeza from '../assets/payments/meeza.png'
@@ -52,7 +52,8 @@ const columns: { title: string; links: { label: string; to: string }[] }[] = [
   },
 ]
 
-const socials = [
+// Read when rendering: the links come from the WordPress settings loaded at start-up.
+const socials = () => [
   { label: 'Instagram', href: SOCIAL_LINKS.instagram, Icon: InstagramIcon },
   { label: 'TikTok', href: SOCIAL_LINKS.tiktok, Icon: TikTokIcon },
   { label: 'YouTube', href: SOCIAL_LINKS.youtube, Icon: YouTubeIcon },
@@ -60,11 +61,11 @@ const socials = [
 ]
 
 const payments = [
-  { src: visa, alt: 'Visa', h: 'h-[21px]' },
-  { src: mastercard, alt: 'Mastercard', h: 'h-[30px]' },
-  { src: meeza, alt: 'Meeza', h: 'h-[31px]' },
-  { src: instapay, alt: 'InstaPay', h: 'h-[30px]' },
-  { src: valu, alt: 'valU', h: 'h-[30px]' },
+  { src: visa, alt: 'Visa', h: 'h-[21px]', w: 168, hh: 63 },
+  { src: mastercard, alt: 'Mastercard', h: 'h-[30px]', w: 144, hh: 90 },
+  { src: meeza, alt: 'Meeza', h: 'h-[31px]', w: 156, hh: 93 },
+  { src: instapay, alt: 'InstaPay', h: 'h-[30px]', w: 180, hh: 90 },
+  { src: valu, alt: 'valU', h: 'h-[30px]', w: 180, hh: 90 },
 ]
 
 export function Footer({ showCta = true }: { showCta?: boolean }) {
@@ -132,7 +133,7 @@ function BrandColumn() {
   return (
     <div className="xl:pr-8 xl:pl-[50px]">
       <Link to="/" aria-label="Rfaheya — home" className="block w-[192px]">
-        <img src={wordmark} alt="Rfaheya" className="w-full" />
+        <img src={wordmark} alt="Rfaheya" width={1098} height={223} loading="lazy" className="h-auto w-full" />
       </Link>
       <p className="mt-[22px] text-[15px] tracking-[0.42em] text-muted uppercase">Speak your scent</p>
       <p className="mt-[24px] max-w-[302px] text-[16px] leading-[1.45] text-ink-soft">
@@ -140,7 +141,7 @@ function BrandColumn() {
         every day.
       </p>
       <ul className="mt-[22px] flex gap-[22px]">
-        {socials.map(({ label, href, Icon }) => (
+        {socials().map(({ label, href, Icon }) => (
           <li key={label}>
             <a
               href={href}
@@ -241,7 +242,7 @@ function BottomBar() {
         <ul className="flex flex-wrap items-center gap-[20px]" aria-label="Accepted payment methods">
           {payments.map((p) => (
             <li key={p.alt}>
-              <img src={p.src} alt={p.alt} className={`${p.h} w-auto`} loading="lazy" />
+              <img src={p.src} alt={p.alt} width={p.w} height={p.hh} className={`${p.h} w-auto`} loading="lazy" />
             </li>
           ))}
         </ul>
@@ -269,14 +270,14 @@ function CurrencyPicker() {
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-[10px] rounded px-1 py-1 text-[15px]"
       >
-        <img src={flag} alt="" className="size-[30px]" />
+        <img src={flag} alt="" width={30} height={30} loading="lazy" className="size-[30px]" />
         EGP
         <ChevronDown className={`size-4 transition ${open ? 'rotate-180' : ''}`} strokeWidth={1.5} />
       </button>
       {open && (
         <ul role="listbox" className="absolute right-0 bottom-full mb-2 w-56 animate-fade-in rounded-lg border border-line bg-card p-1.5 shadow-xl">
           <li role="option" aria-selected className="flex items-center gap-3 rounded-md bg-chip px-3 py-2 text-[14px]">
-            <img src={flag} alt="" className="size-5" />
+            <img src={flag} alt="" width={20} height={20} loading="lazy" className="size-5" />
             <span className="flex-1">EGP — Egyptian Pound</span>
             <Check className="size-4" />
           </li>

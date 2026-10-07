@@ -68,8 +68,12 @@
     },
     "sizes": [
       {
-        "size": "10 ML",
-        "price": 60
+        "size": "5 ML",
+        "price": 35
+      },
+      {
+        "size": "30 ML",
+        "price": 500
       },
       {
         "size": "50 ML",
@@ -178,8 +182,12 @@
     },
     "sizes": [
       {
-        "size": "10 ML",
-        "price": 60
+        "size": "5 ML",
+        "price": 35
+      },
+      {
+        "size": "30 ML",
+        "price": 500
       },
       {
         "size": "50 ML",
@@ -283,8 +291,12 @@
     },
     "sizes": [
       {
-        "size": "10 ML",
-        "price": 60
+        "size": "5 ML",
+        "price": 35
+      },
+      {
+        "size": "30 ML",
+        "price": 500
       },
       {
         "size": "50 ML",
@@ -393,8 +405,12 @@
     },
     "sizes": [
       {
-        "size": "10 ML",
-        "price": 60
+        "size": "5 ML",
+        "price": 35
+      },
+      {
+        "size": "30 ML",
+        "price": 500
       },
       {
         "size": "50 ML",

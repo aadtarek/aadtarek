@@ -29,3 +29,4 @@ dist-woo
 .export-content
 wordpress/mu-plugins/rfaheya/
 dist-preview
+.prerender-build

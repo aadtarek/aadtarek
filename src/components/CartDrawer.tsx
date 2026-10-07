@@ -11,8 +11,8 @@ export function CartDrawer() {
   const navigate = useNavigate()
   if (!cart.isOpen) return null
 
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - cart.subtotal)
-  const progress = Math.min(100, (cart.subtotal / FREE_SHIPPING_THRESHOLD) * 100)
+  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - (cart.subtotal - cart.discount))
+  const progress = Math.min(100, ((cart.subtotal - cart.discount) / FREE_SHIPPING_THRESHOLD) * 100)
 
   return (
     <Overlay onClose={cart.close} label="Shopping cart">
@@ -112,9 +112,15 @@ export function CartDrawer() {
             </ul>
 
             <footer className="border-t border-line px-5 pt-4 pb-5">
+              {cart.discount > 0 && (
+                <div className="mb-1.5 flex items-center justify-between text-[14px] text-mocha">
+                  <span>Bundle discount</span>
+                  <span>−{formatPrice(cart.discount)}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-[13px] tracking-[0.1em] uppercase">Subtotal</span>
-                <span className="text-lg font-semibold">{formatPrice(cart.subtotal)}</span>
+                <span className="text-lg font-semibold">{formatPrice(cart.subtotal - cart.discount)}</span>
               </div>
               <p className="mt-1 text-[12px] text-muted">Shipping calculated at checkout.</p>
               <button

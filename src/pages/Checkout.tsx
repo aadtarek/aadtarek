@@ -70,8 +70,9 @@ export function Checkout() {
 
   const minor = wooCart?.totals.currency_minor_unit ?? 2
   const subtotal = wooCart ? money(wooCart.totals.total_items, minor) : cart.subtotal
-  const shipping = wooCart ? money(wooCart.totals.total_shipping ?? '0', minor) : shippingCost(cart.subtotal, address.governorate)
-  const total = wooCart ? money(wooCart.totals.total_price, minor) : subtotal + shipping
+  const discount = cart.discount
+  const shipping = wooCart ? money(wooCart.totals.total_shipping ?? '0', minor) : shippingCost(cart.subtotal - discount, address.governorate)
+  const total = wooCart ? money(wooCart.totals.total_price, minor) : subtotal - discount + shipping
   const noDelivery = Boolean(wooCart?.needs_shipping && wooCart.shipping_rates.every((p) => p.shipping_rates.length === 0))
   const methods = isWoo ? (wooCart?.payment_methods ?? []) : ['cod', 'instapay']
 
@@ -276,6 +277,12 @@ export function Checkout() {
               <dt>Subtotal</dt>
               <dd>{formatPrice(subtotal)}</dd>
             </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-mocha">
+                <dt>Bundle discount</dt>
+                <dd>−{formatPrice(discount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
               <dt>Shipping</dt>
               <dd>{quoting ? 'Calculating…' : noDelivery ? '—' : shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>

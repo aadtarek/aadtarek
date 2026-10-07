@@ -38,7 +38,7 @@ function JournalView({ articles }: { articles: ArticleData[] }) {
 
       <div className="container-x mt-10">
         <Link to={`/journal/${lead.slug}`} className="group grid overflow-hidden rounded-lg bg-card shadow-[0_0_0_1px_rgba(60,45,20,0.06)] lg:grid-cols-2">
-          <img src={lead.image || undefined} alt="" className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] lg:aspect-auto lg:h-full" />
+          <img src={lead.image || undefined} srcSet={(lead as Partial<WpArticle>).srcset} sizes="(max-width: 1023px) 100vw, 50vw" fetchPriority="high" alt="" className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] lg:aspect-auto lg:h-full" />
           <div className="flex flex-col justify-center p-6 sm:p-10">
             <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
               {lead.category} · {lead.readMinutes} min read
@@ -55,7 +55,7 @@ function JournalView({ articles }: { articles: ArticleData[] }) {
           {rest.map((a) => (
             <li key={a.slug}>
               <Link to={`/journal/${a.slug}`} className="group block h-full overflow-hidden rounded-lg bg-card shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
-                {a.image && <img src={a.image} alt="" loading="lazy" className="aspect-[16/9] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />}
+                {a.image && <img src={a.image} srcSet={(a as Partial<WpArticle>).srcset} sizes="(max-width: 767px) 100vw, 33vw" alt="" loading="lazy" className="aspect-[16/9] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />}
                 <div className="p-6">
                   <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
                     {a.category} · {a.readMinutes} min read
@@ -107,7 +107,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
       </header>
       {a.image && (
         <div className="container-x mt-10">
-          <img src={a.image} alt="" className="aspect-[21/9] w-full rounded-lg object-cover" />
+          <img src={a.image} srcSet={(a as Partial<WpArticle>).srcset} sizes="100vw" fetchPriority="high" alt="" className="aspect-[21/9] w-full rounded-lg object-cover" />
         </div>
       )}
       <div className="container-x mt-12 max-w-[44rem] text-[17.5px] leading-[1.8] text-ink-soft">

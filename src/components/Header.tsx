@@ -32,6 +32,18 @@ export function Header() {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
   }, [menuOpen])
 
+  // On the home page the header sits transparent over the hero until the page scrolls.
+  const isHome = location.pathname === '/'
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    if (!isHome) return
+    const update = () => setScrolled(window.scrollY > 24)
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    return () => window.removeEventListener('scroll', update)
+  }, [isHome])
+  const clear = isHome && !scrolled && !searchOpen
+
   /** "Shop" and "Best Sellers" share /shop, so the query string decides which is active. */
   const isActive = (to: string) => {
     const [path, query] = to.split('?')
@@ -44,7 +56,11 @@ export function Header() {
   const iconBtn = 'relative grid size-10 place-items-center rounded-full text-ink transition hover:bg-chip'
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-cream">
+    <header
+      className={`sticky top-0 z-40 border-b transition-[background-color,border-color,backdrop-filter] duration-300 ${
+        clear ? 'border-transparent bg-transparent' : 'border-line/70 bg-cream/95 backdrop-blur'
+      }`}
+    >
       <div className="container-x flex h-16 items-center gap-4 lg:h-[66px]">
         <button type="button" aria-label="Open menu" className={`${iconBtn} -ml-2 lg:hidden`} onClick={() => setMenuOpen(true)}>
           <Menu className="size-[22px]" strokeWidth={1.5} />
@@ -86,7 +102,7 @@ export function Header() {
               <UserRound className="size-[22px]" strokeWidth={1.5} />
             </Link>
           )}
-          <button type="button" aria-label={`Cart (${count} items)`} onClick={open} className={iconBtn}>
+          <button type="button" aria-label={`Cart, ${count} items`} onClick={open} className={iconBtn}>
             <Handbag className="size-[22px]" strokeWidth={1.5} />
             <CountBadge count={count} />
           </button>
@@ -143,7 +159,7 @@ export function Header() {
 
 function CountBadge({ count }: { count: number }) {
   return (
-    <span className="absolute -top-0.5 -right-0.5 grid h-[21px] min-w-[21px] place-items-center rounded-full bg-ink px-1 text-[10px] leading-none font-semibold text-cream">
+    <span aria-hidden className="absolute -top-0.5 -right-0.5 grid h-[21px] min-w-[21px] place-items-center rounded-full bg-ink px-1 text-[10px] leading-none font-semibold text-cream">
       {count > 99 ? '99+' : count}
     </span>
   )

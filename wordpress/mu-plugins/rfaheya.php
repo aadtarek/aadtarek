@@ -40,6 +40,20 @@ function rfaheya_fields() {
 			'hero_text'      => array( 'Hero — text', '', 'textarea' ),
 			'hero_image'     => array( 'Hero — image', '', 'image' ),
 		),
+		'login'   => array(
+			'google_client_id'     => array( 'Google — Client ID', '', 'text' ),
+			'google_client_secret' => array( 'Google — Client secret', '', 'secret' ),
+			'facebook_app_id'      => array( 'Facebook — App ID', '', 'text' ),
+			'facebook_app_secret'  => array( 'Facebook — App secret', '', 'secret' ),
+		),
+		'bundle'  => array(
+			'enabled' => array( 'Show the bundle section and apply its discount', 'yes', 'yesno' ),
+			'title'   => array( 'Title', 'Build your trio.', 'text' ),
+			'text'    => array( 'Text', 'Pick any three fragrances in 30 ML and pay less for the set.', 'textarea' ),
+			'size'    => array( 'Bottle size in the bundle (must match the variation size, e.g. 30 ML)', '30 ML', 'text' ),
+			'count'   => array( 'Bottles per bundle', '3', 'text' ),
+			'price'   => array( 'Bundle price (EGP)', '1200', 'text' ),
+		),
 	);
 }
 
@@ -48,6 +62,8 @@ function rfaheya_group_title( $group ) {
 		'contact' => 'Contact details',
 		'social'  => 'Social links',
 		'home'    => 'Home page (empty fields keep the storefront’s built-in text)',
+		'bundle'  => 'Bundle (home page “Build your trio”; the discount is applied in the cart)',
+		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
 	);
 	return isset( $titles[ $group ] ) ? $titles[ $group ] : $group;
 }
@@ -88,6 +104,9 @@ add_action(
 									break;
 								case 'image':
 									$value = $value ? (string) absint( $value ) : '';
+									break;
+								case 'yesno':
+									$value = 'no' === $value ? 'no' : 'yes';
 									break;
 								default:
 									$value = sanitize_text_field( $value );
@@ -156,6 +175,10 @@ function rfaheya_settings_page() {
 			<?php settings_fields( 'rfaheya_store' ); ?>
 			<?php foreach ( rfaheya_fields() as $group => $fields ) : ?>
 				<h2><?php echo esc_html( rfaheya_group_title( $group ) ); ?></h2>
+				<?php if ( 'login' === $group ) : ?>
+					<p>Google: <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud → Credentials</a> → OAuth client ID (Web application). Authorized redirect URI:<br><code><?php echo esc_html( rfaheya_oauth_redirect_uri( 'google' ) ); ?></code></p>
+					<p>Facebook: <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> → your app → Facebook Login → Valid OAuth Redirect URIs:<br><code><?php echo esc_html( rfaheya_oauth_redirect_uri( 'facebook' ) ); ?></code></p>
+				<?php endif; ?>
 				<table class="form-table" role="presentation">
 					<?php
 					foreach ( $fields as $key => $field ) :
@@ -168,13 +191,18 @@ function rfaheya_settings_page() {
 							<td>
 								<?php if ( 'textarea' === $field[2] ) : ?>
 									<textarea id="<?php echo esc_attr( $id ); ?>" class="large-text" rows="3" name="<?php echo esc_attr( $input ); ?>"><?php echo esc_textarea( $value ); ?></textarea>
+								<?php elseif ( 'yesno' === $field[2] ) : ?>
+									<select id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $input ); ?>">
+										<option value="yes" <?php selected( $value, 'yes' ); ?>>Yes</option>
+										<option value="no" <?php selected( $value, 'no' ); ?>>No</option>
+									</select>
 								<?php elseif ( 'image' === $field[2] ) : ?>
 									<input id="<?php echo esc_attr( $id ); ?>" type="hidden" name="<?php echo esc_attr( $input ); ?>" value="<?php echo esc_attr( $value ); ?>">
 									<div id="<?php echo esc_attr( $id ); ?>-preview" style="margin-bottom:8px"><?php echo $value ? wp_get_attachment_image( (int) $value, 'medium', false, array( 'style' => 'max-width:260px;height:auto;border-radius:4px' ) ) : ''; ?></div>
 									<button type="button" class="button rfaheya-media" data-target="<?php echo esc_attr( $id ); ?>">Choose image</button>
 									<button type="button" class="button-link rfaheya-media-clear" data-target="<?php echo esc_attr( $id ); ?>" style="margin-left:8px">Remove</button>
 								<?php else : ?>
-									<input id="<?php echo esc_attr( $id ); ?>" class="regular-text" type="<?php echo 'url' === $field[2] ? 'url' : 'text'; ?>" name="<?php echo esc_attr( $input ); ?>" value="<?php echo esc_attr( $value ); ?>">
+									<input id="<?php echo esc_attr( $id ); ?>" class="regular-text" autocomplete="off" type="<?php echo 'url' === $field[2] ? 'url' : ( 'secret' === $field[2] ? 'password' : 'text' ); ?>" name="<?php echo esc_attr( $input ); ?>" value="<?php echo esc_attr( $value ); ?>">
 								<?php endif; ?>
 							</td>
 						</tr>
@@ -477,7 +505,69 @@ function rfaheya_details_box( $post ) {
 	<div class="rf-box">
 		<p class="rf-intro">What the storefront shows for this fragrance. The tagline is the product’s <em>Short description</em>, the story is the main description, and sizes / prices are the variations.</p>
 
-		<h3 class="rf-section">Identity</h3>
+		<h3 class="rf-section">Rfaheya Finder <small>The quiz questions, in order. Each answer is matched against these.</small></h3>
+		<?php
+		$row(
+			'1 · For you',
+			'“Who are you shopping for?”',
+			function () use ( $val, $choices, $auto ) {
+				rfaheya_pills( 'rfaheya[gender]', $auto + $choices['gender'], $val( 'gender' ) );
+			}
+		);
+		$row(
+			'2 · Occasion',
+			'“Where will you wear it?” The first one also shows on the card.',
+			function () use ( $val, $choices ) {
+				rfaheya_pills( 'rfaheya[occasions]', $choices['occasions'], $val( 'occasions', array() ), true );
+			}
+		);
+		$row(
+			'3 · Scent style',
+			'“What kind of scent speaks to you?” Same as the product categories.',
+			function () use ( $post ) {
+				$current = wp_get_object_terms( $post->ID, 'product_cat', array( 'fields' => 'slugs' ) );
+				echo '<input type="hidden" name="rfaheya[families_sent]" value="1">';
+				rfaheya_pills( 'rfaheya[families]', rfaheya_families(), is_wp_error( $current ) ? array() : $current, true );
+			}
+		);
+		$row(
+			'4 · Notes',
+			'“Which notes do you love?” Key notes; the first 4 show on the card.',
+			function () use ( $val ) {
+				rfaheya_note_picker( 'rfaheya[notes]', $val( 'notes', array() ), 'Pick up to 5' );
+			}
+		);
+		$row(
+			'Main accords',
+			'Also matched by the Notes question, Search and the Shop.',
+			function () use ( $val ) {
+				echo '<div class="rf-tags"><input type="text" class="rf-tags-value large-text" id="rfaheya-accords" name="rfaheya[accords]" value="' . esc_attr( implode( ', ', (array) $val( 'accords', array() ) ) ) . '" placeholder="Sweet, Oud, Amber"></div>';
+			}
+		);
+		$row(
+			'5 · Season',
+			'“When do you wear it most?” The first one also shows on the card.',
+			function () use ( $val, $choices ) {
+				rfaheya_pills( 'rfaheya[seasons]', $choices['seasons'], $val( 'seasons', array() ), true );
+			}
+		);
+		$row(
+			'6 · Presence',
+			'“How noticeable should it be?”',
+			function () use ( $val, $choices, $auto ) {
+				rfaheya_pills( 'rfaheya[presence]', $auto + $choices['presence'], $val( 'presence' ) );
+			}
+		);
+		$row(
+			'7 · Longevity',
+			'“How long should it last?”',
+			function () use ( $val, $choices, $auto ) {
+				rfaheya_pills( 'rfaheya[longevity]', $auto + $choices['longevity'], $val( 'longevity' ) );
+			}
+		);
+		?>
+
+		<h3 class="rf-section">Product page <a href="<?php echo esc_url( $notes ); ?>" target="_blank" rel="noopener">Manage notes &amp; icons ↗</a></h3>
 		<?php
 		$row(
 			'Badge',
@@ -498,24 +588,6 @@ function rfaheya_details_box( $post ) {
 			'Optional, shown in the DNA card.',
 			function () use ( $val ) {
 				rfaheya_media_field( 'rfaheya-dna-image', 'rfaheya[dna_image]', $val( 'dna_image', 0 ) );
-			}
-		);
-		?>
-
-		<h3 class="rf-section">Notes &amp; accords <a href="<?php echo esc_url( $notes ); ?>" target="_blank" rel="noopener">Manage notes &amp; icons ↗</a></h3>
-		<?php
-		$row(
-			'Main accords',
-			'Used by Search and the Shop.',
-			function () use ( $val ) {
-				echo '<div class="rf-tags"><input type="text" class="rf-tags-value large-text" id="rfaheya-accords" name="rfaheya[accords]" value="' . esc_attr( implode( ', ', (array) $val( 'accords', array() ) ) ) . '" placeholder="Sweet, Oud, Amber"></div>';
-			}
-		);
-		$row(
-			'Key notes',
-			'Shown on the card (first 4) and the product page.',
-			function () use ( $val ) {
-				rfaheya_note_picker( 'rfaheya[notes]', $val( 'notes', array() ), 'Pick up to 5' );
 			}
 		);
 		$row(
@@ -541,45 +613,6 @@ function rfaheya_details_box( $post ) {
 		);
 		?>
 
-		<h3 class="rf-section">Profile <small>Chips on the card, Shop filters and the Rfaheya Finder.</small></h3>
-		<?php
-		$row(
-			'For',
-			'',
-			function () use ( $val, $choices, $auto ) {
-				rfaheya_pills( 'rfaheya[gender]', $auto + $choices['gender'], $val( 'gender' ) );
-			}
-		);
-		$row(
-			'Occasions',
-			'The first one shows on the card.',
-			function () use ( $val, $choices ) {
-				rfaheya_pills( 'rfaheya[occasions]', $choices['occasions'], $val( 'occasions', array() ), true );
-			}
-		);
-		$row(
-			'Seasons',
-			'The first one shows on the card.',
-			function () use ( $val, $choices ) {
-				rfaheya_pills( 'rfaheya[seasons]', $choices['seasons'], $val( 'seasons', array() ), true );
-			}
-		);
-		$row(
-			'Presence',
-			'',
-			function () use ( $val, $choices, $auto ) {
-				rfaheya_pills( 'rfaheya[presence]', $auto + $choices['presence'], $val( 'presence' ) );
-			}
-		);
-		$row(
-			'Longevity',
-			'',
-			function () use ( $val, $choices, $auto ) {
-				rfaheya_pills( 'rfaheya[longevity]', $auto + $choices['longevity'], $val( 'longevity' ) );
-			}
-		);
-		?>
-
 		<h3 class="rf-section">Rfaheya Standard™ <small>The six dimensions on the product page.</small></h3>
 		<?php
 		$standard = (array) $val( 'standard', array() );
@@ -595,6 +628,49 @@ function rfaheya_details_box( $post ) {
 		?>
 	</div>
 	<?php
+}
+
+/** Fragrance families (the Finder's scent styles): product category slug => name. */
+function rfaheya_families() {
+	return array(
+		'fresh'    => 'Fresh & Clean',
+		'oriental' => 'Warm & Oriental',
+		'floral'   => 'Floral & Expressive',
+		'fruity'   => 'Fruity & Juicy',
+		'sweet'    => 'Sweet & Addictive',
+	);
+}
+
+/** Sets the product's family categories (keeps its other categories). */
+function rfaheya_save_families( $post_id, $picked ) {
+	$names   = array(
+		'fresh'    => 'Fresh',
+		'oriental' => 'Oriental',
+		'floral'   => 'Floral',
+		'fruity'   => 'Fruity',
+		'sweet'    => 'Sweet',
+	);
+	$current = wp_get_object_terms( $post_id, 'product_cat', array( 'fields' => 'all' ) );
+	if ( is_wp_error( $current ) ) {
+		return;
+	}
+	$keep = array();
+	foreach ( $current as $t ) {
+		if ( ! isset( $names[ $t->slug ] ) ) {
+			$keep[] = (int) $t->term_id;
+		}
+	}
+	foreach ( array_intersect( array_keys( $names ), (array) $picked ) as $slug ) {
+		$term = get_term_by( 'slug', $slug, 'product_cat' );
+		if ( ! $term ) {
+			$made = wp_insert_term( $names[ $slug ], 'product_cat', array( 'slug' => $slug ) );
+			$term = is_wp_error( $made ) ? null : get_term( $made['term_id'], 'product_cat' );
+		}
+		if ( $term ) {
+			$keep[] = (int) $term->term_id;
+		}
+	}
+	wp_set_object_terms( $post_id, array_values( array_unique( $keep ) ), 'product_cat' );
 }
 
 /** Cleans the posted details box values. */
@@ -648,6 +724,9 @@ add_action(
 		}
 		$input = isset( $_POST['rfaheya'] ) ? wp_unslash( $_POST['rfaheya'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned below
 		update_post_meta( $post_id, '_rfaheya_details', rfaheya_clean_details( $input ) );
+		if ( ! empty( $input['families_sent'] ) && taxonomy_exists( 'product_cat' ) ) {
+			rfaheya_save_families( $post_id, isset( $input['families'] ) ? (array) $input['families'] : array() );
+		}
 	}
 );
 
@@ -685,7 +764,7 @@ add_action(
 /** Icon URL of a note term ('' when none). */
 function rfaheya_note_icon( $term_id ) {
 	$id = (int) get_term_meta( $term_id, 'rfaheya_icon', true );
-	return $id ? (string) wp_get_attachment_image_url( $id, 'thumbnail' ) : '';
+	return $id ? (string) wp_get_attachment_image_url( $id, 'medium' ) : '';
 }
 
 /** Every note in the library: name and icon. */
@@ -958,6 +1037,236 @@ add_action(
 
 // ==================================================================== REST
 
+/** Store settings for the storefront (also part of the bootstrap response). */
+function rfaheya_settings_data() {
+	$o    = rfaheya_options();
+	$h    = $o['home'];
+	$home = array(
+		'announcements' => array_values( array_filter( array( $h['announcement_1'], $h['announcement_2'], $h['announcement_3'] ) ) ),
+		'hero'          => array(
+			'eyebrow' => $h['hero_eyebrow'],
+			'title'   => $h['hero_title'],
+			'text'    => $h['hero_text'],
+			'image'   => $h['hero_image'] ? (string) wp_get_attachment_image_url( (int) $h['hero_image'], 'full' ) : '',
+		'srcset'  => $h['hero_image'] ? (string) wp_get_attachment_image_srcset( (int) $h['hero_image'], 'full' ) : '',
+		),
+	);
+	return array(
+			'contact'      => $o['contact'],
+			'social'       => $o['social'],
+			'home'         => $home,
+			'myAccountUrl' => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ),
+			'bundle'       => array(
+				'enabled' => 'no' !== $o['bundle']['enabled'],
+				'title'   => $o['bundle']['title'],
+				'text'    => $o['bundle']['text'],
+				'size'    => $o['bundle']['size'],
+				'count'   => (int) $o['bundle']['count'],
+				'price'   => (float) $o['bundle']['price'],
+			),
+			'currency'     => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'EGP',
+		);
+}
+
+/** Rfaheya details of every published product: id => details (+ DNA image URL). */
+function rfaheya_products_details() {
+	$ids = get_posts(
+		array(
+			'post_type'   => 'product',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'fields'      => 'ids',
+			'meta_key'    => '_rfaheya_details', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		)
+	);
+	$out = array();
+	foreach ( $ids as $id ) {
+		$d = rfaheya_details( $id );
+		if ( ! empty( $d['dna_image'] ) ) {
+			$d['dna_image_url'] = (string) wp_get_attachment_image_url( (int) $d['dna_image'], 'medium' );
+		}
+		$out[ (string) $id ] = $d;
+	}
+	return (object) $out;
+}
+
+/** Published FAQs: question and answer HTML, in their order. */
+function rfaheya_faqs_data() {
+	$posts = get_posts(
+		array(
+			'post_type'   => 'rfaheya_faq',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'orderby'     => array(
+				'menu_order' => 'ASC',
+				'date'       => 'ASC',
+			),
+		)
+	);
+	return array_map(
+		fn( $p ) => array(
+			'q' => get_the_title( $p ),
+			'a' => apply_filters( 'the_content', $p->post_content ),
+		),
+		$posts
+	);
+}
+
+/** Calls a WooCommerce Store API route internally and returns its JSON data. */
+function rfaheya_store_data( $route, $params ) {
+	$request = new WP_REST_Request( 'GET', $route );
+	$request->set_query_params( $params );
+	$response = rest_do_request( $request );
+	return $response->is_error() ? array() : rest_get_server()->response_to_data( $response, false );
+}
+
+/**
+ * Everything the storefront loads at start-up in ONE request: settings,
+ * product details, notes, videos, categories, products with their
+ * variations, and reviews. Cached for a minute.
+ */
+function rfaheya_bootstrap() {
+	$cached = get_transient( 'rfaheya_bootstrap' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+	$products   = rfaheya_store_data( '/wc/store/v1/products', array( 'per_page' => 100, 'orderby' => 'popularity', 'order' => 'desc' ) );
+	$ids        = array();
+	foreach ( $products as $p ) {
+		foreach ( (array) ( isset( $p['variations'] ) ? $p['variations'] : array() ) as $v ) {
+			$ids[] = (int) $v['id'];
+		}
+	}
+	$variations = array();
+	foreach ( array_chunk( $ids, 100 ) as $chunk ) {
+		$variations = array_merge( $variations, rfaheya_store_data( '/wc/store/v1/products', array( 'type' => 'variation', 'per_page' => 100, 'include' => implode( ',', $chunk ) ) ) );
+	}
+	$data = array(
+		'settings'   => rfaheya_settings_data(),
+		'details'    => rfaheya_products_details(),
+		'notes'      => rfaheya_note_library(),
+		'videos'     => rfaheya_videos(),
+		'categories' => rfaheya_store_data( '/wc/store/v1/products/categories', array( 'per_page' => 100 ) ),
+		'products'   => $products,
+		'dateOrder'  => array_map(
+			'intval',
+			get_posts(
+				array(
+					'post_type'   => 'product',
+					'post_status' => 'publish',
+					'numberposts' => -1,
+					'orderby'     => 'date',
+					'order'       => 'ASC',
+					'fields'      => 'ids',
+				)
+			)
+		),
+		'variations' => $variations,
+		'reviews'    => rfaheya_store_data( '/wc/store/v1/products/reviews', array( 'per_page' => 50, 'orderby' => 'date_gmt', 'order' => 'desc' ) ),
+		'faqs'       => rfaheya_faqs_data(),
+	);
+	set_transient( 'rfaheya_bootstrap', $data, MINUTE_IN_SECONDS );
+	return $data;
+}
+
+/**
+ * Storefront page shell with its data inside (/ and /product/… are routed
+ * here by .htaccess): index.html plus the bootstrap data, and the page's main
+ * image already in the HTML, so it shows before the app's JavaScript has run.
+ */
+function rfaheya_storefront_shell() {
+	$file = ABSPATH . 'index.html';
+	if ( ! is_readable( $file ) ) {
+		return;
+	}
+	$html = (string) file_get_contents( $file );
+	$data = rfaheya_bootstrap();
+	$path = (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/', PHP_URL_PATH );
+	$head = '<script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>';
+	$img  = null;
+	if ( '/' === $path && ! empty( $data['settings']['home']['hero']['image'] ) ) {
+		$img = array( 'hero', $data['settings']['home']['hero']['image'], $data['settings']['home']['hero']['srcset'], '(max-width: 767px) 250vw, 100vw' );
+	} elseif ( preg_match( '#^/product/([^/]+)/?$#', $path, $m ) ) {
+		foreach ( (array) $data['products'] as $p ) {
+			if ( isset( $p['slug'] ) && rawurldecode( $m[1] ) === $p['slug'] && ! empty( $p['images'][0]['src'] ) ) {
+				$img = array( 'product', $p['images'][0]['src'], isset( $p['images'][0]['srcset'] ) ? $p['images'][0]['srcset'] : '', '100vw' );
+				break;
+			}
+		}
+	}
+	// The journal: its posts in the page, and the newest post's photo shown straight away.
+	if ( ! $img && preg_match( '#^/journal/?$#', $path ) ) {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params( array( 'per_page' => 100 ) );
+		$response = rest_do_request( $request );
+		if ( ! $response->is_error() ) {
+			$posts = rest_get_server()->response_to_data( $response, array( 'wp:featuredmedia', 'wp:term' ) );
+			$head .= '<script>window.__rfPosts=' . wp_json_encode( $posts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . '</script>';
+			$media = isset( $posts[0]['_embedded']['wp:featuredmedia'][0] ) ? $posts[0]['_embedded']['wp:featuredmedia'][0] : null;
+			if ( ! empty( $media['source_url'] ) ) {
+				// Same candidates as the app's srcset (src/api/content.ts), so this request is reused.
+				$set = array();
+				foreach ( isset( $media['media_details']['sizes'] ) ? (array) $media['media_details']['sizes'] : array() as $size ) {
+					if ( ! empty( $size['width'] ) && $size['width'] >= 600 && ! isset( $set[ $size['width'] ] ) ) {
+						$set[ $size['width'] ] = $size['source_url'] . ' ' . $size['width'] . 'w';
+					}
+				}
+				$img = array( 'journal', $media['source_url'], implode( ', ', $set ), '(max-width: 1023px) 100vw, 50vw' );
+			}
+		}
+	}
+	// Static content pages pre-rendered at release time (scripts/prerender.mjs).
+	$snapshot = preg_match( '#^/([a-z0-9-]+)/?$#', $path, $page ) ? ABSPATH . 'prerender/' . $page[1] . '.html' : '';
+	if ( ! $img && $snapshot && is_readable( $snapshot ) ) {
+		$html  = preg_replace( '#<!--rf-splash-->.*?<!--/rf-splash-->#s', '<div class="rf-pre rf-pre-page">' . str_replace( '$', '&#36;', (string) file_get_contents( $snapshot ) ) . '</div>', $html, 1 );
+		$img   = 'page';
+	}
+	if ( is_array( $img ) ) {
+		$attrs = 'src="' . esc_url( $img[1] ) . '"' . ( $img[2] ? ' srcset="' . esc_attr( $img[2] ) . '" sizes="' . esc_attr( $img[3] ) . '"' : '' );
+		$head .= '<link rel="preload" as="image" href="' . esc_url( $img[1] ) . '"' . ( $img[2] ? ' imagesrcset="' . esc_attr( $img[2] ) . '" imagesizes="' . esc_attr( $img[3] ) . '"' : '' ) . ' fetchpriority="high">';
+		$head .= '<style>.rf-pre{position:relative;min-height:100vh;background:#f6f1eb;padding-top:36px}.rf-pre-brand{position:absolute;z-index:1;top:50px;left:16px;margin:0;font:32px/1 Georgia,serif;letter-spacing:.02em;color:#18140b}@media(min-width:1024px){.rf-pre-brand{left:78px}}.rf-pre img{display:block;width:100%;object-fit:cover}.rf-pre-hero img{height:344px;object-position:78% center}@media(min-width:400px){.rf-pre-hero img{height:384px}}@media(min-width:640px){.rf-pre-hero img{height:464px}}@media(min-width:768px){.rf-pre-hero img{height:calc(clamp(560px,40vw,780px) + 4px);object-position:right center}}.rf-pre-product{padding:118px 14px 0}.rf-pre-page{padding-top:0;background:none}.rf-pre-product img{aspect-ratio:4/3;border-radius:8px}.rf-pre-journal{padding:329px 15px 0}@media(min-width:400px){.rf-pre-journal{padding-top:285px}}.rf-pre-journal img{aspect-ratio:16/10;border-radius:8px 8px 0 0}@media(min-width:640px){.rf-pre-journal{padding:304px 23px 0}}@media(min-width:1024px){.rf-pre-product,.rf-pre-journal{display:none}}</style>';
+		$pre   = '<div class="rf-pre rf-pre-' . $img[0] . '"><p class="rf-pre-brand">RFAHEYA</p><img ' . $attrs . ' alt="" fetchpriority="high"></div>';
+		$html  = preg_replace( '#<!--rf-splash-->.*?<!--/rf-splash-->#s', $pre, $html, 1 );
+	}
+	// Run the app once the image has painted (it still downloads straight away), so the image shows first.
+	if ( preg_match( '#<script type="module" crossorigin src="([^"]+)"></script>#', $html, $script ) ) {
+		// The scripts start downloading right after the first paint (not before it).
+		preg_match_all( '#<link rel="modulepreload" crossorigin href="([^"]+)">#', $html, $preloads );
+		$html  = str_replace( array_merge( array( $script[0] ), $preloads[0] ), '', $html );
+		$early = wp_json_encode( array_merge( array( $script[1] ), $preloads[1] ), JSON_UNESCAPED_SLASHES );
+		$run  = '<script>requestAnimationFrame(function(){setTimeout(function(){' . $early . '.forEach(function(h){var l=document.createElement("link");l.rel="modulepreload";l.crossOrigin="";l.href=h;document.head.appendChild(l)});if(window.__rfPage)__rfPage()},0)});(function(){var done=0;function go(){if(done++)return;var s=document.createElement("script");s.type="module";s.crossOrigin="";s.src=' . wp_json_encode( $script[1], JSON_UNESCAPED_SLASHES ) . ';document.head.appendChild(s)}function later(){var d=i.decode?i.decode():Promise.resolve();d.catch(function(){}).then(function(){requestAnimationFrame(function(){requestAnimationFrame(go)})})}var i=null,imgs=[].slice.call(document.querySelectorAll(".rf-pre img")).filter(function(x){var r=x.getBoundingClientRect();return x.loading!=="lazy"&&r.width>0&&r.top<innerHeight});if(!imgs.length)requestAnimationFrame(function(){requestAnimationFrame(go)});else{i=imgs.reduce(function(a,b){var ra=a.getBoundingClientRect(),rb=b.getBoundingClientRect();return rb.width*rb.height>ra.width*ra.height?b:a});if(i.complete)later();else{i.addEventListener("load",later);i.addEventListener("error",go);setTimeout(go,2500)}}})()</script>';
+		$html = str_replace( '</body>', $run . '</body>', $html );
+	}
+	// The stylesheet inline: one request less before the first paint.
+	if ( preg_match( '#<link rel="stylesheet" crossorigin href="/([^"]+\.css)">#', $html, $css ) && is_readable( ABSPATH . $css[1] ) && filesize( ABSPATH . $css[1] ) < 300000 ) {
+		$html = str_replace( $css[0], '<style>' . str_replace( '</style', '<\/style', (string) file_get_contents( ABSPATH . $css[1] ) ) . '</style>', $html );
+	}
+	$html = preg_replace( '#<head>#', '<head>' . $head, $html, 1 );
+	nocache_headers();
+	header( 'Content-Type: text/html; charset=utf-8' );
+	// Page caches (LiteSpeed) may keep it for a minute, like the bootstrap data.
+	header( 'Cache-Control: public, max-age=0, s-maxage=60' );
+	header( 'X-LiteSpeed-Cache-Control: public,max-age=60' );
+	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the storefront's own index.html plus escaped data
+	exit;
+}
+
+add_action(
+	'wp_loaded',
+	function () {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only page request
+		if ( isset( $_GET['rfaheya_shell'] ) && ! is_admin() && ! wp_doing_ajax() ) {
+			rfaheya_storefront_shell();
+		}
+	},
+	1
+);
+
+/** Content changes show up right away. */
+foreach ( array( 'save_post', 'deleted_post', 'edited_term', 'created_term', 'delete_term', 'update_option_' . RFAHEYA_OPTION, 'woocommerce_product_set_stock', 'woocommerce_variation_set_stock', 'comment_post' ) as $rfaheya_hook ) {
+	add_action( $rfaheya_hook, fn() => delete_transient( 'rfaheya_bootstrap' ) );
+}
+
 add_action(
 	'rest_api_init',
 	function () {
@@ -969,28 +1278,7 @@ add_action(
 			array(
 				'methods'             => 'GET',
 				'permission_callback' => $public,
-				'callback'            => function () {
-					$o    = rfaheya_options();
-					$h    = $o['home'];
-					$home = array(
-						'announcements' => array_values( array_filter( array( $h['announcement_1'], $h['announcement_2'], $h['announcement_3'] ) ) ),
-						'hero'          => array(
-							'eyebrow' => $h['hero_eyebrow'],
-							'title'   => $h['hero_title'],
-							'text'    => $h['hero_text'],
-							'image'   => $h['hero_image'] ? (string) wp_get_attachment_image_url( (int) $h['hero_image'], 'full' ) : '',
-						),
-					);
-					return rest_ensure_response(
-						array(
-							'contact'      => $o['contact'],
-							'social'       => $o['social'],
-							'home'         => $home,
-							'myAccountUrl' => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ),
-							'currency'     => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'EGP',
-						)
-					);
-				},
+				'callback'            => fn() => rest_ensure_response( rfaheya_settings_data() ),
 			)
 		);
 
@@ -1000,30 +1288,7 @@ add_action(
 			array(
 				'methods'             => 'GET',
 				'permission_callback' => $public,
-				'callback'            => function () {
-					$posts = get_posts(
-						array(
-							'post_type'   => 'rfaheya_faq',
-							'post_status' => 'publish',
-							'numberposts' => -1,
-							'orderby'     => array(
-								'menu_order' => 'ASC',
-								'date'       => 'ASC',
-							),
-						)
-					);
-					return rest_ensure_response(
-						array_map(
-							function ( $p ) {
-								return array(
-									'q' => get_the_title( $p ),
-									'a' => apply_filters( 'the_content', $p->post_content ),
-								);
-							},
-							$posts
-						)
-					);
-				},
+				'callback'            => fn() => rest_ensure_response( rfaheya_faqs_data() ),
 			)
 		);
 
@@ -1059,25 +1324,20 @@ add_action(
 			array(
 				'methods'             => 'GET',
 				'permission_callback' => $public,
+				'callback'            => fn() => rest_ensure_response( rfaheya_products_details() ),
+			)
+		);
+
+		register_rest_route(
+			'rfaheya/v1',
+			'/bootstrap',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => $public,
 				'callback'            => function () {
-					$ids = get_posts(
-						array(
-							'post_type'   => 'product',
-							'post_status' => 'publish',
-							'numberposts' => -1,
-							'fields'      => 'ids',
-							'meta_key'    => '_rfaheya_details', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-						)
-					);
-					$out = array();
-					foreach ( $ids as $id ) {
-						$d = rfaheya_details( $id );
-						if ( ! empty( $d['dna_image'] ) ) {
-							$d['dna_image_url'] = (string) wp_get_attachment_image_url( (int) $d['dna_image'], 'medium' );
-						}
-						$out[ (string) $id ] = $d;
-					}
-					return rest_ensure_response( (object) $out );
+					$response = rest_ensure_response( rfaheya_bootstrap() );
+					$response->header( 'Cache-Control', 'public, max-age=60' );
+					return $response;
 				},
 			)
 		);
@@ -1406,15 +1666,28 @@ function rfaheya_import_product_extras( $data ) {
 add_action(
 	'admin_init',
 	function () {
-		if ( (int) get_option( 'rfaheya_version', 2 ) >= 3 || ! current_user_can( 'manage_options' ) ) {
+		$version = (int) get_option( 'rfaheya_version', 2 );
+		if ( $version >= 4 || ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		update_option( 'rfaheya_version', 3 );
-		$file = __DIR__ . '/rfaheya/content.json';
-		$data = is_readable( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null;
-		if ( is_array( $data ) ) {
-			rfaheya_import_notes( $data );
-			rfaheya_import_product_extras( $data );
+		update_option( 'rfaheya_version', 4 );
+		if ( $version < 3 ) {
+			$file = __DIR__ . '/rfaheya/content.json';
+			$data = is_readable( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null;
+			if ( is_array( $data ) ) {
+				rfaheya_import_notes( $data );
+				rfaheya_import_product_extras( $data );
+			}
+		}
+		// The discovery size is now 5 ML: update the announcement bar wording.
+		$saved = get_option( RFAHEYA_OPTION, array() );
+		if ( is_array( $saved ) && isset( $saved['home'] ) && is_array( $saved['home'] ) ) {
+			foreach ( array( 'announcement_1', 'announcement_2', 'announcement_3' ) as $key ) {
+				if ( ! empty( $saved['home'][ $key ] ) ) {
+					$saved['home'][ $key ] = preg_replace( '/\b10\s*ML\b/i', '5 ML', $saved['home'][ $key ] );
+				}
+			}
+			update_option( RFAHEYA_OPTION, $saved );
 		}
 	}
 );
@@ -1555,6 +1828,34 @@ body.rfaheya-account { margin: 0; background: #f6f1eb; color: #18140b; font-fami
 .rfaheya-account .woocommerce-error { background: #f6e3df; }
 @media (min-width: 768px) { .rfaheya-account .woocommerce-MyAccount-navigation { float: left; width: 24%; } .rfaheya-account .woocommerce-MyAccount-content { float: right; width: 70%; } }
 .rf-foot a { color: #18140b; text-underline-offset: 4px; }
+.rf-auth { display: grid; gap: 32px; align-items: stretch; max-width: 1040px; margin: 0 auto; }
+@media (min-width: 900px) { .rf-auth { grid-template-columns: 1fr 460px; } }
+.rf-auth-art { display: none; border-radius: 14px; background-size: cover; background-position: 70% center; min-height: 560px; position: relative; overflow: hidden; }
+.rf-auth-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(24,20,11,.55)); }
+.rf-auth-art p { position: absolute; left: 32px; bottom: 26px; z-index: 1; margin: 0; color: #f9f6f1; font-family: "Playfair Display", serif; font-size: 38px; line-height: 1.05; }
+@media (min-width: 900px) { .rf-auth-art { display: block; } }
+.rf-auth-card { background: #fcf8f2; border: 1px solid #e6e1d8; border-radius: 14px; padding: 28px clamp(20px, 4vw, 40px) 32px; box-shadow: 0 20px 50px -30px rgba(40,30,20,.35); }
+.rf-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: #f0ebe2; }
+.rf-tabs a { text-align: center; padding: 10px 8px; border-radius: 999px; font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #3d3a33; text-decoration: none; }
+.rf-tabs a[aria-selected="true"] { background: #2a2f1b; color: #f9f6f1; }
+.rf-auth-title { font-family: "Playfair Display", serif; font-weight: 400; font-size: 34px; line-height: 1.1; margin: 26px 0 6px; }
+.rf-auth-sub { margin: 0 0 22px; color: #6f6a60; font-size: 15px; }
+.rf-social { display: grid; gap: 10px; }
+.rf-social-btn { display: flex; align-items: center; justify-content: center; gap: 12px; height: 50px; border: 1px solid #c9c3b8; border-radius: 6px; background: #fff; color: #18140b; text-decoration: none; font-size: 15px; font-weight: 500; transition: border-color .15s, box-shadow .15s; }
+.rf-social-btn:hover { border-color: #18140b; box-shadow: 0 4px 14px -8px rgba(0,0,0,.3); }
+.rf-or { display: flex; align-items: center; gap: 14px; margin: 20px 0; color: #6f6a60; font-size: 13px; text-transform: uppercase; letter-spacing: .14em; }
+.rf-or::before, .rf-or::after { content: ""; flex: 1; height: 1px; background: #e6e1d8; }
+.rf-form { display: grid; gap: 14px; }
+.rf-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 500; color: #3d3a33; }
+.rf-form input[type=text], .rf-form input[type=email], .rf-form input[type=tel], .rf-form input[type=password] { height: 50px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #c9c3b8; border-radius: 6px; background: #fff; font: inherit; font-size: 15px; color: #18140b; }
+.rf-form input:focus { outline: none; border-color: #2a2f1b; box-shadow: 0 0 0 3px rgba(42,47,27,.12); }
+.rf-row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; }
+.rf-row-between a { color: #18140b; text-underline-offset: 4px; }
+.rf-form .rf-check { display: inline-flex; align-items: center; gap: 8px; font-weight: 400; }
+.rf-primary { height: 54px; border: 0; border-radius: 6px; background: #2a2f1b; color: #f9f6f1; font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
+.rf-primary:hover { background: #3a412a; }
+.rf-switch { margin: 4px 0 0; text-align: center; font-size: 14px; color: #6f6a60; }
+.rf-switch a { color: #18140b; font-weight: 500; text-underline-offset: 4px; }
 .rf-foot { padding: 28px 16px; text-align: center; font-size: 13px; color: #6f6a60; border-top: 1px solid #e6e1d8; }
 </style>
 </head>
@@ -1578,14 +1879,18 @@ body.rfaheya-account { margin: 0; background: #f6f1eb; color: #18140b; font-fami
 	</nav>
 </header>
 <main class="rf-main">
-	<p class="rf-eyebrow">My account</p>
-	<?php
-	while ( have_posts() ) {
-		the_post();
-		echo '<h1 class="rf-title">' . esc_html( get_the_title() ) . '</h1>';
-		the_content();
-	}
-	?>
+	<?php if ( ! is_user_logged_in() && ! ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'lost-password' ) ) ) : ?>
+		<?php rfaheya_auth_page(); ?>
+	<?php else : ?>
+		<p class="rf-eyebrow">My account</p>
+		<?php
+		while ( have_posts() ) {
+			the_post();
+			echo '<h1 class="rf-title">' . esc_html( get_the_title() ) . '</h1>';
+			the_content();
+		}
+		?>
+	<?php endif; ?>
 </main>
 <footer class="rf-foot">&copy; <?php echo esc_html( gmdate( 'Y' ) . ' ' . get_bloginfo( 'name' ) ); ?> · <a href="<?php echo esc_url( $home ); ?>">Back to the store</a></footer>
 <?php wp_footer(); ?>
@@ -1597,7 +1902,374 @@ body.rfaheya-account { margin: 0; background: #f6f1eb; color: #18140b; font-fami
 	99
 );
 
+// ==================================================================== sign in / register
+
+// Customers create their own password; the username is generated from the email.
+add_filter( 'pre_option_woocommerce_enable_myaccount_registration', fn() => 'yes' );
+add_filter( 'pre_option_woocommerce_registration_generate_password', fn() => 'no' );
+add_filter( 'pre_option_woocommerce_registration_generate_username', fn() => 'yes' );
+
+/** Register: full name and WhatsApp number are required. */
+add_filter(
+	'woocommerce_registration_errors',
+	function ( $errors ) {
+		// WooCommerce verified the register nonce before this filter runs.
+		$name  = isset( $_POST['rf_full_name'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['rf_full_name'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$phone = isset( $_POST['rf_phone'] ) ? preg_replace( '/[^\d+]/', '', sanitize_text_field( wp_unslash( $_POST['rf_phone'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( '' === $name ) {
+			$errors->add( 'rf_full_name', 'Please enter your full name.' );
+		}
+		if ( strlen( preg_replace( '/\D/', '', $phone ) ) < 10 ) {
+			$errors->add( 'rf_phone', 'Please enter your WhatsApp number.' );
+		}
+		return $errors;
+	}
+);
+
+/** Saves the name (also as billing name) and the WhatsApp number (billing phone). */
+function rfaheya_save_customer_name( $user_id, $full_name, $phone = '' ) {
+	$parts = preg_split( '/\s+/', trim( $full_name ), 2 );
+	$first = isset( $parts[0] ) ? $parts[0] : '';
+	$last  = isset( $parts[1] ) ? $parts[1] : '';
+	wp_update_user(
+		array(
+			'ID'           => $user_id,
+			'first_name'   => $first,
+			'last_name'    => $last,
+			'display_name' => trim( $full_name ) ? trim( $full_name ) : $first,
+		)
+	);
+	update_user_meta( $user_id, 'billing_first_name', $first );
+	update_user_meta( $user_id, 'billing_last_name', $last );
+	if ( $phone ) {
+		update_user_meta( $user_id, 'billing_phone', $phone );
+		update_user_meta( $user_id, 'rfaheya_whatsapp', $phone );
+	}
+}
+
+add_action(
+	'woocommerce_created_customer',
+	function ( $user_id ) {
+		$name  = isset( $_POST['rf_full_name'] ) ? sanitize_text_field( wp_unslash( $_POST['rf_full_name'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$phone = isset( $_POST['rf_phone'] ) ? preg_replace( '/[^\d+]/', '', sanitize_text_field( wp_unslash( $_POST['rf_phone'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( $name || $phone ) {
+			rfaheya_save_customer_name( $user_id, $name, $phone );
+		}
+	}
+);
+
+/** Social sign-in providers that have their keys filled in (Settings → Rfaheya Store → Sign in). */
+function rfaheya_oauth_providers() {
+	$o   = rfaheya_options()['login'];
+	$out = array();
+	if ( $o['google_client_id'] && $o['google_client_secret'] ) {
+		$out['google'] = array(
+			'label'  => 'Google',
+			'id'     => $o['google_client_id'],
+			'secret' => $o['google_client_secret'],
+		);
+	}
+	if ( $o['facebook_app_id'] && $o['facebook_app_secret'] ) {
+		$out['facebook'] = array(
+			'label'  => 'Facebook',
+			'id'     => $o['facebook_app_id'],
+			'secret' => $o['facebook_app_secret'],
+		);
+	}
+	return $out;
+}
+
+/** The address Google / Facebook send customers back to (add it in their developer consoles). */
+function rfaheya_oauth_redirect_uri( $provider ) {
+	return add_query_arg( 'rfaheya_oauth', $provider, home_url( '/my-account/' ) );
+}
+
+/** Ends a social sign-in attempt with a message on the sign-in page. */
+function rfaheya_oauth_fail( $message ) {
+	if ( function_exists( 'wc_add_notice' ) && WC()->session ) {
+		wc_add_notice( $message, 'error' );
+	}
+	wp_safe_redirect( home_url( '/my-account/' ) );
+	exit;
+}
+
+add_action(
+	'template_redirect',
+	function () {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- OAuth uses its own single-use state.
+		$start    = isset( $_GET['rfaheya_login'] ) ? sanitize_key( wp_unslash( $_GET['rfaheya_login'] ) ) : '';
+		$callback = isset( $_GET['rfaheya_oauth'] ) ? sanitize_key( wp_unslash( $_GET['rfaheya_oauth'] ) ) : '';
+		if ( ! $start && ! $callback ) {
+			return;
+		}
+		$providers = rfaheya_oauth_providers();
+		$name      = $start ? $start : $callback;
+		if ( ! isset( $providers[ $name ] ) ) {
+			rfaheya_oauth_fail( 'This sign-in option is not available.' );
+		}
+		$p        = $providers[ $name ];
+		$redirect = rfaheya_oauth_redirect_uri( $name );
+
+		// 1) Send the customer to Google / Facebook.
+		if ( $start ) {
+			$state = wp_generate_password( 32, false );
+			set_transient( 'rfaheya_oauth_' . $state, $name, 10 * MINUTE_IN_SECONDS );
+			$url = 'google' === $name
+				? add_query_arg(
+					array(
+						'client_id'     => $p['id'],
+						'redirect_uri'  => rawurlencode( $redirect ),
+						'response_type' => 'code',
+						'scope'         => rawurlencode( 'openid email profile' ),
+						'state'         => $state,
+						'prompt'        => 'select_account',
+					),
+					'https://accounts.google.com/o/oauth2/v2/auth'
+				)
+				: add_query_arg(
+					array(
+						'client_id'    => $p['id'],
+						'redirect_uri' => rawurlencode( $redirect ),
+						'state'        => $state,
+						'scope'        => 'email,public_profile',
+					),
+					'https://www.facebook.com/v19.0/dialog/oauth'
+				);
+			wp_redirect( $url ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- external provider
+			exit;
+		}
+
+		// 2) Back from the provider.
+		$state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
+		$code  = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
+		// phpcs:enable
+		if ( ! $state || get_transient( 'rfaheya_oauth_' . $state ) !== $name ) {
+			rfaheya_oauth_fail( 'Sign-in expired. Please try again.' );
+		}
+		delete_transient( 'rfaheya_oauth_' . $state );
+		if ( ! $code ) {
+			rfaheya_oauth_fail( 'Sign-in was cancelled.' );
+		}
+
+		$email   = '';
+		$profile = array();
+		if ( 'google' === $name ) {
+			$token = wp_remote_post(
+				'https://oauth2.googleapis.com/token',
+				array(
+					'timeout' => 15,
+					'body'    => array(
+						'code'          => $code,
+						'client_id'     => $p['id'],
+						'client_secret' => $p['secret'],
+						'redirect_uri'  => $redirect,
+						'grant_type'    => 'authorization_code',
+					),
+				)
+			);
+			$token = json_decode( (string) wp_remote_retrieve_body( $token ), true );
+			if ( empty( $token['access_token'] ) ) {
+				rfaheya_oauth_fail( 'Google sign-in failed. Please try again.' );
+			}
+			$info = json_decode( (string) wp_remote_retrieve_body( wp_remote_get( 'https://openidconnect.googleapis.com/v1/userinfo', array( 'timeout' => 15, 'headers' => array( 'Authorization' => 'Bearer ' . $token['access_token'] ) ) ) ), true );
+			if ( empty( $info['email'] ) || empty( $info['email_verified'] ) ) {
+				rfaheya_oauth_fail( 'Your Google account has no verified email.' );
+			}
+			$email   = $info['email'];
+			$profile = array(
+				'name' => isset( $info['name'] ) ? $info['name'] : '',
+				'id'   => isset( $info['sub'] ) ? $info['sub'] : '',
+			);
+		} else {
+			$token = json_decode(
+				(string) wp_remote_retrieve_body(
+					wp_remote_get(
+						add_query_arg(
+							array(
+								'client_id'     => $p['id'],
+								'client_secret' => $p['secret'],
+								'redirect_uri'  => rawurlencode( $redirect ),
+								'code'          => rawurlencode( $code ),
+							),
+							'https://graph.facebook.com/v19.0/oauth/access_token'
+						),
+						array( 'timeout' => 15 )
+					)
+				),
+				true
+			);
+			if ( empty( $token['access_token'] ) ) {
+				rfaheya_oauth_fail( 'Facebook sign-in failed. Please try again.' );
+			}
+			$info = json_decode( (string) wp_remote_retrieve_body( wp_remote_get( add_query_arg( array( 'fields' => 'id,name,email', 'access_token' => rawurlencode( $token['access_token'] ) ), 'https://graph.facebook.com/v19.0/me' ), array( 'timeout' => 15 ) ) ), true );
+			if ( empty( $info['email'] ) ) {
+				rfaheya_oauth_fail( 'Your Facebook account did not share an email. Please create an account with your email instead.' );
+			}
+			$email   = $info['email'];
+			$profile = array(
+				'name' => isset( $info['name'] ) ? $info['name'] : '',
+				'id'   => isset( $info['id'] ) ? $info['id'] : '',
+			);
+		}
+
+		$email = sanitize_email( $email );
+		$user  = get_user_by( 'email', $email );
+		if ( $user && ( user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_woocommerce' ) ) ) {
+			// Staff accounts sign in with their password only.
+			rfaheya_oauth_fail( 'Please sign in to this account with your password.' );
+		}
+		if ( ! $user ) {
+			$base     = sanitize_user( current( explode( '@', $email ) ), true );
+			$username = $base ? $base : 'customer';
+			for ( $i = 1; username_exists( $username ); $i++ ) {
+				$username = $base . $i;
+			}
+			$id = wp_insert_user(
+				array(
+					'user_login' => $username,
+					'user_email' => $email,
+					'user_pass'  => wp_generate_password( 24 ),
+					'role'       => get_role( 'customer' ) ? 'customer' : 'subscriber',
+				)
+			);
+			if ( is_wp_error( $id ) ) {
+				rfaheya_oauth_fail( 'We could not create your account. Please try again.' );
+			}
+			rfaheya_save_customer_name( $id, $profile['name'] );
+			$user = get_user_by( 'id', $id );
+		}
+		update_user_meta( $user->ID, 'rfaheya_' . $name . '_id', sanitize_text_field( $profile['id'] ) );
+		wp_set_current_user( $user->ID );
+		wp_set_auth_cookie( $user->ID, true );
+		do_action( 'wp_login', $user->user_login, $user ); // phpcs:ignore WordPress.NamingConventions.PrefixAllThemeHooks.NonPrefixedHooknameFound -- core hook
+		wp_safe_redirect( function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ) );
+		exit;
+	},
+	5
+);
+
+/** The signed-out My Account page: sign in / create account, with Google and Facebook. */
+function rfaheya_auth_page() {
+	// phpcs:ignore WordPress.Security.NonceVerification -- only picks the tab to show.
+	$register  = isset( $_GET['action'] ) && 'register' === $_GET['action'] || isset( $_POST['register'] );
+	$providers = rfaheya_oauth_providers();
+	$base      = function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' );
+	$old       = function ( $key ) {
+		return isset( $_POST[ $key ] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- refills the form after an error
+	};
+	$icons     = array(
+		'google'   => '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>',
+		'facebook' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.9 11.9v-8.4H7.1V12h3V9.4c0-3 1.8-4.7 4.5-4.7 1.3 0 2.7.2 2.7.2v3h-1.5c-1.5 0-2 .9-2 1.9V12h3.4l-.5 3.5h-2.9v8.4A12 12 0 0 0 24 12z"/></svg>',
+	);
+	$image     = file_exists( __DIR__ . '/rfaheya/media/hero.webp' ) ? WPMU_PLUGIN_URL . '/rfaheya/media/hero.webp' : '';
+	?>
+	<div class="rf-auth">
+		<?php if ( $image ) : ?>
+			<div class="rf-auth-art" style="background-image:url('<?php echo esc_url( $image ); ?>')"><p>Speak your scent.</p></div>
+		<?php endif; ?>
+		<div class="rf-auth-card">
+			<div class="rf-tabs" role="tablist">
+				<a role="tab" aria-selected="<?php echo $register ? 'false' : 'true'; ?>" href="<?php echo esc_url( $base ); ?>">Sign in</a>
+				<a role="tab" aria-selected="<?php echo $register ? 'true' : 'false'; ?>" href="<?php echo esc_url( add_query_arg( 'action', 'register', $base ) ); ?>">Create account</a>
+			</div>
+			<h1 class="rf-auth-title"><?php echo $register ? 'Create your account.' : 'Welcome back.'; ?></h1>
+			<p class="rf-auth-sub"><?php echo $register ? 'Track orders, save your favourites and check out faster.' : 'Sign in to see your orders and saved details.'; ?></p>
+			<?php
+			if ( function_exists( 'wc_print_notices' ) ) {
+				wc_print_notices();
+			}
+			?>
+			<?php if ( $providers ) : ?>
+				<div class="rf-social">
+					<?php foreach ( $providers as $key => $p ) : ?>
+						<a class="rf-social-btn" href="<?php echo esc_url( add_query_arg( 'rfaheya_login', $key, $base ) ); ?>"><?php echo $icons[ $key ]; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- static SVG ?><span>Continue with <?php echo esc_html( $p['label'] ); ?></span></a>
+					<?php endforeach; ?>
+				</div>
+				<p class="rf-or"><span>or</span></p>
+			<?php endif; ?>
+
+			<?php if ( $register ) : ?>
+				<form method="post" class="rf-form" novalidate>
+					<label>Full name<input type="text" name="rf_full_name" autocomplete="name" required value="<?php echo $old( 'rf_full_name' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in $old ?>"></label>
+					<label>WhatsApp number<input type="tel" name="rf_phone" autocomplete="tel" inputmode="tel" placeholder="01x xxxx xxxx" required value="<?php echo $old( 'rf_phone' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></label>
+					<label>Email<input type="email" name="email" autocomplete="email" required value="<?php echo $old( 'email' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></label>
+					<label>Password<input type="password" name="password" autocomplete="new-password" minlength="6" required></label>
+					<?php do_action( 'woocommerce_register_form' ); ?>
+					<?php wp_nonce_field( 'woocommerce-register', 'woocommerce-register-nonce' ); ?>
+					<button type="submit" name="register" value="Register" class="rf-primary">Create account</button>
+					<p class="rf-switch">Already have an account? <a href="<?php echo esc_url( $base ); ?>">Sign in</a></p>
+				</form>
+			<?php else : ?>
+				<form method="post" class="rf-form" novalidate>
+					<label>Email<input type="text" name="username" autocomplete="username" required value="<?php echo $old( 'username' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"></label>
+					<label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+					<div class="rf-row-between">
+						<label class="rf-check"><input type="checkbox" name="rememberme" value="forever" checked> Remember me</label>
+						<a href="<?php echo esc_url( function_exists( 'wc_lostpassword_url' ) ? wc_lostpassword_url() : wp_lostpassword_url() ); ?>">Forgot password?</a>
+					</div>
+					<?php do_action( 'woocommerce_login_form' ); ?>
+					<?php wp_nonce_field( 'woocommerce-login', 'woocommerce-login-nonce' ); ?>
+					<input type="hidden" name="redirect" value="<?php echo esc_url( $base ); ?>">
+					<button type="submit" name="login" value="Log in" class="rf-primary">Sign in</button>
+					<p class="rf-switch">New to Rfaheya? <a href="<?php echo esc_url( add_query_arg( 'action', 'register', $base ) ); ?>">Create an account</a></p>
+				</form>
+			<?php endif; ?>
+		</div>
+	</div>
+	<?php
+}
+
 // ==================================================================== WooCommerce
+
+/** "a 30 ML" / "30-ml" / "30ml" -> "30ml" */
+function rfaheya_size_key( $size ) {
+	return strtolower( preg_replace( '/[\s_-]+/', '', (string) $size ) );
+}
+
+/**
+ * Bundle: every full set of N bottles in the bundle size costs the bundle price
+ * (Settings → Rfaheya Store → Bundle). Applied as a negative fee, so it shows
+ * in the storefront cart, the checkout and the order.
+ */
+add_action(
+	'woocommerce_cart_calculate_fees',
+	function ( $cart ) {
+		$b     = rfaheya_options()['bundle'];
+		$count = (int) $b['count'];
+		$price = (float) $b['price'];
+		if ( 'no' === $b['enabled'] || $count < 2 || $price <= 0 ) {
+			return;
+		}
+		$want   = rfaheya_size_key( $b['size'] );
+		$prices = array();
+		foreach ( $cart->get_cart() as $item ) {
+			$product = $item['data'];
+			$size    = '';
+			foreach ( (array) ( isset( $item['variation'] ) ? $item['variation'] : array() ) as $attr => $value ) {
+				if ( preg_match( '/^attribute_(pa_)?size$/i', $attr ) ) {
+					$size = $value;
+				}
+			}
+			if ( '' === $size && $product ) {
+				$size = $product->get_attribute( 'pa_size' ) ? $product->get_attribute( 'pa_size' ) : $product->get_attribute( 'Size' );
+			}
+			if ( rfaheya_size_key( $size ) !== $want ) {
+				continue;
+			}
+			for ( $i = 0; $i < (int) $item['quantity']; $i++ ) {
+				$prices[] = (float) $product->get_price();
+			}
+		}
+		rsort( $prices );
+		$discount = 0;
+		for ( $i = 0; $i + $count <= count( $prices ); $i += $count ) {
+			$discount += max( 0, array_sum( array_slice( $prices, $i, $count ) ) - $price );
+		}
+		if ( $discount > 0 ) {
+			$cart->add_fee( 'Bundle discount', -$discount, false );
+		}
+	}
+);
 
 /** Egypt doesn't use postcodes in the storefront checkout. */
 add_filter(

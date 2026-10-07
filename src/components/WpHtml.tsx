@@ -25,7 +25,7 @@ export function WpHtml({ html, className = '' }: { html: string; className?: str
 
 export function PageLoading() {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center" role="status" aria-label="Loading">
+    <div className="flex min-h-screen items-center justify-center" role="status" aria-label="Loading">
       <span className="block h-[3px] w-24 overflow-hidden rounded-full bg-line">
         <span className="block h-full w-1/3 animate-[splash_1.1s_ease-in-out_infinite] rounded-full bg-olive" />
       </span>

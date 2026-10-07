@@ -15,6 +15,8 @@ export function StandardSection() {
         src={background}
         alt=""
         aria-hidden
+        loading="lazy"
+        decoding="async"
         className="pointer-events-none absolute top-0 left-0 hidden h-(--h) w-auto max-w-none [mask-image:linear-gradient(to_right,black_96%,transparent)] lg:block"
       />
       <div className="grid gap-10 px-4 py-12 sm:px-6 lg:h-(--h) lg:grid-cols-[calc(var(--h)*0.8525)_1fr] lg:gap-0 lg:pt-[calc(var(--h)*0.11)] lg:pr-[15px] lg:pb-0 lg:pl-0">
@@ -60,7 +62,7 @@ export function StandardSection() {
         </ol>
       </div>
       {/* Mobile still life */}
-      <img src={background} alt="" aria-hidden className="h-72 w-full object-cover object-bottom lg:hidden" />
+      <img src={background} alt="" aria-hidden loading="lazy" decoding="async" className="h-72 w-full object-cover object-bottom lg:hidden" />
     </section>
   )
 }
