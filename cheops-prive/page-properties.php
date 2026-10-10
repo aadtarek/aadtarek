@@ -76,7 +76,7 @@
     <p class="eyebrow" style="display:flex;align-items:center;gap:12px;opacity:.78">Properties · Private collection</p>
     <h1 class="d"><span class="rl"><span>Find the address</span></span><span class="rl"><span>worth <em>choosing.</em></span></span></h1>
     <p class="lead">A considered collection of homes, workspaces and administrative opportunities across Egypt's most sought-after destinations, selected for quality, location and long-term value.</p>
-    <div class="hero-meta"><span>Residences</span><span>Offices</span><span>Medical</span><span>Retail</span><span>Curated only</span></div>
+    <div class="hero-meta"><span>Residential</span><span>Offices</span><span>Clinics</span></div>
     <div style="margin-top:34px;display:flex;flex-wrap:wrap;gap:14px">
       <a class="btn btn-light" href="#property-search">Search properties <span class="ar">→</span></a>
       <a class="btn btn-light" href="<?php echo esc_url( cheops_whatsapp_url() ); ?>" rel="noopener" target="_blank">Private request <span class="ar">→</span></a>

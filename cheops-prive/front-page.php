@@ -160,19 +160,19 @@
     <a class="office-choice buy reveal" href="<?php echo esc_url( home_url('/properties/?deal=sale&type=Office') ); ?>">
       <span class="eyebrow">Own your workspace</span>
       <h2 class="d">Buy Office</h2>
-      <p>Find a premium office space to own, invest in and grow your business from.</p>
+      <p>Find a premium office space to own, invest in<br class="cheops-br"> and grow your business from.</p>
       <span class="btn">Explore to buy <span class="ar">→</span></span>
     </a>
     <a class="office-choice rent reveal" href="<?php echo esc_url( home_url('/properties/?deal=rent&type=Office') ); ?>">
       <span class="eyebrow">Find the right fit</span>
       <h2 class="d">Rent Office</h2>
-      <p>Discover flexible office spaces in prime locations that work for your business today.</p>
+      <p>Discover flexible office spaces in prime locations<br class="cheops-br"> that work for your business today.</p>
       <span class="btn">Explore to rent <span class="ar">→</span></span>
     </a>
     <a class="office-choice residential reveal" href="<?php echo esc_url( home_url('/properties/?type=Residential') ); ?>">
       <span class="eyebrow">Find your next address</span>
       <h2 class="d">Residential</h2>
-      <p>Explore apartments, villas, townhouses and more across Egypt’s most sought-after communities.</p>
+      <p>Explore apartments, villas, townhouses and more<br class="cheops-br"> across Egypt’s most sought-after communities.</p>
       <span class="btn">Explore residential <span class="ar">→</span></span>
     </a>
   </div>

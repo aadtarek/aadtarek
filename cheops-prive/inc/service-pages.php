@@ -11,9 +11,9 @@ function cheops_service_pages() {
         'for-sale' => [
             'title'       => 'Properties for Sale | Cheops Privé',
             'description' => 'Apartments, villas, townhouses, offices and clinics for sale in New Cairo, Mostakbal City and the North Coast, with prices, payment plans and delivery dates explained by one Cheops Privé advisor.',
-            'eyebrow'     => 'Services · For Sale',
-            'headline'    => ['Buy with clarity,', 'own with confidence.'],
-            'lead'        => 'Apartments, villas, townhouses, offices and clinics for sale across New Cairo, Mostakbal City and the North Coast. We shortlist units from developers such as Mountain View, The MarQ and ORA, then walk you through the price, payment plan and delivery date before you commit.',
+            'eyebrow'     => 'For Sale',
+            'headline'    => ['Exceptional properties. Leading developers.', 'Clear terms. Confident decisions.'],
+            'lead'        => 'Discover exceptional opportunities from leading developers including Mountain View, The MarQ, ORA, etc. We provide clear insight into pricing, payment plans and delivery timelines, giving you everything you need to make a confident investment decision.',
             'primary'     => ['Browse units for sale', '/properties/?deal=sale'],
             'help_title'  => 'A shortlist, not a flood.',
             'help'        => [
@@ -34,7 +34,7 @@ function cheops_service_pages() {
         'for-rent' => [
             'title'       => 'Properties for Rent | Cheops Privé',
             'description' => 'Offices, clinics and homes for rent in New Cairo and beyond. Cheops Privé matches tenants and owners with fair terms, qualified tenants and a clean handover.',
-            'eyebrow'     => 'Services · For Rent',
+            'eyebrow'     => 'For Rent',
             'headline'    => ['The right space,', 'on the right terms.'],
             'lead'        => 'Offices, clinics and homes for rent in New Cairo and beyond. Whether you are looking for a space or leasing one out, we match the property, the tenant and the terms, and we stay involved until the keys change hands.',
             'primary'     => ['Browse units for rent', '/properties/?deal=rent'],
@@ -57,7 +57,7 @@ function cheops_service_pages() {
         'income-property' => [
             'title'       => 'Income Property | Cheops Privé',
             'description' => 'Leased clinics, offices and homes with rental demand. Cheops Privé shows the rent, the running costs and the net return before you buy.',
-            'eyebrow'     => 'Services · Income Property',
+            'eyebrow'     => 'Income Property',
             'headline'    => ['Property that pays,', 'measured properly.'],
             'lead'        => 'Units bought for their rental income: clinics and offices with tenants already in place, and homes with steady rental demand. We show you the rent, the running costs and the net return before you buy.',
             'primary'     => ['Build an income brief', '/contact/'],
@@ -80,7 +80,7 @@ function cheops_service_pages() {
         'private-consultation' => [
             'title'       => 'Private Consultation | Cheops Privé',
             'description' => 'A one-to-one property consultation with Cheops Privé. Share your budget and goals and leave with a clear shortlist across New Cairo, Mostakbal City, Shorouk and the North Coast.',
-            'eyebrow'     => 'Services · Private Consultation',
+            'eyebrow'     => 'Private Consultation',
             'headline'    => ['One advisor,', 'one clear plan.'],
             'lead'        => 'A one-to-one session that turns your budget and goals into a shortlist. Whether you are buying a home, moving your company or investing, we tell you plainly which projects fit and which do not.',
             'primary'     => ['Book a consultation', '/contact/'],
@@ -113,7 +113,7 @@ function cheops_render_service_page($slug, $image_url) {
     $p = cheops_service_page($slug);
     if (!$p) return;
     ?>
-<section class="hero service-hero hero-investment" id="hero"><img alt="<?php echo esc_attr($p['headline'][0] . ' ' . $p['headline'][1]); ?>" class="hero-bg" id="heroImg" fetchpriority="high" src="<?php echo esc_url($image_url); ?>"<?php echo cheops_hero_img_attrs($image_url); ?>/><div class="wrap hero-content"><div class="hero-copy"><div class="eyebrow"><?php echo esc_html($p['eyebrow']); ?></div><h1 class="d"><?php foreach ($p['headline'] as $line) : ?><span class="rl"><span><?php echo esc_html($line); ?></span></span><?php endforeach; ?></h1><p class="lead"><?php echo esc_html($p['lead']); ?></p><div class="hero-actions"><a class="btn light btn-light" data-cursor="Open" href="<?php echo esc_url(home_url($p['primary'][1])); ?>"><?php echo esc_html($p['primary'][0]); ?> <span class="ar">→</span></a><a class="btn ghost btn-ghost" data-cursor="Open" href="<?php echo esc_url(home_url('/contact/')); ?>">Talk to an advisor <span class="ar">→</span></a></div></div></div><div class="hero-scroll"><span class="eyebrow">Scroll</span></div></section>
+<section class="hero service-hero hero-investment" id="hero"><img alt="<?php echo esc_attr($p['headline'][0] . ' ' . $p['headline'][1]); ?>" class="hero-bg" id="heroImg" fetchpriority="high" src="<?php echo esc_url($image_url); ?>"<?php echo cheops_hero_img_attrs($image_url); ?>/><div class="wrap hero-content"><div class="hero-copy"><div class="eyebrow"><?php echo esc_html($p['eyebrow']); ?></div><h1 class="d<?php echo max(array_map('strlen', $p['headline'])) > 24 ? ' h1-long' : ''; ?>"><?php foreach ($p['headline'] as $line) : ?><span class="rl"><span><?php echo esc_html($line); ?></span></span><?php endforeach; ?></h1><p class="lead"><?php echo esc_html($p['lead']); ?></p><div class="hero-actions"><a class="btn light btn-light" data-cursor="Open" href="<?php echo esc_url(home_url($p['primary'][1])); ?>"><?php echo esc_html($p['primary'][0]); ?> <span class="ar">→</span></a><a class="btn ghost btn-ghost" data-cursor="Open" href="<?php echo esc_url(home_url('/contact/')); ?>">Talk to an advisor <span class="ar">→</span></a></div></div></div></section>
 <section class="section paper" id="service-body"><span class="blob" style="width:380px;height:380px;top:6%;left:-8%;background:rgba(229,207,167,.24)"></span><div class="wrap"><div class="eyebrow gold">How we help</div><h2 class="d section-title reveal"><span class="rl"><span><?php echo esc_html($p['help_title']); ?></span></span></h2><div class="pillars"><?php foreach ($p['help'] as $item) : ?><div class="pillar reveal" data-cursor="Explore"><h3 class="d"><?php echo esc_html($item[0]); ?></h3><p><?php echo esc_html($item[1]); ?></p></div><?php endforeach; ?></div></div></section>
 <?php
 }

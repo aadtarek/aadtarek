@@ -326,7 +326,6 @@ function cheops_customize_register( $wp_customize ) {
         'cheops_stat1_label' => ['About card: first label', 'Projects indexed'],
         'cheops_stat2_value' => ['About card: second number', '65'],
         'cheops_stat2_label' => ['About card: second label', 'Live properties'],
-        'cheops_footer_tagline' => ['Footer line (bottom right)', 'Temple of Opulence'],
     ];
     foreach ($text_settings as $id => $cfg) {
         $wp_customize->add_setting($id, ['default' => $cfg[1], 'sanitize_callback' => 'sanitize_text_field']);
@@ -1327,7 +1326,7 @@ function cheops_chevron_icon() {
 }
 
 function cheops_site_header() {
-    $links=[['Home',home_url('/')],['Properties',home_url('/properties/')],['About',home_url('/about/')]];
+    $links=[['Home',home_url('/')],['About',home_url('/about/')],['Properties',home_url('/properties/')]];
     $services=[['For Rent',home_url('/for-rent/')],['For Sale',home_url('/for-sale/')],['Income Property',home_url('/income-property/')],['Private Consultation',home_url('/private-consultation/')]];
     $portfolio_url='https://drive.google.com/file/d/1IWzDaMAfqADJ9Q7PQqQWh1xkTe1FGzSa/view';
     $profile_url='https://drive.google.com/file/d/1cU9hcaD1U06zxxGTvaEV_n3pwDZKi_YM/view?usp=drive_link';
@@ -1355,11 +1354,11 @@ function cheops_site_footer() {
     echo '<footer class="cheops-site-footer"><div class="cheops-site-footer-inner">';
     echo '<div class="cheops-footer-main">';
     echo '<div class="cheops-footer-brand"><a class="cheops-footer-wordmark" href="'.esc_url(home_url('/')).'" aria-label="Cheops Privé home"><span class="cheops-wordmark"><strong>CHEOPS</strong><small>PRIVÉ</small></span></a><p>Curated property guidance across Egypt’s secondary market residential and business destinations</p><a class="cheops-footer-cta" href="'.esc_url(home_url('/contact/')).'">Start a conversation <span>→</span></a></div>';
-    echo '<div class="cheops-footer-col"><h4>Explore</h4><a href="'.esc_url(home_url('/properties/')).'">All properties</a><a href="'.esc_url(home_url('/properties/?type=Residential')).'">Residences</a><a href="'.esc_url(home_url('/properties/?type=Office')).'">Offices</a><a href="'.esc_url(home_url('/about/')).'">About</a></div>';
+    echo '<div class="cheops-footer-col"><h4>Explore</h4><a href="'.esc_url(home_url('/properties/')).'">All properties</a><a href="'.esc_url(home_url('/properties/?type=Residential')).'">Residential</a><a href="'.esc_url(home_url('/properties/?type=Office')).'">Offices</a><a href="'.esc_url(home_url('/properties/?type=Clinic')).'">Clinics</a><a href="'.esc_url(home_url('/about/')).'">About Cheops Privé</a></div>';
     echo '<div class="cheops-footer-col"><h4>Services</h4><a href="'.esc_url(home_url('/for-rent/')).'">For Rent</a><a href="'.esc_url(home_url('/for-sale/')).'">For Sale</a><a href="'.esc_url(home_url('/income-property/')).'">Income Property</a><a href="'.esc_url(home_url('/private-consultation/')).'">Private Consultation</a></div>';
     echo '<div class="cheops-footer-col cheops-footer-contact"><h4>Contact</h4><p>'.esc_html(cheops_address()).'</p><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div>';
     echo '</div>';
-    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social">'.strtr('<a href="'.esc_url($fb).'" target="_blank" rel="noopener" aria-label="Facebook">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener" aria-label="Instagram">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn ↗</a>', cheops_footer_social_icons()).'</div><div class="cheops-footer-meta"><span>© '.esc_html(date('Y')).' Cheops Privé</span><span class="cheops-footer-line">'.cheops_title_html(get_theme_mod('cheops_footer_tagline','Temple of Opulence')).'</span></div></div>';
+    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social">'.strtr('<a href="'.esc_url($fb).'" target="_blank" rel="noopener" aria-label="Facebook">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener" aria-label="Instagram">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn ↗</a>', cheops_footer_social_icons()).'</div><div class="cheops-footer-meta"><span>© '.esc_html(date('Y')).' Cheops Privé</span></div></div>';
     echo '</div></footer>';
 }
 add_action('wp_footer','cheops_site_footer',5);
@@ -1387,6 +1386,27 @@ function cheops_unified_front_js() {
     <?php
 }
 add_action('wp_footer','cheops_unified_front_js',99);
+
+/* No lone last word: join the last two words of each description so the final line never holds one word. */
+function cheops_no_orphans_js() {
+    if (is_admin()) return; ?>
+<script id="cheops-no-orphans">
+(function(){
+  function fix(el){
+    var w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT,null),n,last=null;
+    while((n=w.nextNode())){ if(n.nodeValue.trim()) last=n; }
+    if(!last) return;
+    var t=last.nodeValue, m=t.match(/^([\s\S]*\S)\s+(\S+\s*)$/);
+    if(m && el.textContent.trim().split(/\s+/).length>4) last.nodeValue=m[1]+'\u00A0'+m[2];
+  }
+  document.querySelectorAll('main p, main li, main dd, .cheops-site-footer p, .lead, .hero-lead').forEach(function(el){
+    if(el.closest('form,nav,button,.cheops-logo-band')) return;
+    fix(el);
+  });
+})();
+</script>
+<?php }
+add_action('wp_footer', 'cheops_no_orphans_js', 999);
 
 function cheops_flush_rewrites_once() {
     if (get_option('cheops_units_rewrite_v2') !== '1') {

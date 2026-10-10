@@ -74,7 +74,6 @@
 <img alt="Luxury residential architecture in New Cairo" id="heroImg" fetchpriority="high" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg'); ?>/>
 <div class="overlay" style="position:absolute;inset:0"></div>
 <div class="about-frame"></div>
-<span class="hero-side">Cheops Privé · Private property office</span>
 <div class="wrap" style="position:relative;z-index:2;color:#fff;padding-bottom:56px;width:100%">
 <p class="eyebrow" style="display:flex;align-items:center;gap:12px;opacity:.75">Who we are</p>
 <h1 class="d d-xl hero-title-single about-hero-title" style="margin:18px 0 0">
@@ -83,13 +82,10 @@
     <span class="rl about-title-part about-title-brand"><span>Cheops Privé</span></span>
   </span>
 </h1>
-<p class="hero-lead">A private-office approach to property discovery in Egypt, curating projects, destinations and residences worth belonging to.</p>
+<p class="hero-lead">Cheops Privé is the first private secondary real estate advisory.</p>
 <div style="margin-top:38px;display:flex;flex-wrap:wrap;gap:18px">
 <a class="btn btn-light" href="#values">Our collection <span class="ar">→</span></a>
 <a class="btn btn-light" href="<?php echo esc_url(home_url('/contact/')); ?>">Talk to us <span class="ar">→</span></a>
-</div>
-<div style="margin-top:40px;display:flex;align-items:center;gap:16px;font-size:.522rem;letter-spacing:.26em;text-transform:uppercase;opacity:.6">
-      Scroll to explore
 </div>
 </div>
 </section><section class="sec wrap" id="about">
@@ -117,8 +113,8 @@
     <div>
       <p class="eyebrow gold">Our story</p>
       <h2 class="d d-lg reveal" style="margin-top:14px;font-size:clamp(2.7rem,4.5vw,4.86rem);line-height:1.02"><span class="rl"><span>Built on quiet</span></span><span class="rl"><span>confidence.</span></span></h2>
-      <p style="margin-top:24px">The vision for Cheops Privé was born from a desire to blend timeless heritage with modern luxury, inspired by the ingenuity and precision of the Great Pyramid of Giza.</p>
-      <p style="margin-top:20px">The brand brings together exclusivity, precision and innovation to create deeply personal real-estate journeys where ancient heritage meets contemporary sophistication.</p>
+      <p style="margin-top:24px">The vision for Cheops Privé was born from a desire to blend timeless heritage with modern luxury, inspired by the ingenuity and the precision of “Khufu” The Great Pyramid.</p>
+      <p style="margin-top:20px">Cheops Privé brings together exclusivity, precision and innovation to create deeply personal real-estate journeys where ancient heritage meets contemporary sophistication.</p>
       <a class="btn btn-ghost" href="#values" style="margin-top:34px">How we work <span class="ar">→</span></a>
     </div>
   </div>
@@ -126,7 +122,7 @@
 <section class="sec wrap" id="services">
 <p class="eyebrow gold">What we do</p>
 <h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Six ways we work</span></span><span class="rl"><span>with you.</span></span></h2>
-<div class="svc-grid"><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-6h4v6"/></svg></div><h3 class="d">Residential sales</h3><p>Apartments, villas and penthouses across New Cairo, Mostakbal City and the New Capital.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4z"/><path d="M9 20v-6h6v6"/><path d="M8 3v4M16 3v4"/></svg></div><h3 class="d">Leasing & tenants</h3><p>Tenant representation and landlord leasing terms handled end to end.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h9v17"/><path d="M14 9h5v12"/><path d="M8 8h3M8 12h3M8 16h3M17 13h0M17 17h0"/></svg></div><h3 class="d">Offices & floors</h3><p>Full office floors, fitted suites and headquarters buildings in prime business districts.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z"/><path d="M12 10v6M9 13h6"/><path d="M9 6V3h6v3"/></svg></div><h3 class="d">Clinic suites</h3><p>Licensed medical units in serviced medical towers with parking and patient flow in mind.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1 11H5z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></div><h3 class="d">Administrative & retail</h3><p>Street retail, mall units and F&B footprints matched to real catchment numbers.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 19v-6M12 19V8M17 19v-9"/><path d="M14 5h5v5"/></svg></div><h3 class="d">Investment advisory</h3><p>Payment plans, yields and exit timing reviewed with you before you commit.</p></div></div>
+<div class="svc-grid"><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-6h4v6"/></svg></div><h3 class="d">Residential Sales</h3><p>Apartments, villas and penthouses across New Cairo, Mostakbal City and the New Capital.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4z"/><path d="M9 20v-6h6v6"/><path d="M8 3v4M16 3v4"/></svg></div><h3 class="d">Leasing</h3><p>Tenant representation and landlord leasing terms handled end to end.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h9v17"/><path d="M14 9h5v12"/><path d="M8 8h3M8 12h3M8 16h3M17 13h0M17 17h0"/></svg></div><h3 class="d">Offices</h3><p>Full office floors, fitted suites and headquarters buildings in prime business districts.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z"/><path d="M12 10v6M9 13h6"/><path d="M9 6V3h6v3"/></svg></div><h3 class="d">Clinic Suites</h3><p>Licensed medical units in serviced medical towers with parking and patient flow in mind.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1 11H5z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></div><h3 class="d">Administrative</h3><p>Street retail, mall units and F&B footprints matched to real catchment numbers.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 19v-6M12 19V8M17 19v-9"/><path d="M14 5h5v5"/></svg></div><h3 class="d">Investment Advisory</h3><p>Payment plans, yields and exit timing reviewed with you before you commit.</p></div></div>
 </section>
 <section class="sec" id="values" style="background:#f7f5f2">
   <div class="wrap">
