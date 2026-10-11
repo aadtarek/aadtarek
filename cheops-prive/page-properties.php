@@ -364,7 +364,7 @@ document.querySelectorAll('.save-property').forEach(btn=>{
 });
 
 /* newsletter */
-document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefault();document.getElementById('newsBtn').textContent='Thank you';e.target.reset();});
+document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefault();document.getElementById('newsBtn').textContent=cheopsT('Thank you');e.target.reset();});
 
 </script>
 <script>
@@ -397,7 +397,7 @@ document.getElementById('newsForm').addEventListener('submit',e=>{e.preventDefau
     const near=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;near.unobserve(e.target);const f=e.target.__cheopsNear;delete e.target.__cheopsNear;f&&f();}),{rootMargin:'300px 0px'});
     const whenNear=(el,fn)=>{el.__cheopsNear=fn;near.observe(el);};
     document.querySelectorAll('h2.d, h3.d').forEach(h=>whenNear(h,()=>{
-      if(h.dataset.split)return;h.dataset.split='1';
+      if(h.dataset.split||document.documentElement.dir==='rtl')return;h.dataset.split='1';
       const walk=(node)=>{
         [...node.childNodes].forEach(n=>{
           if(n.nodeType===3){

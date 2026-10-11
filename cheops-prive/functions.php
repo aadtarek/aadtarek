@@ -1,6 +1,8 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
+require_once get_template_directory() . '/inc/i18n.php';
+
 function cheops_prive_setup() {
     add_theme_support( 'title-tag' );
     add_theme_support( 'post-thumbnails' );
@@ -168,6 +170,7 @@ function cheops_clean_dashes($text) {
 
 function cheops_clean_dashes_html($html) {
     if (stripos($html, '<html') === false) return $html;
+    if (function_exists('cheops_i18n_html')) $html = cheops_i18n_html($html);
     $parts = preg_split('#(<script\b.*?</script>|<style\b.*?</style>|<textarea\b.*?</textarea>|<[^>]*>)#is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
     if (!is_array($parts)) return $html;
     foreach ($parts as $i => $part) {
@@ -1304,13 +1307,13 @@ function cheops_contact_form_handler() {
     $email=sanitize_email(wp_unslash($_POST['email'] ?? ''));
     $interest=sanitize_text_field(wp_unslash($_POST['interest'] ?? ''));
     $message=sanitize_textarea_field(wp_unslash($_POST['message'] ?? ''));
-    if(!$name || !$phone){ wp_safe_redirect(add_query_arg('contact','missing',home_url('/contact/'))); exit; }
+    if(!$name || !$phone){ wp_safe_redirect(add_query_arg('contact','missing',cheops_url_for_referer_lang(home_url('/contact/')))); exit; }
     $to=cheops_email(); if(!$to) $to=get_option('admin_email');
     $subject='Cheops Privé enquiry: '.$name;
     $body="Name: {$name}\nPhone: {$phone}\nEmail: {$email}\nInterest: {$interest}\n\nMessage:\n{$message}";
     $headers=[]; if($email) $headers[]='Reply-To: '.$name.' <'.$email.'>';
     wp_mail($to,$subject,$body,$headers);
-    wp_safe_redirect(add_query_arg('contact','sent',home_url('/contact/'))); exit;
+    wp_safe_redirect(add_query_arg('contact','sent',cheops_url_for_referer_lang(home_url('/contact/')))); exit;
 }
 add_action('admin_post_nopriv_cheops_contact','cheops_contact_form_handler');
 add_action('admin_post_cheops_contact','cheops_contact_form_handler');
@@ -1336,14 +1339,14 @@ function cheops_site_header() {
     foreach($links as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '<div class="cheops-nav-drop"><button type="button">Services '.cheops_chevron_icon().'</button><div class="cheops-nav-drop-panel">';
     foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
-    echo '</div></div><a href="'.esc_url(home_url('/contact/')).'">Contact</a></nav>';
+    echo '</div></div><a href="'.esc_url(home_url('/contact/')).'">Contact</a>'.cheops_lang_switch_html('cheops-nav-lang').'</nav>';
     echo '<div class="cheops-header-actions"><a class="cheops-header-cta cheops-header-doc" href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a class="cheops-header-cta cheops-header-doc cheops-header-doc-alt" href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><button class="cheops-mobile-toggle" id="cheopsMobileToggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div></div></header>';
     echo '<aside class="cheops-mobile-menu" id="cheopsMobileMenu" aria-hidden="true"><div class="cheops-mobile-menu-glow"></div><div class="cheops-mobile-menu-inner"><div class="cheops-mobile-menu-kicker">Cheops Privé <span>Private Property Advisory</span></div><nav class="cheops-mobile-nav" aria-label="Mobile navigation">';
     $delay=0; foreach($links as $l){$delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url($l[1]).'"><span>'.esc_html($l[0]).'</span></a>';}
     $delay+=1; echo '<div class="cheops-mobile-services" style="--d:'.($delay*55).'ms"><button class="cheops-mobile-services-toggle" type="button" aria-expanded="false"><span>Services</span><b>＋</b></button><div class="cheops-mobile-services-panel"><div>';
     foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '</div></div></div>';
-    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span></a></nav><div class="cheops-mobile-menu-foot"><a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
+    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span></a></nav><div class="cheops-mobile-menu-foot">'.cheops_lang_switch_html('cheops-lang-switch-mobile').'<a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
 }
 
 
@@ -1475,7 +1478,7 @@ function cheops_v6_motion_js() { ?>
     const near=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;near.unobserve(e.target);const f=e.target.__cheopsNear;delete e.target.__cheopsNear;f&&f();}),{rootMargin:'300px 0px'});
     const whenNear=(el,fn)=>{el.__cheopsNear=fn;near.observe(el);};
     document.querySelectorAll('.tax-project_city h1.d,.tax-project_city h2.d,.tax-project_city h3.d,.cheops-contact-page h1.d,.single-cheops_unit h1,.single-cheops_unit h2').forEach(h=>whenNear(h,()=>{
-      if(h.dataset.cheopsSplit)return;h.dataset.cheopsSplit='1';
+      if(h.dataset.cheopsSplit||document.documentElement.dir==='rtl')return;h.dataset.cheopsSplit='1';
       const walker=(node)=>[...node.childNodes].forEach(n=>{if(n.nodeType===3&&n.textContent.trim()){const frag=document.createDocumentFragment();n.textContent.split('').forEach(c=>{const sp=document.createElement('span');sp.className='ch';sp.style.display='inline-block';sp.textContent=c===' '?'\u00a0':c;frag.appendChild(sp)});n.replaceWith(frag)}else if(n.nodeType===1&&!['SCRIPT','STYLE'].includes(n.tagName))walker(n)});
       walker(h);const chars=h.querySelectorAll('.ch');if(chars.length)gsap.from(chars,{yPercent:115,opacity:0,rotate:5,duration:.95,ease:'expo.out',stagger:.012,scrollTrigger:{trigger:h,start:'top 90%',once:true}});
     }));
@@ -1902,7 +1905,7 @@ function cheops_floating_widgets() {
           var label=btn.querySelector('.cheops-btn-text'), original=label?label.textContent:'';
           function finish(ok){
             btn.classList.remove('is-loading');
-            if(ok&&label){ btn.classList.add('is-done'); label.textContent=action==='cheops_book_meeting'?'Request sent':'Subscribed';
+            if(ok&&label){ btn.classList.add('is-done'); label.textContent=cheopsT(action==='cheops_book_meeting'?'Request sent':'Subscribed');
               setTimeout(function(){ btn.classList.remove('is-done'); label.textContent=original; },3000); }
           }
           fetch('<?php echo esc_url( admin_url('admin-ajax.php') ); ?>', { method:'POST', body:data, credentials:'same-origin' })
@@ -1910,13 +1913,13 @@ function cheops_floating_widgets() {
             .then(function(res){
               btn.disabled=false; finish(!!res.success);
               msg.className='cheops-form-msg '+(res.success?'ok':'err');
-              msg.textContent = (res.data && res.data.message) ? res.data.message : (res.success ? 'Thank you!' : 'Something went wrong.');
+              msg.textContent = (res.data && res.data.message) ? res.data.message : cheopsT(res.success ? 'Thank you!' : 'Something went wrong.');
               if(res.success) form.reset();
             })
             .catch(function(){
               btn.disabled=false; finish(false);
               msg.className='cheops-form-msg err';
-              msg.textContent='Something went wrong. Please try again.';
+              msg.textContent=cheopsT('Something went wrong. Please try again.');
             });
         });
       }
@@ -1935,7 +1938,7 @@ function cheops_handle_book_meeting() {
     $date = sanitize_text_field(wp_unslash($_POST['date'] ?? ''));
     $time = sanitize_text_field(wp_unslash($_POST['time'] ?? ''));
     if (!$name || !$contact || !$date || !$time) {
-        wp_send_json_error(['message' => 'Please fill in all fields.']);
+        wp_send_json_error(['message' => cheops_t('Please fill in all fields.')]);
     }
     $post_id = wp_insert_post([
         'post_type' => 'cheops_booking',
@@ -1946,9 +1949,9 @@ function cheops_handle_book_meeting() {
         update_post_meta($post_id, '_cheops_booking_contact', $contact);
         update_post_meta($post_id, '_cheops_booking_date', $date);
         update_post_meta($post_id, '_cheops_booking_time', $time);
-        wp_send_json_success(['message' => 'Thanks, we will confirm your meeting shortly.']);
+        wp_send_json_success(['message' => cheops_t('Thanks, we will confirm your meeting shortly.')]);
     }
-    wp_send_json_error(['message' => 'Something went wrong. Please try again.']);
+    wp_send_json_error(['message' => cheops_t('Something went wrong. Please try again.')]);
 }
 add_action('wp_ajax_cheops_book_meeting', 'cheops_handle_book_meeting');
 add_action('wp_ajax_nopriv_cheops_book_meeting', 'cheops_handle_book_meeting');
@@ -1960,10 +1963,10 @@ function cheops_handle_newsletter_signup() {
     $whatsapp = preg_replace('/[^0-9+() .-]/', '', $whatsapp_raw);
 
     if (!$email || !is_email($email)) {
-        wp_send_json_error(['message' => 'Please enter a valid email address.']);
+        wp_send_json_error(['message' => cheops_t('Please enter a valid email address.')]);
     }
     if (!$whatsapp || !preg_match('/^\+?[0-9][0-9() .-]{6,20}$/', $whatsapp)) {
-        wp_send_json_error(['message' => 'Please enter your WhatsApp number with country code.']);
+        wp_send_json_error(['message' => cheops_t('Please enter your WhatsApp number with country code.')]);
     }
 
     $existing = get_posts(['post_type' => 'cheops_subscriber', 'title' => $email, 'posts_per_page' => 1, 'fields' => 'ids']);
@@ -1979,9 +1982,9 @@ function cheops_handle_newsletter_signup() {
     ]);
     if ($post_id && !is_wp_error($post_id)) {
         update_post_meta($post_id, '_cheops_subscriber_whatsapp', $whatsapp);
-        wp_send_json_success(['message' => 'Thanks for subscribing!']);
+        wp_send_json_success(['message' => cheops_t('Thanks for subscribing!')]);
     }
-    wp_send_json_error(['message' => 'Something went wrong. Please try again.']);
+    wp_send_json_error(['message' => cheops_t('Something went wrong. Please try again.')]);
 }
 add_action('wp_ajax_cheops_newsletter_signup', 'cheops_handle_newsletter_signup');
 add_action('wp_ajax_nopriv_cheops_newsletter_signup', 'cheops_handle_newsletter_signup');
@@ -2142,6 +2145,7 @@ add_action('admin_post_cheops_import_lake_town_units', 'cheops_import_lake_town_
 require_once get_template_directory() . '/inc/portfolio-aug26-import.php';
 require_once get_template_directory() . '/inc/service-pages.php';
 require_once get_template_directory() . '/inc/articles.php';
+if (is_admin()) require_once get_template_directory() . '/inc/i18n-admin.php';
 
 
 /* =========================================================
@@ -2183,7 +2187,7 @@ function cheops_project_map_coords($title,$city='') {
  * unit or city changes, instead of running one query per project on every view.
  */
 function cheops_cache_key($name) {
-    return 'cheops_' . $name . '_v2_' . (int) get_option('cheops_content_version', 1);
+    return 'cheops_' . $name . '_v2_' . (int) get_option('cheops_content_version', 1) . (function_exists('cheops_is_ar') && cheops_is_ar() ? '_ar' : '');
 }
 function cheops_bump_content_version($post_id = 0) {
     if ($post_id && !in_array(get_post_type($post_id), ['cheops_project', 'cheops_unit'], true)) return;
@@ -2201,10 +2205,21 @@ add_action('after_switch_theme', function () { cheops_bump_content_version(); })
 
 function cheops_project_map_items() {
     $key = cheops_cache_key('map_items');
-    $cached = get_transient($key);
-    if (is_array($cached)) return $cached;
-    $items = cheops_project_map_items_uncached();
-    set_transient($key, $items, DAY_IN_SECONDS);
+    $items = get_transient($key);
+    if (!is_array($items)) {
+        $items = cheops_project_map_items_uncached();
+        set_transient($key, $items, DAY_IN_SECONDS);
+    }
+    // The map panel is filled in by script, so its texts are translated here.
+    if (cheops_is_ar()) {
+        foreach ($items as &$item) {
+            foreach (['dest', 'statement', 'price', 'units'] as $field) {
+                $tr = cheops_i18n_lookup((string) $item[$field], false);
+                if ($tr !== null) $item[$field] = $tr;
+            }
+        }
+        unset($item);
+    }
     return $items;
 }
 
