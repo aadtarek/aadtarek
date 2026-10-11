@@ -104,12 +104,38 @@ function cheops_i18n_head() {
     echo '<link rel="alternate" hreflang="en" href="' . esc_url($en) . '">' . "\n";
     echo '<link rel="alternate" hreflang="ar" href="' . esc_url($ar) . '">' . "\n";
     echo '<link rel="alternate" hreflang="x-default" href="' . esc_url($en) . '">' . "\n";
-    if (!cheops_is_ar()) return;
+    if (cheops_is_ar()) echo cheops_arabic_head_assets();
+}
+
+/** Arabic font (printed inline so no cache, CDN or plugin can keep it from loading) and the RTL layout. */
+function cheops_arabic_head_assets() {
     $dir = get_template_directory_uri() . '/assets/';
-    // The Arabic font is printed inline so no cache, CDN or plugin can keep it from loading.
+    $out = '';
     $font_css = (string) @file_get_contents(get_template_directory() . '/assets/css/arabic-font.css');
-    if ($font_css !== '') echo '<style id="cheops-arabic-font">' . str_replace('../fonts/', $dir . 'fonts/', $font_css) . '</style>' . "\n";
-    echo '<link rel="stylesheet" id="cheops-rtl-css" href="' . esc_url($dir . 'css/rtl.css?ver=' . cheops_asset_ver('assets/css/rtl.css')) . '">' . "\n";
+    if ($font_css !== '') $out .= '<style id="cheops-arabic-font">' . str_replace('../fonts/', $dir . 'fonts/', $font_css) . '</style>' . "\n";
+    $out .= '<link rel="stylesheet" id="cheops-rtl-css" href="' . esc_url($dir . 'css/rtl.css?ver=' . cheops_asset_ver('assets/css/rtl.css')) . '">' . "\n";
+    return $out;
+}
+
+/**
+ * A page made Arabic some other way (a translation plugin, the site language
+ * set to Arabic) still gets the Arabic font and the right-to-left layout.
+ */
+function cheops_arabic_fallback($html) {
+    if (cheops_is_ar() || strpos($html, 'id="cheops-arabic-font"') !== false) return $html;
+    $locale = function_exists('determine_locale') ? determine_locale() : get_locale();
+    $ar = stripos((string) $locale, 'ar') === 0
+        || preg_match('#<html\b[^>]*(lang="ar|dir="rtl")#i', $html);
+    if (!$ar) {
+        $body = preg_replace('#<(script|style)\b.*?</\1>#is', '', (string) strstr($html, '<body'));
+        $ar = preg_match_all('/\p{Arabic}/u', strip_tags($body)) > 400;
+    }
+    if (!$ar) return $html;
+    $html = preg_replace_callback('#<html\b[^>]*>#i', static function ($m) {
+        $tag = preg_replace('/\s(lang|dir)="[^"]*"/i', '', $m[0]);
+        return preg_replace('/^<html/i', '<html lang="ar" dir="rtl"', $tag);
+    }, $html, 1);
+    return preg_replace('#</head>#i', cheops_arabic_head_assets() . '</head>', $html, 1);
 }
 add_action('wp_head', 'cheops_i18n_head', 999);
 
@@ -420,6 +446,7 @@ function cheops_i18n_tag($tag) {
 
 function cheops_i18n_html($html) {
     if (stripos($html, '<html') === false) return $html;
+    $html = cheops_arabic_fallback($html);
     if (!cheops_is_ar() && !cheops_i18n_map('en')) return $html;
     // Scripts, styles and text areas pass through untouched.
     $chunks = preg_split('#(<script\b.*?</script>|<style\b.*?</style>|<textarea\b.*?</textarea>|<!--.*?-->)#is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);

@@ -727,7 +727,59 @@ p,li,dd,.lead,.hero-lead{text-wrap:pretty}
 body.cheops-prive-theme .hero.service-hero h1.h1-long{font-size:clamp(34px,4.4vw,64px)!important;line-height:1.08!important;max-width:1180px!important;margin-left:auto!important;margin-right:auto!important}
 body.cheops-prive-theme .hero.service-hero h1.h1-long .rl>span{white-space:normal!important}
 @media(max-width:767px){body.cheops-prive-theme .hero.service-hero h1.h1-long{font-size:clamp(28px,8vw,40px)!important}}
-/* English / Arabic switch */
-@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0600-06FF,U+FB50-FDFF,U+FE70-FEFF}
-.cheops-nav-lang[lang="ar"],.cheops-lang-switch-mobile[lang="ar"]{font-family:"Cheops Arabic Sans","Neue Montreal",Arial,sans-serif!important;letter-spacing:0!important;text-transform:none!important}
+/*
+ * Arabic letters anywhere on the site use Palatino LT Arabic. Each font name the
+ * theme uses also points to it for Arabic letters only (unicode-range), so it
+ * applies whatever produced the Arabic text, and is only downloaded on pages
+ * that contain Arabic.
+ */
+@font-face{font-family:"Romie";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Romie";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Neue Montreal";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Neue Montreal";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Arial keeps the installed font for every other letter. */
+@font-face{font-family:"Arial";src:local("Arial"),local("ArialMT");font-weight:100 550;font-style:normal}
+@font-face{font-family:"Arial";src:local("Arial Bold"),local("Arial-BoldMT");font-weight:551 900;font-style:normal}
+@font-face{font-family:"Arial";src:local("Arial"),local("ArialMT");font-style:italic}
+@font-face{font-family:"Arial";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Arial";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Helvetica keeps the installed font for every other letter. */
+@font-face{font-family:"Helvetica";src:local("Helvetica"),local("Helvetica Neue"),local("Arial");font-weight:100 550;font-style:normal}
+@font-face{font-family:"Helvetica";src:local("Helvetica Bold"),local("Helvetica-Bold"),local("Arial Bold"),local("Arial-BoldMT");font-weight:551 900;font-style:normal}
+@font-face{font-family:"Helvetica";src:local("Helvetica"),local("Helvetica Neue"),local("Arial");font-style:italic}
+@font-face{font-family:"Helvetica";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Helvetica";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Helvetica Neue keeps the installed font for every other letter. */
+@font-face{font-family:"Helvetica Neue";src:local("Helvetica Neue"),local("HelveticaNeue"),local("Helvetica");font-style:normal}
+@font-face{font-family:"Helvetica Neue";src:local("Helvetica Neue"),local("HelveticaNeue"),local("Helvetica");font-style:italic}
+@font-face{font-family:"Helvetica Neue";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Helvetica Neue";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Georgia keeps the installed font for every other letter. */
+@font-face{font-family:"Georgia";src:local("Georgia");font-style:normal}
+@font-face{font-family:"Georgia";src:local("Georgia");font-style:italic}
+@font-face{font-family:"Georgia";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Georgia";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Times New Roman keeps the installed font for every other letter. */
+@font-face{font-family:"Times New Roman";src:local("Times New Roman"),local("TimesNewRomanPSMT");font-style:normal}
+@font-face{font-family:"Times New Roman";src:local("Times New Roman"),local("TimesNewRomanPSMT");font-style:italic}
+@font-face{font-family:"Times New Roman";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Times New Roman";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Inter keeps the installed font for every other letter. */
+@font-face{font-family:"Inter";src:local("Inter");font-style:normal}
+@font-face{font-family:"Inter";src:local("Inter");font-style:italic}
+@font-face{font-family:"Inter";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Inter";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Segoe UI keeps the installed font for every other letter. */
+@font-face{font-family:"Segoe UI";src:local("Segoe UI");font-style:normal}
+@font-face{font-family:"Segoe UI";src:local("Segoe UI");font-style:italic}
+@font-face{font-family:"Segoe UI";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Segoe UI";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+/* Roboto keeps the installed font for every other letter. */
+@font-face{font-family:"Roboto";src:local("Roboto");font-style:normal}
+@font-face{font-family:"Roboto";src:local("Roboto");font-style:italic}
+@font-face{font-family:"Roboto";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Roboto";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+.cheops-nav-lang[lang="ar"],.cheops-lang-switch-mobile[lang="ar"]{letter-spacing:0!important;text-transform:none!important}
 .cheops-nav-lang{opacity:.8}.cheops-nav-lang:hover{opacity:1}
