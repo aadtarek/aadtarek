@@ -106,7 +106,7 @@ function cheops_i18n_head() {
     echo '<link rel="alternate" hreflang="x-default" href="' . esc_url($en) . '">' . "\n";
     if (!cheops_is_ar()) return;
     $dir = get_template_directory_uri() . '/assets/';
-    echo '<link rel="preload" href="' . esc_url($dir . 'fonts/ibm-plex-sans-arabic-400.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
+    echo '<link rel="preload" href="' . esc_url($dir . 'fonts/palatino-lt-arabic.woff2') . '" as="font" type="font/woff2" crossorigin>' . "\n";
     echo '<link rel="stylesheet" id="cheops-rtl-css" href="' . esc_url($dir . 'css/rtl.css?ver=' . cheops_asset_ver('assets/css/rtl.css')) . '">' . "\n";
 }
 add_action('wp_head', 'cheops_i18n_head', 999);

@@ -728,6 +728,6 @@ body.cheops-prive-theme .hero.service-hero h1.h1-long{font-size:clamp(34px,4.4vw
 body.cheops-prive-theme .hero.service-hero h1.h1-long .rl>span{white-space:normal!important}
 @media(max-width:767px){body.cheops-prive-theme .hero.service-hero h1.h1-long{font-size:clamp(28px,8vw,40px)!important}}
 /* English / Arabic switch */
-@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/ibm-plex-sans-arabic-500.woff2") format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0600-06FF,U+FB50-FDFF,U+FE70-FEFF}
+@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-display:swap;unicode-range:U+0600-06FF,U+FB50-FDFF,U+FE70-FEFF}
 .cheops-nav-lang[lang="ar"],.cheops-lang-switch-mobile[lang="ar"]{font-family:"Cheops Arabic Sans","Neue Montreal",Arial,sans-serif!important;letter-spacing:0!important;text-transform:none!important}
 .cheops-nav-lang{opacity:.8}.cheops-nav-lang:hover{opacity:1}

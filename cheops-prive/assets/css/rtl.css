@@ -2,16 +2,16 @@
 
 /*
  * Arabic letters borrow the theme's font names, so every existing rule keeps
- * working: Romie headings fall back to Noto Naskh Arabic, Neue Montreal text to
- * IBM Plex Sans Arabic. Latin letters (names, numbers) keep the brand fonts.
+ * working: Romie headings and Neue Montreal text both fall back to Palatino LT
+ * Arabic. Latin letters (names, numbers) keep the brand fonts.
  */
-@font-face{font-family:"Romie";src:url("../fonts/noto-naskh-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
-@font-face{font-family:"Romie";src:url("../fonts/noto-naskh-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
-@font-face{font-family:"Neue Montreal";src:url("../fonts/ibm-plex-sans-arabic-300.woff2") format("woff2");font-weight:100 350;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
-@font-face{font-family:"Neue Montreal";src:url("../fonts/ibm-plex-sans-arabic-400.woff2") format("woff2");font-weight:351 450;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
-@font-face{font-family:"Neue Montreal";src:url("../fonts/ibm-plex-sans-arabic-500.woff2") format("woff2");font-weight:451 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
-@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/ibm-plex-sans-arabic-400.woff2") format("woff2");font-weight:100 450;font-display:swap}
-@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/ibm-plex-sans-arabic-500.woff2") format("woff2");font-weight:451 900;font-display:swap}
+@font-face{font-family:"Romie";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Romie";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 900;font-style:italic;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Neue Montreal";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 350;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Neue Montreal";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:351 450;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Neue Montreal";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:451 900;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:100 450;font-display:swap}
+@font-face{font-family:"Cheops Arabic Sans";src:url("../fonts/palatino-lt-arabic.woff2") format("woff2");font-weight:451 900;font-display:swap}
 
 /* Letter spacing pulls Arabic letters apart, and upper case means nothing in Arabic. */
 html[dir="rtl"] body,html[dir="rtl"] body *{letter-spacing:0!important}
@@ -31,3 +31,7 @@ html[dir="rtl"] body :is(a[href^="tel:"],a[href^="mailto:"],input[type="tel"],in
 
 /* Arrows drawn as icons point the reading way. */
 html[dir="rtl"] body svg.cheops-arrow,html[dir="rtl"] body .ar svg{transform:scaleX(-1)}
+
+/* The About heading holds the whole Arabic line in one piece; let it wrap on phones. */
+html[dir="rtl"] body.cheops-about-page #hero .about-hero-title .about-title-part,html[dir="rtl"] body.cheops-about-page #hero .about-hero-title .about-title-part *{white-space:normal!important}
+html[dir="rtl"] body .about-hero-title{max-width:100%;overflow-wrap:anywhere}
