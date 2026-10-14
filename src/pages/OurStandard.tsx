@@ -150,7 +150,7 @@ function Why() {
           ))}
         </Panel>
       </div>
-      <div className="relative overflow-hidden bg-[#efe4d6] xl:hidden">
+      <div className="relative overflow-hidden bg-[#e6e3df] xl:hidden">
         <img src={whyBg} alt="" className="absolute inset-0 h-full w-full object-cover object-right opacity-60" />
         <div className="container-x relative py-14">
           <p className="flex items-center gap-4 font-sans text-[12px] font-medium tracking-[0.3em] uppercase" style={{ color: '#2c1d10' }}>
@@ -195,7 +195,7 @@ function Overview({ onPick }: { onPick: (i: number) => void }) {
   const u = unit(B)
   const centers = [172, 424, 676, 925, 1178, 1431]
   return (
-    <section aria-labelledby="six-dimensions-title" className="bg-[#f2e9e0]">
+    <section aria-labelledby="six-dimensions-title" className="bg-[#ece9e6]">
       <div className="hidden xl:block">
         <div className="relative w-full" style={{ aspectRatio: '1600 / 336', containerType: 'inline-size' }}>
           <T base={B} x={97} y={34.6} size={15.4} ls={0.3} font="sans" weight={600} color="#3b2312" as="h2">
@@ -241,7 +241,7 @@ function Overview({ onPick }: { onPick: (i: number) => void }) {
                 <span className="font-serif text-[44px] leading-none" style={{ color: '#c3b09d' }}>
                   {d.num}
                 </span>
-                <span className="mt-2 font-serif text-[20px] tracking-[-0.02em] uppercase" style={{ color: INK }}>
+                <span className="mt-2 font-serif text-[20px] tracking-[-0.02em]" style={{ color: INK }}>
                   {d.title}
                 </span>
                 <span aria-hidden className="mt-2 text-[10px]" style={{ color: '#a06a3c' }}>
@@ -476,7 +476,7 @@ function Viewer({ active, onPick }: { active: number; onPick: (i: number) => voi
     for (const x of dimensions) for (const src of [x.desk.image, x.mob.image]) new Image().src = src
   }, [])
   return (
-    <section id="dimension-viewer" aria-label="The Rfaheya Standard dimensions" className="scroll-mt-16 bg-[#efe4d6]">
+    <section id="dimension-viewer" aria-label="The Rfaheya Standard dimensions" className="scroll-mt-16 bg-[#e6e3df]">
       <div key={`d-${d.slug}`} className="hidden animate-fade-in lg:block">
         <DimensionPanel d={d} L={d.desk} phone={false} active={active} onPick={onPick} />
       </div>
@@ -517,7 +517,7 @@ export function OurStandard() {
   }
 
   return (
-    <div className="bg-[#efe4d6] [font-variant-numeric:lining-nums]">
+    <div className="bg-[#e6e3df] [font-variant-numeric:lining-nums]">
       <Hero onPick={pick} />
       <Why />
       <Overview onPick={pick} />

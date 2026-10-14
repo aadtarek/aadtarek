@@ -8,7 +8,7 @@ export function FinderLanding() {
   const start = (
     <Link
       to="/finder/quiz"
-      className="group inline-flex h-[52px] items-center gap-3 rounded-[4px] bg-[#f3e4cf] px-12 text-[13px] font-medium tracking-[0.14em] text-ink uppercase transition hover:bg-[#fbefdd]"
+      className="group inline-flex h-[52px] items-center gap-3 rounded-full bg-[#e6e2dc] px-12 text-[13px] font-medium tracking-[0.14em] text-ink uppercase transition hover:bg-[#f0ede8]"
     >
       Start the finder
       <ArrowRight className="size-[18px] transition group-hover:translate-x-1" strokeWidth={1.5} />
@@ -16,7 +16,7 @@ export function FinderLanding() {
   )
 
   return (
-    <div className="bg-[#efe6dc]">
+    <div className="bg-[#e8e6e3]">
       {/* ---------- Hero ---------- */}
       <section className="relative overflow-hidden bg-[#1c120b] text-cream">
         <img
@@ -35,9 +35,9 @@ export function FinderLanding() {
           <h1 className="mt-4 font-serif text-[64px] leading-[0.92] sm:text-[88px]">
             Rfaheya
             <br />
-            <span className="text-[#ecd2b4]">Finder</span>
+            <span className="text-[#d8d1c8]">Finder</span>
           </h1>
-          <p className="mt-5 font-serif text-[30px] leading-[1.15] text-[#ecd2b4] sm:text-[36px]">
+          <p className="mt-5 font-serif text-[30px] leading-[1.15] text-[#d8d1c8] sm:text-[36px]">
             Find the fragrance
             <br />
             that feels like you.
@@ -53,7 +53,7 @@ export function FinderLanding() {
       </section>
 
       {/* ---------- What happens next ---------- */}
-      <section className="bg-[#efe6dc] py-14 lg:py-16" aria-labelledby="next-title">
+      <section className="bg-[#e8e6e3] py-14 lg:py-16" aria-labelledby="next-title">
         <div className="container-x text-center">
           <p id="next-title" className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[13px]">
             What happens next?
@@ -68,7 +68,7 @@ export function FinderLanding() {
                 {i > 0 && <span aria-hidden className="mt-9 hidden h-px w-14 bg-line-strong sm:block" />}
                 <li>
                   <span className="font-serif text-[48px] leading-none text-mocha">{String(i + 1).padStart(2, '0')}</span>
-                  <h2 className="mt-3 font-serif text-[22px] uppercase">{s.title}</h2>
+                  <h2 className="mt-3 font-serif text-[22px]">{s.title}</h2>
                   <p className="mx-auto mt-1 max-w-[16rem] text-[15.5px] leading-snug text-ink-soft">{s.text}</p>
                 </li>
               </Fragment>
@@ -78,7 +78,7 @@ export function FinderLanding() {
       </section>
 
       {/* ---------- More than a quiz ---------- */}
-      <section className="bg-[#e5d9cb] py-14 lg:py-16" aria-labelledby="quiz-title">
+      <section className="bg-[#dcd8d4] py-14 lg:py-16" aria-labelledby="quiz-title">
         <div className="container-x">
           <p className="text-center text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[13px]">It’s more than a quiz.</p>
           <h2 id="quiz-title" className="mt-2 text-center font-serif text-[34px] leading-[1.1] sm:text-[46px]">
@@ -86,11 +86,11 @@ export function FinderLanding() {
           </h2>
           <ul className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-[10px]">
             {landing.cards.map((c) => (
-              <li key={c.title} className="relative aspect-[230/226] overflow-hidden rounded-[4px] bg-[#1c120b]">
+              <li key={c.title} className="relative aspect-[230/226] overflow-hidden rounded-xl bg-[#1c120b]">
                 <img src={c.image} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#140c07]/95 via-[#140c07]/30 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-4 text-cream sm:p-6">
-                  <h3 className="font-serif text-[18px] uppercase sm:text-[22px]">{c.title}</h3>
+                  <h3 className="font-serif text-[18px] sm:text-[22px]">{c.title}</h3>
                   <span aria-hidden className="mt-2 block h-px w-6 bg-cream/70" />
                   <p className="mt-2 max-w-[13rem] text-[13px] leading-snug text-cream/85 sm:text-[14.5px]">{c.text}</p>
                 </div>

@@ -28,7 +28,7 @@ export function AnnouncementBar() {
 
   return (
     <div
-      className="bg-olive text-[10px] font-medium tracking-[0.05em] text-cream uppercase"
+      className="bg-chip text-[10px] font-medium tracking-[0.08em] text-ink-soft uppercase"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

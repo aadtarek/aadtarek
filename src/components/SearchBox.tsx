@@ -106,7 +106,7 @@ export function SearchBox({ className = '', autoFocus = false, onDone }: { class
                     >
                       <img src={p.images[0].src} alt="" className="size-12 rounded object-cover" />
                       <span className="min-w-0 flex-1">
-                        <span className="block font-serif text-[15px] uppercase">{p.name}</span>
+                        <span className="block font-serif text-[15px]">{p.name}</span>
                         <span className="block truncate text-xs text-muted">Inspired by {p.inspiredBy}</span>
                       </span>
                       <span className="text-xs font-semibold whitespace-nowrap">{formatPriceRange(range.min, range.max)}</span>

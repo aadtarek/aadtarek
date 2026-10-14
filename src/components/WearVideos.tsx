@@ -52,10 +52,10 @@ export function WearVideoCard({ video, index, onOpen }: { video: WearVideo; inde
         <img
           src={product.images[0].src}
           alt=""
-          className="absolute right-3 bottom-[118px] size-14 rounded-[4px] border-2 border-white object-cover shadow-lg sm:size-16"
+          className="absolute right-3 bottom-[118px] size-14 rounded-xl border-2 border-white object-cover shadow-lg sm:size-16"
         />
       )}
-      <span className="absolute inset-x-3 bottom-3 flex items-end gap-3 rounded-[4px] bg-[#f4f1ec] px-4 py-3.5 shadow-lg">
+      <span className="absolute inset-x-3 bottom-3 flex items-end gap-3 rounded-xl bg-[#f1f0ef] px-4 py-3.5 shadow-lg">
         <span className="min-w-0 flex-1">
           <span className="flex items-center justify-between gap-2 text-[8.5px] font-semibold tracking-[0.1em] text-ink-soft uppercase">
             <span className="truncate">{video.label}</span>
@@ -64,7 +64,7 @@ export function WearVideoCard({ video, index, onOpen }: { video: WearVideo; inde
           <span className="mt-1 block truncate text-[17px] leading-tight font-medium text-ink">{video.title}</span>
           {video.tags && <span className="mt-1 block truncate text-[9.5px] font-semibold tracking-[0.14em] text-ink-soft uppercase">{video.tags}</span>}
         </span>
-        <span className="grid size-10 shrink-0 place-items-center rounded-[3px] bg-ink text-white transition group-hover:bg-olive">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink text-white transition group-hover:bg-olive">
           <Play className="size-4 fill-current" strokeWidth={0} />
         </span>
       </span>
@@ -174,7 +174,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                 <div className="flex gap-4">
                   <img src={product.images[0].src} alt="" className="size-20 shrink-0 rounded-md object-cover" />
                   <div className="min-w-0">
-                    <p className="font-serif text-[22px] leading-none uppercase">{product.name}</p>
+                    <p className="font-serif text-[22px] leading-none">{product.name}</p>
                     <p className="mt-1.5 text-[14px] text-ink-soft">{product.tagline}</p>
                     {product.inspiredBy && (
                       <p className="mt-1 text-[12.5px] text-muted">
@@ -215,7 +215,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                             aria-checked={on}
                             disabled={!v.inStock}
                             onClick={() => setVariationId(v.id)}
-                            className={`rounded-[4px] border px-2 py-2 text-center transition disabled:opacity-40 ${on ? 'border-olive bg-olive text-cream' : 'border-line-strong hover:border-ink'}`}
+                            className={`rounded-xl border px-2 py-2 text-center transition disabled:opacity-40 ${on ? 'border-olive bg-olive text-cream' : 'border-line-strong hover:border-ink'}`}
                           >
                             <span className="block text-[13px] font-semibold">{v.size}</span>
                             <span className={`block text-[12px] ${on ? 'text-cream/80' : 'text-muted'}`}>{formatPrice(v.price)}</span>
@@ -227,7 +227,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                       <button
                         type="button"
                         onClick={() => cart.add(product.id, selected.id)}
-                        className="inline-flex h-12 items-center justify-center gap-2 rounded-[3px] bg-olive text-[12px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-olive-hover"
+                        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-olive text-[12px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-olive-hover"
                       >
                         <ShoppingBag className="size-[18px]" strokeWidth={1.4} />
                         Add to cart · {formatPrice(selected.price)}
@@ -237,7 +237,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                           type="button"
                           onClick={() => cart.add(product.id, sample.id)}
                           disabled={!sample.inStock}
-                          className="inline-flex h-12 items-center justify-center gap-1.5 rounded-[3px] border border-line-strong text-[11.5px] hover:border-ink"
+                          className="inline-flex h-12 items-center justify-center gap-1.5 rounded-full border border-line-strong text-[11.5px] hover:border-ink"
                         >
                           <BottleIcon className="size-[18px]" />
                           <span className="font-semibold tracking-[0.04em] uppercase">Try {sample.size}</span>

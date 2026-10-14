@@ -48,7 +48,7 @@ export function CartDrawer() {
             <Link
               to="/shop"
               onClick={cart.close}
-              className="mt-6 inline-flex h-12 items-center rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+              className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
             >
               Shop fragrances
             </Link>
@@ -79,7 +79,7 @@ export function CartDrawer() {
                   <div className="flex min-w-0 flex-1 flex-col">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <Link to={`/product/${line.product.slug}`} onClick={cart.close} className="font-serif text-[16px] uppercase hover:underline">
+                        <Link to={`/product/${line.product.slug}`} onClick={cart.close} className="font-serif text-[16px] hover:underline">
                           {line.product.name}
                         </Link>
                         <p className="text-[12px] text-muted">
@@ -129,7 +129,7 @@ export function CartDrawer() {
                   cart.close()
                   navigate('/checkout')
                 }}
-                className="mt-4 h-[52px] w-full rounded-[3px] bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+                className="mt-4 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
               >
                 Checkout
               </button>

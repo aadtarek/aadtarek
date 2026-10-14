@@ -26,7 +26,7 @@ export function ExploreFamilies() {
           <li key={f.slug} className="w-[78%] shrink-0 snap-start xs:w-[62%] sm:w-[40%] lg:w-auto">
             <Link
               to={`/shop?family=${f.slug}`}
-              className="group flex h-full flex-col overflow-hidden rounded-lg bg-[#efe6dc] shadow-[0_1px_2px_rgba(60,45,20,0.05)] transition-shadow hover:shadow-[0_14px_30px_-14px_rgba(60,45,20,0.35)]"
+              className="group flex h-full flex-col overflow-hidden rounded-lg bg-[#e8e6e3] shadow-[0_1px_2px_rgba(60,45,20,0.05)] transition-shadow hover:shadow-[0_14px_30px_-14px_rgba(60,45,20,0.35)]"
             >
               <div className="aspect-[300/205] overflow-hidden">
                 <img
@@ -36,9 +36,9 @@ export function ExploreFamilies() {
                   className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
                 />
               </div>
-              <div className="flex flex-1 flex-col bg-gradient-to-b from-[#ede3d8] to-[#f2eae1] px-6 pt-[17px] pb-[22px]">
+              <div className="flex flex-1 flex-col bg-gradient-to-b from-[#e6e3df] to-[#eceae7] px-6 pt-[17px] pb-[22px]">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-serif text-[26px] leading-none uppercase">{f.name}</h3>
+                  <h3 className="font-serif text-[26px] leading-none">{f.name}</h3>
                   <span className="grid size-[37px] shrink-0 place-items-center rounded-full bg-olive text-cream transition group-hover:bg-olive-hover">
                     <ArrowRight className="size-4 transition group-hover:translate-x-0.5" strokeWidth={1.5} />
                   </span>

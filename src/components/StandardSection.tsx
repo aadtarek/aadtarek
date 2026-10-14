@@ -8,7 +8,7 @@ export function StandardSection() {
   return (
     <section
       aria-labelledby="standard-title"
-      className="relative overflow-hidden bg-[#f4ece1] [--h:clamp(720px,50vw,860px)]"
+      className="relative overflow-hidden bg-[#edebe8] [--h:clamp(720px,50vw,860px)]"
     >
       {/* Still life on the left, fading into the wall behind the tiles */}
       <img
@@ -43,7 +43,7 @@ export function StandardSection() {
           {pillars.map((p, i) => (
             <li
               key={p.title}
-              className="flex flex-col items-center rounded-lg border border-[#e8dccd] bg-[#f6eee4]/80 px-4 pt-4 pb-6 text-center backdrop-blur-[2px] lg:px-6 lg:pt-[24px]"
+              className="flex flex-col items-center rounded-lg border border-[#dfdbd6] bg-[#f0edea]/80 px-4 pt-4 pb-6 text-center backdrop-blur-[2px] lg:px-6 lg:pt-[24px]"
             >
               <span className="self-start font-serif text-[22px] leading-none font-normal lg:text-[27px]">
                 {String(i + 1).padStart(2, '0')}
@@ -55,7 +55,7 @@ export function StandardSection() {
                 loading="lazy"
                 className="-mt-3 size-[108px] rounded-full object-cover lg:-mt-[30px] lg:size-[142px]"
               />
-              <h3 className="mt-5 font-serif text-[20px] leading-none uppercase lg:mt-[28px] lg:text-[26px]">{p.title}</h3>
+              <h3 className="mt-5 font-serif text-[20px] leading-none lg:mt-[28px] lg:text-[26px]">{p.title}</h3>
               <p className="mt-3 max-w-[13.5rem] text-[14.5px] leading-[1.45] text-muted lg:mt-[16px] lg:text-[18px]">{p.text}</p>
             </li>
           ))}

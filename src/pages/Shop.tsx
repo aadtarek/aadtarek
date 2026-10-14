@@ -4,7 +4,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { getAllProducts, getFamilies, matchesSearch, priceRange, sortProducts, type ProductSort } from '../api/catalog'
 import { Overlay } from '../components/Overlay'
 import { ProductCard } from '../components/ProductCard'
-import banner from '../assets/shop-banner.webp'
 import { GENDERS, OCCASIONS, SEASONS } from '../lib/profile'
 import type { FamilySlug, Gender, Occasion, Product, Season } from '../types'
 
@@ -122,32 +121,27 @@ export function Shop() {
 
   return (
     <div className="pb-16 lg:pb-24">
-      <div className="lg:container-x lg:grid lg:grid-cols-[264px_minmax(0,1fr)] lg:gap-8 lg:pt-5 xl:gap-10">
+      <div className="lg:container-x lg:grid lg:grid-cols-[236px_minmax(0,1fr)] lg:gap-10 lg:pt-4 xl:gap-12">
         <aside className="hidden lg:block" aria-label="Filters">
-          <div className="no-scrollbar sticky top-[86px] max-h-[calc(100vh-100px)] overflow-y-auto rounded-xl bg-card px-6 py-6 shadow-[0_1px_2px_rgba(60,45,20,0.05),0_0_0_1px_rgba(60,45,20,0.05)]">
+          <div className="no-scrollbar sticky top-[86px] max-h-[calc(100vh-100px)] overflow-y-auto border-r border-line py-6 pr-7">
             {panel}
           </div>
         </aside>
 
         <div className="min-w-0">
-          {/* Banner */}
-          <div className="relative overflow-hidden bg-[#efe4d6] lg:rounded-xl">
-            <img src={banner} alt="" className="absolute inset-0 size-full object-cover object-right" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#f3ebe1] via-[#f3ebe1]/85 to-transparent" />
-            <div className="relative px-4 py-7 sm:px-8 lg:px-8 lg:py-8">
-              <h1 className="font-serif text-[38px] leading-[1.02] tracking-[-0.01em] sm:text-[52px]">
-                {filters.q ? `Results for “${filters.q}”` : 'All Fragrances'}
-              </h1>
-              <p className="mt-2 text-[15px] text-ink-soft sm:text-[18px]">Find the fragrance that speaks to you.</p>
-            </div>
-          </div>
+          <header className="px-4 pt-7 sm:px-6 lg:px-0 lg:pt-4">
+            <p className="text-[11px] font-medium tracking-[0.28em] text-muted uppercase">The collection</p>
+            <h1 className="mt-2 font-serif text-[46px] leading-[0.95] sm:text-[64px]">{filters.q ? `Results for “${filters.q}”` : 'All fragrances'}</h1>
+            <p className="mt-3 max-w-md text-[15px] text-ink-soft">Find the fragrance that speaks to you.</p>
+          </header>
 
           <div className="px-4 sm:px-6 lg:px-0">
-            {/* Phone: who it's for */}
-            <ul className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:hidden" aria-label="Who it's for">
+            <div className="lg:mt-6 lg:flex lg:items-center lg:gap-6">
+            {/* Who it's for */}
+            <ul className="no-scrollbar -mx-4 mt-6 flex shrink-0 gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-0 lg:px-0" aria-label="Who it's for">
               <li className="shrink-0">
                 <PillButton active={filters.gender.length === 0} onClick={() => update({ gender: '' })}>
-                  All ({genderCounts.length})
+                  All <span className="opacity-60">{genderCounts.length}</span>
                 </PillButton>
               </li>
               {(Object.keys(GENDERS) as Gender[]).map((g) => (
@@ -160,18 +154,18 @@ export function Shop() {
                       })
                     }
                   >
-                    {GENDERS[g].label} ({genderCounts.filter((p) => p.profile.gender === g).length})
+                    {GENDERS[g].label} <span className="opacity-60">{genderCounts.filter((p) => p.profile.gender === g).length}</span>
                   </PillButton>
                 </li>
               ))}
             </ul>
 
             {/* Toolbar */}
-            <div className="mt-4 flex items-center gap-3 lg:mt-5">
+            <div className="mt-4 flex flex-1 items-center gap-3 lg:mt-0">
               <button
                 type="button"
                 onClick={() => setSheetOpen(true)}
-                className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg border border-line bg-card px-3.5 text-[14px] lg:hidden"
+                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line bg-cream px-4 text-[13px] lg:hidden"
               >
                 <SlidersHorizontal className="size-[18px]" strokeWidth={1.4} />
                 Filters
@@ -181,7 +175,7 @@ export function Shop() {
               <ul className="hidden flex-1 flex-wrap items-center gap-2 lg:flex" aria-label="Active filters">
                 {active.map((a) => (
                   <li key={a.label}>
-                    <span className="inline-flex h-10 items-center gap-3 rounded-full bg-chip pr-2 pl-4 text-[14px]">
+                    <span className="inline-flex h-9 items-center gap-2 rounded-full bg-chip pr-1.5 pl-4 text-[13px]">
                       {a.label}
                       <button
                         type="button"
@@ -214,7 +208,7 @@ export function Shop() {
                         sort: e.target.value === 'best-sellers' ? '' : e.target.value,
                       })
                     }
-                    className="h-11 w-[150px] appearance-none rounded-lg border border-line bg-card pr-9 pl-3.5 text-[14px] text-ink outline-none focus:border-olive sm:w-[170px]"
+                    className="h-10 w-[150px] appearance-none rounded-full border border-line bg-cream pr-9 pl-4 text-[13px] text-ink outline-none focus:border-ink sm:w-[170px]"
                   >
                     {sorts.map((s) => (
                       <option key={s.value} value={s.value}>
@@ -238,6 +232,8 @@ export function Shop() {
               </button>
             </div>
 
+            </div>
+
             <h2 className="sr-only">Products</h2>
             {products.length === 0 ? (
               <div className="mt-6 rounded-xl bg-card px-6 py-16 text-center shadow-[0_0_0_1px_rgba(60,45,20,0.05)]">
@@ -246,13 +242,13 @@ export function Shop() {
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="mt-6 inline-flex h-12 items-center rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+                  className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
                 >
                   View all fragrances
                 </button>
               </div>
             ) : (
-              <ul className={`mt-4 grid gap-2.5 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <ul className={`mt-6 grid gap-x-3 gap-y-9 sm:grid-cols-3 sm:gap-x-5 xl:grid-cols-4 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {products.map((p) => (
                   <li key={p.id}>
                     <ProductCard product={p} />
@@ -293,7 +289,7 @@ function PillButton({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`h-10 rounded-full border px-4 text-[14px] whitespace-nowrap transition ${active ? 'border-olive bg-olive text-cream' : 'border-line-strong bg-transparent hover:border-ink'}`}
+      className={`h-9 rounded-full border px-4 text-[13px] whitespace-nowrap transition ${active ? 'border-ink bg-ink text-cream' : 'border-line bg-cream hover:border-ink'}`}
     >
       {children}
     </button>
@@ -418,7 +414,7 @@ function Check({ label, count, checked, onChange }: { label: string; count: numb
       <input type="checkbox" checked={checked} onChange={onChange} className="peer sr-only" />
       <span
         aria-hidden
-        className="grid size-[19px] shrink-0 place-items-center rounded-[4px] border border-line-strong bg-cream transition peer-checked:border-olive peer-checked:bg-olive peer-focus-visible:outline-2 peer-focus-visible:outline-olive"
+        className="grid size-[19px] shrink-0 place-items-center rounded-[6px] border border-line-strong bg-cream transition peer-checked:border-olive peer-checked:bg-olive peer-focus-visible:outline-2 peer-focus-visible:outline-olive"
       >
         <svg viewBox="0 0 12 12" className={`size-3 text-cream ${checked ? '' : 'invisible'}`}>
           <path d="M2.5 6.2l2.3 2.3L9.5 3.8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -498,15 +494,17 @@ function PriceRange({
 
 function TryFirstBanner() {
   return (
-    <div className="mt-12 grid items-center gap-6 overflow-hidden rounded-xl bg-olive p-8 text-cream sm:grid-cols-[1fr_auto] lg:mt-16 lg:p-10">
+    <div className="mt-14 grid items-center gap-6 overflow-hidden rounded-3xl bg-chip p-8 sm:grid-cols-[1fr_auto] lg:mt-20 lg:p-12">
       <div>
-        <p className="text-[12px] tracking-[0.3em] text-cream/70 uppercase">Not sure yet?</p>
-        <p className="mt-2 font-serif text-[30px] leading-[1.1] sm:text-[36px]">Try any scent in 5 ML for 35 EGP.</p>
-        <p className="mt-2 max-w-lg text-[15px] text-cream/75">Live with it for a few days — then commit to the full bottle.</p>
+        <p className="text-[11px] font-medium tracking-[0.28em] text-muted uppercase">Not sure yet?</p>
+        <p className="mt-2 font-serif text-[32px] leading-[1.05] sm:text-[42px]">
+          Try any scent in 5 ML <span className="italic">for 35 EGP.</span>
+        </p>
+        <p className="mt-2 max-w-lg text-[15px] text-ink-soft">Live with it for a few days — then commit to the full bottle.</p>
       </div>
       <Link
         to="/finder"
-        className="inline-flex h-[50px] items-center justify-center rounded-[3px] border border-cream/70 px-8 text-[12px] font-medium tracking-[0.12em] uppercase transition hover:bg-cream hover:text-olive"
+        className="inline-flex h-12 items-center justify-center rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
       >
         Find your scent
       </Link>

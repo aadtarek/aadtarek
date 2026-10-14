@@ -76,9 +76,9 @@ export function FinderResult() {
   ]
 
   return (
-    <div className="bg-[#f2e9df]">
+    <div className="bg-[#ebe9e6]">
       {/* progress bar summary */}
-      <div className="border-b border-[#e3d6c7] bg-[#efe4d8]">
+      <div className="border-b border-[#d9d5d1] bg-[#e7e4e0]">
         <div className="container-x flex flex-wrap items-center gap-x-8 gap-y-3 py-4">
           <p className="text-[13px] tracking-[0.14em] uppercase">Rfaheya Finder</p>
           <ol className="hidden flex-1 grid-cols-7 gap-2 md:grid">
@@ -115,7 +115,7 @@ export function FinderResult() {
           </h1>
           <p className="mt-5 max-w-[28rem] text-[17px] leading-[1.6] text-muted">{product.description}</p>
 
-          <ul className="mt-6 grid grid-cols-3 gap-3 border-t border-[#e3d6c7] pt-5">
+          <ul className="mt-6 grid grid-cols-3 gap-3 border-t border-[#d9d5d1] pt-5">
             <Stat icon={Sun} top={longevity.hours} bottom="Longevity" />
             <Stat icon={Waves} top={presenceLabel[product.profile.presence]} bottom="Presence" />
             <Stat icon={Leaf} top={family?.name ?? style} bottom="Scent style" />
@@ -158,7 +158,7 @@ export function FinderResult() {
           <Link to={`/product/${product.slug}`}>
             <img src={product.images[0].src} alt={product.images[0].alt} className="aspect-[580/510] w-full object-cover" />
           </Link>
-          <div className="right-4 bottom-4 mt-3 rounded-lg bg-[#f8f1e8]/95 p-4 backdrop-blur sm:absolute sm:top-6 sm:bottom-auto sm:mt-0 sm:w-[150px]">
+          <div className="right-4 bottom-4 mt-3 rounded-lg bg-[#f2f0ee]/95 p-4 backdrop-blur sm:absolute sm:top-6 sm:bottom-auto sm:mt-0 sm:w-[150px]">
             <p className="text-[12px] tracking-[0.16em] text-muted uppercase">Key notes</p>
             <ul className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-1">
               {keyNotes.map((n, i) => (
@@ -182,7 +182,7 @@ export function FinderResult() {
         </h2>
         <ul className="mt-6 grid gap-[13px] sm:grid-cols-2 lg:grid-cols-4">
           {reasons.map(({ icon: Icon, title, text }) => (
-            <li key={title} className="rounded-lg bg-[#efe4d8] p-6">
+            <li key={title} className="rounded-lg bg-[#e7e4e0] p-6">
               <span className="grid size-14 place-items-center rounded-full bg-latte">
                 <Icon className="size-7" strokeWidth={1.2} />
               </span>

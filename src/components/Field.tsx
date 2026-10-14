@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from 'react'
 
 export const inputClass =
-  'h-12 w-full rounded-[3px] border border-line-strong bg-cream px-3.5 text-[14px] outline-none transition placeholder:text-muted focus:border-olive aria-invalid:border-red-700'
+  'h-12 w-full rounded-full border border-line-strong bg-cream px-3.5 text-[14px] outline-none transition placeholder:text-muted focus:border-olive aria-invalid:border-red-700'
 
 export function Field({
   label,

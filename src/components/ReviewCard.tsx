@@ -12,7 +12,7 @@ export function ReviewCard({ review }: { review: Review }) {
   const image = portraits[`../assets/reviews/${product.slug}.webp`] ?? product.images[0].src
 
   return (
-    <article className="flex h-full gap-4 rounded-lg border border-line bg-[#fbf7f1] p-4 sm:gap-6 sm:py-[19px] sm:pr-[19px] sm:pl-[26px]">
+    <article className="flex h-full gap-4 rounded-lg border border-line bg-[#f7f6f4] p-4 sm:gap-6 sm:py-[19px] sm:pr-[19px] sm:pl-[26px]">
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="pt-1 sm:pt-[12px]">
           <Stars rating={review.rating} className="size-[21px]" />

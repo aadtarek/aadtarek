@@ -16,7 +16,7 @@ export function QuantityInput({
   const h = size === 'sm' ? 'h-8' : 'h-12'
   const btn = `grid ${size === 'sm' ? 'w-8' : 'w-11'} place-items-center text-ink transition hover:bg-chip disabled:opacity-30`
   return (
-    <div className={`inline-flex ${h} items-stretch rounded-[3px] border border-line-strong`}>
+    <div className={`inline-flex ${h} items-stretch rounded-full border border-line-strong`}>
       <button type="button" aria-label="Decrease quantity" className={btn} disabled={value <= min} onClick={() => onChange(value - 1)}>
         <Minus className="size-3.5" />
       </button>

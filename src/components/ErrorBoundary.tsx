@@ -38,14 +38,14 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
                 clearSiteStorage()
                 window.location.assign('/')
               }}
-              className="h-12 rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+              className="h-12 rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
             >
               Reset and reload
             </button>
             <button
               type="button"
               onClick={() => window.location.assign('/')}
-              className="h-12 rounded-[3px] border border-ink/70 px-8 text-[12px] font-medium tracking-[0.12em] uppercase hover:bg-ink hover:text-cream"
+              className="h-12 rounded-full border border-ink/70 px-8 text-[12px] font-medium tracking-[0.12em] uppercase hover:bg-ink hover:text-cream"
             >
               Back to home
             </button>

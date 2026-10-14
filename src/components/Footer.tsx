@@ -119,7 +119,7 @@ function CtaBanner() {
         </h2>
         <Link
           to="/shop"
-          className="group mt-6 inline-flex h-[56px] items-center gap-4 self-start rounded-[4px] bg-olive px-[58px] text-[14px] font-medium tracking-[0.15em] text-cream uppercase transition hover:bg-olive-hover sm:text-[15.5px] lg:mt-[22px]"
+          className="group mt-6 inline-flex h-[56px] items-center gap-4 self-start rounded-full bg-olive px-[58px] text-[14px] font-medium tracking-[0.15em] text-cream uppercase transition hover:bg-olive-hover sm:text-[15.5px] lg:mt-[22px]"
         >
           Shop fragrances
           <ArrowRight className="size-[19px] transition group-hover:translate-x-1" strokeWidth={1.5} />

@@ -35,7 +35,7 @@ export function CollectionsIndex() {
               />
               <span className="absolute inset-0 bg-gradient-to-t from-[#140c07]/85 via-[#140c07]/20 to-transparent" />
               <span className="absolute inset-x-0 bottom-0 p-6 text-cream">
-                <span className="block font-serif text-[30px] leading-none uppercase">{c.name}</span>
+                <span className="block font-serif text-[30px] leading-none">{c.name}</span>
                 <span className="mt-2 block text-[15px] text-cream/85">{c.tagline}</span>
                 <span className="mt-4 inline-flex items-center gap-2 text-[12px] tracking-[0.14em] uppercase">
                   Explore <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.5} />
@@ -125,7 +125,7 @@ function DiscoveryBuilder() {
                 >
                   <img src={p.images[0].src} alt="" className="h-24 w-32 shrink-0 object-cover" />
                   <span className="min-w-0 flex-1 py-3">
-                    <span className="block font-serif text-[19px] uppercase">{p.name}</span>
+                    <span className="block font-serif text-[19px]">{p.name}</span>
                     <span className="block truncate text-[13px] text-muted">{p.tagline}</span>
                   </span>
                   <span
@@ -167,7 +167,7 @@ function DiscoveryBuilder() {
             cart.addMany(selected.map((p) => ({ productId: p.id, variationId: sampleVariation(p)!.id })))
             setPicked([])
           }}
-          className="mt-5 h-[52px] w-full rounded-[3px] bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           Add set to cart
         </button>
@@ -216,7 +216,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
                 }`}
               >
                 <img src={p.images[0].src} alt="" className="aspect-[348/229] w-full object-cover" />
-                <span className="block px-4 py-3 font-serif text-[18px] uppercase">{p.name}</span>
+                <span className="block px-4 py-3 font-serif text-[18px]">{p.name}</span>
               </button>
             </li>
           ))}
@@ -235,7 +235,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
             onChange={(e) => setMessage(e.target.value.slice(0, MAX))}
             rows={5}
             placeholder="Write a few words for the person receiving it…"
-            className="w-full rounded-[3px] border border-line-strong bg-cream px-4 py-3 text-[15px] outline-none focus:border-olive"
+            className="w-full rounded-xl border border-line-strong bg-cream px-4 py-3 text-[15px] outline-none focus:border-olive"
           />
           <span className="mt-1 block text-right text-[12px] text-muted">
             {message.length}/{MAX}
@@ -243,7 +243,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
         </label>
         <div className="mt-6 flex items-center justify-between rounded-lg bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
           <div>
-            <p className="font-serif text-[20px] uppercase">{product.name}</p>
+            <p className="font-serif text-[20px]">{product.name}</p>
             <p className="text-[13px] text-muted">
               {variation.size} · {message.trim() ? 'with gift message' : 'no message yet'}
             </p>
@@ -256,7 +256,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
             cart.add(product.id, variation.id, 1, { giftMessage: message })
             setMessage('')
           }}
-          className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-[3px] bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+          className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
         >
           <Gift className="size-5" strokeWidth={1.4} />
           Add gift to cart

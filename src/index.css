@@ -1,29 +1,30 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/dm-sans';
-@import '@fontsource-variable/playfair-display';
+@import '@fontsource/instrument-serif/latin-400.css';
+@import '@fontsource/instrument-serif/latin-400-italic.css';
 
 @theme {
   --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Playfair Display Variable', ui-serif, Georgia, serif;
+  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
 
-  --color-olive: #2a2f1b;
-  --color-olive-hover: #3a412a;
-  --color-ink: #18140b;
-  --color-ink-soft: #3d3a33;
-  --color-muted: #6f6a60;
-  --color-cream: #f9f6f1;
-  --color-sand: #f6f1eb;
-  --color-card: #fcf8f2;
-  --color-chip: #f0ebe2;
-  --color-line: #e6e1d8;
-  --color-line-strong: #c9c3b8;
-  --color-dot: #cfc6bd;
-  --color-gold: #c98a2b;
-  --color-espresso: #4a2a17;
-  --color-espresso-hover: #5d3720;
-  --color-latte: #ecdfd0;
-  --color-mocha: #8a5530;
-  --color-footer: #f7efe4;
+  --color-olive: #262522;
+  --color-olive-hover: #3b3935;
+  --color-ink: #1d1c1a;
+  --color-ink-soft: #4a4742;
+  --color-muted: #716c65;
+  --color-cream: #fbfaf8;
+  --color-sand: #f5f3ef;
+  --color-card: #fbfaf8;
+  --color-chip: #eeebe6;
+  --color-line: #e8e4de;
+  --color-line-strong: #cfc9c1;
+  --color-dot: #d6d0c8;
+  --color-gold: #b39462;
+  --color-espresso: #3a302a;
+  --color-espresso-hover: #4a3e36;
+  --color-latte: #ebe5dd;
+  --color-mocha: #82634f;
+  --color-footer: #efece7;
 
   --breakpoint-xs: 26rem;
   --animate-fade-in: fade-in 0.2s ease-out;
@@ -43,8 +44,8 @@
 
 @layer base {
   .font-serif {
-    font-weight: 500;
-    letter-spacing: -0.02em;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
   html {
     -webkit-font-smoothing: antialiased;

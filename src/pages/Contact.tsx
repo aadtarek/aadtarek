@@ -155,7 +155,7 @@ export function Contact() {
               <button
                 type="button"
                 onClick={() => setSentTo(null)}
-                className="mt-8 inline-flex h-12 items-center rounded-[3px] border border-ink/80 px-8 text-[12px] font-medium tracking-[0.12em] uppercase transition hover:bg-ink hover:text-cream"
+                className="mt-8 inline-flex h-12 items-center rounded-full border border-ink/80 px-8 text-[12px] font-medium tracking-[0.12em] uppercase transition hover:bg-ink hover:text-cream"
               >
                 Send another message
               </button>
@@ -197,7 +197,7 @@ export function Contact() {
               </div>
               <button
                 type="submit"
-                className="mt-6 h-[52px] w-full rounded-[3px] bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover sm:w-auto sm:px-12"
+                className="mt-6 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover sm:w-auto sm:px-12"
               >
                 Send message
               </button>

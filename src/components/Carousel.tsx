@@ -20,8 +20,8 @@ interface Props<T> {
 export function productsPerView(width: number) {
   if (width >= 1180) return 4
   if (width >= 860) return 3
-  if (width >= 560) return 2.15
-  return 1.18
+  if (width >= 560) return 2.3
+  return 1.55
 }
 
 /**

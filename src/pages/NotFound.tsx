@@ -8,7 +8,7 @@ export function NotFound() {
       <p className="mt-2 text-muted">The page you’re looking for doesn’t exist or has moved.</p>
       <Link
         to="/"
-        className="mt-6 inline-flex h-12 items-center rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+        className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
       >
         Back to home
       </Link>

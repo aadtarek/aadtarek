@@ -37,7 +37,7 @@ function QuickAdd({ product, onClose }: { product: Product; onClose: () => void 
         <div className="grid sm:grid-cols-[1fr_1.15fr]">
           <img src={product.images[0].src} alt={product.images[0].alt} className="aspect-[348/229] w-full object-cover sm:aspect-auto sm:h-full" />
           <div className="p-5 sm:p-6">
-            <h2 className="pr-8 font-serif text-[24px] leading-none uppercase">{product.name}</h2>
+            <h2 className="pr-8 font-serif text-[24px] leading-none">{product.name}</h2>
             <p className="mt-2 text-sm text-ink-soft">{product.tagline}</p>
             <p className="mt-1 text-xs text-muted">Inspired by {product.inspiredBy}</p>
 
@@ -52,7 +52,7 @@ function QuickAdd({ product, onClose }: { product: Product; onClose: () => void 
             <button
               type="button"
               onClick={() => cart.add(product.id, variationId, qty)}
-              className="mt-4 h-[52px] w-full rounded-[3px] bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+              className="mt-4 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
             >
               Add to cart
             </button>

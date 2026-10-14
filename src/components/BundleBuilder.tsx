@@ -43,7 +43,7 @@ export function BundleBuilder() {
   }
 
   return (
-    <section aria-labelledby="bundle-title" className="bg-[#efe6db] py-12 lg:py-16">
+    <section aria-labelledby="bundle-title" className="bg-[#e8e5e2] py-12 lg:py-16">
       <div className="container-x grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div>
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -65,7 +65,7 @@ export function BundleBuilder() {
               const n = picks.filter((p) => p.variation.id === o.variation.id).length
               return (
                 <li key={o.product.id}>
-                  <article className={`flex h-full flex-col overflow-hidden rounded-[10px] bg-card transition ${n ? 'ring-2 ring-olive' : 'ring-1 ring-line'}`}>
+                  <article className={`flex h-full flex-col overflow-hidden rounded-2xl bg-card transition ${n ? 'ring-2 ring-olive' : 'ring-1 ring-line'}`}>
                     <Link to={`/product/${o.product.slug}`} className="relative block aspect-[4/3] overflow-hidden" tabIndex={-1} aria-hidden>
                       <img src={o.product.images[0].src} alt="" loading="lazy" className="size-full object-cover" />
                       {n > 0 && (
@@ -75,7 +75,7 @@ export function BundleBuilder() {
                       )}
                     </Link>
                     <div className="flex flex-1 flex-col p-3 sm:p-4">
-                      <h3 className="font-serif text-[16px] leading-tight uppercase sm:text-[18px]">{o.product.name}</h3>
+                      <h3 className="font-serif text-[16px] leading-tight sm:text-[18px]">{o.product.name}</h3>
                       {o.product.inspiredBy && <p className="mt-1 line-clamp-1 text-[12px] text-muted sm:text-[13px]">DNA · {o.product.inspiredBy}</p>}
                       <p className="mt-1.5 text-[13px] text-ink-soft">
                         {o.variation.size} · {formatPrice(o.variation.price)}
@@ -85,7 +85,7 @@ export function BundleBuilder() {
                         onClick={() => add(o)}
                         disabled={full}
                         aria-label={`Add ${o.product.name} to the bundle`}
-                        className="mt-auto inline-flex h-10 items-center justify-center gap-1.5 rounded-[3px] border border-olive pt-0 text-[12px] font-medium tracking-[0.08em] text-olive uppercase transition hover:bg-olive hover:text-cream disabled:cursor-not-allowed disabled:opacity-40 sm:mt-3"
+                        className="mt-auto inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-olive pt-0 text-[12px] font-medium tracking-[0.08em] text-olive uppercase transition hover:bg-olive hover:text-cream disabled:cursor-not-allowed disabled:opacity-40 sm:mt-3"
                       >
                         <Plus className="size-4" strokeWidth={1.6} /> Add
                       </button>
@@ -115,7 +115,7 @@ export function BundleBuilder() {
                       <div className="relative flex flex-col items-center gap-1.5 rounded-lg bg-card p-1.5 text-center ring-1 ring-line lg:flex-row lg:gap-3 lg:p-2 lg:text-left">
                         <img src={p.product.images[0].src} alt="" className="aspect-square w-full rounded-md object-cover lg:size-14 lg:w-14" />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate font-serif text-[13px] uppercase lg:text-[16px]">{p.product.name}</span>
+                          <span className="block truncate font-serif text-[13px] lg:text-[16px]">{p.product.name}</span>
                           <span className="hidden text-[13px] text-muted lg:block">
                             {p.variation.size} · {formatPrice(p.variation.price)}
                           </span>
@@ -155,7 +155,7 @@ export function BundleBuilder() {
               type="button"
               onClick={addToCart}
               disabled={!full}
-              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-[4px] bg-olive text-[12.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-45 lg:mt-4 lg:h-[54px]"
+              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-45 lg:mt-4 lg:h-[54px]"
             >
               <ShoppingBag className="size-[18px]" strokeWidth={1.4} />
               {full ? 'Add bundle to cart' : `Pick ${BUNDLE.count - picks.length} more`}

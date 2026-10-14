@@ -127,7 +127,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
           <p className="mt-2 text-cream/80">Answer 7 quick questions and we’ll match you with your scent.</p>
           <Link
             to="/finder"
-            className="mt-5 inline-flex h-12 items-center gap-3 rounded-[3px] border border-cream/70 px-7 text-[12px] font-medium tracking-[0.12em] uppercase transition hover:bg-cream hover:text-olive"
+            className="mt-5 inline-flex h-12 items-center gap-3 rounded-full border border-cream/70 px-7 text-[12px] font-medium tracking-[0.12em] uppercase transition hover:bg-cream hover:text-olive"
           >
             Try the Rfaheya Finder <ArrowRight className="size-4" strokeWidth={1.5} />
           </Link>

@@ -157,7 +157,7 @@ export function Checkout() {
         )}
         <Link
           to="/shop"
-          className="mt-8 inline-flex h-12 items-center rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+          className="mt-8 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
         >
           Continue shopping
         </Link>
@@ -171,7 +171,7 @@ export function Checkout() {
         <h1 className="font-serif text-[40px]">Your cart is empty.</h1>
         <Link
           to="/shop"
-          className="mt-6 inline-flex h-12 items-center rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+          className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
         >
           Shop fragrances
         </Link>
@@ -235,7 +235,7 @@ export function Checkout() {
                 return (
                   <label
                     key={m}
-                    className={`flex cursor-pointer items-center gap-3 rounded-[3px] border bg-card p-4 transition ${
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border bg-card p-4 transition ${
                       payment === m ? 'border-olive ring-1 ring-olive' : 'border-line-strong hover:border-ink'
                     }`}
                   >
@@ -262,7 +262,7 @@ export function Checkout() {
                   <span className="absolute -top-2 -right-2 grid size-5 place-items-center rounded-full bg-ink text-[10px] text-cream">{l.quantity}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-serif text-[15px] uppercase">{l.product.name}</p>
+                  <p className="font-serif text-[15px]">{l.product.name}</p>
                   <p className="text-[12px] text-muted">
                     {l.variation.size}
                     {l.giftMessage && ' · Gift'}
@@ -303,7 +303,7 @@ export function Checkout() {
           <button
             type="submit"
             disabled={submitting || quoting || noDelivery}
-            className="mt-5 h-[52px] w-full rounded-[3px] bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? 'Placing order…' : 'Place order'}
           </button>

@@ -14,7 +14,7 @@ const root = createRoot(container)
 function Splash({ error }: { error?: string }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-sand px-6 text-center">
-      <p className="font-serif text-[40px] tracking-[0.02em] uppercase">Rfaheya</p>
+      <p className="font-serif text-[40px] tracking-[0.02em]">Rfaheya</p>
       <p className="mt-1 text-[11px] tracking-[0.4em] text-muted uppercase">Speak your scent</p>
       {error ? (
         <>
@@ -22,7 +22,7 @@ function Splash({ error }: { error?: string }) {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-5 h-12 rounded-[3px] bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase"
+            className="mt-5 h-12 rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase"
           >
             Try again
           </button>

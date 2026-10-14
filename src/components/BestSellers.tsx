@@ -54,7 +54,7 @@ export function BestSellers() {
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 lg:mt-[17px] lg:flex-nowrap lg:flex-1 lg:justify-end lg:gap-[9.5%]">
-            <div role="tablist" aria-label="Product lists" className="flex w-full rounded-full border border-line-strong/80 bg-sand p-0 sm:w-auto">
+            <div role="tablist" aria-label="Product lists" className="flex w-full rounded-full bg-chip p-1 sm:w-auto">
               {(Object.keys(tabs) as Tab[]).map((key) => (
                 <button
                   key={key}
@@ -62,8 +62,8 @@ export function BestSellers() {
                   role="tab"
                   aria-selected={tab === key}
                   onClick={() => setTab(key)}
-                  className={`h-11 flex-1 rounded-full px-4 text-[12px] sm:flex-none font-medium tracking-[0.15em] whitespace-nowrap uppercase transition sm:h-[52px] sm:w-[241px] sm:px-0 sm:text-[14px] ${
-                    tab === key ? 'bg-olive text-cream' : 'text-ink hover:bg-chip'
+                  className={`h-9 flex-1 rounded-full px-5 text-[11.5px] font-medium tracking-[0.1em] whitespace-nowrap uppercase transition sm:flex-none ${
+                    tab === key ? 'bg-cream text-ink shadow-sm' : 'text-ink-soft hover:text-ink'
                   }`}
                 >
                   {tabs[key].label}
@@ -72,10 +72,10 @@ export function BestSellers() {
             </div>
             <Link
               to={`/shop?sort=${t.sort}`}
-              className="group flex shrink-0 items-center gap-3 text-[12px] font-medium tracking-[0.15em] whitespace-nowrap uppercase sm:text-[14px]"
+              className="group flex shrink-0 items-center gap-2 text-[11.5px] font-medium tracking-[0.12em] whitespace-nowrap uppercase"
             >
               View all
-              <ArrowRight className="size-5 transition group-hover:translate-x-1" strokeWidth={1.5} />
+              <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.5} />
             </Link>
           </div>
         </div>

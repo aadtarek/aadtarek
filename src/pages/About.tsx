@@ -84,7 +84,7 @@ function Eyebrow({ children, className = '' }: { children: ReactNode; className?
 
 function Title({ dark, brown, className = '' }: { dark: string; brown: string; className?: string }) {
   return (
-    <h2 className={`font-serif font-semibold leading-[0.95] tracking-[-0.04em] uppercase ${className}`} style={{ color: INK }}>
+    <h2 className={`font-serif font-semibold leading-[0.95] tracking-[-0.04em] ${className}`} style={{ color: INK }}>
       {dark}
       <br />
       <span style={{ color: BROWN }}>{brown}</span>
@@ -137,7 +137,7 @@ function Hero() {
       {/* phones */}
       <div className="md:hidden">
         <img src={heroBg} alt="" className="h-64 w-full object-cover object-[80%_center] xs:h-72" />
-        <div className="bg-[#f4ece1] px-4 pt-8 pb-10">
+        <div className="bg-[#edebe8] px-4 pt-8 pb-10">
           <Eyebrow>About Rfaheya</Eyebrow>
           <h1 className="mt-4 font-serif text-[64px] font-semibold leading-[0.88] tracking-[-0.06em] xs:text-[76px]" style={{ color: INK }}>
             SPEAK
@@ -168,7 +168,7 @@ function Why() {
     [355, 378, 402],
   ]
   return (
-    <section aria-labelledby="why-title" className="bg-[#f4ece1]">
+    <section aria-labelledby="why-title" className="bg-[#edebe8]">
       <div className="hidden xl:block">
         <div className="relative w-full" style={{ aspectRatio: '1536 / 479', containerType: 'inline-size' }}>
           <T base={B} x={97} y={46.4} size={12.7} ls={0.64} font="sans" weight={600} color={BROWN} as="p">
@@ -238,7 +238,7 @@ function Why() {
               <li key={c.title.join(' ')} className="flex flex-col items-center text-center">
                 <img src={c.image} alt="" loading="lazy" className="w-44" />
                 <Icon className="mt-4 size-8" style={{ color: BROWN }} strokeWidth={1.2} />
-                <h3 className="mt-3 font-serif text-[20px] font-semibold leading-[1.1] tracking-[-0.04em] uppercase" style={{ color: INK }}>
+                <h3 className="mt-3 font-serif text-[20px] font-semibold leading-[1.1] tracking-[-0.04em]" style={{ color: INK }}>
                   {c.title[0]}
                   <br />
                   {c.title[1]}
@@ -261,7 +261,7 @@ function Values() {
   const centers = [229, 531, 820, 1112]
   const nums = [133, 437, 727, 1018]
   return (
-    <section aria-labelledby="values-title" className="bg-[#f3e4d1]">
+    <section aria-labelledby="values-title" className="bg-[#e7e3dd]">
       <div className="hidden xl:block">
         <Panel image={valuesBg} w={1600} h={569}>
           <T base={B} x={115} y={70.4} size={12.7} ls={0.48} font="sans" weight={600} color={BROWN} as="p">
@@ -311,7 +311,7 @@ function Values() {
                 <span aria-hidden className="h-px w-12 opacity-60" style={{ background: BROWN }} />
               </p>
               <Soft src={v.image} className="mt-2 w-40" />
-              <h3 className="mt-2 font-serif text-[22px] font-semibold tracking-[-0.03em] uppercase" style={{ color: INK }}>
+              <h3 className="mt-2 font-serif text-[22px] font-semibold tracking-[-0.03em]" style={{ color: INK }}>
                 {v.title}
               </h3>
               <p className="mt-1 font-serif text-[16px] leading-[1.4]" style={{ color: SOFT }}>
@@ -329,7 +329,7 @@ function Standard() {
   const B = 1600
   const centers = [236, 451, 665, 880, 1104, 1326]
   return (
-    <section aria-labelledby="standard-title" className="bg-[#f1e3d2]">
+    <section aria-labelledby="standard-title" className="bg-[#e6e2dd]">
       <div className="hidden xl:block">
         <Panel image={standardBg} w={1600} h={569}>
           <T base={B} x={149} y={55.2} size={14} ls={0.25} font="sans" weight={600} color={BROWN} as="p">
@@ -374,7 +374,7 @@ function Standard() {
           {standard.map((s) => (
             <li key={s.label} className="flex flex-col items-center text-center">
               <Soft src={s.image} className="w-28" />
-              <p className="mt-1 font-serif text-[14px] font-semibold tracking-[-0.02em] uppercase" style={{ color: INK }}>
+              <p className="mt-1 font-serif text-[14px] font-semibold tracking-[-0.02em]" style={{ color: INK }}>
                 {s.label}
               </p>
               <span aria-hidden className="mt-2 h-px w-10 opacity-70" style={{ background: BROWN }} />
@@ -427,7 +427,7 @@ function Dna() {
     { x: 1069, w: 89, y: 548, labelY: 527.4 },
   ]
   return (
-    <section aria-labelledby="dna-title" className="bg-[#f3e3cf]">
+    <section aria-labelledby="dna-title" className="bg-[#e6e2dc]">
       <div className="hidden xl:block">
         <Panel image={dnaBg} w={1600} h={800}>
           <T base={B} x={93} y={87.2} size={14} ls={0.42} font="sans" weight={600} color={BROWN} as="p">
@@ -483,7 +483,7 @@ function Dna() {
 
       <div className="container-x py-14 xl:hidden">
         <Eyebrow>Our DNA approach</Eyebrow>
-        <h2 className="mt-4 font-serif text-[44px] font-semibold leading-[0.95] tracking-[-0.05em] uppercase sm:text-[60px]" style={{ color: INK }}>
+        <h2 className="mt-4 font-serif text-[44px] font-semibold leading-[0.95] tracking-[-0.05em] sm:text-[60px]" style={{ color: INK }}>
           Same inspiration.
           <br />
           <span style={{ color: BROWN }}>A distinct experience.</span>
@@ -500,7 +500,7 @@ function Dna() {
               <p className="font-sans text-[12px] font-semibold tracking-[0.22em] uppercase" style={{ color: BROWN }}>
                 {c.eyebrow}
               </p>
-              <p className={`mt-2 font-serif text-[34px] ${c.caps ? 'font-semibold uppercase' : 'font-medium'}`} style={{ color: INK }}>
+              <p className={`mt-2 font-serif text-[34px] ${c.caps ? 'font-semibold' : 'font-medium'}`} style={{ color: INK }}>
                 {c.name}
               </p>
               <p className="font-sans text-[11px] font-semibold tracking-[0.24em] uppercase" style={{ color: BROWN }}>
@@ -535,7 +535,7 @@ function Dna() {
 
 export function About() {
   return (
-    <div className="bg-[#f4ece1]">
+    <div className="bg-[#edebe8]">
       <Hero />
       <Why />
       <Values />

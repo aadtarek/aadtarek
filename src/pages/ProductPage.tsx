@@ -136,7 +136,7 @@ function ProductDetails({ product }: { product: Product }) {
               {product.families[0] && ` · ${familyName(product.families[0])}`}
             </p>
           </div>
-          <h1 className="mt-2.5 font-serif text-[40px] leading-[0.95] tracking-[-0.01em] uppercase sm:text-[56px] xl:text-[64px]">{product.name}</h1>
+          <h1 className="mt-2.5 font-serif text-[40px] leading-[0.95] tracking-[-0.01em] sm:text-[56px] xl:text-[64px]">{product.name}</h1>
           <p className="mt-2 font-serif text-[21px] text-ink-soft sm:text-[26px]">{product.tagline}</p>
 
           <ul className="mt-4 flex flex-wrap gap-2" aria-label="Profile">
@@ -181,7 +181,7 @@ function ProductDetails({ product }: { product: Product }) {
                   aria-checked={on}
                   disabled={!v.inStock}
                   onClick={() => setVariationId(v.id)}
-                  className={`rounded-[4px] border px-2 py-3 text-center transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                  className={`rounded-xl border px-2 py-3 text-center transition disabled:cursor-not-allowed disabled:opacity-40 ${
                     on ? 'border-olive bg-olive text-cream' : 'border-line-strong bg-card hover:border-ink'
                   }`}
                 >
@@ -200,7 +200,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="inline-flex h-12 flex-1 items-center justify-center gap-3 rounded-[4px] bg-olive sm:flex-none text-[13px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-[58px] sm:text-[15px]"
+              className="inline-flex h-12 flex-1 items-center justify-center gap-3 rounded-full bg-olive sm:flex-none text-[13px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-[58px] sm:text-[15px]"
             >
               <ShoppingBag className="size-5" strokeWidth={1.3} />
               Add to cart
@@ -211,7 +211,7 @@ function ProductDetails({ product }: { product: Product }) {
             type="button"
             onClick={buyNow}
             disabled={!variation.inStock}
-            className="mt-2 inline-flex h-12 w-full items-center justify-center rounded-[4px] bg-mocha text-[13px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:h-[54px] sm:text-[14px]"
+            className="mt-2 inline-flex h-12 w-full items-center justify-center rounded-full bg-mocha text-[13px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:h-[54px] sm:text-[14px]"
           >
             Buy now
           </button>
@@ -221,7 +221,7 @@ function ProductDetails({ product }: { product: Product }) {
                 type="button"
                 onClick={() => cart.add(product.id, sample.id)}
                 disabled={!sample.inStock}
-                className="flex h-[58px] flex-1 items-center justify-center gap-4 rounded-[4px] border border-ink/70 disabled:pointer-events-none disabled:opacity-40 transition hover:bg-ink hover:text-cream"
+                className="flex h-[58px] flex-1 items-center justify-center gap-4 rounded-full border border-ink/70 disabled:pointer-events-none disabled:opacity-40 transition hover:bg-ink hover:text-cream"
               >
                 <BottleIcon className="size-7" />
                 <span className="text-center leading-tight">
@@ -235,7 +235,7 @@ function ProductDetails({ product }: { product: Product }) {
               onClick={() => wishlist.toggle(product.id)}
               aria-pressed={wished}
               aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-              className={`grid h-[58px] shrink-0 place-items-center rounded-[4px] border border-line-strong transition hover:border-ink ${sample ? 'w-[68px]' : 'flex-1'}`}
+              className={`grid h-[58px] shrink-0 place-items-center rounded-full border border-line-strong transition hover:border-ink ${sample ? 'w-[68px]' : 'flex-1'}`}
             >
               <Heart className={`size-6 ${wished ? 'fill-ink' : ''}`} strokeWidth={1.3} />
             </button>
@@ -285,7 +285,7 @@ function ProductDetails({ product }: { product: Product }) {
               ))}
             </div>
 
-            <h3 className="mt-8 border-t border-line pt-7 font-serif text-[22px] uppercase sm:text-[26px]">Key notes</h3>
+            <h3 className="mt-8 border-t border-line pt-7 font-serif text-[22px] sm:text-[26px]">Key notes</h3>
             <ul className="mt-5 grid grid-cols-5 gap-2">
               {product.notes.slice(0, 5).map((n) => (
                 <li key={n.name} className="flex flex-col items-center text-center">
@@ -330,7 +330,7 @@ function ProductDetails({ product }: { product: Product }) {
         <div className="container-x flex items-center gap-3 lg:gap-5">
           <img src={product.images[0].src} alt="" className="size-12 shrink-0 rounded object-cover lg:size-14" />
           <div className="min-w-0 flex-1 lg:flex-none">
-            <p className="truncate font-serif text-[16px] uppercase lg:text-[20px]">{product.name}</p>
+            <p className="truncate font-serif text-[16px] lg:text-[20px]">{product.name}</p>
             <p className="text-[13px] text-muted">
               {variation.size} · {formatPrice(variation.price)}
             </p>
@@ -344,7 +344,7 @@ function ProductDetails({ product }: { product: Product }) {
                 aria-checked={v.id === variationId}
                 disabled={!v.inStock}
                 onClick={() => setVariationId(v.id)}
-                className={`h-10 rounded-[3px] border px-3 text-[13px] font-medium transition disabled:opacity-40 ${
+                className={`h-10 rounded-full border px-3 text-[13px] font-medium transition disabled:opacity-40 ${
                   v.id === variationId ? 'border-olive bg-olive text-cream' : 'border-line-strong hover:border-ink'
                 }`}
               >
@@ -357,7 +357,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="inline-flex h-11 items-center gap-2 rounded-[3px] bg-olive px-4 text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase disabled:opacity-50 sm:px-5 lg:h-12 lg:px-7 lg:text-[12.5px]"
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-olive px-4 text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase disabled:opacity-50 sm:px-5 lg:h-12 lg:px-7 lg:text-[12.5px]"
             >
               <ShoppingBag className="hidden size-[18px] sm:block" strokeWidth={1.4} />
               Add to cart
@@ -366,7 +366,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={buyNow}
               disabled={!variation.inStock}
-              className="h-11 rounded-[3px] bg-mocha px-4 text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-espresso disabled:opacity-50 sm:px-5 lg:h-12 lg:px-7 lg:text-[12.5px]"
+              className="h-11 rounded-full bg-mocha px-4 text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-espresso disabled:opacity-50 sm:px-5 lg:h-12 lg:px-7 lg:text-[12.5px]"
             >
               Buy now
             </button>
@@ -574,7 +574,7 @@ function Fold({
         aria-expanded={open}
         className="mt-3 flex w-full items-center justify-between text-left lg:pointer-events-none lg:mt-4"
       >
-        <h2 className="font-serif text-[28px] leading-none uppercase sm:text-[40px] xl:text-[46px]">{title}</h2>
+        <h2 className="font-serif text-[28px] leading-none sm:text-[40px] xl:text-[46px]">{title}</h2>
         <span className="lg:hidden">{open ? <Minus className="size-6" strokeWidth={1.3} /> : <Plus className="size-6" strokeWidth={1.3} />}</span>
       </button>
       {subtitle && <p className={`mt-2 font-serif text-[18px] text-muted sm:text-[22px] ${open ? '' : 'hidden lg:block'}`}>{subtitle}</p>}
@@ -603,7 +603,7 @@ function Composition({ product }: { product: Product }) {
   if (!stages.length) return null
   return (
     <>
-      <h3 className="mt-8 border-t border-line pt-7 font-serif text-[22px] uppercase sm:text-[26px]">The composition</h3>
+      <h3 className="mt-8 border-t border-line pt-7 font-serif text-[22px] sm:text-[26px]">The composition</h3>
       {/* Desktop: timeline */}
       <div className="relative mt-6 hidden sm:block">
         <span aria-hidden className="absolute top-[11px] right-0 left-0 h-[2px] bg-gradient-to-r from-[#e2c39c] via-[#9b5d2a] to-[#5a1a1a] opacity-70" />
@@ -747,7 +747,7 @@ function CenterHead({ num, aside, title, subtitle }: { num: string; aside: strin
   return (
     <div className="text-center">
       <SectionMeta num={num} aside={aside} center />
-      <h2 className="mt-5 font-serif text-[34px] leading-none uppercase sm:text-[56px] xl:text-[64px]">{title}</h2>
+      <h2 className="mt-5 font-serif text-[34px] leading-none sm:text-[56px] xl:text-[64px]">{title}</h2>
       {subtitle}
     </div>
   )
@@ -762,7 +762,7 @@ function ReviewsBlock({ product, reviews, own }: { product: Product; reviews: Re
           num="04"
           aside="Real experiences. Real stories."
           title="Customer Reviews"
-          subtitle={<p className="mt-3 font-serif text-[15px] tracking-[0.2em] text-mocha uppercase sm:text-[22px]">What our customers say</p>}
+          subtitle={<p className="mt-3 font-serif text-[15px] tracking-[0.2em] text-mocha sm:text-[22px]">What our customers say</p>}
         />
         {count === 0 ? (
           <p className="mx-auto mt-6 max-w-lg text-center text-ink-soft">

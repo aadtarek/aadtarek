@@ -22,7 +22,7 @@ export function SizePicker({
             aria-checked={selected}
             disabled={!v.inStock}
             onClick={() => onChange(v.id)}
-            className={`flex flex-col items-center justify-center rounded-[3px] border px-2 py-3 transition disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`flex flex-col items-center justify-center rounded-xl border px-2 py-3 transition disabled:cursor-not-allowed disabled:opacity-40 ${
               selected ? 'border-olive bg-olive text-cream' : 'border-line-strong hover:border-ink'
             }`}
           >
