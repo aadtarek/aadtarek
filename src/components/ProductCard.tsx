@@ -3,14 +3,16 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { familyName, fullSizeVariations, sampleVariation } from '../api/catalog'
 import { formatPrice } from '../lib/format'
+import { profileChips } from '../lib/profile'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
 import type { Product } from '../types'
 import { BottleIcon } from './Icons'
 
 /**
- * Product card: photo, name and price, family and DNA, the bottle sizes (a
- * size can be picked and added right here) and the 5 ML sample.
+ * Product card: photo, name and price, DNA, tags (who it's for, family,
+ * occasion, season), key notes, the bottle sizes (a size can be picked and
+ * added right here) and the 5 ML sample.
  */
 export function ProductCard({ product, badge = product.badge }: { product: Product; badge?: string }) {
   const cart = useCart()
@@ -21,8 +23,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   const [variationId, setVariationId] = useState(() => (sizes.find((v) => v.inStock) ?? sizes[0]).id)
   const selected = sizes.find((v) => v.id === variationId) ?? sizes[0]
   const href = `/product/${product.slug}`
-  const family = product.families[0] ? familyName(product.families[0]) : ''
-  const line = [family, product.inspiredBy && `Inspired by ${product.inspiredBy}`].filter(Boolean).join(' · ')
+  const chips = profileChips(product, familyName)
 
   return (
     <article className="group/card flex h-full flex-col">
@@ -68,7 +69,29 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
             {formatPrice(selected.price)}
           </p>
         </div>
-        {line && <p className="mt-0.5 truncate text-[12px] text-muted sm:text-[12.5px]">{line}</p>}
+        {product.inspiredBy && <p className="mt-0.5 truncate text-[12px] text-muted sm:text-[12.5px]">Inspired by {product.inspiredBy}</p>}
+
+        <ul className="mt-2.5 flex flex-wrap gap-1" aria-label="Profile">
+          {chips.map(({ label, Icon }) => (
+            <li key={label} className="inline-flex items-center gap-1 rounded-full bg-chip px-2 py-[3px] text-[10.5px] whitespace-nowrap text-ink-soft sm:text-[11px]">
+              <Icon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+              {label}
+            </li>
+          ))}
+        </ul>
+
+        {product.notes.length > 0 && (
+          <ul className="mt-2.5 flex gap-2.5" aria-label="Fragrance notes">
+            {product.notes.slice(0, 4).map((n) => (
+              <li key={n.name} className="flex min-w-0 flex-1 flex-col items-center text-center">
+                <span className="grid size-9 place-items-center rounded-full bg-chip">
+                  <img src={n.image} alt="" width={24} height={24} className="size-6 object-contain" loading="lazy" decoding="async" />
+                </span>
+                <span className="mt-1 w-full truncate text-[10px] leading-tight text-muted">{n.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {sizes.length > 1 && (
           <div role="radiogroup" aria-label={`Size for ${product.name}`} className="mt-2.5 flex flex-wrap gap-1">
