@@ -66,7 +66,6 @@ export function ReviewsSection() {
               perViewFor={reviewsPerView}
               arrowTop="calc(50% - 46px)"
               gap={13}
-              arrowClass={{ prev: '-left-3 xl:-left-[63px]', next: '-right-3 xl:-right-[63px]' }}
             />
           )}
         </div>

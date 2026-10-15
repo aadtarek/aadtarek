@@ -1114,11 +1114,11 @@ function rfaheya_faqs_data() {
 
 /** Calls a WooCommerce Store API route internally and returns its JSON data. */
 function rfaheya_store_data( $route, $params ) {
+	try {
 	// WooCommerce's Store API expects the cart to be loaded (outside REST requests it may not be yet).
 	if ( function_exists( 'WC' ) && function_exists( 'wc_load_cart' ) && null === WC()->cart && did_action( 'woocommerce_init' ) ) {
 		wc_load_cart();
 	}
-	try {
 		$request = new WP_REST_Request( 'GET', $route );
 		$request->set_query_params( $params );
 		$response = rest_do_request( $request );
@@ -1137,6 +1137,7 @@ function rfaheya_store_data( $route, $params ) {
  * variations, and reviews. Cached for a minute.
  */
 function rfaheya_bootstrap() {
+	try {
 	$cached = get_transient( 'rfaheya_bootstrap' );
 	if ( is_array( $cached ) ) {
 		return $cached;
@@ -1187,6 +1188,12 @@ function rfaheya_bootstrap() {
 		set_transient( 'rfaheya_bootstrap_failed', 1, 10 * MINUTE_IN_SECONDS );
 	}
 	return $data;
+	} catch ( Throwable $e ) {
+		error_log( 'Rfaheya bootstrap: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() );
+		update_option( 'rfaheya_last_error', gmdate( 'Y-m-d H:i' ) . ' bootstrap: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine(), false );
+		set_transient( 'rfaheya_bootstrap_failed', 1, 10 * MINUTE_IN_SECONDS );
+		return array( 'products' => array() );
+	}
 }
 
 /**
@@ -1211,6 +1218,18 @@ function rfaheya_storefront_shell() {
 	}
 	if ( $data ) {
 		$html = str_replace( '<head>', '<head><script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>', $html );
+	}
+	// Start the LCP image before the storefront module has parsed the catalogue.
+	$path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH );
+	if ( '/' === $path ) {
+		$hero = isset( $data['settings']['home']['hero']['image'] ) ? $data['settings']['home']['hero']['image'] : '';
+		$srcset = isset( $data['settings']['home']['hero']['srcset'] ) ? $data['settings']['home']['hero']['srcset'] : '';
+		$hero = $hero ? $hero : '/assets/hero-XWCSYKce.webp';
+		$preload = '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $hero ) . '"';
+		if ( $srcset ) {
+			$preload .= ' imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="(max-width: 767px) 250vw, 100vw"';
+		}
+		$html = str_replace( '</head>', $preload . '></head>', $html );
 	}
 	// The stylesheet inline: one request less before the page shows.
 	if ( preg_match( '#<link rel="stylesheet" crossorigin href="/([^"]+\.css)">#', $html, $css ) && is_readable( ABSPATH . $css[1] ) && filesize( ABSPATH . $css[1] ) < 300000 ) {
@@ -1291,9 +1310,14 @@ foreach ( array( 'save_post', 'deleted_post', 'edited_term', 'created_term', 'de
 			delete_transient( 'rfaheya_bootstrap' );
 			delete_transient( 'rfaheya_bootstrap_failed' );
 			rfaheya_purge_page_cache();
+			if ( ! wp_next_scheduled( 'rfaheya_warm_bootstrap' ) ) {
+				wp_schedule_single_event( time() + 2, 'rfaheya_warm_bootstrap' );
+			}
 		}
 	);
 }
+
+add_action( 'rfaheya_warm_bootstrap', 'rfaheya_bootstrap' );
 
 add_action(
 	'rest_api_init',
@@ -1364,7 +1388,7 @@ add_action(
 				'permission_callback' => $public,
 				'callback'            => function () {
 					$response = rest_ensure_response( rfaheya_bootstrap() );
-					$response->header( 'Cache-Control', 'public, max-age=60' );
+					$response->header( 'Cache-Control', 'no-cache' );
 					return $response;
 				},
 			)

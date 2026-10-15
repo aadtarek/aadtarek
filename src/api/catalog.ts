@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import { families } from '../data/families'
 import type { FamilySlug, Product, Review, WearVideo } from '../types'
 import { fetchBootstrap, primeCache, fetchNotes, fetchProductCategories, fetchProductDetails, fetchVideos, type RawCategory } from './content'
@@ -13,6 +14,33 @@ import { fetchStoreSettings, isWoo, stripHtml, type StoreSettings } from './wp'
 let products: Product[] = []
 let reviews: Review[] = []
 let videos: WearVideo[] = []
+/** Reviews and videos, which load after the products (see loadCatalog). */
+let extras: Promise<unknown> | null = null
+let ready = false
+let version = 0
+const listeners = new Set<() => void>()
+
+const subscribe = (listener: () => void) => {
+  listeners.add(listener)
+  return () => {
+    listeners.delete(listener)
+  }
+}
+const getVersion = () => version
+function notify() {
+  version++
+  listeners.forEach((listener) => listener())
+}
+/** The products have loaded (the storefront shows a short placeholder until then, App.tsx). */
+export const isCatalogReady = () => ready
+export function markCatalogReady() {
+  ready = true
+  notify()
+}
+/** Re-renders the caller when the catalogue (or its reviews and videos) changes. */
+export function useCatalogVersion(): number {
+  return useSyncExternalStore(subscribe, getVersion)
+}
 
 export async function loadCatalog(): Promise<void> {
   if (!isWoo) {
@@ -33,19 +61,23 @@ export async function loadCatalog(): Promise<void> {
   }
   // …otherwise the individual WooCommerce / WordPress requests.
   // Optional extras: without the rfaheya.php mu-plugin (or with no categories) the defaults stay.
-  // All at once: on shared hosting every request takes a while, so none waits for another.
-  const [details, categories, settings, notes, vids, raw, revs] = await Promise.all([
+  // Videos and reviews follow: the products don't wait for them.
+  const later = Promise.all([fetchVideos().catch(() => [] as WearVideo[]), fetchWooReviews().catch(() => [] as Review[])])
+  extras = later
+  const [details, categories, settings, notes, raw] = await Promise.all([
     fetchProductDetails().catch(() => ({})),
     fetchProductCategories().catch(() => []),
     fetchStoreSettings().catch(() => ({})),
     fetchNotes().catch(() => []),
-    fetchVideos().catch(() => [] as WearVideo[]),
     fetchWooRaw(),
-    fetchWooReviews().catch(() => [] as Review[]),
   ])
   setNoteLibrary(notes)
   products = buildCatalog(raw.byPopularity, raw.dateOrder, raw.variations, details)
-  applyLoaded(revs, vids, settings, categories)
+  applyLoaded([], [], settings, categories)
+  later.then(([vids, revs]) => {
+    applyLoaded(revs, vids, settings, categories)
+    notify()
+  })
 }
 
 function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings, categories: RawCategory[]) {
@@ -182,6 +214,7 @@ export function findFamily(slug: string) {
 }
 
 export async function getReviews(productId?: number): Promise<Review[]> {
+  if (extras) await extras
   const list = productId ? reviews.filter((r) => r.productId === productId) : reviews
   return delay([...list].sort((a, b) => b.date.localeCompare(a.date)))
 }

@@ -255,15 +255,18 @@ export function buildCatalog(
 /** Loads every published product (with variation prices) from WooCommerce. */
 /** Products in both orders and all their variations, requested at the same time. */
 export async function fetchWooRaw(): Promise<{ byPopularity: RawProduct[]; dateOrder: number[]; variations: RawProduct[] }> {
-  const variationPage = (page: number) => storeApi<RawProduct[]>(`products?type=variation&per_page=100&page=${page}`)
-  const [byPopularity, byDate, first] = await Promise.all([
+  const variationPage = (page: number) => storeApi<RawProduct[]>(`products?type=variation&per_page=100&page=${page}`).catch(() => [] as RawProduct[])
+  // The first three pages of sizes at once; more only for very large stores.
+  const [byPopularity, byDate, p1, p2, p3] = await Promise.all([
     storeApi<RawProduct[]>('products?per_page=100&orderby=popularity&order=desc'),
     storeApi<RawProduct[]>('products?per_page=100&orderby=date&order=asc'),
-    variationPage(1).catch(() => [] as RawProduct[]),
+    variationPage(1),
+    variationPage(2),
+    variationPage(3),
   ])
-  const variations = [...first]
-  for (let page = 2, last = first; last.length === 100 && page <= 10; page++) {
-    last = await variationPage(page).catch(() => [])
+  const variations = [...p1, ...p2, ...p3]
+  for (let page = 4, last = p3; last.length === 100 && page <= 10; page++) {
+    last = await variationPage(page)
     variations.push(...last)
   }
   return { byPopularity, dateOrder: byDate.map((d) => d.id), variations }

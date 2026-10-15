@@ -27,7 +27,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
 
   return (
     <article className="group/card flex h-full flex-col">
-      <div className="relative overflow-hidden rounded-2xl bg-chip">
+      <div className="motion-product-card relative overflow-hidden rounded-2xl bg-chip">
         <Link to={href} tabIndex={-1} aria-hidden className="block aspect-square">
           <img
             src={product.images[0].src}
@@ -39,7 +39,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
             loading="lazy"
             decoding="async"
             draggable={false}
-            className="size-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-[1.04]"
+            className="size-full object-cover"
           />
         </Link>
         {badge && (

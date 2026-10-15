@@ -210,7 +210,5 @@ declare global {
  * server builds its copy in the background for the next pages.
  */
 export async function fetchBootstrap(): Promise<Bootstrap | null> {
-  if (window.__rfBoot) return window.__rfBoot
-  setTimeout(() => wpGet('rfaheya/v1/bootstrap').catch(() => undefined), 5000)
-  return null
+  return window.__rfBoot ?? null
 }

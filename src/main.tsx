@@ -1,7 +1,6 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { loadCatalog } from './api/catalog'
+import { loadCatalog, markCatalogReady } from './api/catalog'
 import { fetchPosts } from './api/content'
 import { isWoo } from './api/wp'
 import App from './App.tsx'
@@ -36,23 +35,15 @@ function Splash({ error }: { error?: string }) {
   )
 }
 
-// Renders once the catalogue is loaded (components read the WordPress settings at render time).
-async function render() {
-  // From here on the early image paint in index.html (vite.config.ts) leaves the page alone.
-  container.setAttribute('data-app', '')
-  root.render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  )
-}
-
 const fail = (e: unknown) => root.render(<Splash error={e instanceof Error ? e.message : String(e)} />)
 
 // The hash-router preview keeps the path after "#".
 const path = import.meta.env.VITE_HASH_ROUTER ? window.location.hash.replace(/^#/, '') || '/' : window.location.pathname
 // The journal's posts download alongside, so its first render already has them.
 if (isWoo && /^\/journal\/?$/.test(path)) fetchPosts().catch(() => undefined)
+// The storefront shows straight away (with a short placeholder, App.tsx); the pages follow once the products are in.
+container.setAttribute('data-app', '')
+root.render(<App />)
 Promise.all([loadCatalog(), preloadRoute(path).catch(() => undefined)])
-  .then(render)
+  .then(markCatalogReady)
   .catch(fail)

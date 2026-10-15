@@ -183,3 +183,369 @@ button, a, input, select, textarea {
 .wp-content .wp-block-columns { display: flex; flex-wrap: wrap; gap: 24px; }
 .wp-content .wp-block-column { flex: 1 1 240px; }
 .wp-content .aligncenter { margin-left: auto; margin-right: auto; text-align: center; }
+
+/* ---- Carousel, start-up placeholder and motion from the live site (rfaheya-smooth-v5) ---- */
+
+/* Native scrolling keeps product carousels small and avoids per-pointer React renders. */
+.rf-carousel {
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+.rf-carousel-viewport {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  padding: 8px 0 18px;
+  scrollbar-width: none;
+}
+.rf-carousel-track {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rf-carousel-item {
+  flex: none;
+  min-width: 0;
+  scroll-snap-align: start;
+}
+.rf-carousel-arrow {
+  position: absolute;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-line);
+  border-radius: 50%;
+  background: var(--color-card);
+  color: var(--color-ink);
+  box-shadow: 0 1px 3px #0002;
+}
+.rf-carousel-prev {
+  left: 4px;
+}
+.rf-carousel-next {
+  right: 4px;
+}
+.rf-carousel-dots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  margin-top: 12px;
+}
+.rf-carousel-dots button {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+}
+.rf-carousel-dots span {
+  display: block;
+  width: 16px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--color-dot);
+}
+.rf-carousel-dots .is-active span {
+  background: var(--color-olive);
+}
+@media (max-width: 639px) {
+  .rf-carousel-arrow {
+    display: none;
+  }
+}
+main,
+main > div {
+  min-width: 0;
+}
+section .container-x {
+  min-width: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-reveal.reveal-visible {
+    animation-duration: 0.35s;
+  }
+  .page-enter {
+    animation-duration: 0.2s;
+  }
+}
+
+/* Constrain intrinsic flex sizing as well as carousel controls. */
+html {
+  overflow-x: clip;
+}
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+section[aria-labelledby="best-sellers-title"] {
+  overflow-x: clip;
+}
+section[aria-labelledby="best-sellers-title"] .container-x {
+  max-width: 1600px;
+  box-sizing: border-box;
+}
+section[aria-labelledby="best-sellers-title"] .container-x > div:first-child {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+section[aria-labelledby="best-sellers-title"]
+  .container-x
+  > div:first-child
+  > div {
+  min-width: 0;
+  max-width: 100%;
+}
+section[aria-labelledby="best-sellers-title"]
+  .container-x
+  > div:first-child
+  > div:last-child {
+  flex: 1 1 540px;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+section[aria-labelledby="best-sellers-title"] [role="tablist"] {
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 482px;
+}
+section[aria-labelledby="best-sellers-title"] [role="tablist"] > button {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  padding-inline: 12px;
+  letter-spacing: 0.08em;
+}
+.rf-carousel-viewport {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.rf-carousel-track {
+  width: 100%;
+  min-width: 0;
+}
+section[aria-labelledby="best-sellers-title"] .rf-carousel-dots {
+  display: none;
+}
+@supports not (overflow: clip) {
+  html,
+  section[aria-labelledby="best-sellers-title"] {
+    overflow-x: hidden;
+  }
+}
+@media (max-width: 639px) {
+  section[aria-labelledby="best-sellers-title"] [role="tablist"] {
+    flex-basis: 100%;
+    width: 100%;
+  }
+  section[aria-labelledby="best-sellers-title"] [role="tablist"] > button {
+    font-size: 11px;
+    padding-inline: 8px;
+  }
+}
+
+/* Mobile flex-column: flex-basis must not become a 540px height. */
+section[aria-labelledby="best-sellers-title"]
+  .container-x
+  > div:first-child
+  > div:last-child {
+  flex: 0 1 auto;
+  height: auto;
+  min-height: 0;
+  width: 100%;
+}
+@media (min-width: 1024px) {
+  section[aria-labelledby="best-sellers-title"]
+    .container-x
+    > div:first-child
+    > div:last-child {
+    flex: 1 1 540px;
+    width: auto;
+  }
+}
+.rf-loading-section {
+  padding-top: 28px;
+  padding-bottom: 32px;
+}
+.rf-loading-label {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  margin-bottom: 16px;
+}
+.rf-loading-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  overflow: hidden;
+}
+.rf-loading-card {
+  height: 330px;
+  background: var(--color-card);
+  border-radius: 10px;
+  border: 1px solid var(--color-line);
+}
+.rf-loading-image {
+  height: 160px;
+  background: var(--color-line);
+  border-radius: 10px 10px 0 0;
+}
+@media (max-width: 639px) {
+  .rf-loading-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .rf-loading-card:nth-child(n + 3) {
+    display: none;
+  }
+  .rf-loading-card {
+    height: 280px;
+  }
+  .rf-loading-image {
+    height: 135px;
+  }
+}
+
+/* Motion changes only composited transforms/opacity; layout and first render stay available. */
+:root {
+  --rf-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rf-scroll-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #b08d57, #2a2f1b);
+  transform: scaleX(0);
+  transform-origin: left;
+  z-index: 10000;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 90px;
+  }
+  @keyframes rf-section-arrive {
+    from {
+      opacity: 0.65;
+      transform: translateY(26px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes rf-card-arrive {
+    from {
+      opacity: 0.55;
+      translate: 0 18px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+  .scroll-reveal.reveal-visible {
+    animation: rf-section-arrive 0.75s var(--rf-ease) both;
+  }
+  .page-enter {
+    animation-duration: 0.4s;
+    animation-timing-function: var(--rf-ease);
+  }
+  .motion-product-card {
+    animation: rf-card-arrive 0.6s var(--rf-ease) both;
+    transition:
+      transform 0.5s var(--rf-ease),
+      box-shadow 0.5s var(--rf-ease),
+      scale 0.35s var(--rf-ease);
+  }
+  .rf-carousel-item:nth-child(2) .motion-product-card {
+    animation-delay: 45ms;
+  }
+  .rf-carousel-item:nth-child(3) .motion-product-card {
+    animation-delay: 90ms;
+  }
+  .rf-carousel-item:nth-child(4) .motion-product-card {
+    animation-delay: 135ms;
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    transition-duration: 0.3s;
+    transition-timing-function: var(--rf-ease);
+  }
+  button {
+    transition-property:
+      color, background-color, border-color, box-shadow, opacity, scale;
+  }
+  button:active,
+  a.inline-flex:active {
+    scale: 0.97;
+  }
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid #b08d57;
+    outline-offset: 4px;
+  }
+  .motion-product-card img {
+    transition: transform 0.8s var(--rf-ease);
+  }
+  header {
+    transition:
+      background-color 0.4s var(--rf-ease),
+      border-color 0.4s var(--rf-ease),
+      box-shadow 0.4s var(--rf-ease);
+  }
+  .rf-carousel-arrow {
+    transition:
+      background-color 0.3s var(--rf-ease),
+      color 0.3s var(--rf-ease),
+      scale 0.35s var(--rf-ease),
+      box-shadow 0.35s var(--rf-ease);
+  }
+  input:focus,
+  textarea:focus,
+  select:focus {
+    box-shadow: 0 0 0 3px #b08d571f;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .motion-product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 18px 38px -22px #2a2f1b66;
+    }
+    .motion-product-card:hover img {
+      transform: scale(1.045);
+    }
+    .rf-carousel-arrow:hover {
+      background: var(--color-olive);
+      color: var(--color-cream);
+      scale: 1.07;
+      box-shadow: 0 7px 18px #2a2f1b22;
+    }
+    a.inline-flex:hover {
+      translate: 0 -1px;
+      transition:
+        translate 0.3s var(--rf-ease),
+        color 0.3s,
+        background-color 0.3s,
+        border-color 0.3s;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-scroll-progress {
+    display: none;
+  }
+}

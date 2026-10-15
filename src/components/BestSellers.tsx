@@ -83,7 +83,7 @@ export function BestSellers() {
           {products.length > 0 && (
             <Carousel
               label={t.label}
-              items={products}
+              items={products.slice(0, 12)}
               getKey={(p) => p.id}
               renderItem={(p) => <ProductCard product={p} badge={t.badge} />}
             />

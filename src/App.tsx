@@ -1,5 +1,10 @@
-import { Suspense } from 'react'
-import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { Suspense, type ReactNode } from 'react'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { isCatalogReady, useCatalogVersion } from './api/catalog'
+import { AnnouncementBar } from './components/AnnouncementBar'
+import { FeatureStrip } from './components/FeatureStrip'
+import { Header } from './components/Header'
+import { Hero } from './components/Hero'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
 import { Home } from './pages/Home'
@@ -12,6 +17,36 @@ import { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage
 /** `npm run build:preview` uses #/ URLs so the site works from a single static file host (shareable preview link). */
 const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter
 
+/** Shown until the products have loaded: header, the home hero and a few placeholder cards. */
+function Startup() {
+  const home = useLocation().pathname === '/'
+  return (
+    <div className="flex min-h-screen flex-col">
+      <AnnouncementBar />
+      <Header />
+      <main className="flex-1">
+        {home && <Hero />}
+        {home && <FeatureStrip />}
+        <section className="container-x rf-loading-section" role="status" aria-label="Loading fragrances">
+          <p className="rf-loading-label">Loading fragrances…</p>
+          <div className="rf-loading-cards" aria-hidden>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="rf-loading-card">
+                <div className="rf-loading-image" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
+  )
+}
+
+function RouteGate({ children }: { children: ReactNode }) {
+  useCatalogVersion()
+  return isCatalogReady() ? children : <Startup />
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -19,6 +54,7 @@ export default function App() {
       <AccountProvider>
         <WishlistProvider>
           <CartProvider>
+            <RouteGate>
             <Routes>
               <Route path="finder/quiz" element={<Suspense fallback={<div className="min-h-screen bg-sand" />}><FinderQuiz /></Suspense>} />
               <Route element={<Layout />}>
@@ -47,6 +83,7 @@ export default function App() {
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
+            </RouteGate>
           </CartProvider>
         </WishlistProvider>
       </AccountProvider>
