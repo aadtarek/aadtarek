@@ -1,4 +1,4 @@
-import { Heart, ShoppingBag } from 'lucide-react'
+import { Eye, Heart, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { familyName, fullSizeVariations, sampleVariation } from '../api/catalog'
@@ -28,14 +28,14 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   return (
     <article className="group/card flex h-full flex-col">
       <div className="motion-product-card relative overflow-hidden rounded-2xl bg-chip">
-        <Link to={href} tabIndex={-1} aria-hidden className="block aspect-square">
+        <Link to={href} tabIndex={-1} aria-hidden className="block aspect-[5/4]">
           <img
             src={product.images[0].src}
             srcSet={product.images[0].srcset}
             sizes="(min-width: 1280px) 20vw, (min-width: 640px) 30vw, 50vw"
             alt={product.images[0].alt}
             width={400}
-            height={400}
+            height={320}
             loading="lazy"
             decoding="async"
             draggable={false}
@@ -56,45 +56,54 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
         >
           <Heart className={`size-[17px] transition ${wished ? 'fill-ink' : ''}`} strokeWidth={1.5} />
         </button>
+        <button
+          type="button"
+          onClick={() => cart.openQuickAdd(product)}
+          aria-label={`Quick view ${product.name}`}
+          className="absolute right-2 bottom-2 inline-flex h-8 items-center gap-1.5 rounded-full bg-cream/90 px-2.5 text-[10.5px] font-medium tracking-[0.06em] text-ink uppercase backdrop-blur-sm transition hover:bg-cream sm:h-9 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/card:opacity-100 [@media(hover:hover)]:focus-visible:opacity-100"
+        >
+          <Eye className="size-4" strokeWidth={1.5} aria-hidden />
+          <span className="hidden sm:inline">Quick view</span>
+        </button>
       </div>
 
-      <div className="flex flex-1 flex-col pt-3">
+      <div className="flex flex-1 flex-col pt-2.5">
         <div className="flex items-baseline justify-between gap-2">
-          <h3 className="min-w-0 font-serif text-[19px] leading-tight sm:text-[21px]">
+          <h3 className="min-w-0 truncate font-serif text-[17px] leading-tight sm:text-[20px]">
             <Link to={href} className="hover:underline hover:decoration-1 hover:underline-offset-4">
               {product.name}
             </Link>
           </h3>
-          <p className="shrink-0 text-[13px] font-medium tabular-nums sm:text-[14px]" aria-live="polite">
+          <p className="shrink-0 text-[12px] font-medium tabular-nums sm:text-[13.5px]" aria-live="polite">
             {formatPrice(selected.price)}
           </p>
         </div>
-        {product.inspiredBy && <p className="mt-0.5 truncate text-[12px] text-muted sm:text-[12.5px]">Inspired by {product.inspiredBy}</p>}
+        {product.inspiredBy && <p className="mt-0.5 truncate text-[11px] text-muted sm:text-[12px]">Inspired by {product.inspiredBy}</p>}
 
-        <ul className="mt-2.5 flex flex-wrap gap-1" aria-label="Profile">
+        <ul className="mt-2 flex flex-wrap gap-1" aria-label="Profile">
           {chips.map(({ label, Icon }) => (
-            <li key={label} className="inline-flex items-center gap-1 rounded-full bg-chip px-2 py-[3px] text-[10.5px] whitespace-nowrap text-ink-soft sm:text-[11px]">
-              <Icon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
+            <li key={label} className="inline-flex items-center gap-1 rounded-full bg-chip px-1.5 py-[2px] text-[10px] whitespace-nowrap text-ink-soft sm:px-2 sm:text-[10.5px]">
+              <Icon className="size-2.5 shrink-0 sm:size-3" strokeWidth={1.5} aria-hidden />
               {label}
             </li>
           ))}
         </ul>
 
         {product.notes.length > 0 && (
-          <ul className="mt-2.5 flex gap-2.5" aria-label="Fragrance notes">
+          <ul className="mt-2 flex gap-1.5 sm:gap-2" aria-label="Fragrance notes">
             {product.notes.slice(0, 4).map((n) => (
               <li key={n.name} className="flex min-w-0 flex-1 flex-col items-center text-center">
-                <span className="grid size-9 place-items-center rounded-full bg-chip">
-                  <img src={n.image} alt="" width={24} height={24} className="size-6 object-contain" loading="lazy" decoding="async" />
+                <span className="grid size-7 place-items-center rounded-full bg-chip sm:size-8">
+                  <img src={n.image} alt="" width={24} height={24} className="size-[18px] object-contain sm:size-5" loading="lazy" decoding="async" />
                 </span>
-                <span className="mt-1 w-full truncate text-[10px] leading-tight text-muted">{n.name}</span>
+                <span className="mt-0.5 w-full truncate text-[9.5px] leading-tight text-muted">{n.name}</span>
               </li>
             ))}
           </ul>
         )}
 
         {sizes.length > 1 && (
-          <div role="radiogroup" aria-label={`Size for ${product.name}`} className="mt-2.5 flex flex-wrap gap-1">
+          <div role="radiogroup" aria-label={`Size for ${product.name}`} className="mt-2 flex flex-wrap gap-1">
             {sizes.map((v) => {
               const on = v.id === selected.id
               return (
@@ -105,7 +114,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                   aria-checked={on}
                   disabled={!v.inStock}
                   onClick={() => setVariationId(v.id)}
-                  className={`h-7 rounded-full border px-2.5 text-[11px] font-medium transition disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
+                  className={`h-6 rounded-full border px-2 text-[10.5px] font-medium transition sm:h-7 sm:px-2.5 sm:text-[11px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
                     on ? 'border-ink bg-ink text-cream' : 'border-line-strong text-ink-soft hover:border-ink'
                   }`}
                 >
@@ -116,12 +125,12 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
           </div>
         )}
 
-        <div className="mt-auto flex flex-col gap-1.5 pt-3 sm:flex-row">
+        <div className="mt-auto flex flex-col gap-1 pt-2.5 sm:flex-row sm:gap-1.5">
           <button
             type="button"
             onClick={() => cart.add(product.id, selected.id)}
             disabled={!selected.inStock}
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full bg-olive sm:flex-1 px-3 text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-olive px-3 text-[10.5px] sm:flex-1 sm:text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
           >
             <ShoppingBag className="hidden size-[15px] shrink-0 sm:block" strokeWidth={1.5} aria-hidden />
             Add to cart
@@ -132,7 +141,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
               onClick={() => cart.add(product.id, sample.id)}
               disabled={!sample.inStock}
               title={`${sample.size} sample · ${formatPrice(sample.price)}`}
-              className="inline-flex h-9 items-center justify-center gap-1 rounded-full border border-line-strong px-3 text-[11px] font-medium whitespace-nowrap transition hover:border-ink disabled:pointer-events-none disabled:opacity-40 sm:h-10"
+              className="inline-flex h-8 items-center justify-center gap-1 rounded-full border border-line-strong px-3 text-[10.5px] font-medium whitespace-nowrap transition hover:border-ink disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:text-[11px]"
             >
               <BottleIcon className="hidden size-[15px] shrink-0 sm:block" />
               Try {sample.size}

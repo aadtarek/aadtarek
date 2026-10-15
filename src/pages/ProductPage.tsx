@@ -130,30 +130,30 @@ function ProductDetails({ product }: { product: Product }) {
         <div className="min-w-0">
           {/* ---------- 01 Purchase ---------- */}
           <div className="flex items-center justify-between gap-3">
-            {product.badge ? <span className="rounded-full bg-olive px-3.5 py-1.5 text-[13px] leading-none text-cream">{product.badge}</span> : <span />}
-            <p className="text-[12px] tracking-[0.1em] text-muted uppercase lg:hidden">
+            {product.badge ? <span className="rounded-full bg-olive px-3 py-1 text-[11.5px] leading-none text-cream sm:px-3.5 sm:py-1.5 sm:text-[13px]">{product.badge}</span> : <span />}
+            <p className="text-[11px] tracking-[0.1em] text-muted uppercase lg:hidden">
               {GENDERS[product.profile.gender].label}
               {product.families[0] && ` · ${familyName(product.families[0])}`}
             </p>
           </div>
-          <h1 className="mt-2.5 font-serif text-[40px] leading-[0.95] tracking-[-0.01em] sm:text-[56px] xl:text-[64px]">{product.name}</h1>
-          <p className="mt-2 font-serif text-[21px] text-ink-soft sm:text-[26px]">{product.tagline}</p>
+          <h1 className="mt-2 font-serif text-[32px] leading-[0.95] tracking-[-0.01em] sm:mt-2.5 sm:text-[56px] xl:text-[64px]">{product.name}</h1>
+          <p className="mt-1.5 font-serif text-[18px] text-ink-soft sm:mt-2 sm:text-[26px]">{product.tagline}</p>
 
-          <ul className="mt-4 flex flex-wrap gap-2" aria-label="Profile">
+          <ul className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2" aria-label="Profile">
             {chips.map(({ label, Icon }) => (
               <li
                 key={label}
-                className="inline-flex items-center gap-2 rounded-full border border-line bg-card px-3.5 py-2 text-[13.5px] sm:px-4 sm:text-[15px]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-2.5 py-1 text-[12px] sm:gap-2 sm:px-4 sm:py-2 sm:text-[15px]"
               >
-                <Icon className="size-[18px]" strokeWidth={1.3} aria-hidden />
+                <Icon className="size-3.5 sm:size-[18px]" strokeWidth={1.3} aria-hidden />
                 {label}
               </li>
             ))}
           </ul>
 
           {count > 0 && (
-            <a href="#reviews" className="mt-4 inline-flex items-center gap-3 text-[15px] text-ink-soft hover:text-ink">
-              <Stars rating={average} className="size-[19px]" />
+            <a href="#reviews" className="mt-3 inline-flex items-center gap-2 text-[13px] text-ink-soft hover:text-ink sm:mt-4 sm:gap-3 sm:text-[15px]">
+              <Stars rating={average} className="size-4 sm:size-[19px]" />
               <span className="font-medium text-ink">{average.toFixed(1)}</span>
               <span>
                 ({count} {count === 1 ? 'review' : 'reviews'})
@@ -163,13 +163,13 @@ function ProductDetails({ product }: { product: Product }) {
 
           {product.inspiredBy && <DnaCard product={product} />}
 
-          <p className="mt-6 text-[30px] font-semibold tracking-[-0.01em] sm:text-[36px]">{formatPriceRange(range.min, range.max)}</p>
+          <p className="mt-4 text-[22px] font-semibold tracking-[-0.01em] sm:mt-6 sm:text-[36px]">{formatPriceRange(range.min, range.max)}</p>
 
-          <p className="mt-4 text-[13.5px] font-medium tracking-[0.06em] uppercase">Choose your size</p>
+          <p className="mt-3 text-[11.5px] font-medium tracking-[0.06em] uppercase sm:mt-4 sm:text-[13.5px]">Choose your size</p>
           <div
             role="radiogroup"
             aria-label="Size"
-            className={`mt-2.5 grid gap-2 ${sizes.length >= 4 ? 'grid-cols-4' : sizes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
+            className={`mt-2 grid gap-1.5 sm:mt-2.5 sm:gap-2 ${sizes.length >= 4 ? 'grid-cols-4' : sizes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
           >
             {sizes.map((v) => {
               const on = v.id === variationId
@@ -181,28 +181,28 @@ function ProductDetails({ product }: { product: Product }) {
                   aria-checked={on}
                   disabled={!v.inStock}
                   onClick={() => setVariationId(v.id)}
-                  className={`rounded-xl border px-2 py-3 text-center transition disabled:cursor-not-allowed disabled:opacity-40 ${
+                  className={`rounded-xl border px-2 py-2 text-center transition disabled:cursor-not-allowed sm:py-3 disabled:opacity-40 ${
                     on ? 'border-olive bg-olive text-cream' : 'border-line-strong bg-card hover:border-ink'
                   }`}
                 >
-                  <span className="block text-[14.5px] font-semibold">{v.size}</span>
-                  <span className={`block text-[13.5px] ${on ? 'text-cream/85' : 'text-ink-soft'}`}>{formatPrice(v.price)}</span>
+                  <span className="block text-[12.5px] font-semibold sm:text-[14.5px]">{v.size}</span>
+                  <span className={`block text-[11.5px] sm:text-[13.5px] ${on ? 'text-cream/85' : 'text-ink-soft'}`}>{formatPrice(v.price)}</span>
                 </button>
               )
             })}
           </div>
 
-          <div ref={buyBox} className="mt-3 flex gap-2 sm:flex-col">
+          <div ref={buyBox} className="mt-2.5 flex gap-1.5 sm:mt-3 sm:flex-col sm:gap-2">
             <div className="shrink-0">
-              <QuantityInput value={qty} onChange={setQty} />
+              <QuantityInput value={qty} onChange={setQty} size="auto" />
             </div>
             <button
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="inline-flex h-12 flex-1 items-center justify-center gap-3 rounded-full bg-olive sm:flex-none text-[13px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-[58px] sm:text-[15px]"
+              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-olive text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-[58px] sm:flex-none sm:gap-3 sm:text-[15px]"
             >
-              <ShoppingBag className="size-5" strokeWidth={1.3} />
+              <ShoppingBag className="size-4 sm:size-5" strokeWidth={1.3} />
               Add to cart
               {qty > 1 && <span className="tracking-normal normal-case opacity-80">· {formatPrice(variation.price * qty)}</span>}
             </button>
@@ -211,22 +211,22 @@ function ProductDetails({ product }: { product: Product }) {
             type="button"
             onClick={buyNow}
             disabled={!variation.inStock}
-            className="mt-2 inline-flex h-12 w-full items-center justify-center rounded-full bg-mocha text-[13px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:h-[54px] sm:text-[14px]"
+            className="mt-1.5 inline-flex h-10 w-full items-center justify-center rounded-full bg-mocha text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:mt-2 sm:h-[54px] sm:text-[14px]"
           >
             Buy now
           </button>
-          <div className="mt-2 flex gap-2">
+          <div className="mt-1.5 flex gap-1.5 sm:mt-2 sm:gap-2">
             {sample && (
               <button
                 type="button"
                 onClick={() => cart.add(product.id, sample.id)}
                 disabled={!sample.inStock}
-                className="flex h-[58px] flex-1 items-center justify-center gap-4 rounded-full border border-ink/70 disabled:pointer-events-none disabled:opacity-40 transition hover:bg-ink hover:text-cream"
+                className="flex h-11 flex-1 items-center justify-center gap-2.5 rounded-full border border-ink/70 transition hover:bg-ink hover:text-cream disabled:pointer-events-none disabled:opacity-40 sm:h-[58px] sm:gap-4"
               >
-                <BottleIcon className="size-7" />
+                <BottleIcon className="size-5 sm:size-7" />
                 <span className="text-center leading-tight">
-                  <span className="block text-[14px] font-semibold tracking-[0.06em] uppercase sm:text-[15px]">Try {sample.size} first</span>
-                  <span className="block text-[13px]">{formatPrice(sample.price)}</span>
+                  <span className="block text-[11.5px] font-semibold tracking-[0.06em] uppercase sm:text-[15px]">Try {sample.size} first</span>
+                  <span className="block text-[11px] sm:text-[13px]">{formatPrice(sample.price)}</span>
                 </span>
               </button>
             )}
@@ -235,13 +235,13 @@ function ProductDetails({ product }: { product: Product }) {
               onClick={() => wishlist.toggle(product.id)}
               aria-pressed={wished}
               aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-              className={`grid h-[58px] shrink-0 place-items-center rounded-full border border-line-strong transition hover:border-ink ${sample ? 'w-[68px]' : 'flex-1'}`}
+              className={`grid h-11 shrink-0 place-items-center rounded-full border border-line-strong transition hover:border-ink sm:h-[58px] ${sample ? 'w-12 sm:w-[68px]' : 'flex-1'}`}
             >
-              <Heart className={`size-6 ${wished ? 'fill-ink' : ''}`} strokeWidth={1.3} />
+              <Heart className={`size-5 sm:size-6 ${wished ? 'fill-ink' : ''}`} strokeWidth={1.3} />
             </button>
           </div>
 
-          <ul className="mt-6 grid grid-cols-3 gap-2 sm:gap-0">
+          <ul className="mt-5 grid grid-cols-3 gap-2 sm:mt-6 sm:gap-0">
             {[
               {
                 Icon: ShieldCheck,
@@ -261,8 +261,8 @@ function ProductDetails({ product }: { product: Product }) {
               },
             ].map(({ Icon, title, text, to }, i) => (
               <li key={title} className={`flex flex-col gap-2 sm:flex-row sm:gap-3 sm:px-3 ${i ? 'sm:border-l sm:border-line' : 'sm:pl-0'}`}>
-                <Icon className="size-7 shrink-0" strokeWidth={1.2} aria-hidden />
-                <span className="text-[12px] leading-snug text-muted sm:text-[13px]">
+                <Icon className="size-5 shrink-0 sm:size-7" strokeWidth={1.2} aria-hidden />
+                <span className="text-[11px] leading-snug text-muted sm:text-[13px]">
                   {to ? (
                     <Link to={to} className="block font-medium text-ink hover:underline">
                       {title}
@@ -278,19 +278,19 @@ function ProductDetails({ product }: { product: Product }) {
 
           {/* ---------- 02 The fragrance ---------- */}
           <Fold num="02" aside="The story, notes, and character of the fragrance." title="The Fragrance" defaultOpen>
-            {product.tagline && <p className="font-serif text-[22px] text-mocha sm:text-[28px]">{product.tagline}</p>}
-            <div className="mt-4 space-y-4 font-serif text-[16.5px] leading-[1.6] text-ink-soft sm:text-[18px]">
+            {product.tagline && <p className="font-serif text-[19px] text-mocha sm:text-[28px]">{product.tagline}</p>}
+            <div className="mt-3 space-y-3 font-serif text-[15px] leading-[1.6] text-ink-soft sm:mt-4 sm:space-y-4 sm:text-[18px]">
               {(product.story.length ? product.story : [product.description]).map((p) => (
                 <p key={p}>{p}</p>
               ))}
             </div>
 
-            <h3 className="mt-8 border-t border-line pt-7 font-serif text-[22px] sm:text-[26px]">Key notes</h3>
+            <h3 className="mt-6 border-t border-line pt-5 font-serif text-[19px] sm:mt-8 sm:pt-7 sm:text-[26px]">Key notes</h3>
             <ul className="mt-5 grid grid-cols-5 gap-2">
               {product.notes.slice(0, 5).map((n) => (
                 <li key={n.name} className="flex flex-col items-center text-center">
-                  <img src={n.image} alt="" width={96} height={72} className="h-14 w-auto object-contain sm:h-[72px]" loading="lazy" decoding="async" />
-                  <span className="mt-2 text-[12.5px] sm:text-[14px]">{n.name}</span>
+                  <img src={n.image} alt="" width={96} height={72} className="h-10 w-auto object-contain sm:h-[72px]" loading="lazy" decoding="async" />
+                  <span className="mt-1.5 text-[11px] sm:mt-2 sm:text-[14px]">{n.name}</span>
                 </li>
               ))}
             </ul>
@@ -321,17 +321,17 @@ function ProductDetails({ product }: { product: Product }) {
 
       {/* ---------- Sticky buy bar (once the main buttons scroll away) ---------- */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-30 border-t border-line bg-cream/95 py-3 shadow-[0_-10px_30px_-18px_rgba(40,30,20,0.35)] backdrop-blur transition-transform duration-300 ${
+        className={`fixed inset-x-0 bottom-0 z-30 border-t border-line bg-cream/95 py-2 sm:py-3 shadow-[0_-10px_30px_-18px_rgba(40,30,20,0.35)] backdrop-blur transition-transform duration-300 ${
           showSticky ? 'translate-y-0' : 'translate-y-full'
         }`}
         aria-hidden={!showSticky}
         inert={!showSticky || undefined}
       >
-        <div className="container-x flex items-center gap-3 lg:gap-5">
-          <img src={product.images[0].src} alt="" className="size-12 shrink-0 rounded object-cover lg:size-14" />
+        <div className="container-x flex items-center gap-2.5 lg:gap-5">
+          <img src={product.images[0].src} alt="" className="size-10 shrink-0 rounded-lg object-cover lg:size-14" />
           <div className="min-w-0 flex-1 lg:flex-none">
-            <p className="truncate font-serif text-[16px] lg:text-[20px]">{product.name}</p>
-            <p className="text-[13px] text-muted">
+            <p className="truncate font-serif text-[15px] lg:text-[20px]">{product.name}</p>
+            <p className="text-[11.5px] text-muted lg:text-[13px]">
               {variation.size} · {formatPrice(variation.price)}
             </p>
           </div>
@@ -357,7 +357,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="inline-flex h-11 items-center gap-2 rounded-full bg-olive px-4 text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase disabled:opacity-50 sm:px-5 lg:h-12 lg:px-7 lg:text-[12.5px]"
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-olive px-3.5 text-[10.5px] font-medium tracking-[0.1em] text-cream uppercase disabled:opacity-50 sm:h-11 sm:px-5 sm:text-[11.5px] lg:h-12 lg:px-7 lg:text-[12.5px]"
             >
               <ShoppingBag className="hidden size-[18px] sm:block" strokeWidth={1.4} />
               Add to cart
@@ -366,7 +366,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={buyNow}
               disabled={!variation.inStock}
-              className="h-11 rounded-full bg-mocha px-4 text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-espresso disabled:opacity-50 sm:px-5 lg:h-12 lg:px-7 lg:text-[12.5px]"
+              className="h-9 rounded-full bg-mocha px-3.5 text-[10.5px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-espresso disabled:opacity-50 sm:h-11 sm:px-5 sm:text-[11.5px] lg:h-12 lg:px-7 lg:text-[12.5px]"
             >
               Buy now
             </button>
@@ -521,25 +521,25 @@ function Gallery({ product, videos, onVideo }: { product: Product; videos: numbe
 function DnaCard({ product }: { product: Product }) {
   const [open, setOpen] = useState(false)
   return (
-    <div className="mt-5 rounded-[6px] border border-line bg-card">
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-4 p-3 text-left sm:gap-5">
-        <span className="grid h-[72px] w-[60px] shrink-0 place-items-center border-r border-line pr-3 sm:w-[84px] sm:pr-5">
+    <div className="mt-4 rounded-xl border border-line bg-card sm:mt-5">
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-3 p-2.5 text-left sm:gap-5 sm:p-3">
+        <span className="grid h-12 w-11 shrink-0 place-items-center border-r border-line pr-2.5 sm:h-[72px] sm:w-[84px] sm:pr-5">
           {product.dnaImage ? (
             <img src={product.dnaImage} alt="" className="max-h-full w-auto object-contain" />
           ) : (
-            <BottleIcon className="size-10 text-mocha" />
+            <BottleIcon className="size-7 text-mocha sm:size-10" />
           )}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="flex items-center gap-2 text-[16px] font-semibold sm:text-[18px]">
-            DNA <Info className="size-4 text-muted" strokeWidth={1.5} aria-hidden />
+          <span className="flex items-center gap-1.5 text-[13.5px] font-semibold sm:gap-2 sm:text-[18px]">
+            DNA <Info className="size-3.5 text-muted sm:size-4" strokeWidth={1.5} aria-hidden />
           </span>
-          <span className="block truncate text-[15px] text-ink-soft sm:text-[17px]">{product.inspiredBy}</span>
+          <span className="block truncate text-[12.5px] text-ink-soft sm:text-[17px]">{product.inspiredBy}</span>
         </span>
-        <ChevronRight className={`size-5 shrink-0 transition ${open ? 'rotate-90' : ''}`} strokeWidth={1.5} />
+        <ChevronRight className={`size-4 shrink-0 transition sm:size-5 ${open ? 'rotate-90' : ''}`} strokeWidth={1.5} />
       </button>
       {open && (
-        <p className="border-t border-line px-4 py-3 text-[14px] leading-relaxed text-ink-soft">
+        <p className="border-t border-line px-3.5 py-2.5 text-[12.5px] leading-relaxed text-ink-soft sm:px-4 sm:py-3 sm:text-[14px]">
           DNA refers to the original fragrance that a Rfaheya fragrance is based on. It shows the olfactive direction and character behind it — not the original
           product, and not intended to be an exact copy.
         </p>
@@ -574,7 +574,7 @@ function Fold({
         aria-expanded={open}
         className="mt-3 flex w-full items-center justify-between text-left lg:pointer-events-none lg:mt-4"
       >
-        <h2 className="font-serif text-[28px] leading-none sm:text-[40px] xl:text-[46px]">{title}</h2>
+        <h2 className="font-serif text-[24px] leading-none sm:text-[40px] xl:text-[46px]">{title}</h2>
         <span className="lg:hidden">{open ? <Minus className="size-6" strokeWidth={1.3} /> : <Plus className="size-6" strokeWidth={1.3} />}</span>
       </button>
       {subtitle && <p className={`mt-2 font-serif text-[18px] text-muted sm:text-[22px] ${open ? '' : 'hidden lg:block'}`}>{subtitle}</p>}

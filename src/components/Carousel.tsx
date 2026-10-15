@@ -33,7 +33,7 @@ export function Carousel<T>({
   renderItem,
   label,
   perViewFor = productsPerView,
-  arrowTop = (w) => w / 2 - 21,
+  arrowTop = (w) => w * 0.4 - 21,
   gap: GAP = 18,
   itemLabel = 'product',
 }: Props<T>) {
