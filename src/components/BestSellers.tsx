@@ -1,7 +1,7 @@
 import { ArrowRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getProducts, useCatalogReady, type ProductSort } from '../api/catalog'
+import { getProducts, type ProductSort } from '../api/catalog'
 import type { Product } from '../types'
 import { ProductCard } from './ProductCard'
 import { Carousel } from './Carousel'
@@ -31,7 +31,6 @@ export function BestSellers() {
   const [tab, setTab] = useState<Tab>('best')
   const [products, setProducts] = useState<Product[]>([])
   const t = tabs[tab]
-  const ready = useCatalogReady()
 
   useEffect(() => {
     let cancelled = false
@@ -39,7 +38,7 @@ export function BestSellers() {
     return () => {
       cancelled = true
     }
-  }, [t.sort, ready])
+  }, [t.sort])
 
   return (
     <section className="bg-sand pt-10 pb-12 lg:pt-[46px] lg:pb-[42px]" aria-labelledby="best-sellers-title">
