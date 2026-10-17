@@ -55,7 +55,7 @@ export function FinderLanding() {
       {/* ---------- What happens next ---------- */}
       <section className="bg-[#e8e6e3] py-14 lg:py-16" aria-labelledby="next-title">
         <div className="container-x text-center">
-          <p id="next-title" className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[13px]">
+          <p id="next-title" className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[13px]">
             What happens next?
           </p>
           <ol className="mx-auto mt-10 grid max-w-5xl items-start gap-10 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:gap-6">
@@ -80,7 +80,7 @@ export function FinderLanding() {
       {/* ---------- More than a quiz ---------- */}
       <section className="bg-[#dcd8d4] py-14 lg:py-16" aria-labelledby="quiz-title">
         <div className="container-x">
-          <p className="text-center text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[13px]">It’s more than a quiz.</p>
+          <p className="text-center text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[13px]">It’s more than a quiz.</p>
           <h2 id="quiz-title" className="mt-2 text-center font-serif text-[34px] leading-[1.1] sm:text-[46px]">
             We’ll get to know your scent preferences.
           </h2>

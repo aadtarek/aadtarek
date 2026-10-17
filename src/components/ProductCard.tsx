@@ -115,7 +115,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                   disabled={!v.inStock}
                   onClick={() => setVariationId(v.id)}
                   className={`h-6 rounded-full border px-2 text-[10.5px] font-medium transition sm:h-7 sm:px-2.5 sm:text-[11px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
-                    on ? 'border-ink bg-ink text-cream' : 'border-line-strong text-ink-soft hover:border-ink'
+                    on ? 'border-olive bg-olive text-cream' : 'border-line-strong text-ink-soft hover:border-ink'
                   }`}
                 >
                   {v.size.replace(/\s*ML$/i, ' ml')}

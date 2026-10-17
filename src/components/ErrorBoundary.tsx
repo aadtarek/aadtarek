@@ -26,7 +26,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
     return (
       <div className="flex min-h-screen items-center justify-center bg-sand px-4 py-16 text-center">
         <div className="max-w-lg">
-          <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase">Rfaheya</p>
+          <p className="text-[12px] tracking-[0.3em] text-gold uppercase">Rfaheya</p>
           <h1 className="mt-3 font-serif text-[40px] leading-tight">Something went wrong.</h1>
           <p className="mt-3 text-ink-soft">
             This page couldn’t load. Resetting the saved data usually fixes it — your cart and wishlist will be cleared.

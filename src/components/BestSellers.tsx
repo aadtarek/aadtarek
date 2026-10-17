@@ -45,7 +45,7 @@ export function BestSellers() {
       <div className="container-x">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">{t.eyebrow}</p>
+            <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">{t.eyebrow}</p>
             <h2 id="best-sellers-title" className="mt-1.5 font-serif text-[38px] leading-[1.05] sm:text-[52px]">
               {t.title}
             </h2>

@@ -13,7 +13,7 @@ function Splash({ error }: { error?: string }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-sand px-6 text-center">
       <p className="font-serif text-[40px] tracking-[0.02em]">Rfaheya</p>
-      <p className="mt-1 text-[11px] tracking-[0.4em] text-muted uppercase">Speak your scent</p>
+      <p className="mt-1 text-[11px] tracking-[0.4em] text-gold uppercase">Speak your scent</p>
       {error ? (
         <>
           <p className="mt-8 max-w-sm text-ink-soft">We couldn’t load the store right now. Please check your connection and try again.</p>

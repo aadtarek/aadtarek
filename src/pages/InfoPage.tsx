@@ -103,7 +103,7 @@ function InfoLayout({
       </div>
       <div className="container-x mt-8 grid gap-12 lg:mt-10 lg:grid-cols-[1fr_17rem] lg:gap-20">
         <div className="max-w-[46rem]">
-          {eyebrow && <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">{eyebrow}</p>}
+          {eyebrow && <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">{eyebrow}</p>}
           <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[58px]">{title}</h1>
           {intro && <p className="mt-5 text-[18px] leading-[1.7] text-ink-soft">{intro}</p>}
           <div className="mt-10">{children}</div>

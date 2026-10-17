@@ -557,7 +557,7 @@ function MoreNotesModal({
           <X className="size-6" strokeWidth={1.3} />
         </button>
         <div className="relative">
-          <p className="text-[12px] tracking-[0.28em] text-ink-soft uppercase sm:text-[14px]">Explore more notes</p>
+          <p className="text-[12px] tracking-[0.28em] text-gold uppercase sm:text-[14px]">Explore more notes</p>
           <h2 className="mt-3 font-serif text-[36px] leading-[1.02] sm:text-[52px]">
             Discover more
             <br />

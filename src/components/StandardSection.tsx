@@ -21,7 +21,7 @@ export function StandardSection() {
       />
       <div className="grid gap-10 px-4 py-12 sm:px-6 lg:h-(--h) lg:grid-cols-[calc(var(--h)*0.8525)_1fr] lg:gap-0 lg:pt-[calc(var(--h)*0.11)] lg:pr-[15px] lg:pb-0 lg:pl-0">
         <div className="relative lg:pt-[calc(var(--h)*0.012)] lg:pr-6 lg:pl-[calc(var(--h)*0.1288)]">
-          <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[15.5px] lg:text-[17px] lg:tracking-[0.24em]">Rfaheya Standard™</p>
+          <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[15.5px] lg:text-[17px] lg:tracking-[0.24em]">Rfaheya Standard™</p>
           <h2 id="standard-title" className="mt-4 font-serif text-[44px] leading-[1] sm:text-[60px] lg:mt-[24px] lg:text-[80px] lg:leading-[0.86]">
             More than
             <br />a fragrance.

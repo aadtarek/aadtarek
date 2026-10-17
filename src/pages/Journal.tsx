@@ -32,7 +32,7 @@ function JournalView({ articles }: { articles: ArticleData[] }) {
     <div className="pb-16 lg:pb-24">
       <div className="container-x pt-6 lg:pt-8">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Journal' }]} />
-        <p className="mt-8 text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">The Rfaheya Journal</p>
+        <p className="mt-8 text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">The Rfaheya Journal</p>
         <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[60px]">Notes on fragrance.</h1>
       </div>
 

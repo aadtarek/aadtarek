@@ -130,7 +130,7 @@ export function Shop() {
 
         <div className="min-w-0">
           <header className="px-4 pt-7 sm:px-6 lg:px-0 lg:pt-4">
-            <p className="text-[11px] font-medium tracking-[0.28em] text-muted uppercase">The collection</p>
+            <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">The collection</p>
             <h1 className="mt-2 font-serif text-[46px] leading-[0.95] sm:text-[64px]">{filters.q ? `Results for “${filters.q}”` : 'All fragrances'}</h1>
             <p className="mt-3 max-w-md text-[15px] text-ink-soft">Find the fragrance that speaks to you.</p>
           </header>
@@ -289,7 +289,7 @@ function PillButton({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`h-9 rounded-full border px-4 text-[13px] whitespace-nowrap transition ${active ? 'border-ink bg-ink text-cream' : 'border-line bg-cream hover:border-ink'}`}
+      className={`h-9 rounded-full border px-4 text-[13px] whitespace-nowrap transition ${active ? 'border-olive bg-olive text-cream' : 'border-line bg-cream hover:border-ink'}`}
     >
       {children}
     </button>
@@ -496,7 +496,7 @@ function TryFirstBanner() {
   return (
     <div className="mt-14 grid items-center gap-6 overflow-hidden rounded-3xl bg-chip p-8 sm:grid-cols-[1fr_auto] lg:mt-20 lg:p-12">
       <div>
-        <p className="text-[11px] font-medium tracking-[0.28em] text-muted uppercase">Not sure yet?</p>
+        <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">Not sure yet?</p>
         <p className="mt-2 font-serif text-[32px] leading-[1.05] sm:text-[42px]">
           Try any scent in 5 ML <span className="italic">for 35 EGP.</span>
         </p>

@@ -16,7 +16,7 @@ export function CollectionsIndex() {
     <div className="pb-16 lg:pb-24">
       <div className="container-x pt-6 lg:pt-8">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Collections' }]} />
-        <p className="mt-8 text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">Collections</p>
+        <p className="mt-8 text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Collections</p>
         <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[60px]">Curated for every you.</h1>
         <p className="mt-4 max-w-xl text-[17px] leading-[1.7] text-ink-soft">
           From our inspired Perfume Lab to discovery sets and gifts — find the way into Rfaheya that suits you.

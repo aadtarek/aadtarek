@@ -47,7 +47,7 @@ export function BundleBuilder() {
         <div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">Bundle &amp; save</p>
+              <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Bundle &amp; save</p>
               <h2 id="bundle-title" className="mt-2 font-serif text-[36px] leading-[1.05] sm:text-[48px]">
                 {BUNDLE.title}
               </h2>

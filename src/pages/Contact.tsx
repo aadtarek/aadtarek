@@ -72,7 +72,7 @@ export function Contact() {
       <section className="container-x pt-6 lg:pt-8">
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Contact Us' }]} />
         <div className="mt-8 max-w-3xl lg:mt-10">
-          <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">Contact us</p>
+          <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Contact us</p>
           <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[64px]">We’d love to hear from you.</h1>
           <p className="mt-5 max-w-xl text-[17px] leading-[1.7] text-ink-soft">
             Need help choosing a scent, have a question about an order, or just want to talk fragrance? Our team replies within
@@ -217,7 +217,7 @@ export function FaqSection({ asPage = false }: { asPage?: boolean }) {
   return (
     <section className="container-x mt-16 grid gap-8 lg:mt-24 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-14" aria-labelledby="faq-title">
       <div>
-        <p className="text-[12px] tracking-[0.3em] text-ink-soft uppercase sm:text-[14px]">Frequently asked questions</p>
+        <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Frequently asked questions</p>
         <Heading id="faq-title" className="mt-2 font-serif text-[38px] leading-[1.05] sm:text-[48px]">
           Good to know.
         </Heading>

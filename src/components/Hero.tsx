@@ -31,12 +31,12 @@ export function Hero() {
       />
 
       <div className="container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
-        <p className="text-[10px] font-medium tracking-[0.32em] text-ink-soft uppercase sm:text-[11px]">
+        <p className="text-[10px] font-medium tracking-[0.32em] text-gold uppercase sm:text-[11px]">
           {copy.eyebrow}
         </p>
         <h1 className="mt-3 font-serif text-[54px] leading-[0.92] sm:text-[72px] lg:mt-[14px] lg:text-[92px]">
           {lines.map((line, i) => (
-            <span key={i} className={i > 0 && i === lines.length - 1 ? 'italic' : undefined}>
+            <span key={i} className={i > 0 && i === lines.length - 1 ? 'text-gold italic' : undefined}>
               {i > 0 && <br />}
               {sentenceCase(line)}
             </span>
