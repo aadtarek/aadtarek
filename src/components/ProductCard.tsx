@@ -26,7 +26,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   const chips = profileChips(product, familyName)
 
   return (
-    <article className="group/card flex h-full flex-col">
+    <article className="group/card @container flex h-full flex-col">
       <div className="motion-product-card relative overflow-hidden rounded-2xl bg-chip">
         <Link to={href} tabIndex={-1} aria-hidden className="block aspect-[5/4]">
           <img
@@ -125,12 +125,12 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
           </div>
         )}
 
-        <div className="mt-auto flex flex-col gap-1 pt-2.5 sm:flex-row sm:gap-1.5">
+        <div className="mt-auto flex flex-col gap-1 pt-2.5 @[16rem]:flex-row @[16rem]:gap-1.5">
           <button
             type="button"
             onClick={() => cart.add(product.id, selected.id)}
             disabled={!selected.inStock}
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-olive px-3 text-[10.5px] sm:flex-1 sm:text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-olive px-3 text-[10.5px] @[16rem]:min-w-0 @[16rem]:flex-1 sm:text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
           >
             <ShoppingBag className="hidden size-[15px] shrink-0 sm:block" strokeWidth={1.5} aria-hidden />
             Add to cart

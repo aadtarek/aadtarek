@@ -1,8 +1,9 @@
-import { ChevronDown, LayoutGrid, Rows3, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, Columns2, Columns3, LayoutGrid, Rows3, SlidersHorizontal, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getAllProducts, getFamilies, matchesSearch, priceRange, sortProducts, type ProductSort } from '../api/catalog'
 import { Overlay } from '../components/Overlay'
+import { usePersistentState } from '../lib/storage'
 import { ProductCard } from '../components/ProductCard'
 import { GENDERS, OCCASIONS, SEASONS } from '../lib/profile'
 import type { FamilySlug, Gender, Occasion, Product, Season } from '../types'
@@ -64,6 +65,8 @@ export function Shop() {
   const products = sortProducts(applyFilters(all, filters), sort)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [columns, setColumns] = useState<1 | 2>(2)
+  // Products per row from the small breakpoint up (the visitor's choice is remembered).
+  const [perRow, setPerRow] = usePersistentState<2 | 3>('rfaheya.shopColumns', 3, (v) => (v === 2 || v === 3 ? v : undefined))
 
   const prices = all.flatMap((p) => Object.values(priceRange(p)))
   const bounds = {
@@ -198,7 +201,7 @@ export function Shop() {
               </ul>
 
               <label className="ml-auto flex min-w-0 items-center gap-2 text-[14px] text-ink-soft lg:ml-0">
-                <span className="hidden whitespace-nowrap sm:inline">Sort by:</span>
+                <span className="hidden whitespace-nowrap sm:inline lg:hidden xl:inline">Sort by:</span>
                 <span className="relative">
                   <select
                     value={sort}
@@ -219,7 +222,7 @@ export function Shop() {
                   <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2" strokeWidth={1.5} />
                 </span>
               </label>
-              <p className="hidden shrink-0 text-[14px] text-ink-soft lg:block" aria-live="polite">
+              <p className="hidden shrink-0 text-[14px] text-ink-soft xl:block" aria-live="polite">
                 {products.length} {products.length === 1 ? 'product' : 'products'}
               </p>
               <button
@@ -230,6 +233,22 @@ export function Shop() {
               >
                 {columns === 2 ? <Rows3 className="size-5" strokeWidth={1.4} /> : <LayoutGrid className="size-5" strokeWidth={1.4} />}
               </button>
+              <div role="radiogroup" aria-label="Products per row" className="hidden shrink-0 items-center gap-0.5 rounded-full border border-line bg-cream p-0.5 sm:flex">
+                {([2, 3] as const).map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    role="radio"
+                    aria-checked={perRow === n}
+                    aria-label={`${n} per row`}
+                    title={`${n} per row`}
+                    onClick={() => setPerRow(n)}
+                    className={`grid size-8 place-items-center rounded-full transition ${perRow === n ? 'bg-olive text-cream' : 'text-ink-soft hover:text-ink'}`}
+                  >
+                    {n === 2 ? <Columns2 className="size-4" strokeWidth={1.5} /> : <Columns3 className="size-4" strokeWidth={1.5} />}
+                  </button>
+                ))}
+              </div>
             </div>
 
             </div>
@@ -248,7 +267,7 @@ export function Shop() {
                 </button>
               </div>
             ) : (
-              <ul className={`mt-6 grid gap-x-3 gap-y-9 sm:grid-cols-3 sm:gap-x-5 xl:grid-cols-4 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <ul className={`mt-6 grid gap-x-3 gap-y-9 sm:gap-x-5 ${perRow === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {products.map((p) => (
                   <li key={p.id}>
                     <ProductCard product={p} />
