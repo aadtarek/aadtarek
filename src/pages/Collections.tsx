@@ -97,19 +97,27 @@ function ProductList({ collection }: { collection: Collection }) {
   )
 }
 
+/** The 5 ML discovery bottle of a product, if it sells one. */
+const fiveMl = (p: Product) => {
+  const v = sampleVariation(p)
+  return v && parseFloat(v.size) === 5 ? v : undefined
+}
+
 function DiscoveryBuilder() {
   const cart = useCart()
-  const products = getAllProducts()
+  // Only fragrances that come in the 5 ML discovery size.
+  const products = getAllProducts().filter((p) => fiveMl(p)?.inStock)
   const [picked, setPicked] = useState<number[]>([])
   const toggle = (id: number) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
   const selected = products.filter((p) => picked.includes(p.id))
-  const total = selected.reduce((n, p) => n + (sampleVariation(p)?.price ?? 0), 0)
+  const total = selected.reduce((n, p) => n + (fiveMl(p)?.price ?? 0), 0)
 
   return (
     <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
       <div>
         <h2 className="font-serif text-[30px] sm:text-[38px]">Choose your samples</h2>
-        <p className="mt-1 text-ink-soft">{products[0] && sampleVariation(products[0]) ? `Each ${sampleVariation(products[0])!.size} discovery size is ${formatPrice(sampleVariation(products[0])!.price)}. ` : ''}Pick as many as you like.</p>
+        <p className="mt-1 text-ink-soft">Every fragrance here in its 5 ML discovery size. Pick as many as you like.</p>
+        {products.length === 0 && <p className="mt-6 text-muted">No 5 ML discovery sizes are available right now.</p>}
         <ul className="mt-6 grid gap-[13px] sm:grid-cols-2">
           {products.map((p) => {
             const on = picked.includes(p.id)
@@ -127,6 +135,9 @@ function DiscoveryBuilder() {
                   <span className="min-w-0 flex-1 py-3">
                     <span className="block font-serif text-[19px]">{p.name}</span>
                     <span className="block truncate text-[13px] text-muted">{p.tagline}</span>
+                    <span className="mt-1 block text-[12.5px] font-medium text-ink-soft">
+                      {fiveMl(p)!.size} · {formatPrice(fiveMl(p)!.price)}
+                    </span>
                   </span>
                   <span
                     aria-hidden
@@ -148,7 +159,7 @@ function DiscoveryBuilder() {
           <ul className="mt-4 divide-y divide-line">
             {selected.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-3 py-2.5 text-[14px]">
-                <span>{p.name} · {sampleVariation(p)?.size}</span>
+                <span>{p.name} · {fiveMl(p)?.size}</span>
                 <button type="button" onClick={() => toggle(p.id)} aria-label={`Remove ${p.name}`} className="text-muted hover:text-ink">
                   <Minus className="size-4" />
                 </button>
@@ -164,7 +175,7 @@ function DiscoveryBuilder() {
           type="button"
           disabled={selected.length === 0}
           onClick={() => {
-            cart.addMany(selected.map((p) => ({ productId: p.id, variationId: sampleVariation(p)!.id })))
+            cart.addMany(selected.map((p) => ({ productId: p.id, variationId: fiveMl(p)!.id })))
             setPicked([])
           }}
           className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"

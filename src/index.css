@@ -42,6 +42,29 @@
   }
 }
 
+/* Dark mode (header toggle, remembered per visitor): the same tokens in a warm dark palette. */
+:root.dark {
+  color-scheme: dark;
+  --color-olive: #c9a466;
+  --color-olive-hover: #d8b67c;
+  --color-ink: #f1ebe1;
+  --color-ink-soft: #d2c8b8;
+  --color-muted: #a59a8b;
+  --color-cream: #14120f;
+  --color-sand: #1a1713;
+  --color-card: #201c17;
+  --color-chip: #29241d;
+  --color-line: #332d25;
+  --color-line-strong: #4b4236;
+  --color-dot: #4b4236;
+  --color-gold: #c9a466;
+  --color-espresso: #ece4d6;
+  --color-espresso-hover: #ddd2c0;
+  --color-latte: #1f1b16;
+  --color-mocha: #f1ebe1;
+  --color-footer: #1d1a15;
+}
+
 @layer base {
   .font-serif {
     font-weight: 400;
@@ -87,6 +110,12 @@
   }
 }
 
+@keyframes rf-search-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+}
 @keyframes slide-up {
   from {
     transform: translateY(100%);
@@ -630,6 +659,70 @@ section[aria-labelledby="best-sellers-title"]
     }
     .motion-product-card:hover img {
       transform: scale(1.04);
+    }
+  }
+}
+
+/* Dark mode: sections and cards drawn with fixed light colours follow the dark tokens. */
+:root.dark {
+  :is([class*='bg-[#d'], [class*='bg-[#e'], [class*='bg-[#f']):not(.rf-keep-light, .rf-keep-light *) {
+    background-color: var(--color-card);
+  }
+  section:is([class*='bg-[#d'], [class*='bg-[#e'], [class*='bg-[#f']):not(.rf-keep-light *) {
+    background-color: var(--color-sand);
+  }
+  :is([class*='from-[#d'], [class*='from-[#e'], [class*='from-[#f']):not(.rf-keep-light *) {
+    --tw-gradient-from: var(--color-cream);
+  }
+  [class*='via-[#e']:not(.rf-keep-light *) {
+    --tw-gradient-via: color-mix(in srgb, var(--color-cream) 70%, transparent);
+  }
+  [class*='to-[#e']:not(.rf-keep-light *) {
+    --tw-gradient-to: var(--color-card);
+  }
+  [class*='border-[#d']:not(.rf-keep-light *) {
+    border-color: var(--color-line-strong);
+  }
+  /* Sections that are dark in both themes keep light text. */
+  [class*='bg-[#1'].text-cream,
+  [class*='bg-[#1'] .text-cream,
+  [class*='bg-[#2'] .text-cream {
+    color: #f1ebe1;
+  }
+  /* Copy over the hero photo needs a darker wash to stay readable. */
+  .rf-hero-wash {
+    background-image: linear-gradient(to right, #14120fe6, #14120f99 45%, transparent);
+  }
+  img {
+    filter: brightness(0.94);
+  }
+  a[aria-label='Rfaheya — home'] img {
+    filter: invert(1) brightness(0.95);
+  }
+  /* The About page is art-directed on light photography: it stays light. */
+  .rf-keep-light {
+    color-scheme: light;
+    --color-olive: #8a6a33;
+    --color-olive-hover: #735727;
+    --color-ink: #1c1a17;
+    --color-ink-soft: #4a443b;
+    --color-muted: #74695b;
+    --color-cream: #fcfaf6;
+    --color-sand: #f8f4ed;
+    --color-card: #fcfaf6;
+    --color-chip: #f1eadf;
+    --color-line: #e9e0d2;
+    --color-line-strong: #d3c6b2;
+    --color-gold: #8a6a33;
+    --color-espresso: #2a241d;
+    --color-espresso-hover: #3b3329;
+    --color-latte: #efe5d6;
+    --color-mocha: #1c1a17;
+    color: var(--color-ink);
+  }
+  @media (min-width: 48rem) {
+    .rf-dark-wash {
+      display: block;
     }
   }
 }

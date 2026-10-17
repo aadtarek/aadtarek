@@ -535,7 +535,7 @@ function Dna() {
 
 export function About() {
   return (
-    <div className="bg-[#edebe8]">
+    <div className="rf-keep-light bg-[#edebe8]">
       <Hero />
       <Why />
       <Values />

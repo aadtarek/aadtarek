@@ -112,6 +112,8 @@ function CtaBanner() {
         loading="lazy"
         className="order-2 h-56 w-full object-cover object-[78%_center] xs:h-64 md:absolute md:inset-0 md:order-none md:h-full md:object-right"
       />
+      {/* Dark mode only: keeps the light copy readable over the photo. */}
+      <div aria-hidden className="rf-dark-wash pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
       <div className="relative mx-auto flex w-full max-w-[1600px] flex-col justify-center px-4 pt-10 pb-6 sm:px-6 md:min-h-[347px] md:py-10 lg:px-[100px]">
         <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[16px]">Speak your scent</p>
         <h2 id="cta-title" className="mt-3 max-w-[9.5em] font-serif text-[38px] leading-[1.04] sm:text-[56px] lg:mt-[10px] lg:text-[62px]">

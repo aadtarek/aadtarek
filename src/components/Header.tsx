@@ -1,11 +1,13 @@
-import { Handbag, Heart, Menu, Search, UserRound, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Handbag, Heart, Menu, Moon, Search, Sun, UserRound, X } from 'lucide-react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { wp } from '../api/wp'
+import { useTheme } from '../lib/theme'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
 import { Logo } from './Logo'
-import { SearchBox } from './SearchBox'
+
+const SearchOverlay = lazy(() => import('./SearchOverlay').then((m) => ({ default: m.SearchOverlay })))
 
 export const navLinks = [
   { to: '/shop', label: 'Shop' },
@@ -21,12 +23,26 @@ export function Header() {
   const wishlist = useWishlist()
   const [menuOpen, setMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [theme, toggleTheme] = useTheme()
   const location = useLocation()
 
   useEffect(() => {
     setMenuOpen(false)
     setSearchOpen(false)
   }, [location.pathname, location.search])
+
+  // "/" or Ctrl/⌘ + K opens search from anywhere (except while typing in a field).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const typing = e.target instanceof HTMLElement && (e.target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))
+      if ((e.key === 'k' && (e.metaKey || e.ctrlKey)) || (e.key === '/' && !typing)) {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
@@ -84,9 +100,26 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <SearchBox className="mr-4 hidden w-[220px] 2xl:block" />
-          <button type="button" aria-label="Search" className={`${iconBtn} 2xl:hidden`} onClick={() => setSearchOpen((s) => !s)}>
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            className="mr-3 hidden h-[34px] w-[220px] items-center gap-2.5 rounded-full border border-line-strong/70 bg-cream/70 px-3.5 text-[13px] text-muted transition hover:border-olive 2xl:flex"
+          >
+            <Search className="size-4 shrink-0" strokeWidth={1.5} />
+            Search fragrances…
+            <kbd className="ml-auto rounded border border-line-strong px-1.5 font-sans text-[10px] text-muted">/</kbd>
+          </button>
+          <button type="button" aria-label="Search" className={`${iconBtn} 2xl:hidden`} onClick={() => setSearchOpen(true)}>
             <Search className="size-[21px]" strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-pressed={theme === 'dark'}
+            className={`${iconBtn} hidden sm:grid`}
+          >
+            {theme === 'dark' ? <Sun className="size-[21px]" strokeWidth={1.5} /> : <Moon className="size-[20px]" strokeWidth={1.5} />}
           </button>
           <Link to="/wishlist" aria-label={`Wishlist (${wishlist.ids.length})`} className={iconBtn}>
             <Heart className="size-[22px]" strokeWidth={1.5} />
@@ -110,9 +143,9 @@ export function Header() {
       </div>
 
       {searchOpen && (
-        <div className="container-x animate-fade-in border-t border-line/70 py-3 2xl:hidden">
-          <SearchBox autoFocus onDone={() => setSearchOpen(false)} />
-        </div>
+        <Suspense fallback={null}>
+          <SearchOverlay onClose={() => setSearchOpen(false)} />
+        </Suspense>
       )}
 
       {menuOpen && (
@@ -146,9 +179,18 @@ export function Header() {
                   My Account
                 </NavLink>
               )}
-              <NavLink to="/wishlist" className="py-4 text-[13px] font-medium tracking-[0.1em] uppercase">
+              <NavLink to="/wishlist" className="border-b border-line py-4 text-[13px] font-medium tracking-[0.1em] uppercase">
                 Wishlist ({wishlist.ids.length})
               </NavLink>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-pressed={theme === 'dark'}
+                className="flex items-center justify-between py-4 text-left text-[13px] font-medium tracking-[0.1em] uppercase"
+              >
+                {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+                {theme === 'dark' ? <Sun className="size-5" strokeWidth={1.5} /> : <Moon className="size-5" strokeWidth={1.5} />}
+              </button>
             </nav>
           </div>
         </div>

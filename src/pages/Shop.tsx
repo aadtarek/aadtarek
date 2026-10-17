@@ -1,8 +1,9 @@
 import { ChevronDown, Columns2, Columns3, LayoutGrid, Rows3, SlidersHorizontal, X } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { getAllProducts, getFamilies, matchesSearch, priceRange, sortProducts, type ProductSort } from '../api/catalog'
+import { getAllProducts, getFamilies, priceRange, sortProducts, type ProductSort } from '../api/catalog'
 import { Overlay } from '../components/Overlay'
+import { searchProducts } from '../lib/search'
 import { usePersistentState } from '../lib/storage'
 import { ProductCard } from '../components/ProductCard'
 import { GENDERS, OCCASIONS, SEASONS } from '../lib/profile'
@@ -34,7 +35,6 @@ interface Filters {
 /** Products matching every active filter group (any value within a group). */
 function applyFilters(all: Product[], f: Filters, skip?: ListKey) {
   return all.filter((p) => {
-    if (!matchesSearch(p, f.q)) return false
     if (skip !== 'gender' && f.gender.length && !f.gender.includes(p.profile.gender)) return false
     if (skip !== 'family' && f.family.length && !p.families.some((x) => f.family.includes(x))) return false
     if (skip !== 'occasion' && f.occasion.length && !p.profile.occasions.some((x) => f.occasion.includes(x))) return false
@@ -61,8 +61,11 @@ export function Shop() {
     min: num('min'),
     max: num('max'),
   }
-  const all = getAllProducts()
-  const products = sortProducts(applyFilters(all, filters), sort)
+  // A search keeps only the matching fragrances (typos included), best matches first unless sorted.
+  const matched = filters.q.trim() ? searchProducts(filters.q) : null
+  const all = matched ?? getAllProducts()
+  const filtered = applyFilters(all, filters)
+  const products = matched && !params.get('sort') ? filtered : sortProducts(filtered, sort)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [columns, setColumns] = useState<1 | 2>(2)
   // Products per row from the small breakpoint up (the visitor's choice is remembered).

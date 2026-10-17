@@ -37,7 +37,7 @@ export function Hero() {
       {/* Soft wash so copy stays legible when the image narrows */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#e5e2df] via-[#e5e2df]/70 to-transparent md:block xl:via-transparent xl:from-[#e5e2df]/40"
+        className="rf-hero-wash pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#e5e2df] via-[#e5e2df]/70 to-transparent md:block xl:via-transparent xl:from-[#e5e2df]/40"
       />
 
       <div className="rf-hero-copy container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
