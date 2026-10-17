@@ -5,6 +5,7 @@ import { CartDrawer } from './CartDrawer'
 import { Footer } from './Footer'
 import { Header } from './Header'
 import { QuickAddModal } from './QuickAddModal'
+import { RewardsPopup } from './RewardsPopup'
 import { useScrollReveal } from '../lib/useScrollReveal'
 
 export function Layout() {
@@ -33,6 +34,7 @@ export function Layout() {
       <Footer showCta={!pathname.startsWith('/finder')} />
       <CartDrawer />
       <QuickAddModal />
+      <RewardsPopup />
     </div>
   )
 }

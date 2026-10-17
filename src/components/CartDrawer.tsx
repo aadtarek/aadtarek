@@ -1,13 +1,16 @@
 import { Gift, Handbag, Trash2, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
+import { isGiftBoxProduct } from '../api/catalog'
 import { formatPrice } from '../lib/format'
 import { useCart } from '../store/cart'
+import { useRewards } from '../store/rewards'
 import { FreeShippingBar } from './FreeShippingBar'
 import { Overlay } from './Overlay'
 import { QuantityInput } from './QuantityInput'
 
 export function CartDrawer() {
   const cart = useCart()
+  const rewards = useRewards()
   const navigate = useNavigate()
   if (!cart.isOpen) return null
 
@@ -63,7 +66,11 @@ export function CartDrawer() {
                   <div className="flex min-w-0 flex-1 flex-col">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <Link to={`/product/${line.product.slug}`} onClick={cart.close} className="font-serif text-[16px] hover:underline">
+                        <Link
+                          to={isGiftBoxProduct(line.product) ? '/collections/gift-boxes' : `/product/${line.product.slug}`}
+                          onClick={cart.close}
+                          className="font-serif text-[16px] hover:underline"
+                        >
                           {line.product.name}
                         </Link>
                         <p className="text-[12px] text-muted">
@@ -73,7 +80,7 @@ export function CartDrawer() {
                         {line.giftMessage && (
                           <p className="mt-1 flex gap-1.5 text-[12px] text-ink-soft italic">
                             <Gift className="mt-0.5 size-3.5 shrink-0 not-italic" strokeWidth={1.5} />
-                            <span className="line-clamp-2">“{line.giftMessage}”</span>
+                            <span className="line-clamp-3">{isGiftBoxProduct(line.product) ? line.giftMessage : `“${line.giftMessage}”`}</span>
                           </p>
                         )}
                       </div>
@@ -102,9 +109,15 @@ export function CartDrawer() {
                   <span>−{formatPrice(cart.discount)}</span>
                 </div>
               )}
+              {rewards.coupons.map((c) => (
+                <div key={c.code} className="mb-1.5 flex items-center justify-between text-[14px] text-olive">
+                  <span>{c.label}</span>
+                  <span>−{formatPrice(c.amount)}</span>
+                </div>
+              ))}
               <div className="flex items-center justify-between">
                 <span className="text-[13px] tracking-[0.1em] uppercase">Subtotal</span>
-                <span className="text-lg font-semibold">{formatPrice(cart.subtotal - cart.discount)}</span>
+                <span className="text-lg font-semibold">{formatPrice(Math.max(0, cart.subtotal - cart.discount - rewards.couponTotal))}</span>
               </div>
               <p className="mt-1 text-[12px] text-muted">Shipping calculated at checkout.</p>
               <button

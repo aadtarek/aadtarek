@@ -1,10 +1,11 @@
 import { ArrowRight, Check, Gift, Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { fullSizeVariations, getAllProducts, sampleVariation } from '../api/catalog'
+import { fullSizeVariations, getAllProducts, giftBoxProduct, sampleVariation } from '../api/catalog'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { ProductCard } from '../components/ProductCard'
 import { SizePicker } from '../components/SizePicker'
+import { GIFT_BOX } from '../config'
 import { collections, findCollection, type Collection } from '../data/collections'
 import { formatPrice } from '../lib/format'
 import { useCart } from '../store/cart'
@@ -189,90 +190,158 @@ function DiscoveryBuilder() {
 
 /** Largest full-size bottle (variations are listed smallest → largest). */
 function lastSize(p: Product) {
-  const sizes = fullSizeVariations(p)
+  const sizes = fullSizeVariations(p).filter((v) => v.inStock)
   return sizes[sizes.length - 1]
 }
 
 function GiftBuilder() {
-  const products = getAllProducts()
+  const products = getAllProducts().filter((p) => lastSize(p))
   if (products.length === 0) return <p className="text-ink-soft">No fragrances available yet.</p>
   return <GiftBuilderForm products={products} />
 }
 
+/** Any fragrances, each in its own size, in one box; packaging is priced by how many are inside. */
 function GiftBuilderForm({ products }: { products: Product[] }) {
   const cart = useCart()
-  const [productId, setProductId] = useState(products[0].id)
-  const product = products.find((p) => p.id === productId)!
-  const [variationId, setVariationId] = useState(lastSize(product).id)
+  // product id → chosen variation id, in the order they were picked
+  const [picked, setPicked] = useState<[number, number][]>([])
   const [message, setMessage] = useState('')
-  const variation = product.variations.find((v) => v.id === variationId) ?? lastSize(product)!
-  const MAX = 200
+  const MAX_MESSAGE = 200
+  const max = GIFT_BOX.max
+  const full = picked.length >= max
+
+  const toggle = (p: Product) =>
+    setPicked((list) => (list.some(([id]) => id === p.id) ? list.filter(([id]) => id !== p.id) : list.length >= max ? list : [...list, [p.id, lastSize(p)!.id]]))
+  const setSize = (productId: number, variationId: number) => setPicked((list) => list.map(([id, v]) => (id === productId ? [id, variationId] : [id, v])))
+
+  const items = picked.flatMap(([id, variationId]) => {
+    const product = products.find((p) => p.id === id)
+    const variation = product?.variations.find((v) => v.id === variationId)
+    return product && variation ? [{ product, variation }] : []
+  })
+  const box = giftBoxProduct()
+  const boxVariation = GIFT_BOX.enabled && items.length ? box.variations[items.length - 1] : undefined
+  const packaging = boxVariation?.price ?? 0
+  const total = items.reduce((n, i) => n + i.variation.price, 0) + packaging
+
+  const addToCart = () => {
+    const contents = items.map((i) => `${i.product.name} ${i.variation.size}`).join(', ')
+    const note = `Box: ${contents}${message.trim() ? ` · Card: “${message.trim()}”` : ''}`
+    // The note rides on the packaging line (or, with packaging off, on the first fragrance).
+    cart.addMany([
+      ...items.map((i, n) => ({ productId: i.product.id, variationId: i.variation.id, giftMessage: !boxVariation && n === 0 ? note : undefined })),
+      ...(boxVariation ? [{ productId: box.id, variationId: boxVariation.id, giftMessage: note }] : []),
+    ])
+    setPicked([])
+    setMessage('')
+  }
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:gap-14">
+    <div className="grid gap-10 lg:grid-cols-[1fr_24rem] lg:gap-12">
       <div>
-        <h2 className="font-serif text-[30px] sm:text-[38px]">1. Choose the fragrance</h2>
-        <ul className="mt-5 grid grid-cols-2 gap-[13px]">
-          {products.map((p) => (
-            <li key={p.id}>
-              <button
-                type="button"
-                onClick={() => {
-                  setProductId(p.id)
-                  setVariationId(lastSize(p).id)
-                }}
-                aria-pressed={p.id === productId}
-                className={`w-full overflow-hidden rounded-lg border bg-card text-left transition ${
-                  p.id === productId ? 'border-olive ring-1 ring-olive' : 'border-line hover:border-line-strong'
-                }`}
-              >
-                <img src={p.images[0].src} alt="" className="aspect-[348/229] w-full object-cover" />
-                <span className="block px-4 py-3 font-serif text-[18px]">{p.name}</span>
-              </button>
-            </li>
-          ))}
+        <h2 className="font-serif text-[30px] sm:text-[38px]">1. Choose the fragrances</h2>
+        <p className="mt-1 text-ink-soft">
+          Pick any fragrances you like — up to {max} in one box — and choose a size for each.
+        </p>
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {products.map((p) => {
+            const choice = picked.find(([id]) => id === p.id)
+            const on = Boolean(choice)
+            return (
+              <li key={p.id} className={`overflow-hidden rounded-2xl border bg-card transition ${on ? 'border-olive ring-1 ring-olive' : 'border-line'}`}>
+                <button type="button" onClick={() => toggle(p)} aria-pressed={on} disabled={!on && full} className="group block w-full text-left disabled:cursor-not-allowed disabled:opacity-50">
+                  <span className="relative block aspect-[5/4] overflow-hidden bg-chip">
+                    <img src={p.images[0].src} alt="" loading="lazy" className="size-full object-cover transition duration-700 group-hover:scale-[1.04]" />
+                    <span
+                      aria-hidden
+                      className={`absolute top-3 right-3 grid size-8 place-items-center rounded-full transition ${on ? 'bg-olive text-cream' : 'bg-cream/90 text-ink'}`}
+                    >
+                      {on ? <Check className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2} />}
+                    </span>
+                  </span>
+                  <span className="block px-4 pt-3 pb-2">
+                    <span className="block font-serif text-[19px] leading-tight">{p.name}</span>
+                    <span className="block truncate text-[12.5px] text-muted">{p.inspiredBy ? `Inspired by ${p.inspiredBy}` : p.tagline}</span>
+                  </span>
+                </button>
+                {choice && (
+                  <div className="animate-fade-in px-3 pb-3">
+                    <SizePicker variations={fullSizeVariations(p)} value={choice[1]} onChange={(v) => setSize(p.id, v)} />
+                  </div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       </div>
-      <div className="lg:pt-1">
-        <h2 className="font-serif text-[30px] sm:text-[38px]">2. Size</h2>
-        <div className="mt-5">
-          <SizePicker variations={product.variations} value={variation.id} onChange={setVariationId} />
-        </div>
-        <h2 className="mt-8 font-serif text-[30px] sm:text-[38px]">3. Your message</h2>
-        <label className="mt-4 block">
-          <span className="sr-only">Gift message</span>
+
+      <aside className="h-fit rounded-2xl bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)] sm:p-6 lg:sticky lg:top-24">
+        <p className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.14em] uppercase">
+          <Gift className="size-4" strokeWidth={1.5} />
+          Your gift box
+          <span className="ml-auto text-[12px] font-normal tracking-normal text-muted normal-case">
+            {items.length}/{max}
+          </span>
+        </p>
+        {items.length === 0 ? (
+          <p className="mt-4 text-[14px] text-muted">Pick one or more fragrances to fill the box.</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-line">
+            {items.map((i) => (
+              <li key={i.product.id} className="flex items-center gap-3 py-2.5 text-[14px]">
+                <img src={i.product.images[0].src} alt="" className="size-10 rounded-lg object-cover" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate">{i.product.name}</span>
+                  <span className="block text-[12px] text-muted">{i.variation.size}</span>
+                </span>
+                <span className="text-[13px] font-medium">{formatPrice(i.variation.price)}</span>
+                <button type="button" onClick={() => toggle(i.product)} aria-label={`Remove ${i.product.name}`} className="text-muted hover:text-ink">
+                  <Minus className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <label className="mt-5 block">
+          <span className="text-[13px] font-semibold tracking-[0.14em] uppercase">2. Your message</span>
           <textarea
             value={message}
-            onChange={(e) => setMessage(e.target.value.slice(0, MAX))}
-            rows={5}
-            placeholder="Write a few words for the person receiving it…"
-            className="w-full rounded-xl border border-line-strong bg-cream px-4 py-3 text-[15px] outline-none focus:border-olive"
+            onChange={(e) => setMessage(e.target.value.slice(0, MAX_MESSAGE))}
+            rows={3}
+            placeholder="A few words for the card inside the box (optional)…"
+            className="mt-2 w-full rounded-xl border border-line-strong bg-cream px-4 py-3 text-[14.5px] outline-none focus:border-olive"
           />
-          <span className="mt-1 block text-right text-[12px] text-muted">
-            {message.length}/{MAX}
+          <span className="block text-right text-[11.5px] text-muted">
+            {message.length}/{MAX_MESSAGE}
           </span>
         </label>
-        <div className="mt-6 flex items-center justify-between rounded-lg bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
-          <div>
-            <p className="font-serif text-[20px]">{product.name}</p>
-            <p className="text-[13px] text-muted">
-              {variation.size} · {message.trim() ? 'with gift message' : 'no message yet'}
+
+        {GIFT_BOX.enabled && (
+          <div className="mt-3 rounded-xl bg-chip px-4 py-3 text-[13px]">
+            <p className="flex justify-between">
+              <span>Gift packaging{items.length ? ` · ${items.length} ${items.length === 1 ? 'fragrance' : 'fragrances'}` : ''}</span>
+              <span className="font-semibold">{items.length ? formatPrice(packaging) : '—'}</span>
+            </p>
+            <p className="mt-1 text-[11.5px] text-muted">
+              {box.variations.map((v, i) => `${i + 1}: ${formatPrice(v.price)}`).join(' · ')}
             </p>
           </div>
-          <p className="text-[20px] font-semibold">{formatPrice(variation.price)}</p>
-        </div>
+        )}
+        <p className="mt-4 flex justify-between border-t border-line pt-4 text-[17px] font-semibold">
+          <span>Total</span>
+          <span>{formatPrice(total)}</span>
+        </p>
         <button
           type="button"
-          onClick={() => {
-            cart.add(product.id, variation.id, 1, { giftMessage: message })
-            setMessage('')
-          }}
-          className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+          disabled={items.length === 0}
+          onClick={addToCart}
+          className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Gift className="size-5" strokeWidth={1.4} />
-          Add gift to cart
+          Add gift box to cart
         </button>
-      </div>
+      </aside>
     </div>
   )
 }

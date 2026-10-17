@@ -63,6 +63,43 @@ export const BUNDLE = {
   price: 1200,
 }
 
+/**
+ * Gift boxes: any fragrances in one box, packaging priced by how many are in it.
+ * With WordPress: Settings → Rfaheya Store → Gift boxes (a hidden "Gift box" product
+ * in WooCommerce carries the packaging price, one variation per number of fragrances).
+ */
+export const GIFT_BOX = {
+  enabled: true,
+  max: 6,
+  /** Packaging price by number of fragrances in the box */
+  prices: { 1: 60, 2: 90, 3: 120, 4: 150, 5: 180, 6: 200 } as Record<number, number>,
+  productId: 0,
+  /** WooCommerce variation id by number of fragrances */
+  variations: {} as Record<number, number>,
+}
+
+/** Loyalty points and the welcome discount (Settings → Rfaheya Store → Loyalty points). */
+export const LOYALTY = {
+  enabled: true,
+  /** Points per 1 EGP spent */
+  earn: 1,
+  /** EGP per point */
+  value: 0.05,
+  /** Fewest points that can be used */
+  min: 200,
+  welcome: true,
+  welcomePercent: 5,
+}
+
+/** Points an amount earns. */
+export const pointsFor = (amount: number) => (LOYALTY.enabled ? Math.floor(Math.max(0, amount) * LOYALTY.earn) : 0)
+
+/** Packaging price for a box of `count` fragrances. */
+export function giftBoxPrice(count: number): number {
+  for (let n = Math.min(count, GIFT_BOX.max); n >= 1; n--) if (GIFT_BOX.prices[n] != null) return GIFT_BOX.prices[n]
+  return 0
+}
+
 /** Bundle discount for a cart: every full set of `count` bundle-size bottles costs `price`. */
 export function bundleDiscount(lines: { size: string; price: number; quantity: number }[]): number {
   if (!BUNDLE.enabled || BUNDLE.count < 2) return 0
@@ -102,6 +139,26 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (b.size?.trim()) BUNDLE.size = b.size.trim()
     if (Number(b.count) >= 2) BUNDLE.count = Number(b.count)
     if (Number(b.price) > 0) BUNDLE.price = Number(b.price)
+  }
+  const g = settings.gift
+  if (g) {
+    if (typeof g.enabled === 'boolean') GIFT_BOX.enabled = g.enabled
+    if (Number(g.max) >= 1) GIFT_BOX.max = Number(g.max)
+    if (g.prices && typeof g.prices === 'object') {
+      const prices = Object.fromEntries(Object.entries(g.prices).map(([n, v]) => [Number(n), Number(v)]).filter(([n, v]) => n >= 1 && v >= 0))
+      if (Object.keys(prices).length) GIFT_BOX.prices = prices
+    }
+    if (Number(g.productId) > 0) GIFT_BOX.productId = Number(g.productId)
+    if (g.variations && typeof g.variations === 'object') GIFT_BOX.variations = Object.fromEntries(Object.entries(g.variations).map(([n, id]) => [Number(n), Number(id)]))
+  }
+  const l = settings.loyalty
+  if (l) {
+    if (typeof l.enabled === 'boolean') LOYALTY.enabled = l.enabled
+    if (Number(l.earn) >= 0) LOYALTY.earn = Number(l.earn)
+    if (Number(l.value) >= 0) LOYALTY.value = Number(l.value)
+    if (Number(l.min) >= 1) LOYALTY.min = Number(l.min)
+    if (typeof l.welcome === 'boolean') LOYALTY.welcome = l.welcome
+    if (Number(l.welcomePercent) >= 0) LOYALTY.welcomePercent = Number(l.welcomePercent)
   }
   const f = settings.shipping
   if (f) {

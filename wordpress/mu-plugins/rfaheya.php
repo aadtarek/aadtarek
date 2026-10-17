@@ -54,6 +54,19 @@ function rfaheya_fields() {
 			'count'   => array( 'Bottles per bundle', '3', 'text' ),
 			'price'   => array( 'Bundle price (EGP)', '1200', 'text' ),
 		),
+		'loyalty'  => array(
+			'enabled'         => array( 'Loyalty points: customers earn points on completed orders and use them as a discount', 'yes', 'yesno' ),
+			'earn'            => array( 'Points earned per 1 EGP spent (shipping not counted)', '1', 'text' ),
+			'value'           => array( 'Discount value of 100 points (EGP)', '5', 'text' ),
+			'min'             => array( 'Fewest points a customer can use at once', '200', 'text' ),
+			'welcome_enabled' => array( 'Welcome discount: a one-time discount (with an animated pop-up) for customers who sign in', 'yes', 'yesno' ),
+			'welcome_percent' => array( 'Welcome discount (%)', '5', 'text' ),
+		),
+		'gift'     => array(
+			'enabled' => array( 'Charge gift packaging on gift boxes', 'yes', 'yesno' ),
+			'max'     => array( 'Most fragrances in one box', '6', 'text' ),
+			'prices'  => array( 'Packaging price by number of fragrances in the box — one per line, “fragrances = price (EGP)”. A box with more fragrances than the last line pays the last price.', "1 = 60\n2 = 90\n3 = 120\n4 = 150\n5 = 180\n6 = 200", 'textarea' ),
+		),
 		'shipping' => array(
 			'free_enabled' => array( 'Free shipping in Cairo & Alexandria (and the bar on the product page, cart and checkout)', 'yes', 'yesno' ),
 			'free_min'     => array( 'Free shipping from (EGP)', '1200', 'text' ),
@@ -69,6 +82,8 @@ function rfaheya_group_title( $group ) {
 		'bundle'  => 'Bundle (home page “Build your trio”; the discount is applied in the cart)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
 		'shipping' => 'Free shipping (applied to the WooCommerce shipping rates at checkout)',
+		'gift'     => 'Gift boxes (customers fill a box with any fragrances; a hidden “Gift box” product carries the packaging price)',
+		'loyalty'  => 'Loyalty points & welcome discount (points are added when an order is marked Completed; a customer’s points can be changed on their user profile)',
 	);
 	return isset( $titles[ $group ] ) ? $titles[ $group ] : $group;
 }
@@ -1069,6 +1084,8 @@ function rfaheya_settings_data() {
 				'count'   => (int) $o['bundle']['count'],
 				'price'   => (float) $o['bundle']['price'],
 			),
+			'gift'         => rfaheya_gift_box_data(),
+			'loyalty'      => rfaheya_loyalty(),
 			'shipping'     => array(
 				'freeShipping' => 'no' !== $o['shipping']['free_enabled'],
 				'freeMin'      => (float) $o['shipping']['free_min'],
@@ -2351,7 +2368,11 @@ add_filter(
 			return $rates;
 		}
 		$state  = isset( $package['destination']['state'] ) ? strtoupper( (string) $package['destination']['state'] ) : '';
-		$amount = isset( $package['contents_cost'] ) ? (float) $package['contents_cost'] : 0;
+		// Before coupons (welcome / points discounts don't take free shipping away), after the bundle discount.
+		$amount = 0.0;
+		foreach ( isset( $package['contents'] ) ? (array) $package['contents'] : array() as $line ) {
+			$amount += isset( $line['line_subtotal'] ) ? (float) $line['line_subtotal'] : 0;
+		}
 		if ( function_exists( 'WC' ) && WC()->cart ) {
 			$amount -= rfaheya_bundle_discount( WC()->cart );
 		}
@@ -2399,3 +2420,455 @@ add_filter(
 		return $locale;
 	}
 );
+
+// ==================================================================== gift boxes
+
+/** Packaging price for 1 … max fragrances (Settings → Rfaheya Store → Gift boxes). */
+function rfaheya_gift_prices() {
+	$o     = rfaheya_options()['gift'];
+	$max   = max( 1, min( 20, (int) $o['max'] ) );
+	$given = array();
+	foreach ( preg_split( '/\r?\n/', (string) $o['prices'] ) as $line ) {
+		if ( preg_match( '/^\s*(\d+)\s*[=:\-]\s*([\d.]+)/', $line, $m ) ) {
+			$given[ (int) $m[1] ] = (float) $m[2];
+		}
+	}
+	$prices = array();
+	$last   = 0.0;
+	for ( $n = 1; $n <= $max; $n++ ) {
+		if ( isset( $given[ $n ] ) ) {
+			$last = $given[ $n ];
+		}
+		$prices[ $n ] = $last;
+	}
+	return $prices;
+}
+
+/** What the storefront needs: prices and the WooCommerce ids to add to the cart. */
+function rfaheya_gift_box_data() {
+	$o      = rfaheya_options()['gift'];
+	$stored = get_option( 'rfaheya_gift_box', array() );
+	return array(
+		'enabled'    => 'no' !== $o['enabled'] && ! empty( $stored['product'] ),
+		'max'        => count( rfaheya_gift_prices() ),
+		'prices'     => (object) rfaheya_gift_prices(),
+		'productId'  => isset( $stored['product'] ) ? (int) $stored['product'] : 0,
+		'variations' => (object) ( isset( $stored['variations'] ) ? array_map( 'intval', (array) $stored['variations'] ) : array() ),
+	);
+}
+
+/**
+ * Keeps the hidden "Gift box" product in step with the settings: one variation per
+ * number of fragrances, priced from the packaging prices. Runs in the dashboard
+ * whenever the prices change (or the product was deleted).
+ */
+function rfaheya_gift_box_sync() {
+	if ( ! class_exists( 'WC_Product_Variable' ) ) {
+		return;
+	}
+	$prices  = rfaheya_gift_prices();
+	$stored  = get_option( 'rfaheya_gift_box', array() );
+	$product = ! empty( $stored['product'] ) ? wc_get_product( (int) $stored['product'] ) : null;
+	if ( ! $product || ! $product->is_type( 'variable' ) || 'trash' === $product->get_status() ) {
+		$product = new WC_Product_Variable();
+		$product->set_name( 'Gift box' );
+		$product->set_slug( 'rfaheya-gift-box' );
+		$product->set_short_description( 'Gift packaging for a Rfaheya gift box (added by the storefront).' );
+		$product->set_reviews_allowed( false );
+	}
+	$product->set_status( 'publish' );
+	$product->set_catalog_visibility( 'hidden' );
+	$attribute = new WC_Product_Attribute();
+	$attribute->set_name( 'Fragrances' );
+	$attribute->set_options( array_map( 'strval', array_keys( $prices ) ) );
+	$attribute->set_visible( false );
+	$attribute->set_variation( true );
+	$product->set_attributes( array( $attribute ) );
+	$id = $product->save();
+
+	$existing = array();
+	foreach ( $product->get_children() as $child_id ) {
+		$child = wc_get_product( $child_id );
+		if ( $child ) {
+			$existing[ (string) $child->get_attribute( 'fragrances' ) ] = $child;
+		}
+	}
+	$variations = array();
+	foreach ( $prices as $n => $price ) {
+		$variation = isset( $existing[ (string) $n ] ) ? $existing[ (string) $n ] : new WC_Product_Variation();
+		unset( $existing[ (string) $n ] );
+		$variation->set_parent_id( $id );
+		$variation->set_attributes( array( 'fragrances' => (string) $n ) );
+		$variation->set_regular_price( wc_format_decimal( $price ) );
+		$variation->set_status( 'publish' );
+		$variation->set_manage_stock( false );
+		$variation->set_stock_status( 'instock' );
+		$variations[ $n ] = $variation->save();
+	}
+	foreach ( $existing as $extra ) {
+		$extra->delete( true );
+	}
+	WC_Product_Variable::sync( $id );
+	update_option(
+		'rfaheya_gift_box',
+		array(
+			'product'    => $id,
+			'variations' => $variations,
+			'signature'  => md5( wp_json_encode( $prices ) ),
+		),
+		false
+	);
+	delete_transient( 'rfaheya_bootstrap' );
+}
+
+add_action(
+	'admin_init',
+	function () {
+		if ( ! current_user_can( 'manage_options' ) || ! class_exists( 'WC_Product_Variable' ) ) {
+			return;
+		}
+		$stored  = get_option( 'rfaheya_gift_box', array() );
+		$product = ! empty( $stored['product'] ) ? wc_get_product( (int) $stored['product'] ) : null;
+		$current = md5( wp_json_encode( rfaheya_gift_prices() ) );
+		if ( ! $product || 'publish' !== $product->get_status() || ( isset( $stored['signature'] ) ? $stored['signature'] : '' ) !== $current ) {
+			rfaheya_gift_box_sync();
+		}
+	}
+);
+
+// ==================================================================== loyalty points & welcome discount
+
+/** Settings → Rfaheya Store → Loyalty points (also sent to the storefront). */
+function rfaheya_loyalty() {
+	$o = rfaheya_options()['loyalty'];
+	return array(
+		'enabled'        => 'no' !== $o['enabled'],
+		'earn'           => max( 0, (float) $o['earn'] ),
+		'value'          => max( 0, (float) $o['value'] ) / 100,
+		'min'            => max( 1, (int) $o['min'] ),
+		'welcome'        => 'no' !== $o['welcome_enabled'] && (float) $o['welcome_percent'] > 0,
+		'welcomePercent' => max( 0, min( 100, (float) $o['welcome_percent'] ) ),
+	);
+}
+
+function rfaheya_points( $user_id ) {
+	return max( 0, (int) get_user_meta( $user_id, 'rfaheya_points', true ) );
+}
+
+/** Adds (or with a negative number takes) points, keeping a short history. */
+function rfaheya_points_add( $user_id, $delta, $reason ) {
+	$balance = max( 0, rfaheya_points( $user_id ) + (int) $delta );
+	update_user_meta( $user_id, 'rfaheya_points', $balance );
+	$log = array_filter( (array) get_user_meta( $user_id, 'rfaheya_points_log', true ), 'is_array' );
+	array_unshift(
+		$log,
+		array(
+			'date'   => current_time( 'mysql' ),
+			'points' => (int) $delta,
+			'reason' => $reason,
+		)
+	);
+	update_user_meta( $user_id, 'rfaheya_points_log', array_slice( $log, 0, 30 ) );
+	return $balance;
+}
+
+/** A one-time coupon (welcome discount or points). */
+function rfaheya_make_coupon( $prefix, $type, $amount, $days, $user ) {
+	$coupon = new WC_Coupon();
+	$coupon->set_code( $prefix . '-' . strtoupper( wp_generate_password( 8, false ) ) );
+	$coupon->set_discount_type( $type );
+	$coupon->set_amount( $amount );
+	$coupon->set_usage_limit( 1 );
+	$coupon->set_individual_use( false );
+	if ( $days ) {
+		$coupon->set_date_expires( time() + $days * DAY_IN_SECONDS );
+	}
+	$coupon->set_description( sprintf( 'Rfaheya %s for %s (user #%d)', strtolower( $prefix ), $user->user_email, $user->ID ) );
+	$coupon->save();
+	return $coupon;
+}
+
+/** 'unused', 'used', 'expired' or 'gone'. */
+function rfaheya_coupon_state( $code ) {
+	$id = $code ? wc_get_coupon_id_by_code( $code ) : 0;
+	if ( ! $id ) {
+		return 'gone';
+	}
+	$coupon = new WC_Coupon( $id );
+	if ( $coupon->get_usage_count() >= 1 ) {
+		return 'used';
+	}
+	$expires = $coupon->get_date_expires();
+	return $expires && $expires->getTimestamp() < time() ? 'expired' : 'unused';
+}
+
+/** Gives back the points of a points discount that was not used (or always, when cancelling it). */
+function rfaheya_release_redeem( $user_id, $only_if_lapsed = false ) {
+	$redeem = get_user_meta( $user_id, 'rfaheya_redeem', true );
+	if ( ! is_array( $redeem ) || empty( $redeem['code'] ) ) {
+		return;
+	}
+	$state = rfaheya_coupon_state( $redeem['code'] );
+	if ( 'used' === $state ) {
+		delete_user_meta( $user_id, 'rfaheya_redeem' );
+		return;
+	}
+	if ( $only_if_lapsed && 'unused' === $state ) {
+		return;
+	}
+	$id = wc_get_coupon_id_by_code( $redeem['code'] );
+	if ( $id ) {
+		wp_delete_post( $id, true );
+	}
+	rfaheya_points_add( $user_id, (int) $redeem['points'], 'Points discount not used' );
+	delete_user_meta( $user_id, 'rfaheya_redeem' );
+}
+
+/** The signed-in customer for the storefront: points, welcome discount, points discount. */
+function rfaheya_me_data() {
+	$loyalty = rfaheya_loyalty();
+	$user    = wp_get_current_user();
+	if ( ! $user || ! $user->ID || ! class_exists( 'WC_Coupon' ) ) {
+		return array(
+			'loggedIn' => false,
+			'loyalty'  => $loyalty,
+		);
+	}
+	rfaheya_release_redeem( $user->ID, true );
+	$welcome = null;
+	if ( $loyalty['welcome'] ) {
+		$code = (string) get_user_meta( $user->ID, 'rfaheya_welcome', true );
+		if ( '' === $code ) {
+			$code = rfaheya_make_coupon( 'WELCOME', 'percent', $loyalty['welcomePercent'], 0, $user )->get_code();
+			update_user_meta( $user->ID, 'rfaheya_welcome', $code );
+		}
+		$welcome = array(
+			'code'    => $code,
+			'percent' => $loyalty['welcomePercent'],
+			'used'    => 'unused' !== rfaheya_coupon_state( $code ),
+		);
+	}
+	$redeem = get_user_meta( $user->ID, 'rfaheya_redeem', true );
+	return array(
+		'loggedIn'  => true,
+		'firstName' => $user->first_name ? $user->first_name : $user->display_name,
+		'lastName'  => $user->last_name,
+		'email'     => $user->user_email,
+		'phone'     => (string) get_user_meta( $user->ID, 'billing_phone', true ),
+		'points'    => rfaheya_points( $user->ID ),
+		'loyalty'   => $loyalty,
+		'welcome'   => $welcome,
+		'redeem'    => is_array( $redeem ) && ! empty( $redeem['code'] ) ? array(
+			'code'   => $redeem['code'],
+			'amount' => (float) $redeem['amount'],
+			'points' => (int) $redeem['points'],
+		) : null,
+		'nonce'     => wp_create_nonce( 'rfaheya_points' ),
+	);
+}
+
+/** Sends the customer data (or $data, e.g. an error). WordPress calls ajax actions with an empty argument. */
+function rfaheya_send_me( $data = null ) {
+	nocache_headers();
+	wp_send_json( is_array( $data ) ? $data : rfaheya_me_data() );
+}
+
+add_action( 'wp_ajax_rfaheya_me', 'rfaheya_send_me' );
+add_action( 'wp_ajax_nopriv_rfaheya_me', 'rfaheya_send_me' );
+
+// Turn points into a one-time discount (at most the cart total the storefront sends).
+add_action(
+	'wp_ajax_rfaheya_redeem',
+	function () {
+		check_ajax_referer( 'rfaheya_points' );
+		$user_id = get_current_user_id();
+		$loyalty = rfaheya_loyalty();
+		if ( ! $loyalty['enabled'] || $loyalty['value'] <= 0 ) {
+			rfaheya_send_me( array( 'error' => 'Points can’t be used right now.' ) );
+		}
+		rfaheya_release_redeem( $user_id );
+		$points = rfaheya_points( $user_id );
+		if ( $points < $loyalty['min'] ) {
+			rfaheya_send_me( array( 'error' => sprintf( 'You need at least %d points.', $loyalty['min'] ) ) );
+		}
+		$amount = floor( $points * $loyalty['value'] );
+		$cap    = isset( $_POST['max'] ) ? (float) wp_unslash( $_POST['max'] ) : 0; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( $cap > 0 ) {
+			$amount = min( $amount, floor( $cap ) );
+		}
+		if ( $amount < 1 ) {
+			rfaheya_send_me( array( 'error' => 'Not enough points for a discount yet.' ) );
+		}
+		$spend  = min( $points, (int) ceil( $amount / $loyalty['value'] ) );
+		$coupon = rfaheya_make_coupon( 'POINTS', 'fixed_cart', $amount, 14, wp_get_current_user() );
+		rfaheya_points_add( $user_id, -$spend, sprintf( 'Used for %s EGP off', $amount ) );
+		update_user_meta(
+			$user_id,
+			'rfaheya_redeem',
+			array(
+				'code'   => $coupon->get_code(),
+				'amount' => $amount,
+				'points' => $spend,
+			)
+		);
+		rfaheya_send_me();
+	}
+);
+
+// Cancel the points discount: the points come back.
+add_action(
+	'wp_ajax_rfaheya_unredeem',
+	function () {
+		check_ajax_referer( 'rfaheya_points' );
+		rfaheya_release_redeem( get_current_user_id() );
+		rfaheya_send_me();
+	}
+);
+
+/** The customer an order belongs to: its account, or the account with the billing email. */
+function rfaheya_order_user( $order ) {
+	if ( $order->get_customer_id() ) {
+		return (int) $order->get_customer_id();
+	}
+	$user = get_user_by( 'email', $order->get_billing_email() );
+	return $user ? (int) $user->ID : 0;
+}
+
+// Storefront orders are placed as guest orders: link them to the customer's account by email.
+add_action(
+	'woocommerce_store_api_checkout_order_processed',
+	function ( $order ) {
+		if ( ! $order->get_customer_id() ) {
+			$user_id = rfaheya_order_user( $order );
+			if ( $user_id ) {
+				$order->set_customer_id( $user_id );
+				$order->save();
+			}
+		}
+	}
+);
+
+// Points for completed orders.
+add_action(
+	'woocommerce_order_status_completed',
+	function ( $order_id ) {
+		$loyalty = rfaheya_loyalty();
+		$order   = wc_get_order( $order_id );
+		if ( ! $loyalty['enabled'] || $loyalty['earn'] <= 0 || ! $order || $order->get_meta( '_rfaheya_points' ) ) {
+			return;
+		}
+		$user_id = rfaheya_order_user( $order );
+		if ( ! $user_id ) {
+			return;
+		}
+		$spent  = max( 0, (float) $order->get_total() - (float) $order->get_shipping_total() - (float) $order->get_shipping_tax() );
+		$points = (int) floor( $spent * $loyalty['earn'] );
+		if ( $points <= 0 ) {
+			return;
+		}
+		if ( ! $order->get_customer_id() ) {
+			$order->set_customer_id( $user_id );
+		}
+		rfaheya_points_add( $user_id, $points, sprintf( 'Order #%s', $order->get_order_number() ) );
+		$order->update_meta_data( '_rfaheya_points', $points );
+		$order->add_order_note( sprintf( 'Rfaheya points: +%d for the customer.', $points ) );
+		$order->save();
+	}
+);
+
+// Refunded or cancelled after the points were given: take them back.
+foreach ( array( 'refunded', 'cancelled' ) as $rfaheya_status ) {
+	add_action(
+		'woocommerce_order_status_' . $rfaheya_status,
+		function ( $order_id ) use ( $rfaheya_status ) {
+			$order  = wc_get_order( $order_id );
+			$points = $order ? (int) $order->get_meta( '_rfaheya_points' ) : 0;
+			if ( ! $points || $order->get_meta( '_rfaheya_points_revoked' ) ) {
+				return;
+			}
+			$user_id = rfaheya_order_user( $order );
+			if ( $user_id ) {
+				rfaheya_points_add( $user_id, -$points, sprintf( 'Order #%s %s', $order->get_order_number(), $rfaheya_status ) );
+			}
+			$order->update_meta_data( '_rfaheya_points_revoked', 1 );
+			$order->add_order_note( sprintf( 'Rfaheya points: -%d (order %s).', $points, $rfaheya_status ) );
+			$order->save();
+		}
+	);
+}
+
+// My Account → Dashboard: points balance and history.
+add_action(
+	'woocommerce_account_dashboard',
+	function () {
+		$loyalty = rfaheya_loyalty();
+		if ( ! $loyalty['enabled'] ) {
+			return;
+		}
+		$user_id = get_current_user_id();
+		rfaheya_release_redeem( $user_id, true );
+		$points = rfaheya_points( $user_id );
+		$log    = array_filter( (array) get_user_meta( $user_id, 'rfaheya_points_log', true ), 'is_array' );
+		?>
+		<section class="rf-points" style="margin:28px 0;padding:22px 24px;border:1px solid #e9e0d2;border-radius:16px;background:#fcfaf6">
+			<p style="margin:0;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#8a6a33">Rfaheya points</p>
+			<p style="margin:6px 0 0;font-size:34px;line-height:1"><?php echo esc_html( number_format_i18n( $points ) ); ?> <span style="font-size:15px;color:#74695b">points · <?php echo esc_html( number_format_i18n( floor( $points * $loyalty['value'] ) ) ); ?> EGP</span></p>
+			<p style="margin:10px 0 0;color:#4a443b;font-size:14px">
+				<?php
+				echo esc_html(
+					sprintf(
+						'You earn %s point(s) for every 1 EGP on completed orders. Use %d points or more at checkout.',
+						number_format_i18n( $loyalty['earn'], $loyalty['earn'] < 1 ? 2 : 0 ),
+						$loyalty['min']
+					)
+				);
+				?>
+			</p>
+			<?php if ( $log ) : ?>
+				<table style="margin-top:14px;width:100%;font-size:13px">
+					<?php foreach ( array_slice( $log, 0, 8 ) as $row ) : ?>
+						<tr>
+							<td style="padding:4px 0;color:#74695b"><?php echo esc_html( mysql2date( get_option( 'date_format' ), $row['date'] ) ); ?></td>
+							<td><?php echo esc_html( $row['reason'] ); ?></td>
+							<td style="text-align:right;font-weight:600"><?php echo esc_html( ( $row['points'] > 0 ? '+' : '' ) . number_format_i18n( $row['points'] ) ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</table>
+			<?php endif; ?>
+		</section>
+		<?php
+	}
+);
+
+// Users → Profile: see (and, for shop managers, change) a customer's points.
+function rfaheya_points_profile_field( $user ) {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+	?>
+	<h2>Rfaheya points</h2>
+	<table class="form-table" role="presentation">
+		<tr>
+			<th><label for="rfaheya-points">Points</label></th>
+			<td><input id="rfaheya-points" name="rfaheya_points" type="number" min="0" step="1" class="small-text" value="<?php echo esc_attr( rfaheya_points( $user->ID ) ); ?>"></td>
+		</tr>
+	</table>
+	<?php
+}
+add_action( 'show_user_profile', 'rfaheya_points_profile_field' );
+add_action( 'edit_user_profile', 'rfaheya_points_profile_field' );
+
+function rfaheya_points_profile_save( $user_id ) {
+	// The profile form's own nonce has been checked by WordPress before this runs.
+	if ( ! current_user_can( 'manage_woocommerce' ) || ! isset( $_POST['rfaheya_points'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		return;
+	}
+	$new   = max( 0, (int) $_POST['rfaheya_points'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+	$delta = $new - rfaheya_points( $user_id );
+	if ( $delta ) {
+		rfaheya_points_add( $user_id, $delta, 'Changed by the store' );
+	}
+}
+add_action( 'personal_options_update', 'rfaheya_points_profile_save' );
+add_action( 'edit_user_profile_update', 'rfaheya_points_profile_save' );
+

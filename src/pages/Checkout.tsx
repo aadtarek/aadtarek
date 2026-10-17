@@ -1,15 +1,17 @@
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { PAYMENT_LABELS, placeWooOrder, updateCustomer } from '../api/checkout'
 import { isWoo, money } from '../api/wp'
 import { Field, TextInput, inputClass } from '../components/Field'
 import { FreeShippingBar } from '../components/FreeShippingBar'
+import { PointsPanel } from '../components/PointsPanel'
 import { PageHeader } from '../components/PageHeader'
 import { CONTACT, GOVERNORATES, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
 import { useAccount } from '../store/account'
 import { useCart } from '../store/cart'
+import { useRewards } from '../store/rewards'
 import type { Order, ShippingAddress } from '../types'
 
 type Errors = Partial<Record<keyof ShippingAddress, string>>
@@ -30,6 +32,7 @@ function validate(a: ShippingAddress): Errors {
 export function Checkout() {
   const cart = useCart()
   const account = useAccount()
+  const rewards = useRewards()
   const [placed, setPlaced] = useState<Order | null>(null)
   const [payment, setPayment] = useState<string>('cod')
   const [errors, setErrors] = useState<Errors>({})
@@ -73,7 +76,20 @@ export function Checkout() {
   const subtotal = wooCart ? money(wooCart.totals.total_items, minor) : cart.subtotal
   const discount = cart.discount
   const shipping = wooCart ? money(wooCart.totals.total_shipping ?? '0', minor) : shippingCost(cart.subtotal - discount, address.governorate)
-  const total = wooCart ? money(wooCart.totals.total_price, minor) : subtotal - discount + shipping
+  const total = wooCart ? money(wooCart.totals.total_price, minor) : Math.max(0, subtotal - discount - rewards.couponTotal) + shipping
+
+  // Signed in: fill in the customer's details (orders are linked to the account by email).
+  const { me } = rewards
+  useEffect(() => {
+    if (!me.loggedIn) return
+    setAddress((a) => ({
+      ...a,
+      firstName: a.firstName || me.firstName || '',
+      lastName: a.lastName || me.lastName || '',
+      email: a.email || me.email || '',
+      phone: a.phone || me.phone || '',
+    }))
+  }, [me.loggedIn, me.firstName, me.lastName, me.email, me.phone])
   const noDelivery = Boolean(wooCart?.needs_shipping && wooCart.shipping_rates.every((p) => p.shipping_rates.length === 0))
   const methods = isWoo ? (wooCart?.payment_methods ?? []) : ['cod', 'instapay']
 
@@ -88,6 +104,7 @@ export function Checkout() {
 
   const finish = (order: Omit<Order, 'id' | 'number' | 'createdAt' | 'status'>, number?: string) => {
     const saved = account.placeOrder(order, number)
+    rewards.orderPlaced()
     cart.clear()
     setPlaced(saved)
     window.scrollTo(0, 0)
@@ -115,7 +132,7 @@ export function Checkout() {
 
     if (!isWoo) return finish(order)
 
-    const gifts = cart.lines.filter((l) => l.giftMessage).map((l) => `Gift message for ${l.product.name} (${l.variation.size}): ${l.giftMessage}`)
+    const gifts = cart.lines.filter((l) => l.giftMessage).map((l) => `${l.product.name} (${l.variation.size}): ${l.giftMessage}`)
     const note = [address.notes.trim(), ...gifts].filter(Boolean).join('\n\n')
     setSubmitting(true)
     try {
@@ -285,6 +302,22 @@ export function Checkout() {
                 <dd>−{formatPrice(discount)}</dd>
               </div>
             )}
+            {rewards.coupons.map((c) => (
+              <div key={c.code} className="flex items-center justify-between gap-2 text-olive">
+                <dt className="flex items-center gap-1.5">
+                  {c.label}
+                  <button
+                    type="button"
+                    onClick={() => rewards.removeCoupon(c.code)}
+                    aria-label={`Remove ${c.label}`}
+                    className="grid size-5 place-items-center rounded-full text-muted hover:bg-chip hover:text-ink"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </dt>
+                <dd>−{formatPrice(c.amount)}</dd>
+              </div>
+            ))}
             <div className="flex justify-between">
               <dt>Shipping</dt>
               <dd>{quoting ? 'Calculating…' : noDelivery ? '—' : shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>
@@ -294,6 +327,7 @@ export function Checkout() {
               <dd>{formatPrice(total)}</dd>
             </div>
           </dl>
+          <PointsPanel total={Math.max(0, total - shipping)} className="mt-4" />
           {noDelivery && (
             <p className="mt-4 text-[13px] text-red-800">We don’t deliver to {address.governorate} yet. Please contact us.</p>
           )}

@@ -64,7 +64,7 @@ export const collections: Collection[] = [
     name: 'Gift Boxes',
     label: 'Gift Boxes',
     tagline: 'A scent to remember you by.',
-    description: 'Choose a fragrance and size, add a personal message, and we’ll include it with the gift.',
+    description: 'Fill a box with any fragrances you like, each in its own size, add a personal message, and we’ll wrap it as a gift.',
     image: gifts,
     kind: 'gift',
   },

@@ -11,6 +11,7 @@ import { Home } from './pages/Home'
 import { NotFound } from './pages/NotFound'
 import { AccountProvider } from './store/account'
 import { CartProvider } from './store/cart'
+import { RewardsProvider } from './store/rewards'
 import { WishlistProvider } from './store/wishlist'
 import { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage, CollectionsIndex, Article, Journal, OurStandard, FinderLanding, FinderQuiz, FinderResult, OrderReceived, ProductPage, Reviews, Shop, TrackOrder, Wishlist } from './routes'
 
@@ -54,6 +55,7 @@ export default function App() {
       <AccountProvider>
         <WishlistProvider>
           <CartProvider>
+            <RewardsProvider>
             <RouteGate>
             <Routes>
               <Route path="finder/quiz" element={<Suspense fallback={<div className="min-h-screen bg-sand" />}><FinderQuiz /></Suspense>} />
@@ -84,6 +86,7 @@ export default function App() {
               </Route>
             </Routes>
             </RouteGate>
+            </RewardsProvider>
           </CartProvider>
         </WishlistProvider>
       </AccountProvider>

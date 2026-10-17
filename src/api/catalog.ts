@@ -3,7 +3,8 @@ import { families } from '../data/families'
 import type { FamilySlug, Product, Review, WearVideo } from '../types'
 import { fetchBootstrap, primeCache, fetchNotes, fetchProductCategories, fetchProductDetails, fetchVideos, type RawCategory } from './content'
 import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, setNoteLibrary } from './woo'
-import { applyStoreSettings } from '../config'
+import { applyStoreSettings, GIFT_BOX, giftBoxPrice } from '../config'
+import giftImage from '../assets/finder/landing-cta.webp'
 import { fetchStoreSettings, isWoo, stripHtml, type StoreSettings } from './wp'
 
 /**
@@ -85,6 +86,8 @@ function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings,
   reviews = revs.filter((r) => products.some((p) => p.id === r.productId))
   videos = vids.filter((v) => v.src && products.some((p) => p.id === v.productId))
   applyStoreSettings(settings)
+  // The hidden "Gift box" packaging product is not a fragrance.
+  products = products.filter((p) => !isGiftBox(p))
   // Fragrance families take their name, tagline and image from the product categories.
   for (const family of families) {
     const c = categories.find((x) => x.slug === family.slug)
@@ -95,9 +98,46 @@ function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings,
   }
 }
 
+const GIFT_SLUG = 'rfaheya-gift-box'
+const isGiftBox = (p: Product) => p.slug === GIFT_SLUG || (GIFT_BOX.productId > 0 && p.id === GIFT_BOX.productId)
+
+/** The gift box packaging as a product (one variation per number of fragrances). */
+export function giftBoxProduct(): Product {
+  const id = GIFT_BOX.productId || 900000
+  return {
+    id,
+    slug: GIFT_SLUG,
+    name: 'Gift box',
+    tagline: 'Wrapped and ready to give.',
+    description: '',
+    story: [],
+    badge: '',
+    accords: [],
+    notes: [],
+    composition: { opening: [], heart: [], drydown: [] },
+    standard: {},
+    inspiredBy: '',
+    images: [{ src: giftImage, alt: 'Rfaheya gift box' }],
+    categories: [],
+    families: [],
+    profile: { gender: 'unisex', occasions: [], seasons: [], presence: 'balanced', longevity: 'standard' },
+    variations: Array.from({ length: GIFT_BOX.max }, (_, i) => i + 1).map((n) => ({
+      id: GIFT_BOX.variations[n] || id + n,
+      size: `${n} ${n === 1 ? 'fragrance' : 'fragrances'}`,
+      price: giftBoxPrice(n),
+      isSample: false,
+      inStock: true,
+    })),
+    totalSales: 0,
+    dateCreated: '',
+  }
+}
+
+export const isGiftBoxProduct = (p: Product) => p.slug === GIFT_SLUG
+
 /** Product + variation for a variation id (cart lines reference variations). */
 export function findByVariationId(variationId: number) {
-  for (const product of products) {
+  for (const product of [...products, giftBoxProduct()]) {
     const variation = product.variations.find((v) => v.id === variationId)
     if (variation) return { product, variation }
   }
@@ -188,7 +228,7 @@ export function getAllAccords(): string[] {
 
 /** Synchronous lookup used by the cart to resolve line items. */
 export function findProductById(id: number): Product | undefined {
-  return products.find((p) => p.id === id)
+  return products.find((p) => p.id === id) ?? (id === giftBoxProduct().id ? giftBoxProduct() : undefined)
 }
 
 /** Price range of full-size bottles (the 5 ML sample is shown separately). */

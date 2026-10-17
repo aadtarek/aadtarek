@@ -15,6 +15,7 @@ import {
   Plus,
   ShieldCheck,
   ShoppingBag,
+  Sparkles,
   Star,
   Target,
   Truck,
@@ -44,7 +45,7 @@ import { QuantityInput } from '../components/QuantityInput'
 import { Stars, VerifiedBadge } from '../components/Stars'
 import { VideoModal } from '../components/WearVideos'
 import { WpHtml } from '../components/WpHtml'
-import { FREE_SHIPPING } from '../config'
+import { FREE_SHIPPING, LOYALTY, pointsFor } from '../config'
 import { dimensions } from '../data/standard'
 import { formatPrice, formatPriceRange } from '../lib/format'
 import { GENDERS, profileChips } from '../lib/profile'
@@ -228,6 +229,12 @@ function ProductDetails({ product }: { product: Product }) {
           )}
 
           <FreeShippingBar amount={cart.subtotal - cart.discount} className="mt-4 rounded-2xl bg-chip px-4 py-3 sm:mt-5" />
+          {LOYALTY.enabled && pointsFor(variation.price * qty) > 0 && (
+            <p className="mt-2 flex items-center gap-2 px-1 text-[12.5px] text-ink-soft">
+              <Sparkles className="size-4 shrink-0 text-olive" strokeWidth={1.5} />
+              Earn <strong className="font-semibold text-ink">{pointsFor(variation.price * qty).toLocaleString('en-US')} points</strong> with this purchase.
+            </p>
+          )}
 
           <ul className="mt-5 grid grid-cols-3 gap-2 sm:mt-6 sm:gap-0">
             {[

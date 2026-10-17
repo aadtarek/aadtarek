@@ -1,9 +1,8 @@
 import { ChevronDown, Columns2, Columns3, LayoutGrid, Rows3, SlidersHorizontal, X } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getAllProducts, getFamilies, priceRange, sortProducts, type ProductSort } from '../api/catalog'
 import { Overlay } from '../components/Overlay'
-import { searchProducts } from '../lib/search'
 import { usePersistentState } from '../lib/storage'
 import { ProductCard } from '../components/ProductCard'
 import { GENDERS, OCCASIONS, SEASONS } from '../lib/profile'
@@ -47,6 +46,17 @@ function applyFilters(all: Product[], f: Filters, skip?: ListKey) {
   })
 }
 
+type SearchEngine = typeof import('../lib/search')
+let engine: SearchEngine | null = null
+
+function useSearchEngine(needed: boolean) {
+  const [loaded, setLoaded] = useState(engine)
+  useEffect(() => {
+    if (needed && !loaded) import('../lib/search').then((m) => setLoaded((engine = m)))
+  }, [needed, loaded])
+  return loaded
+}
+
 export function Shop() {
   const [params, setParams] = useSearchParams()
   const sort = (params.get('sort') as ProductSort) || 'best-sellers'
@@ -62,7 +72,9 @@ export function Shop() {
     max: num('max'),
   }
   // A search keeps only the matching fragrances (typos included), best matches first unless sorted.
-  const matched = filters.q.trim() ? searchProducts(filters.q) : null
+  // The search engine loads only when there is a search, so the shop itself stays light.
+  const search = useSearchEngine(Boolean(filters.q.trim()))
+  const matched = filters.q.trim() ? (search ? search.searchProducts(filters.q) : []) : null
   const all = matched ?? getAllProducts()
   const filtered = applyFilters(all, filters)
   const products = matched && !params.get('sort') ? filtered : sortProducts(filtered, sort)

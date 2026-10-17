@@ -38,6 +38,8 @@ export interface StoreSettings {
   }
   bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
   shipping?: { freeShipping?: boolean; freeMin?: number }
+  loyalty?: Partial<{ enabled: boolean; earn: number; value: number; min: number; welcome: boolean; welcomePercent: number }>
+  gift?: { enabled?: boolean; max?: number; prices?: Record<string, number>; productId?: number; variations?: Record<string, number> }
 }
 
 const configured = String(import.meta.env.VITE_WP_URL ?? '').trim()

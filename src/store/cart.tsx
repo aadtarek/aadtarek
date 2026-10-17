@@ -32,6 +32,7 @@ export interface WooCart {
     total_price: string
     currency_minor_unit: number
   }
+  coupons?: { code: string; totals: { total_discount: string; currency_minor_unit: number } }[]
   errors?: { code: string; message: string }[]
 }
 
@@ -45,7 +46,7 @@ interface CartContextValue {
   discount: number
   add: (productId: number, variationId: number, quantity?: number, options?: AddOptions) => void
   /** Add several lines at once (e.g. a discovery set) and open the cart once. */
-  addMany: (lines: { productId: number; variationId: number; quantity?: number }[]) => void
+  addMany: (lines: { productId: number; variationId: number; quantity?: number; giftMessage?: string }[]) => void
   setQuantity: (key: string, quantity: number) => void
   remove: (key: string) => void
   clear: () => void
@@ -247,7 +248,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addMany = useCallback<CartContextValue['addMany']>(
     (list) => {
-      report(list.reduce<Promise<void>>((p, l) => p.then(() => backendAdd(l.productId, l.variationId, l.quantity ?? 1)), Promise.resolve()))
+      report(list.reduce<Promise<void>>((p, l) => p.then(() => backendAdd(l.productId, l.variationId, l.quantity ?? 1, l.giftMessage?.trim() || undefined)), Promise.resolve()))
       setOpen(true)
     },
     [backendAdd, report],

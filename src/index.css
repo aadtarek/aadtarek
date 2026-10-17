@@ -110,6 +110,48 @@
   }
 }
 
+@keyframes rf-reward-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.92);
+  }
+}
+@keyframes rf-twinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(20deg);
+  }
+}
+@keyframes rf-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes rf-ring {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+@keyframes rf-shine {
+  0%, 60% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(400%);
+  }
+}
 @keyframes rf-search-in {
   from {
     opacity: 0;
@@ -683,12 +725,7 @@ section[aria-labelledby="best-sellers-title"]
   [class*='border-[#d']:not(.rf-keep-light *) {
     border-color: var(--color-line-strong);
   }
-  /* Sections that are dark in both themes keep light text. */
-  [class*='bg-[#1'].text-cream,
-  [class*='bg-[#1'] .text-cream,
-  [class*='bg-[#2'] .text-cream {
-    color: #f1ebe1;
-  }
+
   /* Copy over the hero photo needs a darker wash to stay readable. */
   .rf-hero-wash {
     background-image: linear-gradient(to right, #14120fe6, #14120f99 45%, transparent);
@@ -699,8 +736,10 @@ section[aria-labelledby="best-sellers-title"]
   a[aria-label='Rfaheya — home'] img {
     filter: invert(1) brightness(0.95);
   }
-  /* The About page is art-directed on light photography: it stays light. */
-  .rf-keep-light {
+  /* The About page is art-directed on light photography: it stays light. Sections that are
+     dark in both themes keep the light theme's colours inside too. */
+  .rf-keep-light,
+  :is([class*='bg-[#1'], [class*='bg-[#2'], [class*='bg-[#3']) {
     color-scheme: light;
     --color-olive: #8a6a33;
     --color-olive-hover: #735727;
@@ -718,6 +757,8 @@ section[aria-labelledby="best-sellers-title"]
     --color-espresso-hover: #3b3329;
     --color-latte: #efe5d6;
     --color-mocha: #1c1a17;
+  }
+  .rf-keep-light {
     color: var(--color-ink);
   }
   @media (min-width: 48rem) {
