@@ -30,7 +30,7 @@ export function PointsPanel({ total, className = '' }: { total: number; classNam
               Sign in
             </Link>
           )}{' '}
-          to earn {earn.toLocaleString('en-US')} points on this order{LOYALTY.welcome ? ` and get ${LOYALTY.welcomePercent}% off` : ''}.
+          to earn {earn.toLocaleString('en-US')} points on this order{LOYALTY.welcome ? ` and get ${LOYALTY.welcomePercent}% off your first order` : ''}.
         </p>
       ) : (
         <>

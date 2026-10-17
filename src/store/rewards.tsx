@@ -50,7 +50,7 @@ const RewardsContext = createContext<RewardsValue | null>(null)
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
 
 export function couponLabel(code: string) {
-  if (/^welcome-/i.test(code)) return `Welcome ${LOYALTY.welcomePercent}% off`
+  if (/^welcome-/i.test(code)) return `First order ${LOYALTY.welcomePercent}% off`
   if (/^points-/i.test(code)) return 'Points discount'
   return `Coupon ${code.toUpperCase()}`
 }
@@ -93,10 +93,10 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
       lastName: c.lastName,
       email: c.email,
       points: demoPoints,
-      welcome: LOYALTY.welcome ? { code: 'WELCOME-DEMO', percent: LOYALTY.welcomePercent, used: demoWelcomeUsed } : null,
+      welcome: LOYALTY.welcome && account.orders.length === 0 ? { code: 'WELCOME-DEMO', percent: LOYALTY.welcomePercent, used: demoWelcomeUsed } : null,
       redeem: demoRedeem,
     }
-  }, [wooMe, account.customer, demoPoints, demoRedeem, demoWelcomeUsed])
+  }, [wooMe, account.customer, account.orders.length, demoPoints, demoRedeem, demoWelcomeUsed])
 
   const refresh = useCallback(async () => {
     if (!isWoo) return

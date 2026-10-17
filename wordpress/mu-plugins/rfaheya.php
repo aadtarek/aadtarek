@@ -59,7 +59,7 @@ function rfaheya_fields() {
 			'earn'            => array( 'Points earned per 1 EGP spent (shipping not counted)', '1', 'text' ),
 			'value'           => array( 'Discount value of 100 points (EGP)', '5', 'text' ),
 			'min'             => array( 'Fewest points a customer can use at once', '200', 'text' ),
-			'welcome_enabled' => array( 'Welcome discount: a one-time discount (with an animated pop-up) for customers who sign in', 'yes', 'yesno' ),
+			'welcome_enabled' => array( 'Welcome discount: a discount on the first order (with an animated pop-up) for customers who sign in', 'yes', 'yesno' ),
 			'welcome_percent' => array( 'Welcome discount (%)', '5', 'text' ),
 		),
 		'gift'     => array(
@@ -2584,6 +2584,7 @@ function rfaheya_make_coupon( $prefix, $type, $amount, $days, $user ) {
 		$coupon->set_date_expires( time() + $days * DAY_IN_SECONDS );
 	}
 	$coupon->set_description( sprintf( 'Rfaheya %s for %s (user #%d)', strtolower( $prefix ), $user->user_email, $user->ID ) );
+	$coupon->update_meta_data( '_rfaheya_user', $user->ID );
 	$coupon->save();
 	return $coupon;
 }
@@ -2624,6 +2625,38 @@ function rfaheya_release_redeem( $user_id, $only_if_lapsed = false ) {
 	delete_user_meta( $user_id, 'rfaheya_redeem' );
 }
 
+/** True when the customer already has an order (by account or billing email). */
+function rfaheya_has_ordered( $user_id, $email ) {
+	$statuses = array( 'wc-processing', 'wc-completed', 'wc-on-hold' );
+	if ( $user_id && wc_get_orders( array( 'customer_id' => $user_id, 'status' => $statuses, 'limit' => 1, 'return' => 'ids' ) ) ) {
+		return true;
+	}
+	return $email && (bool) wc_get_orders( array( 'billing_email' => $email, 'status' => $statuses, 'limit' => 1, 'return' => 'ids' ) );
+}
+
+// The welcome discount is for a customer's first order only.
+add_filter(
+	'woocommerce_coupon_is_valid',
+	function ( $valid, $coupon ) {
+		if ( ! $valid || 0 !== stripos( $coupon->get_code(), 'welcome-' ) ) {
+			return $valid;
+		}
+		$user_id = (int) $coupon->get_meta( '_rfaheya_user' );
+		$user    = $user_id ? get_userdata( $user_id ) : null;
+		if ( ! $user ) {
+			$owners = get_users( array( 'meta_key' => 'rfaheya_welcome', 'meta_value' => $coupon->get_code(), 'number' => 1 ) ); // phpcs:ignore WordPress.DB.SlowDBQuery
+			$user   = $owners ? $owners[0] : null;
+		}
+		$email = function_exists( 'WC' ) && WC()->customer ? WC()->customer->get_billing_email() : '';
+		if ( ( $user && rfaheya_has_ordered( $user->ID, $user->user_email ) ) || ( $email && rfaheya_has_ordered( 0, $email ) ) ) {
+			throw new Exception( 'The welcome discount is for your first order only.' );
+		}
+		return $valid;
+	},
+	10,
+	2
+);
+
 /** The signed-in customer for the storefront: points, welcome discount, points discount. */
 function rfaheya_me_data() {
 	$loyalty = rfaheya_loyalty();
@@ -2636,7 +2669,8 @@ function rfaheya_me_data() {
 	}
 	rfaheya_release_redeem( $user->ID, true );
 	$welcome = null;
-	if ( $loyalty['welcome'] ) {
+	// Only before the first order.
+	if ( $loyalty['welcome'] && ! rfaheya_has_ordered( $user->ID, $user->user_email ) ) {
 		$code = (string) get_user_meta( $user->ID, 'rfaheya_welcome', true );
 		if ( '' === $code ) {
 			$code = rfaheya_make_coupon( 'WELCOME', 'percent', $loyalty['welcomePercent'], 0, $user )->get_code();

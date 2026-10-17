@@ -93,7 +93,7 @@ export function RewardsPopup() {
             <>
               <h2 id="rf-reward-title" className="font-serif text-[30px] leading-tight">A little welcome gift.</h2>
               <p className="mx-auto mt-2 max-w-[300px] text-[14.5px] leading-relaxed text-ink-soft">
-                Sign in or create your account and get {percent}% off your order — plus points on everything you buy.
+                Sign in or create your account and get {percent}% off your first order — plus points on everything you buy.
               </p>
               {wp ? (
                 <a href={wp.myAccountUrl} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-cream uppercase transition hover:bg-olive-hover">
@@ -114,7 +114,7 @@ export function RewardsPopup() {
                 Welcome{me.firstName ? `, ${me.firstName}` : ''}.
               </h2>
               <p className="mx-auto mt-2 max-w-[310px] text-[14.5px] leading-relaxed text-ink-soft">
-                Your {percent}% welcome discount is ready.{' '}
+                Your {percent}% off your first order is ready.{' '}
                 {cart.lines.length ? 'It’s already applied to your cart.' : 'It’s applied to your cart as soon as you add a fragrance.'}
               </p>
               {code && <CodeChip code={code} />}
