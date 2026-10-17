@@ -1,56 +1,43 @@
-import { ArrowRight } from 'lucide-react'
-import { Fragment } from 'react'
+import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getFamilies } from '../api/catalog'
 
 export function ExploreFamilies() {
   return (
-    <section aria-labelledby="explore-title" className="bg-sand pt-10 pb-12 lg:pt-[34px] lg:pb-[62px]">
-      <div className="container-x flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between xl:pr-[77px] xl:pl-[68px]">
+    <section aria-labelledby="explore-title" className="bg-sand py-12 lg:py-16">
+      <div className="container-x flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[12px] tracking-[0.38em] text-ink uppercase sm:text-[15.5px]">Find your fragrance</p>
-          <h2 id="explore-title" className="mt-1 font-serif text-[38px] leading-[1.05] sm:text-[58px]">
-            Explore by what you love.
+          <p className="text-[10.5px] font-medium tracking-[0.32em] text-gold uppercase sm:text-[11px]">Find your fragrance</p>
+          <h2 id="explore-title" className="mt-2 font-serif text-[32px] leading-[1.05] sm:text-[44px]">
+            Explore by what you love<span className="text-gold italic">.</span>
           </h2>
         </div>
-        <p className="max-w-[20rem] text-[15px] leading-[1.65] text-ink-soft lg:mb-[30px] lg:max-w-none lg:text-[16px]">
-          Different moods. Distinctive characters. <br className="hidden lg:block" />
-          Find the fragrance that feels like you.
+        <p className="max-w-[22rem] text-[14px] leading-[1.6] text-ink-soft lg:text-right">
+          Different moods, distinctive characters. Find the fragrance that feels like you.
         </p>
       </div>
 
-      <ul className="no-scrollbar mx-auto mt-6 flex max-w-[1600px] snap-x snap-mandatory scroll-px-4 gap-[13px] overflow-x-auto px-4 sm:scroll-px-6 sm:px-6 lg:mt-[20px] lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-[27px]">
+      <ul className="no-scrollbar container-x mt-7 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto sm:scroll-px-6 lg:mt-9 lg:grid lg:grid-cols-5 lg:gap-5 lg:overflow-visible">
         {getFamilies().map((f) => (
-          <li key={f.slug} className="w-[78%] shrink-0 snap-start xs:w-[62%] sm:w-[40%] lg:w-auto">
-            <Link
-              to={`/shop?family=${f.slug}`}
-              className="group flex h-full flex-col overflow-hidden rounded-lg bg-[#e8e6e3] shadow-[0_1px_2px_rgba(60,45,20,0.05)] transition-shadow hover:shadow-[0_14px_30px_-14px_rgba(60,45,20,0.35)]"
-            >
-              <div className="aspect-[300/205] overflow-hidden">
+          <li key={f.slug} className="w-[46%] shrink-0 snap-start sm:w-[30%] lg:w-auto">
+            <Link to={`/shop?family=${f.slug}`} className="group block">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-chip">
                 <img
                   src={f.image}
                   alt=""
                   loading="lazy"
-                  className="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.05]"
+                  className="size-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
                 />
-              </div>
-              <div className="flex flex-1 flex-col bg-gradient-to-b from-[#e6e3df] to-[#eceae7] px-6 pt-[17px] pb-[22px]">
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-serif text-[26px] leading-none">{f.name}</h3>
-                  <span className="grid size-[37px] shrink-0 place-items-center rounded-full bg-olive text-cream transition group-hover:bg-olive-hover">
-                    <ArrowRight className="size-4 transition group-hover:translate-x-0.5" strokeWidth={1.5} />
-                  </span>
+                <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/5 to-transparent" />
+                <span className="absolute top-3 right-3 grid size-8 place-items-center rounded-full bg-cream/80 text-ink backdrop-blur-sm transition duration-500 [@media(hover:hover)]:translate-y-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:translate-y-0 [@media(hover:hover)]:group-hover:opacity-100">
+                  <ArrowUpRight className="size-4" strokeWidth={1.5} />
+                </span>
+                <div className="absolute inset-x-0 bottom-0 p-3.5 text-cream sm:p-5">
+                  <h3 className="font-serif text-[22px] leading-none sm:text-[28px]">{f.name}</h3>
+                  <p className="mt-1.5 text-[12px] text-cream/85 sm:text-[13px]">{f.tagline}</p>
                 </div>
-                <p className="-mt-[3px] text-[16.5px] text-ink-soft">{f.tagline}</p>
-                <p className="mt-[18px] flex flex-wrap items-center gap-x-2 text-[12.5px] text-ink-soft">
-                  {f.keywords.map((k, i) => (
-                    <Fragment key={k}>
-                      {i > 0 && <span aria-hidden className="text-[10px] text-muted">·</span>}
-                      <span>{k}</span>
-                    </Fragment>
-                  ))}
-                </p>
               </div>
+              <p className="mt-2.5 truncate px-0.5 text-[11.5px] text-muted sm:text-[12px]">{f.keywords.join(' · ')}</p>
             </Link>
           </li>
         ))}
