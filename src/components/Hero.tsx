@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react'
+import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import hero from '../assets/hero.webp'
 import { HOME } from '../config'
@@ -6,12 +7,21 @@ import { HOME } from '../config'
 /** "SPEAK YOUR SCENT." → "Speak your scent." (titles typed in capitals read better in the serif) */
 const sentenceCase = (line: string) => (line === line.toUpperCase() ? line.charAt(0) + line.slice(1).toLowerCase() : line)
 
+// When the hero first appeared; a hero mounted again (the start-up screen handing over to the
+// page) carries on the intro instead of restarting it.
+let firstShown: number | undefined
+
 export function Hero() {
+  const [since] = useState(() => {
+    const now = performance.now()
+    firstShown ??= now
+    return now - firstShown
+  })
   const copy = HOME.hero
   const lines = copy.title.split(/\r?\n/)
   return (
     // Pulled up under the transparent header (see Header).
-    <section className="relative -mt-16 overflow-hidden bg-latte lg:-mt-[67px]">
+    <section className="relative -mt-16 overflow-hidden bg-latte lg:-mt-[67px]" style={{ '--rf-hero-t': `${Math.round(since)}ms` } as CSSProperties}>
       {/* Mobile: image on top, copy below */}
       <img
         src={copy.image || hero}
@@ -21,7 +31,7 @@ export function Hero() {
         width={1600}
         height={900}
         alt={copy.image ? '' : 'Rfaheya Vanilla Oud bottle on a stone plinth with vanilla pods, flowers and oud wood'}
-        className="h-[340px] w-full object-cover object-[78%_center] xs:h-[380px] sm:h-[460px] md:absolute md:inset-0 md:h-full md:object-[right_center]"
+        className="rf-hero-img h-[340px] w-full object-cover object-[78%_center] xs:h-[380px] sm:h-[460px] md:absolute md:inset-0 md:h-full md:object-[right_center]"
         fetchPriority="high"
       />
       {/* Soft wash so copy stays legible when the image narrows */}
@@ -30,7 +40,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#e5e2df] via-[#e5e2df]/70 to-transparent md:block xl:via-transparent xl:from-[#e5e2df]/40"
       />
 
-      <div className="container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
+      <div className="rf-hero-copy container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
         <p className="text-[10px] font-medium tracking-[0.32em] text-gold uppercase sm:text-[11px]">
           {copy.eyebrow}
         </p>

@@ -118,7 +118,7 @@ export function Header() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="absolute inset-0 animate-fade-in bg-ink/40" onClick={() => setMenuOpen(false)} />
-          <div className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-cream shadow-2xl [animation:slide-in-left_.3s_cubic-bezier(.22,1,.36,1)]">
+          <div className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-cream shadow-2xl [animation:slide-in-left_.5s_cubic-bezier(.16,1,.3,1)]">
             <div className="flex h-16 items-center justify-between border-b border-line px-4">
               <Logo className="h-9" />
               <button type="button" aria-label="Close menu" className={iconBtn} onClick={() => setMenuOpen(false)}>

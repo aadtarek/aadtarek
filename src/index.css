@@ -27,8 +27,8 @@
   --color-footer: #f3ecdf;
 
   --breakpoint-xs: 26rem;
-  --animate-fade-in: fade-in 0.2s ease-out;
-  --animate-slide-in: slide-in 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fade-in 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-slide-in: slide-in 0.55s cubic-bezier(0.16, 1, 0.3, 1);
 
   @keyframes fade-in {
     from {
@@ -547,5 +547,89 @@ section[aria-labelledby="best-sellers-title"]
 @media (prefers-reduced-motion: reduce) {
   .rf-scroll-progress {
     display: none;
+  }
+}
+
+/* Sleek-style motion: slow, soft fades that are easy on the eye. */
+:root {
+  --rf-ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes rf-rise {
+    from {
+      opacity: 0;
+      translate: 0 34px;
+    }
+  }
+  @keyframes rf-rise-sm {
+    from {
+      opacity: 0;
+      translate: 0 16px;
+    }
+  }
+  @keyframes rf-soft-zoom {
+    from {
+      scale: 1.08;
+    }
+  }
+  @keyframes rf-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  /* Held hidden until it scrolls into view (see useScrollReveal); "backwards" leaves no transform behind. */
+  .scroll-reveal:not(.reveal-visible) {
+    opacity: 0;
+    translate: 0 34px;
+  }
+  .scroll-reveal.reveal-visible {
+    animation: rf-rise 1.1s var(--rf-ease-soft) var(--rf-d, 0ms) backwards;
+  }
+  .rf-card.reveal-visible .motion-product-card img {
+    animation: rf-soft-zoom 1.6s var(--rf-ease-soft) var(--rf-d, 0ms) backwards;
+  }
+  .page-enter {
+    animation: rf-fade 0.7s var(--rf-ease-soft) backwards;
+  }
+  .rf-hero-img {
+    animation: rf-soft-zoom 2.6s var(--rf-ease-soft) calc(0ms - var(--rf-hero-t, 0ms)) backwards;
+  }
+  .rf-hero-copy > * {
+    animation: rf-rise-sm 1.2s var(--rf-ease-soft) backwards;
+    animation-delay: calc(150ms + var(--rf-i, 0) * 110ms - var(--rf-hero-t, 0ms));
+  }
+  .rf-hero-copy > :nth-child(2) {
+    --rf-i: 1;
+  }
+  .rf-hero-copy > :nth-child(3) {
+    --rf-i: 2;
+  }
+  .rf-hero-copy > :nth-child(4) {
+    --rf-i: 3;
+  }
+  /* Cards: no lift, just a slow image zoom. */
+  .motion-product-card {
+    animation: none;
+    transition: box-shadow 0.6s var(--rf-ease-soft);
+  }
+  .motion-product-card img {
+    transition: transform 1.4s var(--rf-ease-soft);
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    transition-duration: 0.45s;
+    transition-timing-function: var(--rf-ease-soft);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .motion-product-card:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .motion-product-card:hover img {
+      transform: scale(1.04);
+    }
   }
 }

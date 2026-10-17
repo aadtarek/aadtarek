@@ -283,7 +283,7 @@ export function Shop() {
 
       {sheetOpen && (
         <Overlay onClose={() => setSheetOpen(false)} label="Filters">
-          <div className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-[22px] bg-cream shadow-2xl [animation:slide-up_.32s_cubic-bezier(.22,1,.36,1)]">
+          <div className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-[22px] bg-cream shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)]">
             <span aria-hidden className="mx-auto mt-3 h-1 w-10 rounded-full bg-line-strong" />
             <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4">{panel}</div>
             <div className="border-t border-line px-5 py-4">

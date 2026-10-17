@@ -122,7 +122,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
   return (
     <Overlay onClose={onClose} label={`${video.title} video`}>
       <div className="absolute inset-0 overflow-y-auto sm:grid sm:place-items-center sm:p-6" onClick={(e) => e.target === e.currentTarget && onClose()}>
-        <div className="relative mx-auto flex w-full max-w-[920px] flex-col overflow-hidden bg-cream text-ink shadow-2xl [animation:pop-in_.25s_ease-out] sm:max-h-[min(88vh,820px)] sm:flex-row sm:rounded-xl">
+        <div className="relative mx-auto flex w-full max-w-[920px] flex-col overflow-hidden bg-cream text-ink shadow-2xl [animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)] sm:max-h-[min(88vh,820px)] sm:flex-row sm:rounded-xl">
           <div className="relative aspect-[9/16] max-h-[78vh] w-full shrink-0 bg-black sm:aspect-auto sm:max-h-none sm:w-[min(46%,420px)]">
             <video
               key={video.id}

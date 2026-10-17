@@ -35,7 +35,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
 
   return (
     <Overlay onClose={onClose} label={`Quick view: ${product.name}`}>
-      <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream shadow-2xl [animation:slide-up_.3s_cubic-bezier(.22,1,.36,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:pop-in_.25s_ease-out]">
+      <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)]">
         <button
           type="button"
           onClick={onClose}

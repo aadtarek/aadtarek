@@ -541,7 +541,7 @@ function MoreNotesModal({
 }) {
   return (
     <Overlay onClose={onClose} label="Discover more scent notes">
-      <div className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-2xl bg-[#f0eeeb] p-5 shadow-2xl [animation:pop-in_.25s_ease-out] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(58rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[22px] sm:p-12">
+      <div className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-2xl bg-[#f0eeeb] p-5 shadow-2xl [animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(58rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[22px] sm:p-12">
         <img
           src={moreNotes[0].image}
           alt=""
@@ -613,7 +613,7 @@ function ReviewModal({
   ]
   return (
     <Overlay onClose={onClose} label="Review your choices">
-      <div className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-2xl bg-[#f0eeeb] px-4 pt-6 pb-5 shadow-2xl [animation:pop-in_.25s_ease-out] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(49rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[18px] sm:px-8 sm:pt-10 sm:pb-8">
+      <div className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-2xl bg-[#f0eeeb] px-4 pt-6 pb-5 shadow-2xl [animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(49rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[18px] sm:px-8 sm:pt-10 sm:pb-8">
         <button type="button" onClick={onClose} aria-label="Close" className="absolute top-4 right-4 grid size-11 place-items-center rounded-full hover:bg-latte sm:top-6 sm:right-6">
           <X className="size-6" strokeWidth={1.3} />
         </button>

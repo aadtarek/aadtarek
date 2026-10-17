@@ -26,7 +26,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   const chips = profileChips(product, familyName)
 
   return (
-    <article className="group/card @container flex h-full flex-col">
+    <article className="rf-card group/card @container flex h-full flex-col">
       <div className="motion-product-card relative overflow-hidden rounded-2xl bg-chip">
         <Link to={href} tabIndex={-1} aria-hidden className="block aspect-[5/4]">
           <img
