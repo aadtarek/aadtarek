@@ -8,7 +8,6 @@ import {
   Clock,
   Feather,
   FingerprintPattern,
-  Heart,
   Info,
   Layers,
   Minus,
@@ -40,16 +39,16 @@ import { Breadcrumbs } from '../components/Breadcrumbs'
 import { Carousel } from '../components/Carousel'
 import { BottleIcon } from '../components/Icons'
 import { ProductCard } from '../components/ProductCard'
+import { FreeShippingBar } from '../components/FreeShippingBar'
 import { QuantityInput } from '../components/QuantityInput'
 import { Stars, VerifiedBadge } from '../components/Stars'
 import { VideoModal } from '../components/WearVideos'
 import { WpHtml } from '../components/WpHtml'
-import { FREE_SHIPPING_THRESHOLD } from '../config'
+import { FREE_SHIPPING } from '../config'
 import { dimensions } from '../data/standard'
 import { formatPrice, formatPriceRange } from '../lib/format'
 import { GENDERS, profileChips } from '../lib/profile'
 import { useCart } from '../store/cart'
-import { useWishlist } from '../store/wishlist'
 import { useFaqs } from '../lib/useFaqs'
 import type { Product, Review, StandardKey } from '../types'
 import { NotFound } from './NotFound'
@@ -73,7 +72,6 @@ const STANDARD_ICONS: Record<StandardKey, LucideIcon> = {
 
 function ProductDetails({ product }: { product: Product }) {
   const cart = useCart()
-  const wishlist = useWishlist()
   const sizes = fullSizeVariations(product)
   const sample = sampleVariation(product)
   const [variationId, setVariationId] = useState((sizes.filter((v) => v.inStock).at(-1) ?? sizes.at(-1)!).id)
@@ -85,7 +83,6 @@ function ProductDetails({ product }: { product: Product }) {
   const [showSticky, setShowSticky] = useState(false)
 
   const variation = product.variations.find((v) => v.id === variationId)!
-  const wished = wishlist.has(product.id)
   const { average, count } = ratingSummary(reviews)
   const related = relatedProducts(product, 8)
   const videos = getVideos(product.id)
@@ -181,12 +178,12 @@ function ProductDetails({ product }: { product: Product }) {
                   aria-checked={on}
                   disabled={!v.inStock}
                   onClick={() => setVariationId(v.id)}
-                  className={`rounded-xl border px-2 py-2 text-center transition disabled:cursor-not-allowed sm:py-3 disabled:opacity-40 ${
+                  className={`rounded-xl border px-2 py-2 text-center transition disabled:cursor-not-allowed sm:py-2.5 disabled:opacity-40 ${
                     on ? 'border-olive bg-olive text-cream' : 'border-line-strong bg-card hover:border-ink'
                   }`}
                 >
-                  <span className="block text-[12.5px] font-semibold sm:text-[14.5px]">{v.size}</span>
-                  <span className={`block text-[11.5px] sm:text-[13.5px] ${on ? 'text-cream/85' : 'text-ink-soft'}`}>{formatPrice(v.price)}</span>
+                  <span className="block text-[12.5px] font-semibold sm:text-[13.5px]">{v.size}</span>
+                  <span className={`block text-[11.5px] sm:text-[12.5px] ${on ? 'text-cream/85' : 'text-ink-soft'}`}>{formatPrice(v.price)}</span>
                 </button>
               )
             })}
@@ -200,9 +197,9 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-olive text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-[58px] sm:flex-none sm:gap-3 sm:text-[15px]"
+              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-olive text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-12 sm:flex-none sm:gap-2.5 sm:text-[13px]"
             >
-              <ShoppingBag className="size-4 sm:size-5" strokeWidth={1.3} />
+              <ShoppingBag className="size-4" strokeWidth={1.3} />
               Add to cart
               {qty > 1 && <span className="tracking-normal normal-case opacity-80">· {formatPrice(variation.price * qty)}</span>}
             </button>
@@ -211,35 +208,26 @@ function ProductDetails({ product }: { product: Product }) {
             type="button"
             onClick={buyNow}
             disabled={!variation.inStock}
-            className="mt-1.5 inline-flex h-10 w-full items-center justify-center rounded-full bg-mocha text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:mt-2 sm:h-[54px] sm:text-[14px]"
+            className="mt-1.5 inline-flex h-10 w-full items-center justify-center rounded-full bg-mocha text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:mt-2 sm:h-12 sm:text-[13px]"
           >
             Buy now
           </button>
-          <div className="mt-1.5 flex gap-1.5 sm:mt-2 sm:gap-2">
-            {sample && (
-              <button
-                type="button"
-                onClick={() => cart.add(product.id, sample.id)}
-                disabled={!sample.inStock}
-                className="flex h-11 flex-1 items-center justify-center gap-2.5 rounded-full border border-ink/70 transition hover:bg-ink hover:text-cream disabled:pointer-events-none disabled:opacity-40 sm:h-[58px] sm:gap-4"
-              >
-                <BottleIcon className="size-5 sm:size-7" />
-                <span className="text-center leading-tight">
-                  <span className="block text-[11.5px] font-semibold tracking-[0.06em] uppercase sm:text-[15px]">Try {sample.size} first</span>
-                  <span className="block text-[11px] sm:text-[13px]">{formatPrice(sample.price)}</span>
-                </span>
-              </button>
-            )}
+          {sample && (
             <button
               type="button"
-              onClick={() => wishlist.toggle(product.id)}
-              aria-pressed={wished}
-              aria-label={wished ? 'Remove from wishlist' : 'Add to wishlist'}
-              className={`grid h-11 shrink-0 place-items-center rounded-full border border-line-strong transition hover:border-ink sm:h-[58px] ${sample ? 'w-12 sm:w-[68px]' : 'flex-1'}`}
+              onClick={() => cart.add(product.id, sample.id)}
+              disabled={!sample.inStock}
+              className="mt-1.5 flex h-11 w-full items-center justify-center gap-2.5 rounded-full border border-ink/70 transition hover:bg-ink hover:text-cream disabled:pointer-events-none disabled:opacity-40 sm:mt-2 sm:h-12 sm:gap-3"
             >
-              <Heart className={`size-5 sm:size-6 ${wished ? 'fill-ink' : ''}`} strokeWidth={1.3} />
+              <BottleIcon className="size-5 sm:size-6" />
+              <span className="text-center leading-tight">
+                <span className="block text-[11.5px] font-semibold tracking-[0.06em] uppercase sm:text-[12.5px]">Try {sample.size} first</span>
+                <span className="block text-[11px] sm:text-[12px]">{formatPrice(sample.price)}</span>
+              </span>
             </button>
-          </div>
+          )}
+
+          <FreeShippingBar amount={cart.subtotal - cart.discount} className="mt-4 rounded-2xl bg-chip px-4 py-3 sm:mt-5" />
 
           <ul className="mt-5 grid grid-cols-3 gap-2 sm:mt-6 sm:gap-0">
             {[
@@ -251,7 +239,7 @@ function ProductDetails({ product }: { product: Product }) {
               {
                 Icon: Truck,
                 title: 'Free Shipping',
-                text: `On orders over ${FREE_SHIPPING_THRESHOLD.toLocaleString('en-US')} EGP.`,
+                text: `On orders over ${FREE_SHIPPING.min.toLocaleString('en-US')} EGP.`,
               },
               {
                 Icon: Star,

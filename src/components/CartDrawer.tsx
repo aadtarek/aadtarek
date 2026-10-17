@@ -1,8 +1,8 @@
 import { Gift, Handbag, Trash2, X } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { FREE_SHIPPING_THRESHOLD } from '../config'
 import { formatPrice } from '../lib/format'
 import { useCart } from '../store/cart'
+import { FreeShippingBar } from './FreeShippingBar'
 import { Overlay } from './Overlay'
 import { QuantityInput } from './QuantityInput'
 
@@ -10,9 +10,6 @@ export function CartDrawer() {
   const cart = useCart()
   const navigate = useNavigate()
   if (!cart.isOpen) return null
-
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - (cart.subtotal - cart.discount))
-  const progress = Math.min(100, ((cart.subtotal - cart.discount) / FREE_SHIPPING_THRESHOLD) * 100)
 
   return (
     <Overlay onClose={cart.close} label="Shopping cart">
@@ -55,20 +52,7 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            <div className="border-b border-line px-5 py-4">
-              <p className="text-[13px]">
-                {remaining > 0 ? (
-                  <>
-                    Add <strong>{formatPrice(remaining)}</strong> more for free shipping in Cairo &amp; Alexandria.
-                  </>
-                ) : (
-                  <>You’ve unlocked <strong>free shipping</strong> in Cairo &amp; Alexandria.</>
-                )}
-              </p>
-              <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-line">
-                <div className="h-full rounded-full bg-olive transition-[width] duration-500" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
+            <FreeShippingBar amount={cart.subtotal - cart.discount} className="border-b border-line px-5 py-4" />
 
             <ul className="flex-1 divide-y divide-line overflow-y-auto px-5">
               {cart.lines.map((line) => (

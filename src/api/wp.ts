@@ -37,6 +37,7 @@ export interface StoreSettings {
     hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image' | 'srcset', string>>
   }
   bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
+  shipping?: { freeShipping?: boolean; freeMin?: number }
 }
 
 const configured = String(import.meta.env.VITE_WP_URL ?? '').trim()

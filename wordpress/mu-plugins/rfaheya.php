@@ -54,6 +54,10 @@ function rfaheya_fields() {
 			'count'   => array( 'Bottles per bundle', '3', 'text' ),
 			'price'   => array( 'Bundle price (EGP)', '1200', 'text' ),
 		),
+		'shipping' => array(
+			'free_enabled' => array( 'Free shipping in Cairo & Alexandria (and the bar on the product page, cart and checkout)', 'yes', 'yesno' ),
+			'free_min'     => array( 'Free shipping from (EGP)', '1200', 'text' ),
+		),
 	);
 }
 
@@ -64,6 +68,7 @@ function rfaheya_group_title( $group ) {
 		'home'    => 'Home page (empty fields keep the storefront’s built-in text)',
 		'bundle'  => 'Bundle (home page “Build your trio”; the discount is applied in the cart)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
+		'shipping' => 'Free shipping (applied to the WooCommerce shipping rates at checkout)',
 	);
 	return isset( $titles[ $group ] ) ? $titles[ $group ] : $group;
 }
@@ -1063,6 +1068,10 @@ function rfaheya_settings_data() {
 				'size'    => $o['bundle']['size'],
 				'count'   => (int) $o['bundle']['count'],
 				'price'   => (float) $o['bundle']['price'],
+			),
+			'shipping'     => array(
+				'freeShipping' => 'no' !== $o['shipping']['free_enabled'],
+				'freeMin'      => (float) $o['shipping']['free_min'],
 			),
 			'currency'     => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'EGP',
 		);
@@ -2283,42 +2292,98 @@ function rfaheya_size_key( $size ) {
  * (Settings → Rfaheya Store → Bundle). Applied as a negative fee, so it shows
  * in the storefront cart, the checkout and the order.
  */
+/** The bundle discount for a cart (0 when the bundle is off or no full set is in the cart). */
+function rfaheya_bundle_discount( $cart ) {
+	$b     = rfaheya_options()['bundle'];
+	$count = (int) $b['count'];
+	$price = (float) $b['price'];
+	if ( 'no' === $b['enabled'] || $count < 2 || $price <= 0 ) {
+		return 0;
+	}
+	$want   = rfaheya_size_key( $b['size'] );
+	$prices = array();
+	foreach ( $cart->get_cart() as $item ) {
+		$product = $item['data'];
+		$size    = '';
+		foreach ( (array) ( isset( $item['variation'] ) ? $item['variation'] : array() ) as $attr => $value ) {
+			if ( preg_match( '/^attribute_(pa_)?size$/i', $attr ) ) {
+				$size = $value;
+			}
+		}
+		if ( '' === $size && $product ) {
+			$size = $product->get_attribute( 'pa_size' ) ? $product->get_attribute( 'pa_size' ) : $product->get_attribute( 'Size' );
+		}
+		if ( rfaheya_size_key( $size ) !== $want ) {
+			continue;
+		}
+		for ( $i = 0; $i < (int) $item['quantity']; $i++ ) {
+			$prices[] = (float) $product->get_price();
+		}
+	}
+	rsort( $prices );
+	$discount = 0;
+	for ( $i = 0; $i + $count <= count( $prices ); $i += $count ) {
+		$discount += max( 0, array_sum( array_slice( $prices, $i, $count ) ) - $price );
+	}
+	return $discount;
+}
+
 add_action(
 	'woocommerce_cart_calculate_fees',
 	function ( $cart ) {
-		$b     = rfaheya_options()['bundle'];
-		$count = (int) $b['count'];
-		$price = (float) $b['price'];
-		if ( 'no' === $b['enabled'] || $count < 2 || $price <= 0 ) {
-			return;
-		}
-		$want   = rfaheya_size_key( $b['size'] );
-		$prices = array();
-		foreach ( $cart->get_cart() as $item ) {
-			$product = $item['data'];
-			$size    = '';
-			foreach ( (array) ( isset( $item['variation'] ) ? $item['variation'] : array() ) as $attr => $value ) {
-				if ( preg_match( '/^attribute_(pa_)?size$/i', $attr ) ) {
-					$size = $value;
-				}
-			}
-			if ( '' === $size && $product ) {
-				$size = $product->get_attribute( 'pa_size' ) ? $product->get_attribute( 'pa_size' ) : $product->get_attribute( 'Size' );
-			}
-			if ( rfaheya_size_key( $size ) !== $want ) {
-				continue;
-			}
-			for ( $i = 0; $i < (int) $item['quantity']; $i++ ) {
-				$prices[] = (float) $product->get_price();
-			}
-		}
-		rsort( $prices );
-		$discount = 0;
-		for ( $i = 0; $i + $count <= count( $prices ); $i += $count ) {
-			$discount += max( 0, array_sum( array_slice( $prices, $i, $count ) ) - $price );
-		}
+		$discount = rfaheya_bundle_discount( $cart );
 		if ( $discount > 0 ) {
 			$cart->add_fee( 'Bundle discount', -$discount, false );
+		}
+	}
+);
+
+/**
+ * Free shipping (Settings → Rfaheya Store → Free shipping): Cairo and Alexandria
+ * orders from the minimum up ship free; below it WooCommerce's own free-shipping
+ * rates are hidden, so the storefront bar and the checkout always agree.
+ */
+add_filter(
+	'woocommerce_package_rates',
+	function ( $rates, $package ) {
+		$o = rfaheya_options()['shipping'];
+		if ( 'no' === $o['free_enabled'] || (float) $o['free_min'] <= 0 || ! $rates ) {
+			return $rates;
+		}
+		$state  = isset( $package['destination']['state'] ) ? strtoupper( (string) $package['destination']['state'] ) : '';
+		$amount = isset( $package['contents_cost'] ) ? (float) $package['contents_cost'] : 0;
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			$amount -= rfaheya_bundle_discount( WC()->cart );
+		}
+		$free = array_filter(
+			$rates,
+			function ( $rate ) {
+				return 'free_shipping' === $rate->get_method_id();
+			}
+		);
+		if ( in_array( $state, array( 'EGC', 'EGALX' ), true ) && $amount >= (float) $o['free_min'] ) {
+			if ( $free ) {
+				return array_slice( $free, 0, 1, true );
+			}
+			$rate = reset( $rates );
+			$rate->set_cost( 0 );
+			$rate->set_taxes( array() );
+			$rate->set_label( 'Free shipping' );
+			return array( $rate->get_id() => $rate );
+		}
+		$paid = array_diff_key( $rates, $free );
+		return $paid ? $paid : $rates;
+	},
+	20,
+	2
+);
+
+// Saved shipping settings apply to carts that already have rates.
+add_action(
+	'update_option_' . RFAHEYA_OPTION,
+	function () {
+		if ( class_exists( 'WC_Cache_Helper' ) ) {
+			WC_Cache_Helper::get_transient_version( 'shipping', true );
 		}
 	}
 );

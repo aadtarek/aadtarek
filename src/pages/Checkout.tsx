@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { PAYMENT_LABELS, placeWooOrder, updateCustomer } from '../api/checkout'
 import { isWoo, money } from '../api/wp'
 import { Field, TextInput, inputClass } from '../components/Field'
+import { FreeShippingBar } from '../components/FreeShippingBar'
 import { PageHeader } from '../components/PageHeader'
 import { CONTACT, GOVERNORATES, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
@@ -254,6 +255,7 @@ export function Checkout() {
 
         <aside className="h-fit rounded-lg bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)] lg:sticky lg:top-24">
           <h2 className="text-[13px] font-semibold tracking-[0.14em] uppercase">Order summary</h2>
+          <FreeShippingBar amount={subtotal - discount} className="mt-4 rounded-xl bg-chip px-3.5 py-3" />
           <ul className="mt-4 divide-y divide-line">
             {cart.lines.map((l) => (
               <li key={l.key} className="flex items-center gap-3 py-3">

@@ -1,7 +1,10 @@
 import type { StoreSettings } from './api/wp'
 
 /** Store-wide settings. With WordPress connected, shipping comes from WooCommerce shipping zones. */
-export const FREE_SHIPPING_THRESHOLD = 1000
+/** Free-shipping bar and rule; with WordPress: Settings → Rfaheya Store → Free shipping. */
+export const FREE_SHIPPING = { enabled: true, min: 1200 }
+/** The default minimum, for text built before the settings arrive. */
+export const FREE_SHIPPING_THRESHOLD = FREE_SHIPPING.min
 export const FREE_SHIPPING_GOVERNORATES = ['Cairo', 'Alexandria']
 export const FLAT_SHIPPING_RATE = 70
 
@@ -29,7 +32,7 @@ export const CONTACT = { ...DEFAULT_CONTACT }
 /** Home page copy. With WordPress: Settings → Rfaheya Store → Home page. */
 export const DEFAULT_HOME = {
   announcements: [
-    'Free shipping in Cairo & Alexandria on orders over 1000 EGP',
+    'Free shipping in Cairo & Alexandria on orders over 1200 EGP',
     'Try 5 ML first — discover your scent before committing',
     'Zero risk guarantee',
   ],
@@ -100,6 +103,11 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (Number(b.count) >= 2) BUNDLE.count = Number(b.count)
     if (Number(b.price) > 0) BUNDLE.price = Number(b.price)
   }
+  const f = settings.shipping
+  if (f) {
+    if (typeof f.freeShipping === 'boolean') FREE_SHIPPING.enabled = f.freeShipping
+    if (Number(f.freeMin) > 0) FREE_SHIPPING.min = Number(f.freeMin)
+  }
 }
 
 export const GOVERNORATES = [
@@ -134,6 +142,6 @@ export const GOVERNORATES = [
 
 export function shippingCost(subtotal: number, governorate: string): number {
   if (subtotal === 0) return 0
-  if (FREE_SHIPPING_GOVERNORATES.includes(governorate) && subtotal >= FREE_SHIPPING_THRESHOLD) return 0
+  if (FREE_SHIPPING.enabled && FREE_SHIPPING_GOVERNORATES.includes(governorate) && subtotal >= FREE_SHIPPING.min) return 0
   return FLAT_SHIPPING_RATE
 }

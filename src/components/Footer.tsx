@@ -9,7 +9,7 @@ import mastercard from '../assets/payments/mastercard.png'
 import meeza from '../assets/payments/meeza.png'
 import valu from '../assets/payments/valu.png'
 import visa from '../assets/payments/visa.png'
-import { SOCIAL_LINKS } from '../config'
+import { FREE_SHIPPING, SOCIAL_LINKS } from '../config'
 import { usePersistentState } from '../lib/storage'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from './SocialIcons'
 
@@ -175,7 +175,7 @@ function Newsletter() {
   }
 
   const perks = [
-    { Icon: Truck, text: ['Free Shipping', 'over 1,000 EGP'] },
+    { Icon: Truck, text: ['Free Shipping', `over ${FREE_SHIPPING.min.toLocaleString('en-US')} EGP`] },
     { Icon: Box, text: ['Easy Returns', 'Even If Used'] },
     { Icon: Gift, text: ['Exclusive Offers', '& Early Access'] },
   ]
