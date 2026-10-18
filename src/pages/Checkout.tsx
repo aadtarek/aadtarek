@@ -138,6 +138,8 @@ export function Checkout() {
     try {
       const result = await placeWooOrder(address, payment, note)
       if (result.payment_result?.payment_status === 'failure') throw new Error('Payment failed. Please try another method.')
+      // Signed in: the order belongs to the account (points, first-order discount), whatever email was typed.
+      await rewards.claimOrder(result.order_id, result.order_key)
       const redirect = result.payment_result?.redirect_url
       // Online gateways (e.g. card payments) send the customer to their payment page.
       if (redirect && !['cod', 'bacs'].includes(payment) && !redirect.includes('order-received')) {

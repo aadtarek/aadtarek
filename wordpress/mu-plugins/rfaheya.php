@@ -2668,6 +2668,7 @@ function rfaheya_me_data() {
 		);
 	}
 	rfaheya_release_redeem( $user->ID, true );
+	rfaheya_backfill_points( $user );
 	$welcome = null;
 	// Only before the first order.
 	if ( $loyalty['welcome'] && ! rfaheya_has_ordered( $user->ID, $user->user_email ) ) {
@@ -2782,31 +2783,85 @@ add_action(
 	}
 );
 
+/** Gives a completed order's points to its customer, once. */
+function rfaheya_award_points( $order, $user_id = 0 ) {
+	$loyalty = rfaheya_loyalty();
+	if ( ! $loyalty['enabled'] || $loyalty['earn'] <= 0 || ! $order || ! $order->has_status( 'completed' ) || $order->get_meta( '_rfaheya_points' ) ) {
+		return;
+	}
+	$user_id = $user_id ? (int) $user_id : rfaheya_order_user( $order );
+	if ( ! $user_id || ( $order->get_customer_id() && (int) $order->get_customer_id() !== $user_id ) ) {
+		return;
+	}
+	$spent  = max( 0, (float) $order->get_total() - (float) $order->get_shipping_total() - (float) $order->get_shipping_tax() );
+	$points = (int) floor( $spent * $loyalty['earn'] );
+	if ( $points <= 0 ) {
+		return;
+	}
+	if ( ! $order->get_customer_id() ) {
+		$order->set_customer_id( $user_id );
+	}
+	rfaheya_points_add( $user_id, $points, sprintf( 'Order #%s', $order->get_order_number() ) );
+	$order->update_meta_data( '_rfaheya_points', $points );
+	$order->add_order_note( sprintf( 'Rfaheya points: +%d for the customer.', $points ) );
+	$order->save();
+}
+
 // Points for completed orders.
 add_action(
 	'woocommerce_order_status_completed',
 	function ( $order_id ) {
-		$loyalty = rfaheya_loyalty();
-		$order   = wc_get_order( $order_id );
-		if ( ! $loyalty['enabled'] || $loyalty['earn'] <= 0 || ! $order || $order->get_meta( '_rfaheya_points' ) ) {
-			return;
+		rfaheya_award_points( wc_get_order( $order_id ) );
+	}
+);
+
+/**
+ * Catches up on completed orders of this customer that got no points yet (an order
+ * linked to the account later, or placed with the account's email as a guest).
+ */
+function rfaheya_backfill_points( $user, $force = false ) {
+	$loyalty = rfaheya_loyalty();
+	if ( ! $loyalty['enabled'] || $loyalty['earn'] <= 0 || ! function_exists( 'wc_get_orders' ) ) {
+		return;
+	}
+	$last = (int) get_user_meta( $user->ID, 'rfaheya_backfill_at', true );
+	if ( ! $force && time() - $last < 10 * MINUTE_IN_SECONDS ) {
+		return;
+	}
+	update_user_meta( $user->ID, 'rfaheya_backfill_at', time() );
+	$query = array(
+		'status' => array( 'wc-completed' ),
+		'limit'  => 50,
+		'return' => 'ids',
+	);
+	$ids   = array_unique(
+		array_merge(
+			wc_get_orders( $query + array( 'customer_id' => $user->ID ) ),
+			wc_get_orders( $query + array( 'billing_email' => $user->user_email ) )
+		)
+	);
+	foreach ( $ids as $id ) {
+		rfaheya_award_points( wc_get_order( $id ), $user->ID );
+	}
+}
+
+// The storefront links an order to the signed-in customer right after checkout (by its order key).
+add_action(
+	'wp_ajax_rfaheya_claim_order',
+	function () {
+		check_ajax_referer( 'rfaheya_points' );
+		$user_id = get_current_user_id();
+		$order   = wc_get_order( isset( $_POST['order'] ) ? absint( $_POST['order'] ) : 0 );
+		$key     = isset( $_POST['key'] ) ? sanitize_text_field( wp_unslash( $_POST['key'] ) ) : '';
+		if ( $user_id && $order && $key && hash_equals( (string) $order->get_order_key(), $key ) && in_array( (int) $order->get_customer_id(), array( 0, $user_id ), true ) ) {
+			if ( ! $order->get_customer_id() ) {
+				$order->set_customer_id( $user_id );
+				$order->add_order_note( 'Linked to the customer’s account by the storefront.' );
+				$order->save();
+			}
+			rfaheya_award_points( $order, $user_id );
 		}
-		$user_id = rfaheya_order_user( $order );
-		if ( ! $user_id ) {
-			return;
-		}
-		$spent  = max( 0, (float) $order->get_total() - (float) $order->get_shipping_total() - (float) $order->get_shipping_tax() );
-		$points = (int) floor( $spent * $loyalty['earn'] );
-		if ( $points <= 0 ) {
-			return;
-		}
-		if ( ! $order->get_customer_id() ) {
-			$order->set_customer_id( $user_id );
-		}
-		rfaheya_points_add( $user_id, $points, sprintf( 'Order #%s', $order->get_order_number() ) );
-		$order->update_meta_data( '_rfaheya_points', $points );
-		$order->add_order_note( sprintf( 'Rfaheya points: +%d for the customer.', $points ) );
-		$order->save();
+		rfaheya_send_me();
 	}
 );
 
@@ -2841,6 +2896,7 @@ add_action(
 		}
 		$user_id = get_current_user_id();
 		rfaheya_release_redeem( $user_id, true );
+		rfaheya_backfill_points( wp_get_current_user(), true );
 		$points = rfaheya_points( $user_id );
 		$log    = array_filter( (array) get_user_meta( $user_id, 'rfaheya_points_log', true ), 'is_array' );
 		?>

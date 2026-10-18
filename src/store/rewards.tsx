@@ -44,6 +44,8 @@ interface RewardsValue {
   removeCoupon: (code: string) => Promise<void>
   /** After checkout: the used discounts are spent. */
   orderPlaced: () => void
+  /** WordPress: links a just-placed order to the signed-in customer (for their points). */
+  claimOrder: (orderId: number, orderKey: string) => Promise<void>
 }
 
 const RewardsContext = createContext<RewardsValue | null>(null)
@@ -260,9 +262,21 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     setDemoCodes([])
   }, [refresh, demoCodes, demoRedeem, setDemoWelcomeUsed, setDemoRedeem, setDemoCodes])
 
+  const claimOrder = useCallback(
+    async (orderId: number, orderKey: string) => {
+      if (!isWoo || !me.loggedIn || !me.nonce) return
+      try {
+        setWooMe(await ajax('rfaheya_claim_order', { _ajax_nonce: me.nonce, order: String(orderId), key: orderKey }))
+      } catch {
+        /* the order is placed either way; points also catch up from the account email */
+      }
+    },
+    [me.loggedIn, me.nonce],
+  )
+
   const value = useMemo<RewardsValue>(
-    () => ({ me, ready: !isWoo || loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, orderPlaced }),
-    [me, loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, orderPlaced],
+    () => ({ me, ready: !isWoo || loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, orderPlaced, claimOrder }),
+    [me, loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, orderPlaced, claimOrder],
   )
   return <RewardsContext.Provider value={value}>{children}</RewardsContext.Provider>
 }
