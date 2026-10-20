@@ -11,7 +11,7 @@
 <link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg', true); ?>>
 
 
-<meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast." name="description"/>
+<meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the North Coast." name="description"/>
 <meta content="Cheops Privé | Define Your Next Address" property="og:title"/>
 <meta content="Discover projects, destinations, developers and properties across Egypt's most prime addresses." property="og:description"/>
 <meta content="website" property="og:type"/>
@@ -172,7 +172,7 @@
     <a class="office-choice residential reveal" href="<?php echo esc_url( home_url('/properties/?type=Residential') ); ?>">
       <span class="eyebrow">Find your next address</span>
       <h2 class="d">Residential</h2>
-      <p>Explore apartments, villas, townhouses and more<br class="cheops-br"> across Egypt’s most sought-after communities.</p>
+      <p>Explore apartments, villas, townhouses and more<br class="cheops-br"> across Egypt’s most desired communities.</p>
       <span class="btn">Explore residential <span class="ar">→</span></span>
     </a>
   </div>
@@ -395,7 +395,7 @@ if ($cheops_home_map_items) :
     <div class="faq-list" style="margin-top:0;max-width:880px">
       <details class="faq-item reveal">
         <summary>What is Cheops Privé?</summary>
-        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast. We focus on clarity and quality, not volume.</p>
+        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the North Coast. We focus on clarity and quality, not quantity.</p>
       </details>
       <details class="faq-item reveal">
         <summary>Do you charge buyers a commission?</summary>
@@ -429,7 +429,7 @@ if ($cheops_home_map_items) :
 <div class="foot-grid" style="margin-top:56px;border-top:1px solid rgba(255,255,255,.1);padding-top:48px;display:grid;gap:44px">
 <div>
 <img alt="Cheops Privé" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c9193073bb12.png' ); ?>" style="height:34px;filter:brightness(0) invert(1)"/>
-<p style="margin-top:22px;max-width:360px;font-size:.792rem;line-height:1.8;opacity:.6">A curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, the New Capital and the coast.</p>
+<p style="margin-top:22px;max-width:360px;font-size:.792rem;line-height:1.8;opacity:.6">A curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, the New Capital and the North Coast.</p>
 <div style="margin-top:28px;display:grid;gap:12px;font-size:.792rem;opacity:.85">
 <a href="<?php echo esc_url( cheops_phone_url() ); ?>"><?php echo esc_html( cheops_phone_display() ); ?></a>
 <a href="<?php echo esc_url( cheops_whatsapp_url() ); ?>" rel="noreferrer" target="_blank">WhatsApp</a>

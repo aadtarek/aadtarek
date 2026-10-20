@@ -195,6 +195,7 @@ function cheops_i18n_key($text) {
     $t = strtr($t, ['’' => "'", '‘' => "'", '“' => '"', '”' => '"', "\u{00A0}" => ' ', '–' => '-', '—' => '-']);
     $t = preg_replace('/^\s*[→←↗◆▦]\s*|\s*[→←↗◆▦]\s*$/u', '', $t);
     $t = preg_replace('/\s+/u', ' ', $t);
+    $t = preg_replace('/(?<![.…])\.$/u', '', trim($t)); // a closing full stop does not change the text
     return mb_strtolower(trim($t), 'UTF-8');
 }
 
@@ -250,6 +251,7 @@ function cheops_i18n_rules($t) {
     if (preg_match('/^([\d.,]+) EGP \+ ([\d.,]+) USD$/u', $t, $m)) return $m[1] . ' جنيه + ' . $m[2] . ' دولار';
     if (preg_match('/^(?:(\d{1,2})-)?([A-Z][a-z]{2})-(\d{4})$/u', $t, $m) && isset($months[$m[2]])) return ($m[1] !== '' ? (int) $m[1] . ' ' : '') . $months[$m[2]] . ' ' . $m[3];
     if (preg_match('/^© (\d{4}) Cheops Privé$/u', $t, $m)) return '© ' . $m[1] . ' Cheops Privé';
+    if (preg_match('/^© (\d{4}) Cheops Privé\. All rights reserved\.?$/u', $t, $m)) return '© ' . $m[1] . ' Cheops Privé. جميع الحقوق محفوظة.';
     if (preg_match('/^View all (\d+) photos$/u', $t, $m)) return 'عرض جميع الصور (' . $m[1] . ')';
     if (preg_match('/^(\d+) installments payable over ([\d.]+) years?; \d+ (quarterly|biannual|monthly|annual|semi-annual) installments per year(?: \(([^)]+)\))?(?: at (.+))?$/u', $t, $m)) {
         $kind = ['quarterly' => 'قسط ربع سنوي', 'biannual' => 'قسط نصف سنوي', 'semi-annual' => 'قسط نصف سنوي', 'monthly' => 'قسط شهري', 'annual' => 'قسط سنوي'][$m[3]];
@@ -262,7 +264,7 @@ function cheops_i18n_rules($t) {
     if (preg_match('/^Projects in (.+)$/u', $t, $m)) { $c = cheops_i18n_map()[cheops_i18n_key($m[1])] ?? $m[1]; return 'مشروعات في ' . $c; }
     if (preg_match('/^Discover our curated projects in (.+?)\. Compare each destination, property mix, starting price and availability through one consistent Cheops Privé experience\.$/u', $t, $m)) {
         $c = cheops_i18n_map()[cheops_i18n_key($m[1])] ?? $m[1];
-        return 'اكتشف مشروعاتنا المختارة بعناية في ' . $c . '. قارن بين كل وجهة ومزيج العقارات والأسعار المبدئية والتوافر ضمن تجربة موحدة من Cheops Privé.';
+        return 'اكتشف مشروعاتنا المختارة بعناية في ' . $c . '. قارن بين كل وجهة وأنواع العقارات وأسعار البداية والوحدات المتاحة، من خلال تجربة واحدة مميزة بتقدمهالك Cheops Privé.';
     }
     // "Label: value" and "Label:" (property details, payment plans).
     if (preg_match('/^([A-Za-z0-9][^:]{0,50}):(?: (.+))?$/u', $t, $m)) {
@@ -465,6 +467,7 @@ function cheops_i18n_html($html) {
                 $parts[$i] = cheops_i18n_tag($part);
                 continue;
             }
+            if (cheops_is_ar() && trim($part) === '→') { $parts[$i] = str_replace('→', '←', $part); continue; }
             $tr = cheops_i18n_lookup($part);
             if ($tr !== null) $parts[$i] = cheops_i18n_esc(str_replace("\n", ' ', $tr));
         }

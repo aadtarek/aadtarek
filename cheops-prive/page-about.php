@@ -10,7 +10,7 @@
 <link data-cheops-hero-preload rel="preload" as="image" fetchpriority="high" href="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg' ); ?>"<?php echo cheops_hero_img_attrs(get_template_directory_uri() . '/assets/generated/f9474888e9cc.jpg', true); ?>>
 
 
-<meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast." name="description"/>
+<meta content="A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the North Coast." name="description"/>
 <meta content="Cheops Privé | Define Your Next Address" property="og:title"/>
 <meta content="Discover projects, destinations, developers and properties across Egypt's most prime addresses." property="og:description"/>
 <meta content="website" property="og:type"/>
@@ -113,7 +113,7 @@
     <div>
       <p class="eyebrow gold">Our story</p>
       <h2 class="d d-lg reveal" style="margin-top:14px;font-size:clamp(2.7rem,4.5vw,4.86rem);line-height:1.02"><span class="rl"><span>Built on quiet</span></span><span class="rl"><span>confidence.</span></span></h2>
-      <p style="margin-top:24px">The vision for Cheops Privé was born from a desire to blend timeless heritage with modern luxury, inspired by the ingenuity and the precision of “Khufu” The Great Pyramid.</p>
+      <p style="margin-top:24px">The vision for Cheops Privé was born from a desire to blend timeless heritage with modern luxury, inspired by the ingenuity and the precision of ancient architecture.</p>
       <p style="margin-top:20px">Cheops Privé brings together exclusivity, precision and innovation to create deeply personal real-estate journeys where ancient heritage meets contemporary sophistication.</p>
       <a class="btn btn-ghost" href="#values" style="margin-top:34px">How we work <span class="ar">→</span></a>
     </div>
@@ -121,17 +121,17 @@
 </section>
 <section class="sec wrap" id="services">
 <p class="eyebrow gold">What we do</p>
-<h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Six ways we work</span></span><span class="rl"><span>with you.</span></span></h2>
-<div class="svc-grid"><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-6h4v6"/></svg></div><h3 class="d">Residential Sales</h3><p>Apartments, villas and penthouses across New Cairo, Mostakbal City and the New Capital.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4z"/><path d="M9 20v-6h6v6"/><path d="M8 3v4M16 3v4"/></svg></div><h3 class="d">Leasing</h3><p>Tenant representation and landlord leasing terms handled end to end.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h9v17"/><path d="M14 9h5v12"/><path d="M8 8h3M8 12h3M8 16h3M17 13h0M17 17h0"/></svg></div><h3 class="d">Offices</h3><p>Full office floors, fitted suites and headquarters buildings in prime business districts.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z"/><path d="M12 10v6M9 13h6"/><path d="M9 6V3h6v3"/></svg></div><h3 class="d">Clinic Suites</h3><p>Licensed medical units in serviced medical towers with parking and patient flow in mind.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1 11H5z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg></div><h3 class="d">Administrative</h3><p>Street retail, mall units and F&B footprints matched to real catchment numbers.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 19v-6M12 19V8M17 19v-9"/><path d="M14 5h5v5"/></svg></div><h3 class="d">Investment Advisory</h3><p>Payment plans, yields and exit timing reviewed with you before you commit.</p></div></div>
+<h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Four ways we work</span></span><span class="rl"><span>with you.</span></span></h2>
+<div class="svc-grid svc-grid-4"><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-6h4v6"/></svg></div><h3 class="d">Acquisitions</h3><p>Curating exceptional villas, townhouses, and distinguished administrative spaces for your office or clinic.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h9v17"/><path d="M14 9h5v12"/><path d="M8 8h3M8 12h3M8 16h3M17 13h0M17 17h0"/></svg></div><h3 class="d">Leasing</h3><p>Premium offices and clinics in prime locations, fully serviced and ready for you.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 9h8M8 12h5"/></svg></div><h3 class="d">Private Consultation</h3><p>A tailored, one-to-one session designed to align your goals with the finest market opportunities.</p></div><div class="svc reveal"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M7 19v-6M12 19V8M17 19v-9"/><path d="M14 5h5v5"/></svg></div><h3 class="d">Income Properties</h3><p>Income-generating assets with tenants already in place, delivering immediate returns from the day of ownership.</p></div></div>
 </section>
 <section class="sec" id="values" style="background:#f7f5f2">
   <div class="wrap">
     <p class="eyebrow gold">How we work</p>
     <h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Three principles,</span></span><span class="rl"><span>no exceptions.</span></span></h2>
     <div class="val-grid">
-      <div class="val reveal"><div class="n">01</div><h3 class="d">Curation before volume</h3><p>Every project is reviewed before it reaches you. If it does not hold up in person, it does not appear here.</p></div>
+      <div class="val reveal"><div class="n">01</div><h3 class="d">Curation before quantity</h3><p>Every project is reviewed before it reaches you. If it does not hold up in person, it does not appear here.</p></div>
       <div class="val reveal"><div class="n">02</div><h3 class="d">Private guidance</h3><p>One advisor from the first shortlist to handover, contracts and leasing terms.</p></div>
-      <div class="val reveal"><div class="n">03</div><h3 class="d">Clarity on numbers</h3><p>Real starting prices, real availability, real payment plans. No pressure, no invented urgency.</p></div>
+      <div class="val reveal"><div class="n">03</div><h3 class="d">Clarity on numbers</h3><p>Real starting prices, real availability, real payment plans. No unnecessary pressure.</p></div>
     </div>
   </div>
 </section>
@@ -161,7 +161,7 @@
     <div class="faq-list" style="margin-top:0;max-width:880px">
       <details class="faq-item reveal">
         <summary>What is Cheops Privé?</summary>
-        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the coast. We focus on clarity and quality, not volume.</p>
+        <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the North Coast. We focus on clarity and quality, not quantity.</p>
       </details>
       <details class="faq-item reveal">
         <summary>Do you charge buyers a commission?</summary>
@@ -195,7 +195,7 @@
 <div class="foot-grid" style="margin-top:56px;border-top:1px solid rgba(255,255,255,.1);padding-top:48px;display:grid;gap:44px">
 <div>
 <img alt="Cheops Privé" src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/c9193073bb12.png' ); ?>" style="height:34px;filter:brightness(0) invert(1)"/>
-<p style="margin-top:22px;max-width:360px;font-size:.792rem;line-height:1.8;opacity:.6">A curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, the New Capital and the coast.</p>
+<p style="margin-top:22px;max-width:360px;font-size:.792rem;line-height:1.8;opacity:.6">A curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, the New Capital and the North Coast.</p>
 <div style="margin-top:28px;display:grid;gap:12px;font-size:.792rem;opacity:.85">
 <a href="<?php echo esc_url( cheops_phone_url() ); ?>"><?php echo esc_html( cheops_phone_display() ); ?></a>
 <a href="<?php echo esc_url( cheops_whatsapp_url() ); ?>" rel="noreferrer" target="_blank">WhatsApp</a>

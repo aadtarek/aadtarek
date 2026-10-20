@@ -158,6 +158,52 @@ add_action('wp_enqueue_scripts', 'cheops_dequeue_unused_core_css', 100);
 remove_action('wp_head', 'print_emoji_detection_script', 7);
 remove_action('wp_print_styles', 'print_emoji_styles');
 
+/* Lake Town clinics are now leased to Serea Clinic (was Guva Clinic): update saved units once. */
+add_action('admin_init', static function () {
+    if (get_option('cheops_serea_rename') === '1' || !current_user_can('edit_posts')) return;
+    foreach (get_posts(['post_type' => 'cheops_unit', 'post_status' => 'any', 'posts_per_page' => -1, 's' => 'Guva']) as $p) {
+        wp_update_post(['ID' => $p->ID, 'post_content' => str_replace('Guva Clinic', 'Serea Clinic', $p->post_content)]);
+    }
+    // Lake Town is offices and clinics, not homes (only fixed if still the old default).
+    foreach (get_posts(['post_type' => 'cheops_project', 'post_status' => 'any', 'posts_per_page' => -1, 'title' => 'LAKE TOWN']) as $p) {
+        if (get_post_meta($p->ID, '_cheops_project_type', true) === 'Apartments & Townhouses') update_post_meta($p->ID, '_cheops_project_type', 'Offices and clinics');
+    }
+    update_option('cheops_serea_rename', '1', false);
+});
+
+/*
+ * One headline style everywhere: display headings (h1/h2 with class "d") end
+ * without a full stop, in English and Arabic alike. Questions and "..." stay.
+ */
+function cheops_headline_style_html($html) {
+    return preg_replace_callback('#(<(h[12])\b[^>]*\bclass="[^"]*\bd\b[^"]*"[^>]*>)(.*?)(</\2>)#is', static function ($m) {
+        $inner = preg_replace('/(?<![.…])[.。](\s*(?:<\/[a-z0-9]+>\s*)*)$/u', '$1', $m[3]);
+        return $m[1] . $inner . $m[4];
+    }, $html);
+}
+
+/* One currency on the site: dollar prices are shown in Egyptian pounds (rate set in the Customizer). */
+function cheops_usd_egp_rate() {
+    $rate = (float) get_theme_mod('cheops_usd_egp_rate', '51');
+    return $rate > 0 ? $rate : 51.0;
+}
+
+function cheops_prices_in_egp($text) {
+    $egp = static function ($amount) { return number_format(round((float) str_replace(',', '', $amount) * cheops_usd_egp_rate())); };
+    $text = preg_replace_callback('/(?:US\$|\$)\s?(\d[\d,]*(?:\.\d+)?)/u', static function ($m) use ($egp) { return 'EGP ' . $egp($m[1]); }, (string) $text);
+    return preg_replace_callback('/(\d[\d,]*(?:\.\d+)?)\s?(?:USD|US dollars?)\b/u', static function ($m) use ($egp) { return $egp($m[1]) . ' EGP'; }, $text);
+}
+
+function cheops_prices_in_egp_html($html) {
+    if (strpos($html, '$') === false && strpos($html, 'USD') === false) return $html;
+    $parts = preg_split('#(<script\b.*?</script>|<style\b.*?</style>|<textarea\b.*?</textarea>|<[^>]*>)#is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
+    if (!is_array($parts)) return $html;
+    foreach ($parts as $i => $part) {
+        if ($i % 2 === 0 && $part !== '') $parts[$i] = cheops_prices_in_egp($part);
+    }
+    return implode('', $parts);
+}
+
 /*
  * No dashes between words on the front end. Theme copy is written without them;
  * this catches data: WordPress turns "Villa - REF" titles into "Villa – REF",
@@ -170,7 +216,9 @@ function cheops_clean_dashes($text) {
 
 function cheops_clean_dashes_html($html) {
     if (stripos($html, '<html') === false) return $html;
+    $html = cheops_prices_in_egp_html($html);
     if (function_exists('cheops_i18n_html')) $html = cheops_i18n_html($html);
+    $html = cheops_headline_style_html($html);
     $parts = preg_split('#(<script\b.*?</script>|<style\b.*?</style>|<textarea\b.*?</textarea>|<[^>]*>)#is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
     if (!is_array($parts)) return $html;
     foreach ($parts as $i => $part) {
@@ -335,6 +383,12 @@ function cheops_customize_register( $wp_customize ) {
         $wp_customize->add_control($id, ['section' => 'cheops_theme_options', 'label' => __($cfg[0], 'cheops-prive'), 'type' => 'text']);
     }
 
+    // Prices quoted in US dollars are shown in Egyptian pounds at this rate.
+    $wp_customize->add_setting('cheops_usd_egp_rate', ['default' => '51', 'sanitize_callback' => static function ($v) { $v = (float) str_replace(',', '', (string) $v); return $v > 0 ? (string) $v : '51'; }]);
+    $wp_customize->add_control('cheops_usd_egp_rate', ['section' => 'cheops_theme_options', 'type' => 'text',
+        'label' => __('Dollar rate (EGP for 1 USD)', 'cheops-prive'),
+        'description' => __('Prices entered in dollars (for example Lake Town rents) are shown in Egyptian pounds using this rate.', 'cheops-prive')]);
+
     // Intro video on the first visit to Home. It covers the page for up to 4 seconds and
     // downloads ~570KB, so switching it off gives a faster first view.
     $wp_customize->add_setting('cheops_intro_video', ['default' => true, 'sanitize_callback' => 'wp_validate_boolean']);
@@ -396,9 +450,15 @@ function cheops_developer_logo_url($n) {
  * logo numbers (10-21, files on the site) or "a<ID>" for logos uploaded to the
  * Media Library from the Customizer.
  */
+/** Developer wordmarks shipped with the theme (replace them with real logos from the Customizer). */
+function cheops_theme_logo_files() {
+    return ['t-ora' => 'ora.svg', 't-emaar' => 'emaar.svg', 't-lmd' => 'lmd.svg', 't-marakez' => 'marakez.svg', 't-w-cairo' => 'w-cairo.svg'];
+}
+
 function cheops_logo_groups() {
     $groups = [];
     foreach (cheops_developer_logo_numbers() as $n) $groups[(string) $n] = 'developer';
+    foreach (array_keys(cheops_theme_logo_files()) as $key) $groups[$key] = 'developer';
     $groups['13'] = $groups['14'] = 'hidden'; // left out of the original band
     // The two Lake Town logos taken out of the developers band earlier are project logos.
     foreach (array_filter(array_map('intval', explode(',', (string) get_theme_mod('cheops_hidden_developer_logos', '')))) as $n) {
@@ -428,12 +488,14 @@ function cheops_logo_upload_id($key) {
 function cheops_logo_url($key) {
     $id = cheops_logo_upload_id($key);
     if ($id) return (string) wp_get_attachment_image_url($id, 'medium');
+    $files = cheops_theme_logo_files();
+    if (isset($files[$key])) return get_template_directory_uri() . '/assets/images/dev-logos/' . $files[$key];
     return cheops_developer_logo_url((int) $key);
 }
 
 function cheops_sanitize_logo_groups($value) {
     $out = [];
-    $builtin = array_map('strval', cheops_developer_logo_numbers());
+    $builtin = array_merge(array_map('strval', cheops_developer_logo_numbers()), array_keys(cheops_theme_logo_files()));
     foreach (explode(',', (string) $value) as $pair) {
         $parts = explode(':', $pair);
         if (count($parts) !== 2 || !in_array($parts[1], ['developer', 'project', 'hidden'], true)) continue;
@@ -1169,7 +1231,7 @@ function cheops_seed_projects_v4() {
     if (get_option('cheops_projects_seeded_v4')) return;
     $rows = [
         ['Mountain View LVLS','New Cairo','Panoramic sea views from a gated community elevated up to +45 meters above sea level.','Villas & Apartments','EGP 7.4M','218','project-lvls.jpg'],
-        ['LAKE TOWN','Shorouk City','A refined destination designed around elevated business and lifestyle experiences.','Apartments & Townhouses','EGP 5.9M','164','project-lake-town.jpg'],
+        ['LAKE TOWN','Shorouk City','A refined destination designed around elevated business and lifestyle experiences.','Offices and clinics','EGP 5.9M','164','project-lake-town.jpg'],
         ['Mountain View Aliva','New Cairo','A city built around interaction, connectivity and being present in every moment.','Penthouses & Duplexes','EGP 11.2M','76','project-aliva.jpg'],
         ['The MarQ Gardens','New Cairo','Where serenity meets sophistication, blending modern living with lush green spaces.','Apartments & Duplexes','EGP 6.3M','142','project-marq-gardens.jpg'],
     ];
@@ -1995,10 +2057,10 @@ add_action('wp_ajax_nopriv_cheops_newsletter_signup', 'cheops_handle_newsletter_
 function cheops_lake_town_units_data() {
     return [
     [ 'number'=>'A-321', 'type'=>'clinic', 'status'=>'available', 'purpose'=>'sale', 'badge'=>'Available', 'area'=>'62', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 240,000 / sqm', 'maintenance'=>'EGP 620,000', 'purpose_text'=>'For Sale' ],
-    [ 'number'=>'A-322', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Guva Clinic', 'area'=>'63', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 630,000', 'purpose_text'=>'Sale / Income Property' ],
-    [ 'number'=>'A-323', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Guva Clinic', 'area'=>'63', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 630,000', 'purpose_text'=>'Sale / Income Property' ],
-    [ 'number'=>'A-324', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Guva Clinic', 'area'=>'64', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 640,000', 'purpose_text'=>'Sale / Income Property' ],
-    [ 'number'=>'A-325', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Guva Clinic', 'area'=>'64', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 640,000', 'purpose_text'=>'Sale / Income Property' ],
+    [ 'number'=>'A-322', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Serea Clinic', 'area'=>'63', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 630,000', 'purpose_text'=>'Sale / Income Property' ],
+    [ 'number'=>'A-323', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Serea Clinic', 'area'=>'63', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 630,000', 'purpose_text'=>'Sale / Income Property' ],
+    [ 'number'=>'A-324', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Serea Clinic', 'area'=>'64', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 640,000', 'purpose_text'=>'Sale / Income Property' ],
+    [ 'number'=>'A-325', 'type'=>'clinic', 'status'=>'leased', 'purpose'=>'sale', 'badge'=>'Leased — Serea Clinic', 'area'=>'64', 'view'=>'Monorail/Plaza', 'price_text'=>'EGP 250,000 / sqm', 'maintenance'=>'EGP 640,000', 'purpose_text'=>'Sale / Income Property' ],
     [ 'number'=>'C-301', 'type'=>'office', 'status'=>'available', 'purpose'=>'rent', 'badge'=>'Available', 'area'=>'189', 'view'=>'Monorail/Plaza', 'price_text'=>'$29.50 / sqm', 'maintenance'=>'', 'purpose_text'=>'For Rent' ],
     [ 'number'=>'C-302', 'type'=>'office', 'status'=>'leased', 'purpose'=>'rent', 'badge'=>'Leased — SIG Group IMEA', 'area'=>'151', 'view'=>'Monorail/Plaza', 'price_text'=>'', 'maintenance'=>'', 'purpose_text'=>'' ],
     [ 'number'=>'C-303', 'type'=>'office', 'status'=>'leased', 'purpose'=>'rent', 'badge'=>'Leased — SIG Group IMEA', 'area'=>'151', 'view'=>'Monorail/Plaza', 'price_text'=>'', 'maintenance'=>'', 'purpose_text'=>'' ],

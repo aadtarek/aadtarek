@@ -41,7 +41,7 @@ function cheops_service_pages() {
             'help_title'  => 'Leasing, handled from both sides.',
             'help'        => [
                 ['For tenants', 'Offices, clinics and residences shortlisted by size, budget, fit-out and location, with viewings arranged around your schedule.'],
-                ['For owners', 'A rent price grounded in current demand and a qualified tenant. Our Lake Town listings include offices and clinics leased to businesses such as Guva Clinic, SIG Group IMEA and City Edge.'],
+                ['For owners', 'A rent price grounded in current demand and a qualified tenant. Our Lake Town listings include offices and clinics leased to businesses such as Serea Clinic, SIG Group IMEA and City Edge.'],
                 ['Clear lease terms', 'Rent, annual increases, deposit, duration and fit-out responsibilities agreed in writing before anyone signs.'],
             ],
             'handle_title' => 'Everything between the viewing and the keys.',
@@ -63,7 +63,7 @@ function cheops_service_pages() {
             'primary'     => ['Build an income brief', '/contact/'],
             'help_title'  => 'Income, seen in full.',
             'help'        => [
-                ['Already leased', 'Units with a tenant in place, such as Lake Town clinics leased to Guva Clinic, so income starts from the day you own them.'],
+                ['Already leased', 'Units with a tenant in place, such as Lake Town clinics leased to Serea Clinic, so income starts from the day you own them.'],
                 ['Net, not gross', 'Maintenance, service charges and realistic vacancy are deducted before we quote a return.'],
                 ['An exit in mind', 'We look at who will buy the unit later and whether the tenancy adds to its resale value.'],
             ],

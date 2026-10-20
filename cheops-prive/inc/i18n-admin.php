@@ -43,7 +43,7 @@ function cheops_site_content_page() {
     $ar_home = cheops_url_in_lang(home_url('/'), 'ar');
     ?>
     <div class="wrap cheops-sc">
-      <h1>Site Content <small style="font-size:12px;font-weight:400;color:#787c82">Theme build 2026-10-11 · Arabic font v3</small></h1>
+      <h1>Site Content <small style="font-size:12px;font-weight:400;color:#787c82">Theme build 2026-10-20 · Arabic copy v2</small></h1>
       <p class="cheops-sc-intro">Every text on the website in <strong>English</strong> and <strong>Arabic</strong>. Change a text and press <strong>Save changes</strong>. The English column changes the English site; the Arabic column changes the Arabic site (<a href="<?php echo esc_url($ar_home); ?>" target="_blank" rel="noopener"><?php echo esc_html($ar_home); ?></a>). Leave a box as it is to keep the current text. For a heading shown on two lines, put each line on its own line.</p>
       <?php if (isset($_GET['saved'])) : ?><div class="notice notice-success is-dismissible"><p>Saved. The website shows the new texts now.</p></div><?php endif; ?>
       <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="cheopsScForm">
@@ -210,12 +210,22 @@ add_action('save_post_post', static function ($post_id) {
     update_post_meta($post_id, '_cheops_ar_content', wp_kses_post(wp_unslash($_POST['cheops_ar_content'] ?? '')));
 });
 
-/* Fill the Arabic boxes of existing articles once, from the theme dictionary. */
+/*
+ * Fill the Arabic boxes of existing articles from the theme dictionary.
+ * Version 2 brings the revised Arabic copy; an article whose Arabic was
+ * edited in the dashboard (its text no longer matches the first fill) is left alone.
+ */
+function cheops_ar_article_first_fill_hashes() {
+    return ['9ba9ab6aa89debc0aa09b0f423ab3e86', '5fcc5945bb8c2f4744bec5a3c0f8bcf3', '0d4764e1cb7f554f7825b1eb683bcb96', '5d69557407ba387f1682d23d0498f1e7', '44333f4e4793f7ae34495c805115c344', '8f8c2e5493c36ad54fa3357177bd50bf'];
+}
+
 add_action('admin_init', static function () {
-    if (get_option('cheops_ar_articles_seeded') === '1' || !current_user_can('edit_posts')) return;
+    if (get_option('cheops_ar_articles_seeded') === '2' || !current_user_can('edit_posts')) return;
     $posts = get_posts(['post_type' => 'post', 'post_status' => 'any', 'posts_per_page' => -1]);
     foreach ($posts as $p) {
-        if (cheops_post_ar($p->ID, 'content') !== '') continue;
+        $current = cheops_post_ar($p->ID, 'content');
+        $hash = md5(cheops_post_ar($p->ID, 'title') . '|' . cheops_post_ar($p->ID, 'excerpt') . '|' . $current);
+        if ($current !== '' && !in_array($hash, cheops_ar_article_first_fill_hashes(), true)) continue;
         $GLOBALS['cheops_force_lang'] = 'ar';
         $title = cheops_i18n_lookup($p->post_title, false);
         $excerpt = $p->post_excerpt !== '' ? cheops_i18n_lookup($p->post_excerpt, false) : null;
@@ -226,5 +236,5 @@ add_action('admin_init', static function () {
         if ($excerpt !== null) update_post_meta($p->ID, '_cheops_ar_excerpt', $excerpt);
         update_post_meta($p->ID, '_cheops_ar_content', $content);
     }
-    update_option('cheops_ar_articles_seeded', '1', false);
+    update_option('cheops_ar_articles_seeded', '2', false);
 }, 40);
