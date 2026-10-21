@@ -494,7 +494,9 @@ function rfaheya_media_field( $id, $name, $attachment_id, $type = 'image' ) {
 	if ( $attachment_id ) {
 		$preview = 'video' === $type
 			? '<video src="' . esc_url( (string) wp_get_attachment_url( $attachment_id ) ) . '" muted playsinline></video>'
-			: wp_get_attachment_image( $attachment_id, 'medium' );
+			: ( 'image/svg+xml' === get_post_mime_type( $attachment_id )
+				? '<img src="' . esc_url( rfaheya_image_url( $attachment_id ) ) . '" alt="">'
+				: wp_get_attachment_image( $attachment_id, 'medium' ) );
 	}
 	printf(
 		'<div class="rf-media" data-type="%1$s"><input type="hidden" id="%2$s" name="%3$s" value="%4$s"><div class="rf-media-preview" id="%2$s-preview">%5$s</div><button type="button" class="button rfaheya-media" data-target="%2$s" data-type="%1$s">%6$s</button> <button type="button" class="button-link rfaheya-media-clear" data-target="%2$s">Remove</button></div>',
@@ -783,8 +785,15 @@ add_action(
 
 /** Icon URL of a note term ('' when none). */
 function rfaheya_note_icon( $term_id ) {
-	$id = (int) get_term_meta( $term_id, 'rfaheya_icon', true );
-	return $id ? (string) wp_get_attachment_image_url( $id, 'medium' ) : '';
+	return rfaheya_image_url( (int) get_term_meta( $term_id, 'rfaheya_icon', true ) );
+}
+
+/** URL of an image attachment: the medium size, or the file itself for an SVG ('' when none). */
+function rfaheya_image_url( $id ) {
+	if ( ! $id ) {
+		return '';
+	}
+	return 'image/svg+xml' === get_post_mime_type( $id ) ? (string) wp_get_attachment_url( $id ) : (string) wp_get_attachment_image_url( $id, 'medium' );
 }
 
 /** Every note in the library: name and icon. */
@@ -813,7 +822,7 @@ add_action(
 	function () {
 		echo '<div class="form-field"><label>Icon</label>';
 		rfaheya_media_field( 'rfaheya-note-icon', 'rfaheya_icon', 0 );
-		echo '<p>A transparent PNG works best (about 200 × 200).</p></div>';
+		echo '<p>An SVG or a transparent PNG (about 200 × 200) works best.</p></div>';
 	}
 );
 add_action(
@@ -821,7 +830,7 @@ add_action(
 	function ( $term ) {
 		echo '<tr class="form-field"><th scope="row"><label>Icon</label></th><td>';
 		rfaheya_media_field( 'rfaheya-note-icon', 'rfaheya_icon', get_term_meta( $term->term_id, 'rfaheya_icon', true ) );
-		echo '<p class="description">A transparent PNG works best (about 200 × 200).</p></td></tr>';
+		echo '<p class="description">An SVG or a transparent PNG (about 200 × 200) works best.</p></td></tr>';
 	}
 );
 $rfaheya_save_note = function ( $term_id ) {
@@ -2961,4 +2970,130 @@ function rfaheya_points_profile_save( $user_id ) {
 }
 add_action( 'personal_options_update', 'rfaheya_points_profile_save' );
 add_action( 'edit_user_profile_update', 'rfaheya_points_profile_save' );
+
+// ==================================================================== SVG uploads
+
+/** Who may upload SVG files (note icons etc.): administrators and shop managers. */
+function rfaheya_can_upload_svg() {
+	return current_user_can( 'manage_options' ) || current_user_can( 'manage_woocommerce' );
+}
+
+add_filter(
+	'upload_mimes',
+	function ( $mimes ) {
+		if ( rfaheya_can_upload_svg() ) {
+			$mimes['svg'] = 'image/svg+xml';
+		}
+		return $mimes;
+	}
+);
+
+// PHP reports SVG files under several types (or none); WordPress needs them to match.
+add_filter(
+	'wp_check_filetype_and_ext',
+	function ( $data, $file, $filename ) {
+		if ( 'svg' === strtolower( pathinfo( (string) $filename, PATHINFO_EXTENSION ) ) && rfaheya_can_upload_svg() ) {
+			$data['ext']  = 'svg';
+			$data['type'] = 'image/svg+xml';
+		}
+		return $data;
+	},
+	10,
+	3
+);
+
+/**
+ * Removes anything that can run code from an SVG (scripts, event handlers, external
+ * links, embedded HTML). Returns the cleaned markup, or false when it isn't a valid SVG.
+ */
+function rfaheya_sanitize_svg( $svg ) {
+	// No DTDs or entities (they can read files or expand without end).
+	if ( ! is_string( $svg ) || '' === trim( $svg ) || preg_match( '/<!(DOCTYPE|ENTITY)/i', $svg ) ) {
+		return false;
+	}
+	$dom      = new DOMDocument();
+	$previous = libxml_use_internal_errors( true );
+	$loaded   = $dom->loadXML( $svg, LIBXML_NONET );
+	libxml_clear_errors();
+	libxml_use_internal_errors( $previous );
+	if ( ! $loaded || ! $dom->documentElement || 'svg' !== strtolower( $dom->documentElement->localName ) ) {
+		return false;
+	}
+	$blocked = array( 'script', 'foreignobject', 'iframe', 'object', 'embed', 'handler', 'listener', 'set', 'audio', 'video', 'canvas', 'base', 'link', 'meta' );
+	$xpath   = new DOMXPath( $dom );
+	foreach ( iterator_to_array( $xpath->query( '//*' ) ) as $node ) {
+		$tag = strtolower( $node->localName );
+		if ( in_array( $tag, $blocked, true ) ) {
+			$node->parentNode->removeChild( $node );
+			continue;
+		}
+		// Animations that would write a link (or script) into another attribute.
+		if ( in_array( $tag, array( 'animate', 'animatemotion', 'animatetransform' ), true ) && preg_match( '/href|javascript:/i', implode( ' ', array( $node->getAttribute( 'attributeName' ), $node->getAttribute( 'values' ), $node->getAttribute( 'to' ), $node->getAttribute( 'from' ), $node->getAttribute( 'by' ) ) ) ) ) {
+			$node->parentNode->removeChild( $node );
+			continue;
+		}
+		if ( 'style' === $tag && preg_match( '/@import|javascript:|expression\s*\(|url\s*\(\s*[\'"]?\s*(?!#)/i', $node->textContent ) ) {
+			$node->parentNode->removeChild( $node );
+			continue;
+		}
+		foreach ( iterator_to_array( $node->attributes ) as $attribute ) {
+			$name  = strtolower( $attribute->nodeName );
+			$value = trim( preg_replace( '/[\x00-\x20]+/', '', $attribute->nodeValue ) );
+			$bad   = 0 === strpos( $name, 'on' )
+				|| ( in_array( $name, array( 'href', 'xlink:href', 'src' ), true ) && '' !== $value && '#' !== $value[0] && ! preg_match( '#^data:image/(png|jpe?g|gif|webp);base64,#i', $value ) )
+				|| ( 'attributename' === $name && preg_match( '/href/i', $value ) )
+				|| ( 'style' === $name && preg_match( '/javascript:|expression\(|@import|url\((?!#)/i', $value ) );
+			if ( $bad ) {
+				$node->removeAttributeNode( $attribute );
+			}
+		}
+	}
+	return $dom->saveXML( $dom->documentElement );
+}
+
+// Clean every uploaded SVG before it is stored; refuse files that aren't valid SVG.
+add_filter(
+	'wp_handle_upload_prefilter',
+	function ( $file ) {
+		if ( empty( $file['tmp_name'] ) || 'svg' !== strtolower( pathinfo( (string) $file['name'], PATHINFO_EXTENSION ) ) ) {
+			return $file;
+		}
+		if ( ! rfaheya_can_upload_svg() ) {
+			$file['error'] = 'Only administrators and shop managers can upload SVG files.';
+			return $file;
+		}
+		$clean = rfaheya_sanitize_svg( (string) file_get_contents( $file['tmp_name'] ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( false === $clean ) {
+			$file['error'] = 'This SVG file could not be read (or contains a DOCTYPE). Please export it again as a plain SVG.';
+			return $file;
+		}
+		file_put_contents( $file['tmp_name'], $clean ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		return $file;
+	}
+);
+
+// Show SVGs as images in the media library and pickers.
+add_filter(
+	'wp_prepare_attachment_for_js',
+	function ( $response, $attachment ) {
+		if ( 'image/svg+xml' === $response['mime'] ) {
+			$url               = wp_get_attachment_url( $attachment->ID );
+			$size              = array(
+				'url'         => $url,
+				'width'       => 200,
+				'height'      => 200,
+				'orientation' => 'landscape',
+			);
+			$response['sizes'] = array(
+				'full'      => $size,
+				'medium'    => $size,
+				'thumbnail' => $size,
+			);
+			$response['image'] = array( 'src' => $url );
+		}
+		return $response;
+	},
+	10,
+	2
+);
 

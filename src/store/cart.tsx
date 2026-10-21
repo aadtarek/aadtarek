@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { findByVariationId, findProductById } from '../api/catalog'
+import { findByVariationId, findProductById, useCatalogVersion } from '../api/catalog'
 import { isWoo, money, storeApi } from '../api/wp'
 import { bundleDiscount } from '../config'
 import { usePersistentState } from '../lib/storage'
@@ -99,6 +99,8 @@ function useLocalCart(): Backend {
       : undefined,
   )
 
+  // Recomputed when the catalogue arrives: the saved cart can be read before the products load.
+  const catalog = useCatalogVersion()
   const lines = useMemo(
     () =>
       items.flatMap((item): CartLine[] => {
@@ -107,7 +109,8 @@ function useLocalCart(): Backend {
         if (!product || !variation) return []
         return [{ ...item, product, variation, lineTotal: variation.price * item.quantity }]
       }),
-    [items],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, catalog],
   )
 
   return {
@@ -173,6 +176,8 @@ function useWooCart(): Backend {
     if (Object.keys(gifts).some((k) => !keys.has(k))) setGifts((g) => Object.fromEntries(Object.entries(g).filter(([k]) => keys.has(k))))
   }, [cart, gifts, setGifts])
 
+  // Recomputed when the catalogue arrives: the server cart can come back before the products.
+  const catalog = useCatalogVersion()
   const lines = useMemo(
     () =>
       (cart?.items ?? []).flatMap((item): CartLine[] => {
@@ -191,7 +196,8 @@ function useWooCart(): Backend {
           },
         ]
       }),
-    [cart, gifts],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [cart, gifts, catalog],
   )
 
   return {
