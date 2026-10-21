@@ -402,7 +402,7 @@ function Gallery({ product, videos, onVideo }: { product: Product; videos: numbe
                   type="button"
                   onClick={onVideo}
                   aria-label="Play video"
-                  className="relative block aspect-[96/100] w-full overflow-hidden rounded-[6px] bg-ink"
+                  className="relative block aspect-[5/4] w-full overflow-hidden rounded-[6px] bg-ink"
                 >
                   <img src={images[0].src} alt="" className="size-full object-cover opacity-45" />
                   <span className="absolute inset-0 grid place-items-center">
@@ -419,7 +419,7 @@ function Gallery({ product, videos, onVideo }: { product: Product; videos: numbe
                   onClick={() => show(t.i)}
                   aria-label={`Show image ${t.i + 1}`}
                   aria-current={t.i === index}
-                  className={`block aspect-[96/100] w-full overflow-hidden rounded-[6px] border-2 transition ${t.i === index ? 'border-ink' : 'border-transparent opacity-80 hover:opacity-100'}`}
+                  className={`block aspect-[5/4] w-full overflow-hidden rounded-[6px] border-2 transition ${t.i === index ? 'border-ink' : 'border-transparent opacity-80 hover:opacity-100'}`}
                 >
                   <img src={images[t.i].src} alt="" className="size-full object-cover" />
                 </button>
@@ -456,13 +456,13 @@ function Gallery({ product, videos, onVideo }: { product: Product; videos: numbe
                 src={img.src}
                 srcSet={img.srcset}
                 sizes="(min-width: 1024px) 45vw, 100vw"
-                width={700}
-                height={840}
+                width={2000}
+                height={1600}
                 alt={img.alt}
                 fetchPriority={i === 0 ? 'high' : undefined}
                 loading={i === 0 ? undefined : 'lazy'}
                 draggable={false}
-                className="aspect-[4/3] w-full shrink-0 snap-center object-cover lg:aspect-[700/840]"
+                className="aspect-[5/4] w-full shrink-0 snap-center object-cover"
               />
             ))}
           </div>
