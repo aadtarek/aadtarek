@@ -1355,56 +1355,70 @@ section[aria-labelledby="best-sellers-title"]
   animation: rf-line-in 0.5s var(--rf-ease-soft);
 }
 
-/* Product card (ProductCard.tsx) */
+/* Product card (ProductCard.tsx): pastel colour from the fragrance family */
 .rf-pcard {
+  background: var(--tint);
   transition:
     transform 0.6s var(--rf-ease-soft),
-    box-shadow 0.6s var(--rf-ease-soft),
-    --tw-ring-color 0.4s;
+    box-shadow 0.6s var(--rf-ease-soft);
 }
-.rf-pcard-alt,
-.rf-pcard-shade {
+.rf-pcard-ink {
+  color: var(--tint-ink);
+}
+.rf-pcard-chip {
+  background: rgb(255 255 255 / 0.7);
+}
+.rf-pcard-bar > div {
+  background: #fff;
+}
+.rf-pcard-pill {
+  background: var(--tint);
+}
+.rf-pcard-alt {
   opacity: 0;
   transition: opacity 0.8s var(--rf-ease-soft);
 }
-.rf-pcard-note {
+.rf-pcard-chip img {
   transition: transform 0.5s var(--rf-spring);
+}
+.rf-pcard-chip:hover img {
+  transform: rotate(-10deg) scale(1.2);
+}
+/* Dark theme: the same colours, deepened */
+:root.dark .rf-pcard {
+  background: color-mix(in srgb, var(--tint) 18%, var(--color-card));
+}
+:root.dark .rf-pcard-ink {
+  color: var(--tint);
+}
+:root.dark .rf-pcard-chip {
+  background: rgb(255 255 255 / 0.07);
+}
+:root.dark .rf-pcard-bar > div {
+  background: var(--color-cream);
+}
+:root.dark .rf-pcard-pill {
+  background: color-mix(in srgb, var(--tint) 22%, transparent);
 }
 @media (hover: hover) and (pointer: fine) {
   .rf-pcard:hover {
     transform: translateY(-5px);
-    box-shadow: 0 34px 60px -34px rgb(16 14 11 / 0.5);
-    --tw-ring-color: color-mix(in srgb, var(--color-olive) 55%, transparent);
+    box-shadow: 0 30px 55px -32px rgb(16 14 11 / 0.45);
   }
   .rf-pcard:hover .rf-pcard-alt {
     opacity: 1;
   }
-  .rf-pcard:hover .rf-pcard-shade {
-    opacity: 1;
-  }
   .rf-pcard-qv {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px) scale(0.9);
     transition:
-      opacity 0.45s var(--rf-ease-soft),
-      transform 0.55s var(--rf-spring),
+      opacity 0.4s var(--rf-ease-soft),
+      transform 0.5s var(--rf-spring),
       background-color 0.3s;
   }
   .rf-pcard:hover .rf-pcard-qv,
   .rf-pcard-qv:focus-visible {
     opacity: 1;
     transform: none;
-  }
-  .rf-pcard:hover .rf-pcard-note:nth-child(2) {
-    transform: translateX(2px) translateY(-2px);
-  }
-  .rf-pcard:hover .rf-pcard-note:nth-child(3) {
-    transform: translateX(4px);
-  }
-  .rf-pcard:hover .rf-pcard-note:nth-child(4) {
-    transform: translateX(6px) translateY(-2px);
-  }
-  .rf-pcard:hover .rf-pcard-note:first-child {
-    transform: translateY(-2px);
   }
 }
