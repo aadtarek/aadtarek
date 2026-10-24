@@ -2,10 +2,11 @@ import { Gift, Handbag, Trash2, X } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { isGiftBoxProduct } from '../api/catalog'
+import { SPEND_OFFER } from '../config'
 import { formatPrice } from '../lib/format'
 import { useCart } from '../store/cart'
 import { useRewards } from '../store/rewards'
-import { FreeShippingBar } from './FreeShippingBar'
+import { OfferBar } from './OfferBar'
 import { Overlay } from './Overlay'
 import { QuantityInput } from './QuantityInput'
 
@@ -66,7 +67,7 @@ export function CartDrawer() {
             </div>
           ) : (
             <>
-              <FreeShippingBar amount={cart.subtotal - cart.discount} className="border-b border-line px-5 py-4" />
+              <OfferBar amount={cart.subtotal - cart.discount} className="border-b border-line px-5 pt-4" />
 
               <ul className="flex-1 divide-y divide-line overflow-y-auto px-5">
                 {cart.lines.map((line, i) => (
@@ -120,6 +121,12 @@ export function CartDrawer() {
                     <span>−{formatPrice(cart.discount)}</span>
                   </div>
                 )}
+                {cart.offerDiscount > 0 && (
+                  <div className="mb-1.5 flex items-center justify-between text-[14px] font-medium text-gold">
+                    <span>{SPEND_OFFER.percent}% off over {formatPrice(SPEND_OFFER.min)}</span>
+                    <span>−{formatPrice(cart.offerDiscount)}</span>
+                  </div>
+                )}
                 {rewards.coupons.map((c) => (
                   <div key={c.code} className="mb-1.5 flex items-center justify-between text-[14px] text-olive">
                     <span>{c.label}</span>
@@ -128,8 +135,8 @@ export function CartDrawer() {
                 ))}
                 <div className="flex items-center justify-between">
                   <span className="text-[13px] tracking-[0.1em] uppercase">Subtotal</span>
-                  <span key={cart.subtotal - cart.discount - rewards.couponTotal} className="rf-num-pop text-lg font-semibold">
-                    {formatPrice(Math.max(0, cart.subtotal - cart.discount - rewards.couponTotal))}
+                  <span key={cart.subtotal - cart.discount - cart.offerDiscount - rewards.couponTotal} className="rf-num-pop text-lg font-semibold">
+                    {formatPrice(Math.max(0, cart.subtotal - cart.discount - cart.offerDiscount - rewards.couponTotal))}
                   </span>
                 </div>
                 <p className="mt-1 text-[12px] text-muted">Shipping calculated at checkout.</p>

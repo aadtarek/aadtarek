@@ -125,7 +125,7 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
 
   const wooCart = cart.woo?.cart ?? null
   const applyWoo = cart.woo?.apply
-  const merchandise = cart.subtotal - cart.discount
+  const merchandise = cart.subtotal - cart.discount - cart.offerDiscount
 
   const coupons: AppliedCoupon[] = useMemo(() => {
     if (isWoo) {

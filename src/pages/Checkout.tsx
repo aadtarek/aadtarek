@@ -4,10 +4,10 @@ import { Link } from 'react-router-dom'
 import { PAYMENT_LABELS, placeWooOrder, updateCustomer } from '../api/checkout'
 import { isWoo, money } from '../api/wp'
 import { Field, TextInput, inputClass } from '../components/Field'
-import { FreeShippingBar } from '../components/FreeShippingBar'
+import { OfferBar } from '../components/OfferBar'
 import { PointsPanel } from '../components/PointsPanel'
 import { PageHeader } from '../components/PageHeader'
-import { CONTACT, GOVERNORATES, shippingCost } from '../config'
+import { CONTACT, GOVERNORATES, SPEND_OFFER, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
 import { confetti, haptic } from '../lib/fx'
 import { useAccount } from '../store/account'
@@ -76,8 +76,9 @@ export function Checkout() {
   const minor = wooCart?.totals.currency_minor_unit ?? 2
   const subtotal = wooCart ? money(wooCart.totals.total_items, minor) : cart.subtotal
   const discount = cart.discount
+  const offerDiscount = cart.offerDiscount
   const shipping = wooCart ? money(wooCart.totals.total_shipping ?? '0', minor) : shippingCost(cart.subtotal - discount, address.governorate)
-  const total = wooCart ? money(wooCart.totals.total_price, minor) : Math.max(0, subtotal - discount - rewards.couponTotal) + shipping
+  const total = wooCart ? money(wooCart.totals.total_price, minor) : Math.max(0, subtotal - discount - offerDiscount - rewards.couponTotal) + shipping
 
   // Signed in: fill in the customer's details (orders are linked to the account by email).
   const { me } = rewards
@@ -277,7 +278,7 @@ export function Checkout() {
 
         <aside className="h-fit rounded-lg bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)] lg:sticky lg:top-24">
           <h2 className="text-[13px] font-semibold tracking-[0.14em] uppercase">Order summary</h2>
-          <FreeShippingBar amount={subtotal - discount} className="mt-4 rounded-xl bg-chip px-3.5 py-3" />
+          <OfferBar amount={subtotal - discount} className="mt-4 rounded-xl bg-chip px-3.5 pt-3 [--rf-offer-ring:var(--color-chip)]" />
           <ul className="mt-4 divide-y divide-line">
             {cart.lines.map((l) => (
               <li key={l.key} className="flex items-center gap-3 py-3">
@@ -305,6 +306,14 @@ export function Checkout() {
               <div className="flex justify-between text-mocha">
                 <dt>Bundle discount</dt>
                 <dd>−{formatPrice(discount)}</dd>
+              </div>
+            )}
+            {offerDiscount > 0 && (
+              <div className="flex justify-between font-medium text-gold">
+                <dt>
+                  {SPEND_OFFER.percent}% off over {formatPrice(SPEND_OFFER.min)}
+                </dt>
+                <dd>−{formatPrice(offerDiscount)}</dd>
               </div>
             )}
             {rewards.coupons.map((c) => (

@@ -7,6 +7,17 @@ export const FREE_SHIPPING = { enabled: true, min: 1200 }
 export const FREE_SHIPPING_THRESHOLD = FREE_SHIPPING.min
 export const FREE_SHIPPING_GOVERNORATES = ['Cairo', 'Alexandria']
 export const FLAT_SHIPPING_RATE = 70
+/**
+ * Spend more, save more: from `min` the order gets `percent` off and ships free anywhere.
+ * With WordPress: Settings → Rfaheya Store → Free shipping & offers (applied in the WooCommerce cart).
+ */
+export const SPEND_OFFER = { enabled: true, min: 2500, percent: 20 }
+
+/** The spend-more discount for an amount (after the bundle discount, before coupons). */
+export function spendDiscount(amount: number) {
+  if (!SPEND_OFFER.enabled || SPEND_OFFER.min <= 0 || amount < SPEND_OFFER.min) return 0
+  return Math.round((amount * SPEND_OFFER.percent) / 100)
+}
 
 /** Defaults; with WordPress connected these are overridden from Settings → Rfaheya Store. */
 const DEFAULT_SOCIAL_LINKS = {
@@ -164,6 +175,9 @@ export function applyStoreSettings(settings: StoreSettings) {
   if (f) {
     if (typeof f.freeShipping === 'boolean') FREE_SHIPPING.enabled = f.freeShipping
     if (Number(f.freeMin) > 0) FREE_SHIPPING.min = Number(f.freeMin)
+    if (typeof f.offer === 'boolean') SPEND_OFFER.enabled = f.offer
+    if (Number(f.offerMin) > 0) SPEND_OFFER.min = Number(f.offerMin)
+    if (Number(f.offerPercent) > 0) SPEND_OFFER.percent = Math.min(100, Number(f.offerPercent))
   }
 }
 
@@ -200,5 +214,6 @@ export const GOVERNORATES = [
 export function shippingCost(subtotal: number, governorate: string): number {
   if (subtotal === 0) return 0
   if (FREE_SHIPPING.enabled && FREE_SHIPPING_GOVERNORATES.includes(governorate) && subtotal >= FREE_SHIPPING.min) return 0
+  if (spendDiscount(subtotal) > 0) return 0
   return FLAT_SHIPPING_RATE
 }

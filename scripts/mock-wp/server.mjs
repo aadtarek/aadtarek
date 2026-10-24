@@ -175,7 +175,7 @@ function shippingRates(s, subtotal) {
   if (!state) return []
   if (state === 'EGWAD') return [] // "we don't deliver here" zone
   const rates = []
-  if ((state === 'EGC' || state === 'EGALX') && subtotal >= 100000) rates.push({ rate_id: 'free_shipping:1', name: 'Free shipping', price: '0' })
+  if (subtotal >= 250000 || ((state === 'EGC' || state === 'EGALX') && subtotal >= 100000)) rates.push({ rate_id: 'free_shipping:1', name: 'Free shipping', price: '0' })
   else rates.push({ rate_id: 'flat_rate:2', name: 'Flat rate', price: '7000' })
   return rates.map((r, i) => ({ ...r, selected: i === 0, currency_minor_unit: 2, currency_code: 'EGP' }))
 }
@@ -189,17 +189,22 @@ function cartJson(s) {
   const subtotal = items.reduce((n, i) => n + Number(i.totals.line_subtotal), 0)
   const rates = shippingRates(s, subtotal)
   const shipping = items.length && rates.length ? Number(rates[0].price) : 0
+  // Spend-more offer (rfaheya.php defaults): 20% off from 2,500 EGP.
+  const offer = subtotal >= 250000 ? Math.round(subtotal * 0.2) : 0
+  const fees = offer ? [{ id: '20-off-orders-over-2500-egp', name: '20% off orders over 2,500 EGP', totals: { total: String(-offer), total_tax: '0', currency_minor_unit: 2 } }] : []
   return {
     items,
     items_count: items.reduce((n, i) => n + i.quantity, 0),
     needs_shipping: items.length > 0,
     payment_methods: ['cod', 'bacs'],
     shipping_rates: items.length ? [{ package_id: 0, shipping_rates: rates }] : [],
+    fees,
     totals: {
       total_items: String(subtotal),
+      total_fees: String(-offer),
       total_shipping: items.length && s.address.state ? String(shipping) : null,
       total_discount: '0',
-      total_price: String(subtotal + shipping),
+      total_price: String(subtotal - offer + shipping),
       currency_code: 'EGP',
       currency_minor_unit: 2,
     },

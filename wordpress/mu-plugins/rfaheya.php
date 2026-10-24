@@ -70,6 +70,9 @@ function rfaheya_fields() {
 		'shipping' => array(
 			'free_enabled' => array( 'Free shipping in Cairo & Alexandria (and the bar on the product page, cart and checkout)', 'yes', 'yesno' ),
 			'free_min'     => array( 'Free shipping from (EGP)', '1200', 'text' ),
+			'offer_enabled' => array( 'Spend more, save more: a discount plus free shipping (anywhere) from a higher amount, shown on the same bar', 'yes', 'yesno' ),
+			'offer_min'     => array( 'Discount + free shipping from (EGP)', '2500', 'text' ),
+			'offer_percent' => array( 'Discount (%)', '20', 'text' ),
 		),
 	);
 }
@@ -81,7 +84,7 @@ function rfaheya_group_title( $group ) {
 		'home'    => 'Home page (empty fields keep the storefront’s built-in text)',
 		'bundle'  => 'Bundle (home page “Build your trio”; the discount is applied in the cart)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
-		'shipping' => 'Free shipping (applied to the WooCommerce shipping rates at checkout)',
+		'shipping' => 'Free shipping & spend-more offer (the bar on the product page, cart and checkout; applied in the WooCommerce cart and shipping rates)',
 		'gift'     => 'Gift boxes (customers fill a box with any fragrances; a hidden “Gift box” product carries the packaging price)',
 		'loyalty'  => 'Loyalty points & welcome discount (points are added when an order is marked Completed; a customer’s points can be changed on their user profile)',
 	);
@@ -1098,6 +1101,9 @@ function rfaheya_settings_data() {
 			'shipping'     => array(
 				'freeShipping' => 'no' !== $o['shipping']['free_enabled'],
 				'freeMin'      => (float) $o['shipping']['free_min'],
+				'offer'        => 'no' !== $o['shipping']['offer_enabled'],
+				'offerMin'     => (float) $o['shipping']['offer_min'],
+				'offerPercent' => (float) $o['shipping']['offer_percent'],
 			),
 			'currency'     => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'EGP',
 		);
@@ -2473,6 +2479,26 @@ function rfaheya_bundle_discount( $cart ) {
 	return $discount;
 }
 
+/** The cart's merchandise before coupons, after the bundle discount (what the offers bar measures). */
+function rfaheya_offer_base( $cart ) {
+	$amount = 0.0;
+	foreach ( $cart->get_cart() as $item ) {
+		$amount += isset( $item['line_subtotal'] ) ? (float) $item['line_subtotal'] : 0;
+	}
+	return max( 0, $amount - rfaheya_bundle_discount( $cart ) );
+}
+
+/** Spend more, save more (Settings → Rfaheya Store): the discount for an amount, 0 below the minimum. */
+function rfaheya_offer_discount( $amount ) {
+	$o       = rfaheya_options()['shipping'];
+	$min     = (float) $o['offer_min'];
+	$percent = min( 100, max( 0, (float) $o['offer_percent'] ) );
+	if ( 'no' === $o['offer_enabled'] || $min <= 0 || $percent <= 0 || $amount < $min ) {
+		return 0;
+	}
+	return round( $amount * $percent / 100 );
+}
+
 add_action(
 	'woocommerce_cart_calculate_fees',
 	function ( $cart ) {
@@ -2480,8 +2506,17 @@ add_action(
 		if ( $discount > 0 ) {
 			$cart->add_fee( 'Bundle discount', -$discount, false );
 		}
+		$offer = rfaheya_offer_discount( rfaheya_offer_base( $cart ) );
+		if ( $offer > 0 ) {
+			$o = rfaheya_options()['shipping'];
+			$cart->add_fee( sprintf( '%s%% off orders over %s EGP', rfaheya_number( $o['offer_percent'] ), number_format( (float) $o['offer_min'] ) ), -$offer, false );
+		}
 	}
 );
+
+function rfaheya_number( $n ) {
+	return rtrim( rtrim( number_format( (float) $n, 2, '.', '' ), '0' ), '.' );
+}
 
 /**
  * Free shipping (Settings → Rfaheya Store → Free shipping): Cairo and Alexandria
@@ -2492,7 +2527,27 @@ add_filter(
 	'woocommerce_package_rates',
 	function ( $rates, $package ) {
 		$o = rfaheya_options()['shipping'];
-		if ( 'no' === $o['free_enabled'] || (float) $o['free_min'] <= 0 || ! $rates ) {
+		if ( ! $rates ) {
+			return $rates;
+		}
+		// Spend-more offer: free shipping anywhere.
+		if ( function_exists( 'WC' ) && WC()->cart && rfaheya_offer_discount( rfaheya_offer_base( WC()->cart ) ) > 0 ) {
+			$free = array_filter(
+				$rates,
+				function ( $rate ) {
+					return 'free_shipping' === $rate->get_method_id();
+				}
+			);
+			if ( $free ) {
+				return array_slice( $free, 0, 1, true );
+			}
+			$rate = reset( $rates );
+			$rate->set_cost( 0 );
+			$rate->set_taxes( array() );
+			$rate->set_label( 'Free shipping' );
+			return array( $rate->get_id() => $rate );
+		}
+		if ( 'no' === $o['free_enabled'] || (float) $o['free_min'] <= 0 ) {
 			return $rates;
 		}
 		$state  = isset( $package['destination']['state'] ) ? strtoupper( (string) $package['destination']['state'] ) : '';

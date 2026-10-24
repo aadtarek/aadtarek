@@ -9,7 +9,8 @@ const finePointer = () => window.matchMedia('(hover: hover) and (pointer: fine)'
 
 /** A short vibration on phones that support it (Android; iOS ignores it). */
 export function haptic(pattern: number | number[] = 12) {
-  if (reduced()) return
+  // Browsers only allow it after the visitor has tapped the page.
+  if (reduced() || navigator.userActivation?.hasBeenActive === false) return
   try {
     navigator.vibrate?.(pattern)
   } catch {

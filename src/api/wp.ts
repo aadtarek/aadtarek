@@ -37,7 +37,7 @@ export interface StoreSettings {
     hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image' | 'srcset', string>>
   }
   bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
-  shipping?: { freeShipping?: boolean; freeMin?: number }
+  shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number }
   loyalty?: Partial<{ enabled: boolean; earn: number; value: number; min: number; welcome: boolean; welcomePercent: number }>
   gift?: { enabled?: boolean; max?: number; prices?: Record<string, number>; productId?: number; variations?: Record<string, number> }
 }

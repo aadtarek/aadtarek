@@ -40,7 +40,7 @@ import { Breadcrumbs } from '../components/Breadcrumbs'
 import { Carousel } from '../components/Carousel'
 import { BottleIcon } from '../components/Icons'
 import { ProductCard } from '../components/ProductCard'
-import { FreeShippingBar } from '../components/FreeShippingBar'
+import { OfferBar } from '../components/OfferBar'
 import { SlidingPill, useSlidingPill } from '../components/SlidingPill'
 import { addWithFlight } from '../lib/addToCart'
 import { haptic } from '../lib/fx'
@@ -248,7 +248,7 @@ function ProductDetails({ product }: { product: Product }) {
             </button>
           )}
 
-          <FreeShippingBar amount={cart.subtotal - cart.discount} className="mt-4 rounded-2xl bg-chip px-4 py-3 sm:mt-5" />
+          <OfferBar amount={cart.subtotal - cart.discount} className="mt-4 rounded-2xl bg-chip px-4 pt-3 [--rf-offer-ring:var(--color-chip)] sm:mt-5" />
           {LOYALTY.enabled && pointsFor(variation.price * qty) > 0 && (
             <p className="mt-2 flex items-center gap-2 px-1 text-[12.5px] text-ink-soft">
               <Sparkles className="size-4 shrink-0 text-olive" strokeWidth={1.5} />
