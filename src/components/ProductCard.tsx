@@ -8,6 +8,9 @@ import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
 import type { Product } from '../types'
 import { BottleIcon } from './Icons'
+import { SlidingPill, useSlidingPill } from './SlidingPill'
+import { addWithFlight } from '../lib/addToCart'
+import { haptic, heartBurst } from '../lib/fx'
 
 /**
  * Product card: photo, name and price, DNA, tags (who it's for, family,
@@ -24,6 +27,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   const selected = sizes.find((v) => v.id === variationId) ?? sizes[0]
   const href = `/product/${product.slug}`
   const chips = profileChips(product, familyName)
+  const [pillRef, pillBox] = useSlidingPill<HTMLDivElement>(variationId)
 
   return (
     <article className="rf-card group/card @container flex h-full flex-col">
@@ -49,12 +53,15 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
         )}
         <button
           type="button"
-          onClick={() => wishlist.toggle(product.id)}
+          onClick={(e) => {
+            if (!wished) heartBurst(e.currentTarget)
+            wishlist.toggle(product.id)
+          }}
           aria-pressed={wished}
           aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
           className="absolute top-2 right-2 grid size-9 place-items-center rounded-full bg-cream/85 text-ink backdrop-blur-sm transition hover:bg-cream"
         >
-          <Heart className={`size-[17px] transition ${wished ? 'fill-ink' : ''}`} strokeWidth={1.5} />
+          <Heart key={String(wished)} className={`size-[17px] transition ${wished ? 'rf-heart-beat fill-ink' : ''}`} strokeWidth={1.5} />
         </button>
         <button
           type="button"
@@ -103,7 +110,8 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
         )}
 
         {sizes.length > 1 && (
-          <div role="radiogroup" aria-label={`Size for ${product.name}`} className="mt-2 flex flex-wrap gap-1">
+          <div ref={pillRef} role="radiogroup" aria-label={`Size for ${product.name}`} className="relative mt-2 flex flex-wrap gap-1">
+            <SlidingPill box={pillBox} className="rounded-full bg-olive" />
             {sizes.map((v) => {
               const on = v.id === selected.id
               return (
@@ -113,9 +121,12 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                   role="radio"
                   aria-checked={on}
                   disabled={!v.inStock}
-                  onClick={() => setVariationId(v.id)}
-                  className={`h-6 rounded-full border px-2 text-[10.5px] font-medium transition sm:h-7 sm:px-2.5 sm:text-[11px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
-                    on ? 'border-olive bg-olive text-cream' : 'border-line-strong text-ink-soft hover:border-ink'
+                  onClick={() => {
+                    haptic(8)
+                    setVariationId(v.id)
+                  }}
+                  className={`relative z-[1] h-6 rounded-full border px-2 text-[10.5px] font-medium transition sm:h-7 sm:px-2.5 sm:text-[11px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
+                    on ? 'border-olive text-cream' : 'border-line-strong text-ink-soft hover:border-ink'
                   }`}
                 >
                   {v.size.replace(/\s*ML$/i, ' ml')}
@@ -128,7 +139,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
         <div className="mt-auto flex flex-col gap-1 pt-2.5 @[16rem]:flex-row @[16rem]:gap-1.5">
           <button
             type="button"
-            onClick={() => cart.add(product.id, selected.id)}
+            onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id)}
             disabled={!selected.inStock}
             className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-olive px-3 text-[10.5px] @[16rem]:min-w-0 @[16rem]:flex-1 sm:text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
           >
@@ -138,7 +149,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
           {sample && (
             <button
               type="button"
-              onClick={() => cart.add(product.id, sample.id)}
+              onClick={(e) => addWithFlight(cart, e.currentTarget, product, sample.id)}
               disabled={!sample.inStock}
               title={`${sample.size} sample · ${formatPrice(sample.price)}`}
               className="inline-flex h-8 items-center justify-center gap-1 rounded-full border border-line-strong px-3 text-[10.5px] font-medium whitespace-nowrap transition hover:border-ink disabled:pointer-events-none disabled:opacity-40 sm:h-9 sm:text-[11px]"

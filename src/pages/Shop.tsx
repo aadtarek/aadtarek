@@ -7,6 +7,7 @@ import { usePersistentState } from '../lib/storage'
 import { ProductCard } from '../components/ProductCard'
 import { GENDERS, OCCASIONS, SEASONS } from '../lib/profile'
 import type { FamilySlug, Gender, Occasion, Product, Season } from '../types'
+import { Aura } from '../components/Ambient'
 
 const sorts: { value: ProductSort; label: string }[] = [
   { value: 'best-sellers', label: 'Featured' },
@@ -147,7 +148,8 @@ export function Shop() {
         </aside>
 
         <div className="min-w-0">
-          <header className="px-4 pt-7 sm:px-6 lg:px-0 lg:pt-4">
+          <header className="relative isolate overflow-hidden px-4 pt-7 sm:px-6 lg:px-0 lg:pt-4">
+            <Aura className="[mask-image:linear-gradient(to_bottom,black,transparent)]" />
             <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">The collection</p>
             <h1 className="mt-2 font-serif text-[46px] leading-[0.95] sm:text-[64px]">{filters.q ? `Results for “${filters.q}”` : 'All fragrances'}</h1>
             <p className="mt-3 max-w-md text-[15px] text-ink-soft">Find the fragrance that speaks to you.</p>
@@ -298,7 +300,7 @@ export function Shop() {
 
       {sheetOpen && (
         <Overlay onClose={() => setSheetOpen(false)} label="Filters">
-          <div className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-[22px] bg-cream shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)]">
+          <div className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-[22px] bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)]">
             <span aria-hidden className="mx-auto mt-3 h-1 w-10 rounded-full bg-line-strong" />
             <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4">{panel}</div>
             <div className="border-t border-line px-5 py-4">

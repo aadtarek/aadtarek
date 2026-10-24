@@ -6,6 +6,7 @@ import type { Review } from '../types'
 import { Carousel } from './Carousel'
 import { ReviewCard } from './ReviewCard'
 import { Stars } from './Stars'
+import { Aura } from './Ambient'
 
 function reviewsPerView(width: number) {
   if (width >= 1100) return 3
@@ -23,7 +24,8 @@ export function ReviewsSection() {
   if (reviews.length === 0) return null
 
   return (
-    <section aria-labelledby="reviews-title" className="bg-sand pt-12 pb-10 lg:pt-[62px] lg:pb-[50px]">
+    <section aria-labelledby="reviews-title" className="relative isolate overflow-hidden bg-sand pt-12 pb-10 lg:pt-[62px] lg:pb-[50px]">
+      <Aura />
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[84px]">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>

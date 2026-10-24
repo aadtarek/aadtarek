@@ -8,6 +8,7 @@ import { SizePicker } from '../components/SizePicker'
 import { GIFT_BOX } from '../config'
 import { collections, findCollection, type Collection } from '../data/collections'
 import { formatPrice } from '../lib/format'
+import { flyToCart } from '../lib/fx'
 import { useCart } from '../store/cart'
 import type { Product } from '../types'
 import { NotFound } from './NotFound'
@@ -175,7 +176,8 @@ function DiscoveryBuilder() {
         <button
           type="button"
           disabled={selected.length === 0}
-          onClick={() => {
+          onClick={(e) => {
+            flyToCart(e.currentTarget, selected[0]?.images[0]?.src)
             cart.addMany(selected.map((p) => ({ productId: p.id, variationId: fiveMl(p)!.id })))
             setPicked([])
           }}
@@ -224,7 +226,8 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
   const packaging = boxVariation?.price ?? 0
   const total = items.reduce((n, i) => n + i.variation.price, 0) + packaging
 
-  const addToCart = () => {
+  const addToCart = (e: React.MouseEvent<HTMLElement>) => {
+    flyToCart(e.currentTarget, items[0]?.product.images[0]?.src)
     const contents = items.map((i) => `${i.product.name} ${i.variation.size}`).join(', ')
     const note = `Box: ${contents}${message.trim() ? ` · Card: “${message.trim()}”` : ''}`
     // The note rides on the packaging line (or, with packaging off, on the first fragrance).

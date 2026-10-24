@@ -12,6 +12,7 @@ import visa from '../assets/payments/visa.png'
 import { FREE_SHIPPING, SOCIAL_LINKS } from '../config'
 import { usePersistentState } from '../lib/storage'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from './SocialIcons'
+import { GoldenDust } from './Ambient'
 
 const columns: { title: string; links: { label: string; to: string }[] }[] = [
   {
@@ -114,6 +115,7 @@ function CtaBanner() {
       />
       {/* Dark mode only: keeps the light copy readable over the photo. */}
       <div aria-hidden className="rf-dark-wash pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
+      <GoldenDust density={0.7} />
       <div className="relative mx-auto flex w-full max-w-[1600px] flex-col justify-center px-4 pt-10 pb-6 sm:px-6 md:min-h-[347px] md:py-10 lg:px-[100px]">
         <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[16px]">Speak your scent</p>
         <h2 id="cta-title" className="mt-3 max-w-[9.5em] font-serif text-[38px] leading-[1.04] sm:text-[56px] lg:mt-[10px] lg:text-[62px]">
@@ -121,7 +123,7 @@ function CtaBanner() {
         </h2>
         <Link
           to="/shop"
-          className="group mt-6 inline-flex h-[56px] items-center gap-4 self-start rounded-full bg-olive px-[58px] text-[14px] font-medium tracking-[0.15em] text-cream uppercase transition hover:bg-olive-hover sm:text-[15.5px] lg:mt-[22px]"
+          className="rf-magnetic group mt-6 inline-flex h-[56px] items-center gap-4 self-start rounded-full bg-olive px-[58px] text-[14px] font-medium tracking-[0.15em] text-cream uppercase transition hover:bg-olive-hover sm:text-[15.5px] lg:mt-[22px]"
         >
           Shop fragrances
           <ArrowRight className="size-[19px] transition group-hover:translate-x-1" strokeWidth={1.5} />

@@ -102,7 +102,7 @@ export function CartDrawer() {
               ))}
             </ul>
 
-            <footer className="border-t border-line px-5 pt-4 pb-5">
+            <footer className="border-t border-line px-5 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
               {cart.discount > 0 && (
                 <div className="mb-1.5 flex items-center justify-between text-[14px] text-mocha">
                   <span>Bundle discount</span>

@@ -31,6 +31,13 @@ export function Header() {
     setSearchOpen(false)
   }, [location.pathname, location.search])
 
+  // The tab bar's search button (phones).
+  useEffect(() => {
+    const open = () => setSearchOpen(true)
+    window.addEventListener('rf:search', open)
+    return () => window.removeEventListener('rf:search', open)
+  }, [])
+
   // "/" or Ctrl/⌘ + K opens search from anywhere (except while typing in a field).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -135,7 +142,7 @@ export function Header() {
               <UserRound className="size-[22px]" strokeWidth={1.5} />
             </Link>
           )}
-          <button type="button" aria-label={`Cart, ${count} items`} onClick={open} className={iconBtn}>
+          <button type="button" aria-label={`Cart, ${count} items`} onClick={open} className={iconBtn} data-cart-target>
             <Handbag className="size-[22px]" strokeWidth={1.5} />
             <CountBadge count={count} />
           </button>
@@ -201,7 +208,7 @@ export function Header() {
 
 function CountBadge({ count }: { count: number }) {
   return (
-    <span aria-hidden className="absolute -top-0.5 -right-0.5 grid h-[21px] min-w-[21px] place-items-center rounded-full bg-ink px-1 text-[10px] leading-none font-semibold text-cream">
+    <span aria-hidden data-cart-count className="absolute -top-0.5 -right-0.5 grid h-[21px] min-w-[21px] place-items-center rounded-full bg-ink px-1 text-[10px] leading-none font-semibold text-cream">
       {count > 99 ? '99+' : count}
     </span>
   )

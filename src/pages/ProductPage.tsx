@@ -41,6 +41,9 @@ import { Carousel } from '../components/Carousel'
 import { BottleIcon } from '../components/Icons'
 import { ProductCard } from '../components/ProductCard'
 import { FreeShippingBar } from '../components/FreeShippingBar'
+import { SlidingPill, useSlidingPill } from '../components/SlidingPill'
+import { addWithFlight } from '../lib/addToCart'
+import { haptic } from '../lib/fx'
 import { QuantityInput } from '../components/QuantityInput'
 import { Stars, VerifiedBadge } from '../components/Stars'
 import { VideoModal } from '../components/WearVideos'
@@ -106,7 +109,22 @@ function ProductDetails({ product }: { product: Product }) {
     return () => window.removeEventListener('scroll', update)
   }, [])
 
-  const addToCart = () => cart.add(product.id, variationId, qty)
+  // Phones: the buy bar takes the tab bar's place while it shows.
+  useEffect(() => {
+    const root = document.documentElement
+    if (showSticky) root.dataset.stickyBuy = ''
+    else delete root.dataset.stickyBuy
+    return () => {
+      delete root.dataset.stickyBuy
+    }
+  }, [showSticky])
+  const addToCart = (e: React.MouseEvent<HTMLElement>) => addWithFlight(cart, e.currentTarget, product, variationId, qty)
+  const [sizeRef, sizeBox] = useSlidingPill<HTMLDivElement>(variationId)
+  const [stickyRef, stickyBox] = useSlidingPill<HTMLDivElement>(variationId)
+  const pickSize = (id: number) => {
+    haptic(8)
+    setVariationId(id)
+  }
   const navigate = useNavigate()
   const buyNow = () => {
     cart.add(product.id, variationId, qty, { open: false })
@@ -165,10 +183,12 @@ function ProductDetails({ product }: { product: Product }) {
 
           <p className="mt-3 text-[11.5px] font-medium tracking-[0.06em] uppercase sm:mt-4 sm:text-[13.5px]">Choose your size</p>
           <div
+            ref={sizeRef}
             role="radiogroup"
             aria-label="Size"
-            className={`mt-2 grid gap-1.5 sm:mt-2.5 sm:gap-2 ${sizes.length >= 4 ? 'grid-cols-4' : sizes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
+            className={`relative mt-2 grid gap-1.5 sm:mt-2.5 sm:gap-2 ${sizes.length >= 4 ? 'grid-cols-4' : sizes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
           >
+            <SlidingPill box={sizeBox} className="rounded-xl bg-olive" />
             {sizes.map((v) => {
               const on = v.id === variationId
               return (
@@ -178,9 +198,9 @@ function ProductDetails({ product }: { product: Product }) {
                   role="radio"
                   aria-checked={on}
                   disabled={!v.inStock}
-                  onClick={() => setVariationId(v.id)}
-                  className={`rounded-xl border px-2 py-2 text-center transition disabled:cursor-not-allowed sm:py-2.5 disabled:opacity-40 ${
-                    on ? 'border-olive bg-olive text-cream' : 'border-line-strong bg-card hover:border-ink'
+                  onClick={() => pickSize(v.id)}
+                  className={`relative z-[1] rounded-xl border px-2 py-2 text-center transition disabled:cursor-not-allowed sm:py-2.5 disabled:opacity-40 ${
+                    on ? 'border-olive text-cream' : 'border-line-strong bg-card hover:border-ink'
                   }`}
                 >
                   <span className="block text-[12.5px] font-semibold sm:text-[13.5px]">{v.size}</span>
@@ -198,7 +218,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-olive text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-12 sm:flex-none sm:gap-2.5 sm:text-[13px]"
+              className="rf-magnetic inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-olive text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-12 sm:flex-none sm:gap-2.5 sm:text-[13px]"
             >
               <ShoppingBag className="size-4" strokeWidth={1.3} />
               Add to cart
@@ -209,7 +229,7 @@ function ProductDetails({ product }: { product: Product }) {
             type="button"
             onClick={buyNow}
             disabled={!variation.inStock}
-            className="mt-1.5 inline-flex h-10 w-full items-center justify-center rounded-full bg-mocha text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:mt-2 sm:h-12 sm:text-[13px]"
+            className="rf-magnetic mt-1.5 inline-flex h-10 w-full items-center justify-center rounded-full bg-mocha text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-espresso disabled:opacity-50 sm:mt-2 sm:h-12 sm:text-[13px]"
           >
             Buy now
           </button>
@@ -316,7 +336,7 @@ function ProductDetails({ product }: { product: Product }) {
 
       {/* ---------- Sticky buy bar (once the main buttons scroll away) ---------- */}
       <div
-        className={`fixed inset-x-0 bottom-0 z-30 border-t border-line bg-cream/95 py-2 sm:py-3 shadow-[0_-10px_30px_-18px_rgba(40,30,20,0.35)] backdrop-blur transition-transform duration-300 ${
+        className={`fixed inset-x-0 bottom-0 z-30 border-t border-line bg-cream/95 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] sm:pt-3 sm:pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_-18px_rgba(40,30,20,0.35)] backdrop-blur transition-transform duration-300 ${
           showSticky ? 'translate-y-0' : 'translate-y-full'
         }`}
         aria-hidden={!showSticky}
@@ -330,7 +350,8 @@ function ProductDetails({ product }: { product: Product }) {
               {variation.size} · {formatPrice(variation.price)}
             </p>
           </div>
-          <div role="radiogroup" aria-label="Size" className="ml-auto hidden gap-1.5 lg:flex">
+          <div ref={stickyRef} role="radiogroup" aria-label="Size" className="relative ml-auto hidden gap-1.5 lg:flex">
+            <SlidingPill box={stickyBox} className="rounded-full bg-olive" />
             {sizes.map((v) => (
               <button
                 key={v.id}
@@ -338,9 +359,9 @@ function ProductDetails({ product }: { product: Product }) {
                 role="radio"
                 aria-checked={v.id === variationId}
                 disabled={!v.inStock}
-                onClick={() => setVariationId(v.id)}
-                className={`h-10 rounded-full border px-3 text-[13px] font-medium transition disabled:opacity-40 ${
-                  v.id === variationId ? 'border-olive bg-olive text-cream' : 'border-line-strong hover:border-ink'
+                onClick={() => pickSize(v.id)}
+                className={`relative z-[1] h-10 rounded-full border px-3 text-[13px] font-medium transition disabled:opacity-40 ${
+                  v.id === variationId ? 'border-olive text-cream' : 'border-line-strong hover:border-ink'
                 }`}
               >
                 {v.size}

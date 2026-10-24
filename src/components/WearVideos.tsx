@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Play, ShoppingBag, Volume2, VolumeX, X } fro
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { familyName, findProductById, fullSizeVariations, getVideos, sampleVariation, useCatalogVersion } from '../api/catalog'
+import { addWithFlight } from '../lib/addToCart'
 import { formatPrice } from '../lib/format'
 import { profileChips } from '../lib/profile'
 import { useCart } from '../store/cart'
@@ -9,6 +10,7 @@ import type { WearVideo } from '../types'
 import { Carousel } from './Carousel'
 import { BottleIcon } from './Icons'
 import { Overlay } from './Overlay'
+import { GoldenDust } from './Ambient'
 
 /** Plays muted while on screen (cards), paused otherwise. */
 function useAutoplay(ref: React.RefObject<HTMLVideoElement | null>) {
@@ -80,7 +82,8 @@ export function WearVideosSection({ productId, title = 'Worn by you.' }: { produ
   const [open, setOpen] = useState<number | null>(null)
   if (videos.length === 0) return null
   return (
-    <section aria-labelledby="wear-title" className="bg-[#16120d] py-12 text-cream lg:py-16">
+    <section aria-labelledby="wear-title" className="relative isolate overflow-hidden bg-[#16120d] py-12 text-cream lg:py-16">
+      <GoldenDust density={0.8} className="-z-10" />
       <div className="container-x">
         <p className="text-[12px] tracking-[0.3em] text-cream/65 uppercase sm:text-[14px]">Rfaheya wear reports</p>
         <h2 id="wear-title" className="mt-2 font-serif text-[36px] leading-[1.05] sm:text-[48px]">
@@ -227,7 +230,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                     <div className={`mt-4 grid gap-2 ${sample ? 'grid-cols-[1.4fr_1fr]' : ''}`}>
                       <button
                         type="button"
-                        onClick={() => cart.add(product.id, selected.id)}
+                        onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id)}
                         className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-olive text-[12px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-olive-hover"
                       >
                         <ShoppingBag className="size-[18px]" strokeWidth={1.4} />
@@ -236,7 +239,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                       {sample && (
                         <button
                           type="button"
-                          onClick={() => cart.add(product.id, sample.id)}
+                          onClick={(e) => addWithFlight(cart, e.currentTarget, product, sample.id)}
                           disabled={!sample.inStock}
                           className="inline-flex h-12 items-center justify-center gap-1.5 rounded-full border border-line-strong text-[11.5px] hover:border-ink"
                         >

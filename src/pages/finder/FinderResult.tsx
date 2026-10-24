@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import { getAllProducts, getFamilies, sampleVariation } from '../../api/catalog'
 import { ProductCard } from '../../components/ProductCard'
+import { addWithFlight } from '../../lib/addToCart'
 import {
   allNotes,
   firstOpenStep,
@@ -134,7 +135,7 @@ export function FinderResult() {
             {sample && (
               <button
                 type="button"
-                onClick={() => cart.add(product.id, sample.id)}
+                onClick={(e) => addWithFlight(cart, e.currentTarget, product, sample.id)}
                 className="inline-flex h-[54px] w-full items-center justify-center gap-3 rounded-full border border-espresso text-[13.5px] tracking-[0.14em] uppercase transition hover:bg-latte"
               >
                 <FlaskConical className="size-5" strokeWidth={1.4} />

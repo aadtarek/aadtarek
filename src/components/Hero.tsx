@@ -1,8 +1,9 @@
 import { ArrowRight } from 'lucide-react'
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import hero from '../assets/hero.webp'
 import { HOME } from '../config'
+import { GoldenDust } from './Ambient'
 
 /** "SPEAK YOUR SCENT." → "Speak your scent." (titles typed in capitals read better in the serif) */
 const sentenceCase = (line: string) => (line === line.toUpperCase() ? line.charAt(0) + line.slice(1).toLowerCase() : line)
@@ -17,13 +18,57 @@ export function Hero() {
     firstShown ??= now
     return now - firstShown
   })
+  // Desktop: the photo moves a little with the mouse and the scroll, for depth.
+  const [depth] = useState(
+    () => window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 768px)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+  )
+  const section = useRef<HTMLElement>(null)
+  const photo = useRef<HTMLImageElement>(null)
+  useEffect(() => {
+    const el = section.current
+    const img = photo.current
+    if (!depth || !el || !img) return
+    let mx = 0
+    let my = 0
+    let raf = 0
+    const apply = () => {
+      raf = 0
+      const scroll = Math.min(window.scrollY, el.offsetHeight) * 0.08
+      img.style.setProperty('--px', `${(-mx * 14).toFixed(1)}px`)
+      img.style.setProperty('--py', `${(-my * 10 + scroll).toFixed(1)}px`)
+    }
+    const queue = () => {
+      if (!raf) raf = requestAnimationFrame(apply)
+    }
+    const onMove = (e: PointerEvent) => {
+      const box = el.getBoundingClientRect()
+      mx = (e.clientX - box.left) / box.width - 0.5
+      my = (e.clientY - box.top) / box.height - 0.5
+      queue()
+    }
+    const onLeave = () => {
+      mx = 0
+      my = 0
+      queue()
+    }
+    el.addEventListener('pointermove', onMove, { passive: true })
+    el.addEventListener('pointerleave', onLeave)
+    window.addEventListener('scroll', queue, { passive: true })
+    return () => {
+      cancelAnimationFrame(raf)
+      el.removeEventListener('pointermove', onMove)
+      el.removeEventListener('pointerleave', onLeave)
+      window.removeEventListener('scroll', queue)
+    }
+  }, [depth])
   const copy = HOME.hero
   const lines = copy.title.split(/\r?\n/)
   return (
     // Pulled up under the transparent header (see Header).
-    <section className="relative -mt-16 overflow-hidden bg-latte lg:-mt-[67px]" style={{ '--rf-hero-t': `${Math.round(since)}ms` } as CSSProperties}>
+    <section ref={section} className="relative -mt-16 overflow-hidden bg-latte lg:-mt-[67px]" style={{ '--rf-hero-t': `${Math.round(since)}ms` } as CSSProperties}>
       {/* Mobile: image on top, copy below */}
       <img
+        ref={photo}
         src={copy.image || hero}
         srcSet={copy.image ? copy.srcset || undefined : undefined}
         // On phones the wide image is cropped to a tall box, so it needs a wider file (same as rfaheya.php).
@@ -31,7 +76,7 @@ export function Hero() {
         width={1600}
         height={900}
         alt={copy.image ? '' : 'Rfaheya Vanilla Oud bottle on a stone plinth with vanilla pods, flowers and oud wood'}
-        className="rf-hero-img h-[340px] w-full object-cover object-[78%_center] xs:h-[380px] sm:h-[460px] md:absolute md:inset-0 md:h-full md:object-[right_center]"
+        className={`rf-hero-img ${depth ? 'rf-parallax' : ''} h-[340px] w-full object-cover object-[78%_center] xs:h-[380px] sm:h-[460px] md:absolute md:inset-0 md:h-full md:object-[right_center]`}
         fetchPriority="high"
       />
       {/* Soft wash so copy stays legible when the image narrows */}
@@ -39,6 +84,7 @@ export function Hero() {
         aria-hidden
         className="rf-hero-wash pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-[#e5e2df] via-[#e5e2df]/70 to-transparent md:block xl:via-transparent xl:from-[#e5e2df]/40"
       />
+      <GoldenDust />
 
       <div className="rf-hero-copy container-x relative py-8 md:flex md:h-[clamp(560px,40vw,780px)] md:flex-col md:justify-center md:py-0 md:pt-[67px]">
         <p className="text-[10px] font-medium tracking-[0.32em] text-gold uppercase sm:text-[11px]">
@@ -58,14 +104,14 @@ export function Hero() {
         <div className="mt-4 flex flex-wrap gap-3 lg:mt-[18px] lg:gap-[11px]">
           <Link
             to="/shop"
-            className="group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+            className="rf-magnetic group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
           >
             Explore fragrances
             <ArrowRight className="size-4 transition group-hover:translate-x-0.5" strokeWidth={1.5} />
           </Link>
           <Link
             to="/finder"
-            className="inline-flex h-12 items-center justify-center rounded-full bg-cream/75 px-8 text-[11.5px] font-medium tracking-[0.12em] text-ink uppercase backdrop-blur-md transition hover:bg-cream"
+            className="rf-magnetic inline-flex h-12 items-center justify-center rounded-full bg-cream/75 px-8 text-[11.5px] font-medium tracking-[0.12em] text-ink uppercase backdrop-blur-md transition hover:bg-cream"
           >
             Find your scent
           </Link>

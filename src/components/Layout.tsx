@@ -6,6 +6,8 @@ import { Footer } from './Footer'
 import { Header } from './Header'
 import { QuickAddModal } from './QuickAddModal'
 import { RewardsPopup } from './RewardsPopup'
+import { TabBar } from './TabBar'
+import { installFx } from '../lib/fx'
 import { useScrollReveal } from '../lib/useScrollReveal'
 
 export function Layout() {
@@ -15,13 +17,14 @@ export function Layout() {
   const [firstPath] = useState(pathname)
   const animate = pathname !== firstPath
   useScrollReveal(main, pathname)
+  useEffect(installFx, [])
   useEffect(() => {
     // The effect must not return scrollTo's value: some browsers return a Promise.
     window.scrollTo(0, 0)
   }, [pathname])
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col pb-[calc(84px+env(safe-area-inset-bottom))] lg:pb-0">
       <AnnouncementBar />
       <Header />
       <main ref={main} className="flex-1">
@@ -35,6 +38,7 @@ export function Layout() {
       <CartDrawer />
       <QuickAddModal />
       <RewardsPopup />
+      <TabBar />
     </div>
   )
 }

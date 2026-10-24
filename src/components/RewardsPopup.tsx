@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { wp } from '../api/wp'
 import { LOYALTY } from '../config'
+import { confetti } from '../lib/fx'
 import { readStorage, usePersistentState, writeStorage } from '../lib/storage'
 import { useCart } from '../store/cart'
 import { useRewards } from '../store/rewards'
@@ -27,7 +28,10 @@ export function RewardsPopup() {
   const code = me.loggedIn && me.welcome && !me.welcome.used ? me.welcome.code : null
   useEffect(() => {
     if (!code || celebrated.includes(code)) return
-    const id = window.setTimeout(() => setOpen('welcome'), 900)
+    const id = window.setTimeout(() => {
+      setOpen('welcome')
+      confetti(70)
+    }, 900)
     return () => window.clearTimeout(id)
   }, [code, celebrated])
 

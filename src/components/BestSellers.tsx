@@ -5,6 +5,7 @@ import { getProducts, type ProductSort } from '../api/catalog'
 import type { Product } from '../types'
 import { ProductCard } from './ProductCard'
 import { Carousel } from './Carousel'
+import { Aura } from './Ambient'
 
 type Tab = 'new' | 'best'
 
@@ -41,7 +42,8 @@ export function BestSellers() {
   }, [t.sort])
 
   return (
-    <section className="bg-sand pt-10 pb-12 lg:pt-[46px] lg:pb-[42px]" aria-labelledby="best-sellers-title">
+    <section className="relative isolate overflow-hidden bg-sand pt-10 pb-12 lg:pt-[46px] lg:pb-[42px]" aria-labelledby="best-sellers-title">
+      <Aura />
       <div className="container-x">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>

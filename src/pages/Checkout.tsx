@@ -9,6 +9,7 @@ import { PointsPanel } from '../components/PointsPanel'
 import { PageHeader } from '../components/PageHeader'
 import { CONTACT, GOVERNORATES, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
+import { confetti, haptic } from '../lib/fx'
 import { useAccount } from '../store/account'
 import { useCart } from '../store/cart'
 import { useRewards } from '../store/rewards'
@@ -107,6 +108,8 @@ export function Checkout() {
     rewards.orderPlaced()
     cart.clear()
     setPlaced(saved)
+    confetti()
+    haptic([12, 60, 18])
     window.scrollTo(0, 0)
   }
 
@@ -341,7 +344,7 @@ export function Checkout() {
           <button
             type="submit"
             disabled={submitting || quoting || noDelivery}
-            className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="rf-magnetic mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? 'Placing order…' : 'Place order'}
           </button>

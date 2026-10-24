@@ -1,4 +1,6 @@
 import { formatPrice } from '../lib/format'
+import { haptic } from '../lib/fx'
+import { SlidingPill, useSlidingPill } from './SlidingPill'
 import type { ProductVariation } from '../types'
 
 export function SizePicker({
@@ -10,8 +12,10 @@ export function SizePicker({
   value: number
   onChange: (id: number) => void
 }) {
+  const [pillRef, pillBox] = useSlidingPill<HTMLDivElement>(value)
   return (
-    <div role="radiogroup" aria-label="Size" className="grid grid-cols-3 gap-1.5">
+    <div ref={pillRef} role="radiogroup" aria-label="Size" className="relative grid grid-cols-3 gap-1.5">
+      <SlidingPill box={pillBox} className="rounded-xl bg-olive" />
       {variations.map((v) => {
         const selected = v.id === value
         return (
@@ -21,9 +25,12 @@ export function SizePicker({
             role="radio"
             aria-checked={selected}
             disabled={!v.inStock}
-            onClick={() => onChange(v.id)}
-            className={`flex flex-col items-center justify-center rounded-xl border px-2 py-2 transition sm:py-2.5 disabled:cursor-not-allowed disabled:opacity-40 ${
-              selected ? 'border-olive bg-olive text-cream' : 'border-line-strong hover:border-ink'
+            onClick={() => {
+              haptic(8)
+              onChange(v.id)
+            }}
+            className={`relative z-[1] flex flex-col items-center justify-center rounded-xl border px-2 py-2 transition sm:py-2.5 disabled:cursor-not-allowed disabled:opacity-40 ${
+              selected ? 'border-olive text-cream' : 'border-line-strong hover:border-ink'
             }`}
           >
             <span className="text-[12px] font-semibold tracking-[0.06em] uppercase">{v.size}</span>

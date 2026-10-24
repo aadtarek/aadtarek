@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { isWoo, money, storeApi, wp } from '../api/wp'
 import { LOYALTY } from '../config'
+import { confetti } from '../lib/fx'
 import { usePersistentState } from '../lib/storage'
 import { useAccount } from './account'
 import { useCart, type WooCart } from './cart'
@@ -197,13 +198,17 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
           setDemoPoints(points - spend)
           setDemoRedeem({ code: 'POINTS-DEMO', amount, points: spend })
           await applyCoupon('POINTS-DEMO')
+          confetti(60)
           return
         }
         if (me.redeem) await dropCoupon(me.redeem.code).catch(() => undefined)
         const next = await ajax('rfaheya_redeem', { _ajax_nonce: me.nonce ?? '', max: String(Math.floor(cap)) })
         if (next.error) throw new Error(next.error)
         setWooMe(next)
-        if (next.redeem) await applyCoupon(next.redeem.code)
+        if (next.redeem) {
+          await applyCoupon(next.redeem.code)
+          confetti(60)
+        }
       }),
     [run, merchandise, coupons, me, demoPoints, demoRedeem, dropCoupon, applyCoupon, setDemoPoints, setDemoRedeem],
   )

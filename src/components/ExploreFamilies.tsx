@@ -1,10 +1,12 @@
 import { ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { getFamilies } from '../api/catalog'
+import { Aura } from './Ambient'
 
 export function ExploreFamilies() {
   return (
-    <section aria-labelledby="explore-title" className="bg-sand py-12 lg:py-16">
+    <section aria-labelledby="explore-title" className="relative isolate overflow-hidden bg-sand py-12 lg:py-16">
+      <Aura />
       <div className="container-x flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-[10.5px] font-medium tracking-[0.32em] text-gold uppercase sm:text-[11px]">Find your fragrance</p>

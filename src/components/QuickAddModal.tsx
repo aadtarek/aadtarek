@@ -2,6 +2,7 @@ import { ShoppingBag, X } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { familyName, fullSizeVariations, sampleVariation } from '../api/catalog'
+import { addWithFlight } from '../lib/addToCart'
 import { formatPrice } from '../lib/format'
 import { profileChips } from '../lib/profile'
 import { useCart } from '../store/cart'
@@ -35,7 +36,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
 
   return (
     <Overlay onClose={onClose} label={`Quick view: ${product.name}`}>
-      <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)]">
+      <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl sm:pb-0 [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)]">
         <button
           type="button"
           onClick={onClose}
@@ -87,7 +88,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
             <div className="mt-3 grid grid-cols-2 gap-1.5">
               <button
                 type="button"
-                onClick={() => cart.add(product.id, selected.id, qty)}
+                onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id, qty)}
                 disabled={!selected.inStock}
                 className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-olive text-[11px] font-medium tracking-[0.08em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
               >
@@ -110,7 +111,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
             {sample && (
               <button
                 type="button"
-                onClick={() => cart.add(product.id, sample.id)}
+                onClick={(e) => addWithFlight(cart, e.currentTarget, product, sample.id)}
                 disabled={!sample.inStock}
                 className="mt-1.5 inline-flex h-10 w-full items-center justify-center gap-1.5 rounded-full border border-line-strong text-[11px] font-medium transition hover:border-ink disabled:pointer-events-none disabled:opacity-40"
               >

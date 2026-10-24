@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { getAllProducts } from '../api/catalog'
 import { BUNDLE } from '../config'
 import { formatPrice } from '../lib/format'
+import { flyToCart } from '../lib/fx'
 import { useCart } from '../store/cart'
 import type { Product, ProductVariation } from '../types'
 
@@ -30,7 +31,8 @@ export function BundleBuilder() {
   const save = unit * BUNDLE.count - BUNDLE.price
   const add = (o: (typeof options)[number]) => !full && setPicks((p) => [...p, o])
   const removeAt = (i: number) => setPicks((p) => p.filter((_, j) => j !== i))
-  const addToCart = () => {
+  const addToCart = (e: React.MouseEvent<HTMLElement>) => {
+    flyToCart(e.currentTarget, picks[0]?.product.images[0]?.src)
     const grouped = new Map<number, { productId: number; variationId: number; quantity: number }>()
     for (const p of picks) {
       const g = grouped.get(p.variation.id)

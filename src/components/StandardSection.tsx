@@ -32,7 +32,7 @@ export function StandardSection() {
           </p>
           <Link
             to="/our-standard"
-            className="group mt-7 inline-flex h-[53px] items-center gap-4 rounded-full bg-olive px-[30px] text-[13px] font-medium tracking-[0.18em] text-cream uppercase transition hover:bg-olive-hover sm:h-[55px] sm:text-[15.5px] lg:mt-[33px]"
+            className="rf-magnetic group mt-7 inline-flex h-[53px] items-center gap-4 rounded-full bg-olive px-[30px] text-[13px] font-medium tracking-[0.18em] text-cream uppercase transition hover:bg-olive-hover sm:h-[55px] sm:text-[15.5px] lg:mt-[33px]"
           >
             Explore Rfaheya Standard™
             <ArrowRight className="size-[18px] transition group-hover:translate-x-1" strokeWidth={1.5} />
