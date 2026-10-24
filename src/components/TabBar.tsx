@@ -89,7 +89,7 @@ export function TabBar() {
                 {t.badge ? (
                   <span
                     data-cart-count={t.cart ? '' : undefined}
-                    className="absolute -top-1.5 -right-2.5 grid h-[17px] min-w-[17px] place-items-center rounded-full bg-olive px-1 text-[9.5px] leading-none font-semibold text-cream"
+                    className="absolute -top-1.5 -right-2.5 grid h-[17px] min-w-[17px] place-items-center rounded-full bg-olive px-1 text-[9.5px] leading-none font-semibold text-on-accent"
                   >
                     {t.badge > 99 ? '99+' : t.badge}
                   </span>

@@ -126,7 +126,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                     setVariationId(v.id)
                   }}
                   className={`relative z-[1] h-6 rounded-full border px-2 text-[10.5px] font-medium transition sm:h-7 sm:px-2.5 sm:text-[11px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
-                    on ? 'border-olive text-cream' : 'border-line-strong text-ink-soft hover:border-ink'
+                    on ? 'border-olive text-on-accent' : 'border-line-strong text-ink-soft hover:border-ink'
                   }`}
                 >
                   {v.size.replace(/\s*ML$/i, ' ml')}
@@ -141,7 +141,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
             type="button"
             onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id)}
             disabled={!selected.inStock}
-            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-olive px-3 text-[10.5px] @[16rem]:min-w-0 @[16rem]:flex-1 sm:text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
+            className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-olive px-3 text-[10.5px] @[16rem]:min-w-0 @[16rem]:flex-1 sm:text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-on-accent uppercase transition hover:bg-olive-hover disabled:opacity-50"
           >
             <ShoppingBag className="hidden size-[15px] shrink-0 sm:block" strokeWidth={1.5} aria-hidden />
             Add to cart

@@ -100,11 +100,11 @@ export function RewardsPopup() {
                 Sign in or create your account and get {percent}% off your first order — plus points on everything you buy.
               </p>
               {wp ? (
-                <a href={wp.myAccountUrl} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-cream uppercase transition hover:bg-olive-hover">
+                <a href={wp.myAccountUrl} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-on-accent uppercase transition hover:bg-olive-hover">
                   Sign in &amp; get {percent}% off
                 </a>
               ) : (
-                <Link to="/account" onClick={close} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-cream uppercase transition hover:bg-olive-hover">
+                <Link to="/account" onClick={close} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-on-accent uppercase transition hover:bg-olive-hover">
                   Sign in &amp; get {percent}% off
                 </Link>
               )}
@@ -131,7 +131,7 @@ export function RewardsPopup() {
               <Link
                 to={cart.lines.length ? '/checkout' : '/shop'}
                 onClick={close}
-                className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-cream uppercase transition hover:bg-olive-hover"
+                className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-on-accent uppercase transition hover:bg-olive-hover"
               >
                 {cart.lines.length ? 'Go to checkout' : 'Start shopping'}
               </Link>

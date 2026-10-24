@@ -82,7 +82,7 @@ export function WearVideosSection({ productId, title = 'Worn by you.' }: { produ
   const [open, setOpen] = useState<number | null>(null)
   if (videos.length === 0) return null
   return (
-    <section aria-labelledby="wear-title" className="relative isolate overflow-hidden bg-[#16120d] py-12 text-cream lg:py-16">
+    <section aria-labelledby="wear-title" className="relative isolate overflow-hidden bg-[#100e0b] py-12 text-cream lg:py-16">
       <GoldenDust density={0.8} className="-z-10" />
       <div className="container-x">
         <p className="text-[12px] tracking-[0.3em] text-cream/65 uppercase sm:text-[14px]">Rfaheya wear reports</p>
@@ -219,10 +219,10 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                             aria-checked={on}
                             disabled={!v.inStock}
                             onClick={() => setVariationId(v.id)}
-                            className={`rounded-xl border px-2 py-2 text-center transition disabled:opacity-40 ${on ? 'border-olive bg-olive text-cream' : 'border-line-strong hover:border-ink'}`}
+                            className={`rounded-xl border px-2 py-2 text-center transition disabled:opacity-40 ${on ? 'border-olive bg-olive text-on-accent' : 'border-line-strong hover:border-ink'}`}
                           >
                             <span className="block text-[13px] font-semibold">{v.size}</span>
-                            <span className={`block text-[12px] ${on ? 'text-cream/80' : 'text-muted'}`}>{formatPrice(v.price)}</span>
+                            <span className={`block text-[12px] ${on ? 'text-on-accent/75' : 'text-muted'}`}>{formatPrice(v.price)}</span>
                           </button>
                         )
                       })}
@@ -231,7 +231,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                       <button
                         type="button"
                         onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id)}
-                        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-olive text-[12px] font-medium tracking-[0.1em] text-cream uppercase hover:bg-olive-hover"
+                        className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-olive text-[12px] font-medium tracking-[0.1em] text-on-accent uppercase hover:bg-olive-hover"
                       >
                         <ShoppingBag className="size-[18px]" strokeWidth={1.4} />
                         Add to cart · {formatPrice(selected.price)}

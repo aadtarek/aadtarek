@@ -21,7 +21,7 @@ export function OrderReceived() {
       </p>
       <Link
         to="/shop"
-        className="mt-8 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+        className="mt-8 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
       >
         Continue shopping
       </Link>

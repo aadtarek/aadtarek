@@ -110,7 +110,7 @@ function AuthForms() {
                 role="tab"
                 aria-selected={mode === m}
                 onClick={() => switchTo(m)}
-                className={`rounded-full py-2.5 text-[13px] font-medium tracking-[0.08em] uppercase transition ${mode === m ? 'bg-olive text-cream' : 'text-ink-soft'}`}
+                className={`rounded-full py-2.5 text-[13px] font-medium tracking-[0.08em] uppercase transition ${mode === m ? 'bg-olive text-on-accent' : 'text-ink-soft'}`}
               >
                 {m === 'login' ? 'Sign in' : 'Create account'}
               </button>
@@ -176,7 +176,7 @@ function AuthForms() {
             )}
             <button
               type="submit"
-              className="mt-1 h-[54px] w-full rounded-md bg-olive text-[13px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+              className="mt-1 h-[54px] w-full rounded-md bg-olive text-[13px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
             >
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </button>

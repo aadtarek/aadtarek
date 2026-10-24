@@ -73,32 +73,34 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
   return (
     <footer className="bg-footer">
       {showCta && <CtaBanner />}
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[45px]">
-        <div className="h-px bg-line-strong/50" />
-        <div className="grid gap-10 py-10 md:grid-cols-2 xl:grid-cols-[minmax(0,0.85fr)_1px_minmax(0,1.45fr)_1px_minmax(0,1fr)] xl:gap-0 xl:pt-[47px] xl:pb-[40px]">
-          <BrandColumn />
-          <span aria-hidden className="hidden bg-line-strong/60 xl:block" />
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-[1.05fr_1fr_1fr] md:order-last md:col-span-2 xl:order-none xl:col-span-1 xl:gap-4 xl:pr-4 xl:pl-[41px]">
-            {columns.map((c) => (
-              <div key={c.title}>
-                <h2 className="text-[15px] font-medium tracking-[0.15em] uppercase">{c.title}</h2>
-                <ul className="mt-[13px] space-y-[7px]">
-                  {c.links.map((l) => (
-                    <li key={l.label}>
-                      <Link to={l.to} className="text-[15.5px] leading-[21.5px] text-ink-soft transition hover:text-ink hover:underline hover:underline-offset-4">
-                        {l.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </nav>
-          <span aria-hidden className="hidden bg-line-strong/60 xl:block" />
-          <Newsletter />
+      <div className="rf-on-black">
+        <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[45px]">
+          <div className="h-px bg-line-strong/50" />
+          <div className="grid gap-10 py-10 md:grid-cols-2 xl:grid-cols-[minmax(0,0.85fr)_1px_minmax(0,1.45fr)_1px_minmax(0,1fr)] xl:gap-0 xl:pt-[47px] xl:pb-[40px]">
+            <BrandColumn />
+            <span aria-hidden className="hidden bg-line-strong/60 xl:block" />
+            <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-[1.05fr_1fr_1fr] md:order-last md:col-span-2 xl:order-none xl:col-span-1 xl:gap-4 xl:pr-4 xl:pl-[41px]">
+              {columns.map((c) => (
+                <div key={c.title}>
+                  <h2 className="text-[15px] font-medium tracking-[0.15em] uppercase">{c.title}</h2>
+                  <ul className="mt-[13px] space-y-[7px]">
+                    {c.links.map((l) => (
+                      <li key={l.label}>
+                        <Link to={l.to} className="text-[15.5px] leading-[21.5px] text-ink-soft transition hover:text-ink hover:underline hover:underline-offset-4">
+                          {l.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </nav>
+            <span aria-hidden className="hidden bg-line-strong/60 xl:block" />
+            <Newsletter />
+          </div>
+          <div className="h-px bg-line-strong/50" />
+          <BottomBar />
         </div>
-        <div className="h-px bg-line-strong/50" />
-        <BottomBar />
       </div>
     </footer>
   )
@@ -123,7 +125,7 @@ function CtaBanner() {
         </h2>
         <Link
           to="/shop"
-          className="rf-magnetic group mt-6 inline-flex h-[56px] items-center gap-4 self-start rounded-full bg-olive px-[58px] text-[14px] font-medium tracking-[0.15em] text-cream uppercase transition hover:bg-olive-hover sm:text-[15.5px] lg:mt-[22px]"
+          className="rf-magnetic group mt-6 inline-flex h-[56px] items-center gap-4 self-start rounded-full bg-olive px-[58px] text-[14px] font-medium tracking-[0.15em] text-on-accent uppercase transition hover:bg-olive-hover sm:text-[15.5px] lg:mt-[22px]"
         >
           Shop fragrances
           <ArrowRight className="size-[19px] transition group-hover:translate-x-1" strokeWidth={1.5} />
@@ -137,7 +139,7 @@ function BrandColumn() {
   return (
     <div className="xl:pr-8 xl:pl-[50px]">
       <Link to="/" aria-label="Rfaheya — home" className="block w-[192px]">
-        <img src={wordmark} alt="Rfaheya" width={1098} height={223} loading="lazy" className="h-auto w-full" />
+        <img src={wordmark} alt="Rfaheya" width={1098} height={223} loading="lazy" className="rf-wordmark h-auto w-full" />
       </Link>
       <p className="mt-[22px] text-[15px] tracking-[0.42em] text-muted uppercase">Speak your scent</p>
       <p className="mt-[24px] max-w-[302px] text-[16px] leading-[1.45] text-ink-soft">
@@ -152,7 +154,7 @@ function BrandColumn() {
               target="_blank"
               rel="noreferrer"
               aria-label={`Rfaheya on ${label}`}
-              className="grid size-[44px] place-items-center rounded-full border border-line-strong text-ink transition hover:border-olive hover:bg-olive hover:text-cream"
+              className="grid size-[44px] place-items-center rounded-full border border-line-strong text-ink transition hover:border-olive hover:bg-olive hover:text-on-accent"
             >
               <Icon className="size-[20px]" />
             </a>
@@ -211,7 +213,7 @@ function Newsletter() {
           <button
             type="submit"
             aria-label="Subscribe"
-            className="-mr-px grid size-[47px] shrink-0 place-items-center rounded-full bg-olive text-cream transition hover:bg-olive-hover"
+            className="-mr-px grid size-[47px] shrink-0 place-items-center rounded-full bg-olive text-on-accent transition hover:bg-olive-hover"
           >
             <ArrowRight className="size-[18px]" strokeWidth={1.5} />
           </button>
@@ -246,7 +248,7 @@ function BottomBar() {
         <ul className="flex flex-wrap items-center gap-[20px]" aria-label="Accepted payment methods">
           {payments.map((p) => (
             <li key={p.alt}>
-              <img src={p.src} alt={p.alt} width={p.w} height={p.hh} className={`${p.h} w-auto`} loading="lazy" />
+              <img src={p.src} alt={p.alt} width={p.w} height={p.hh} className={`rf-pay-logo ${p.h} w-auto`} loading="lazy" />
             </li>
           ))}
         </ul>

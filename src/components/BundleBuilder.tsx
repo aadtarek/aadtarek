@@ -44,7 +44,7 @@ export function BundleBuilder() {
   }
 
   return (
-    <section aria-labelledby="bundle-title" className="bg-[#e8e5e2] py-12 lg:py-16">
+    <section aria-labelledby="bundle-title" className="rf-on-amber relative isolate overflow-hidden py-12 lg:py-16">
       <div className="container-x grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div>
           <div className="flex flex-wrap items-end justify-between gap-4">
@@ -55,7 +55,7 @@ export function BundleBuilder() {
               </h2>
               <p className="mt-2 max-w-xl text-[15px] text-ink-soft sm:text-[17px]">{BUNDLE.text}</p>
             </div>
-            <p className="rounded-full bg-olive px-4 py-2 text-[13px] text-cream sm:text-[14px]">
+            <p className="rounded-full bg-olive px-4 py-2 text-[13px] text-on-accent sm:text-[14px]">
               Any {BUNDLE.count} × {BUNDLE.size} for <strong className="font-semibold">{formatPrice(BUNDLE.price)}</strong>
               {save > 0 && <span className="text-cream/75"> · instead of {formatPrice(unit * BUNDLE.count)}</span>}
             </p>
@@ -70,7 +70,7 @@ export function BundleBuilder() {
                     <Link to={`/product/${o.product.slug}`} className="relative block aspect-[4/3] overflow-hidden" tabIndex={-1} aria-hidden>
                       <img src={o.product.images[0].src} alt="" loading="lazy" className="size-full object-cover" />
                       {n > 0 && (
-                        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-olive px-2.5 py-1 text-[11.5px] text-cream">
+                        <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-olive px-2.5 py-1 text-[11.5px] text-on-accent">
                           <Check className="size-3.5" strokeWidth={2} /> {n > 1 ? `×${n}` : 'Added'}
                         </span>
                       )}
@@ -156,7 +156,7 @@ export function BundleBuilder() {
               type="button"
               onClick={addToCart}
               disabled={!full}
-              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-45 lg:mt-4 lg:h-[54px]"
+              className="mt-3 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.1em] text-on-accent uppercase transition hover:bg-olive-hover disabled:opacity-45 lg:mt-4 lg:h-[54px]"
             >
               <ShoppingBag className="size-[18px]" strokeWidth={1.4} />
               {full ? 'Add bundle to cart' : `Pick ${BUNDLE.count - picks.length} more`}

@@ -38,7 +38,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
                 clearSiteStorage()
                 window.location.assign('/')
               }}
-              className="h-12 rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+              className="h-12 rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
             >
               Reset and reload
             </button>

@@ -20,7 +20,7 @@ function Splash({ error }: { error?: string }) {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-5 h-12 rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase"
+            className="mt-5 h-12 rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase"
           >
             Try again
           </button>

@@ -146,7 +146,7 @@ function ProductDetails({ product }: { product: Product }) {
         <div className="min-w-0">
           {/* ---------- 01 Purchase ---------- */}
           <div className="flex items-center justify-between gap-3">
-            {product.badge ? <span className="rounded-full bg-olive px-3 py-1 text-[11.5px] leading-none text-cream sm:px-3.5 sm:py-1.5 sm:text-[13px]">{product.badge}</span> : <span />}
+            {product.badge ? <span className="rounded-full bg-olive px-3 py-1 text-[11.5px] leading-none text-on-accent sm:px-3.5 sm:py-1.5 sm:text-[13px]">{product.badge}</span> : <span />}
             <p className="text-[11px] tracking-[0.1em] text-muted uppercase lg:hidden">
               {GENDERS[product.profile.gender].label}
               {product.families[0] && ` · ${familyName(product.families[0])}`}
@@ -200,11 +200,11 @@ function ProductDetails({ product }: { product: Product }) {
                   disabled={!v.inStock}
                   onClick={() => pickSize(v.id)}
                   className={`relative z-[1] rounded-xl border px-2 py-2 text-center transition disabled:cursor-not-allowed sm:py-2.5 disabled:opacity-40 ${
-                    on ? 'border-olive text-cream' : 'border-line-strong bg-card hover:border-ink'
+                    on ? 'border-olive text-on-accent' : 'border-line-strong bg-card hover:border-ink'
                   }`}
                 >
                   <span className="block text-[12.5px] font-semibold sm:text-[13.5px]">{v.size}</span>
-                  <span className={`block text-[11.5px] sm:text-[12.5px] ${on ? 'text-cream/85' : 'text-ink-soft'}`}>{formatPrice(v.price)}</span>
+                  <span className={`block text-[11.5px] sm:text-[12.5px] ${on ? 'text-on-accent/75' : 'text-ink-soft'}`}>{formatPrice(v.price)}</span>
                 </button>
               )
             })}
@@ -218,7 +218,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="rf-magnetic inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-olive text-[11.5px] font-medium tracking-[0.1em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-12 sm:flex-none sm:gap-2.5 sm:text-[13px]"
+              className="rf-magnetic inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-olive text-[11.5px] font-medium tracking-[0.1em] text-on-accent uppercase transition hover:bg-olive-hover disabled:opacity-50 sm:h-12 sm:flex-none sm:gap-2.5 sm:text-[13px]"
             >
               <ShoppingBag className="size-4" strokeWidth={1.3} />
               Add to cart
@@ -361,7 +361,7 @@ function ProductDetails({ product }: { product: Product }) {
                 disabled={!v.inStock}
                 onClick={() => pickSize(v.id)}
                 className={`relative z-[1] h-10 rounded-full border px-3 text-[13px] font-medium transition disabled:opacity-40 ${
-                  v.id === variationId ? 'border-olive text-cream' : 'border-line-strong hover:border-ink'
+                  v.id === variationId ? 'border-olive text-on-accent' : 'border-line-strong hover:border-ink'
                 }`}
               >
                 {v.size}
@@ -373,7 +373,7 @@ function ProductDetails({ product }: { product: Product }) {
               type="button"
               onClick={addToCart}
               disabled={!variation.inStock}
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-olive px-3.5 text-[10.5px] font-medium tracking-[0.1em] text-cream uppercase disabled:opacity-50 sm:h-11 sm:px-5 sm:text-[11.5px] lg:h-12 lg:px-7 lg:text-[12.5px]"
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-olive px-3.5 text-[10.5px] font-medium tracking-[0.1em] text-on-accent uppercase disabled:opacity-50 sm:h-11 sm:px-5 sm:text-[11.5px] lg:h-12 lg:px-7 lg:text-[12.5px]"
             >
               <ShoppingBag className="hidden size-[18px] sm:block" strokeWidth={1.4} />
               Add to cart
@@ -642,7 +642,7 @@ function Composition({ product }: { product: Product }) {
               <span className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[14px] text-ink-soft">
                 {s.notes.map((n) => (
                   <span key={n} className="inline-flex items-center gap-1">
-                    <img src={noteFor(n)} alt="" width={20} height={20} loading="lazy" className="size-5 object-contain" />
+                    <img src={noteFor(n)} alt="" width={20} height={20} loading="lazy" className="rf-note size-5 object-contain" />
                     {n}
                   </span>
                 ))}

@@ -143,7 +143,7 @@ function DiscoveryBuilder() {
                   </span>
                   <span
                     aria-hidden
-                    className={`mr-4 grid size-7 shrink-0 place-items-center rounded-full border-2 ${on ? 'border-olive bg-olive text-cream' : 'border-line-strong'}`}
+                    className={`mr-4 grid size-7 shrink-0 place-items-center rounded-full border-2 ${on ? 'border-olive bg-olive text-on-accent' : 'border-line-strong'}`}
                   >
                     {on ? <Check className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2} />}
                   </span>
@@ -181,7 +181,7 @@ function DiscoveryBuilder() {
             cart.addMany(selected.map((p) => ({ productId: p.id, variationId: fiveMl(p)!.id })))
             setPicked([])
           }}
-          className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           Add set to cart
         </button>
@@ -257,7 +257,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
                     <img src={p.images[0].src} alt="" loading="lazy" className="size-full object-cover transition duration-700 group-hover:scale-[1.04]" />
                     <span
                       aria-hidden
-                      className={`absolute top-3 right-3 grid size-8 place-items-center rounded-full transition ${on ? 'bg-olive text-cream' : 'bg-cream/90 text-ink'}`}
+                      className={`absolute top-3 right-3 grid size-8 place-items-center rounded-full transition ${on ? 'bg-olive text-on-accent' : 'bg-cream/90 text-ink'}`}
                     >
                       {on ? <Check className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2} />}
                     </span>
@@ -339,7 +339,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
           type="button"
           disabled={items.length === 0}
           onClick={addToCart}
-          className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="mt-4 inline-flex h-[52px] w-full items-center justify-center gap-3 rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Gift className="size-5" strokeWidth={1.4} />
           Add gift box to cart

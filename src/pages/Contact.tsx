@@ -113,7 +113,7 @@ export function Contact() {
               </div>
             )
           })}
-          <div className="rounded-lg bg-olive p-6 text-cream">
+          <div className="rounded-lg bg-olive p-6 text-on-accent">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase">Follow the scent</p>
             <ul className="mt-4 flex gap-3">
               {[
@@ -197,7 +197,7 @@ export function Contact() {
               </div>
               <button
                 type="submit"
-                className="mt-6 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover sm:w-auto sm:px-12"
+                className="mt-6 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover sm:w-auto sm:px-12"
               >
                 Send message
               </button>

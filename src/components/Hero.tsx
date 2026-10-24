@@ -104,7 +104,7 @@ export function Hero() {
         <div className="mt-4 flex flex-wrap gap-3 lg:mt-[18px] lg:gap-[11px]">
           <Link
             to="/shop"
-            className="rf-magnetic group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+            className="rf-magnetic group inline-flex h-12 items-center justify-center gap-2.5 rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
           >
             Explore fragrances
             <ArrowRight className="size-4 transition group-hover:translate-x-0.5" strokeWidth={1.5} />

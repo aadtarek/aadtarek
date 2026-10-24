@@ -18,7 +18,7 @@ export function Wishlist() {
             <p className="mt-2 text-muted">Tap the heart on any fragrance to save it here.</p>
             <Link
               to="/shop"
-              className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+              className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
             >
               Explore fragrances
             </Link>

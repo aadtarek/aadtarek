@@ -7,8 +7,12 @@
   --font-sans: 'DM Sans Variable', ui-sans-serif, system-ui, sans-serif;
   --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
 
-  --color-olive: #8a6a33;
-  --color-olive-hover: #735727;
+  /* Brand amber (#E49B2D) with black: buttons, highlights and amber sections */
+  --color-olive: #e49b2d;
+  --color-olive-hover: #d08619;
+  --color-on-accent: #14110d;
+  --color-amber: #e49b2d;
+  --color-noir: #100e0b;
   --color-ink: #1c1a17;
   --color-ink-soft: #4a443b;
   --color-muted: #74695b;
@@ -19,7 +23,7 @@
   --color-line: #e9e0d2;
   --color-line-strong: #d3c6b2;
   --color-dot: #d9ccb8;
-  --color-gold: #8a6a33;
+  --color-gold: #a8650c;
   --color-espresso: #2a241d;
   --color-espresso-hover: #3b3329;
   --color-latte: #efe5d6;
@@ -45,8 +49,8 @@
 /* Dark mode (header toggle, remembered per visitor): the same tokens in a warm dark palette. */
 :root.dark {
   color-scheme: dark;
-  --color-olive: #c9a466;
-  --color-olive-hover: #d8b67c;
+  --color-olive: #e49b2d;
+  --color-olive-hover: #f0ac45;
   --color-ink: #f1ebe1;
   --color-ink-soft: #d2c8b8;
   --color-muted: #a59a8b;
@@ -57,7 +61,7 @@
   --color-line: #332d25;
   --color-line-strong: #4b4236;
   --color-dot: #4b4236;
-  --color-gold: #c9a466;
+  --color-gold: #e49b2d;
   --color-espresso: #ece4d6;
   --color-espresso-hover: #ddd2c0;
   --color-latte: #1f1b16;
@@ -495,7 +499,7 @@ section[aria-labelledby="best-sellers-title"]
   position: fixed;
   inset: 0 0 auto;
   height: 3px;
-  background: linear-gradient(90deg, #b08d57, #2a2f1b);
+  background: linear-gradient(90deg, #e49b2d, #100e0b);
   transform: scaleX(0);
   transform-origin: left;
   z-index: 10000;
@@ -567,7 +571,7 @@ section[aria-labelledby="best-sellers-title"]
   }
   button:focus-visible,
   a:focus-visible {
-    outline: 2px solid #b08d57;
+    outline: 2px solid #e49b2d;
     outline-offset: 4px;
   }
   .motion-product-card img {
@@ -589,7 +593,7 @@ section[aria-labelledby="best-sellers-title"]
   input:focus,
   textarea:focus,
   select:focus {
-    box-shadow: 0 0 0 3px #b08d571f;
+    box-shadow: 0 0 0 3px #e49b2d2e;
   }
   @media (hover: hover) and (pointer: fine) {
     .motion-product-card:hover {
@@ -601,7 +605,7 @@ section[aria-labelledby="best-sellers-title"]
     }
     .rf-carousel-arrow:hover {
       background: var(--color-olive);
-      color: var(--color-cream);
+      color: var(--color-on-accent);
       scale: 1.07;
       box-shadow: 0 7px 18px #2a2f1b22;
     }
@@ -741,8 +745,8 @@ section[aria-labelledby="best-sellers-title"]
   .rf-keep-light,
   :is([class*='bg-[#1'], [class*='bg-[#2'], [class*='bg-[#3']) {
     color-scheme: light;
-    --color-olive: #8a6a33;
-    --color-olive-hover: #735727;
+    --color-olive: #e49b2d;
+    --color-olive-hover: #d08619;
     --color-ink: #1c1a17;
     --color-ink-soft: #4a443b;
     --color-muted: #74695b;
@@ -752,7 +756,7 @@ section[aria-labelledby="best-sellers-title"]
     --color-chip: #f1eadf;
     --color-line: #e9e0d2;
     --color-line-strong: #d3c6b2;
-    --color-gold: #8a6a33;
+    --color-gold: #a8650c;
     --color-espresso: #2a241d;
     --color-espresso-hover: #3b3329;
     --color-latte: #efe5d6;
@@ -1024,4 +1028,288 @@ section[aria-labelledby="best-sellers-title"]
 /* The product page's buy bar takes the bar's place while it shows. */
 :root[data-sticky-buy] .rf-tabbar {
   translate: 0 150%;
+}
+
+/* Colour sections: black (amber accents, light text) and amber (black buttons, dark text).
+   They set the same tokens the components already use, so everything inside follows; both
+   look the same in the light and dark themes. */
+.rf-on-black,
+:root.dark .rf-on-black {
+  color-scheme: dark;
+  --color-olive: #e49b2d;
+  --color-olive-hover: #f0ac45;
+  --color-on-accent: #14110d;
+  --color-ink: #f4ede2;
+  --color-ink-soft: #d8cdbb;
+  --color-muted: #a99d8b;
+  --color-cream: #1b1814;
+  --color-sand: #100e0b;
+  --color-card: #1d1915;
+  --color-chip: #2a241d;
+  --color-line: #2f2922;
+  --color-line-strong: #4b4236;
+  --color-dot: #4b4236;
+  --color-gold: #e49b2d;
+  --color-espresso: #e49b2d;
+  --color-espresso-hover: #f0ac45;
+  --color-latte: #1f1b16;
+  --color-mocha: #f4ede2;
+  --color-footer: #100e0b;
+  background-color: #100e0b;
+  color: var(--color-ink);
+}
+.rf-on-amber,
+:root.dark .rf-on-amber {
+  color-scheme: light;
+  --color-olive: #100e0b;
+  --color-olive-hover: #2e2820;
+  --color-on-accent: #e49b2d;
+  --color-ink: #14110d;
+  --color-ink-soft: #33271a;
+  --color-muted: #4f3c1f;
+  --color-cream: #fdf6ea;
+  --color-sand: #e49b2d;
+  --color-card: #fdf6ea;
+  --color-chip: #f5ddb5;
+  --color-line: #c98722;
+  --color-line-strong: #9e6612;
+  --color-dot: #9e6612;
+  --color-gold: #100e0b;
+  --color-espresso: #100e0b;
+  --color-espresso-hover: #2e2820;
+  --color-latte: #f5ddb5;
+  --color-mocha: #14110d;
+  background-color: #e49b2d;
+  color: var(--color-ink);
+}
+/* Cards inside an amber section keep the regular light palette (amber accents). */
+.rf-on-amber .rf-light-card {
+  --color-olive: #e49b2d;
+  --color-olive-hover: #d08619;
+  --color-on-accent: #14110d;
+  --color-gold: #a8650c;
+  --color-line: #e9e0d2;
+  --color-line-strong: #d3c6b2;
+  --color-chip: #f1eadf;
+  --color-muted: #74695b;
+  --color-ink-soft: #4a443b;
+}
+.rf-on-black .rf-wordmark {
+  filter: invert(1) brightness(0.96);
+}
+:root.dark .rf-on-black a[aria-label='Rfaheya — home'] img {
+  filter: invert(1) brightness(0.96);
+}
+.rf-on-black .rf-pay-logo {
+  background: #fdf9f2;
+  border-radius: 6px;
+  padding: 4px 7px;
+  box-sizing: content-box;
+}
+
+/* ---------------------------------------------------------------- More motion */
+:root {
+  --rf-spring: cubic-bezier(0.2, 1.25, 0.3, 1);
+  interpolate-size: allow-keywords;
+}
+@keyframes rf-spring-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 36px)) scale(0.9);
+  }
+}
+@keyframes rf-cart-in {
+  0% {
+    opacity: 0;
+    transform: translateY(46px) scale(0.86);
+    filter: blur(6px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+@keyframes rf-cart-out {
+  to {
+    opacity: 0;
+    transform: translateY(28px) scale(0.93);
+  }
+}
+@keyframes rf-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes rf-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes rf-num-pop {
+  0% {
+    transform: translateY(40%) scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(-6%) scale(1.06);
+    opacity: 1;
+  }
+}
+@keyframes rf-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}
+@keyframes rf-img-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+    scale: 1.03;
+  }
+}
+@keyframes rf-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes rf-note-float {
+  50% {
+    transform: translateY(-3px) rotate(-6deg);
+  }
+}
+@keyframes rf-acc-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* Cart: opens in the middle of the page with a soft spring, lines follow one another. */
+.rf-cart-panel {
+  animation: rf-cart-in 0.62s var(--rf-spring) both;
+  transform-origin: 50% 70%;
+}
+.rf-cart-panel.rf-cart-leave {
+  animation: rf-cart-out 0.26s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+.rf-backdrop-leave {
+  animation: rf-fade-out 0.26s ease forwards;
+}
+.rf-cart-line {
+  animation: rf-line-in 0.6s var(--rf-ease-soft) backwards;
+  animation-delay: calc(140ms + var(--i, 0) * 60ms);
+}
+.rf-num-pop {
+  display: inline-block;
+  animation: rf-num-pop 0.45s var(--rf-spring);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Pages rise in. */
+  .page-enter {
+    animation: rf-page-in 0.8s var(--rf-ease-soft) backwards;
+  }
+  /* Section titles and their lines follow the section up, one after another. */
+  .scroll-reveal.reveal-visible :is(h2, h2 + p, h2 ~ p, p:has(+ h2)) {
+    animation: rf-rise-sm 1.1s var(--rf-ease-soft) backwards;
+  }
+  .scroll-reveal.reveal-visible p:has(+ h2) {
+    animation-delay: 80ms;
+  }
+  .scroll-reveal.reveal-visible h2 {
+    animation-delay: 170ms;
+  }
+  .scroll-reveal.reveal-visible :is(h2 + p, h2 ~ p) {
+    animation-delay: 280ms;
+  }
+  .rf-img-in {
+    animation: rf-img-in 0.9s var(--rf-ease-soft);
+  }
+  /* Feature strip glides on phones; pauses under a finger. */
+  @media (max-width: 63.99rem) {
+    .rf-marquee {
+      animation: rf-marquee 32s linear infinite;
+    }
+    .rf-marquee:hover,
+    .rf-marquee:active {
+      animation-play-state: paused;
+    }
+  }
+  .rf-feature svg {
+    transition: transform 0.6s var(--rf-spring);
+  }
+  .rf-feature:hover svg {
+    transform: translateY(-3px) rotate(-8deg) scale(1.12);
+  }
+  /* Notes drift a little on hover. */
+  .rf-note {
+    transition: transform 0.5s var(--rf-spring);
+  }
+  :hover > .rf-note {
+    animation: rf-note-float 1.6s ease-in-out infinite;
+  }
+  /* Accordions open smoothly. */
+  .rf-acc::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 0.55s var(--rf-ease-soft),
+      content-visibility 0.55s allow-discrete;
+  }
+  .rf-acc[open]::details-content {
+    block-size: auto;
+  }
+  .rf-acc[open] .rf-acc-body {
+    animation: rf-acc-in 0.55s var(--rf-ease-soft) backwards;
+  }
+  /* Amber buttons: a light sweep across on hover, and a press. */
+  :is(a, button).bg-olive.rounded-full:not(.absolute, .fixed, .sticky) {
+    position: relative;
+  }
+  :is(a, button).bg-olive.rounded-full {
+    overflow: hidden;
+    isolation: isolate;
+  }
+  :is(a, button).bg-olive.rounded-full::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 25%, rgb(255 255 255 / 0.42) 50%, transparent 75%);
+    transform: translateX(-130%);
+  }
+  :is(a, button).bg-olive.rounded-full:hover::after {
+    transform: translateX(130%);
+    transition: transform 0.9s var(--rf-ease-soft);
+  }
+  :is(a, button).rounded-full:active:not(:disabled) {
+    scale: 0.97;
+    transition: scale 0.12s ease;
+  }
+  /* Footer links: the underline grows from the left. */
+  footer nav a {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-size: 0 1px;
+    background-repeat: no-repeat;
+    transition:
+      background-size 0.5s var(--rf-ease-soft),
+      color 0.3s;
+  }
+  footer nav a:hover {
+    background-size: 100% 1px;
+    text-decoration: none;
+  }
+}
+/* Dark theme: the Standard copy sits on a light photograph on desktop, so it keeps dark text there. */
+@media (min-width: 64rem) {
+  :root.dark .rf-standard-copy {
+    --color-ink: #1c1a17;
+    --color-ink-soft: #4a443b;
+    --color-gold: #a8650c;
+    color: var(--color-ink);
+  }
 }

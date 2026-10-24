@@ -55,7 +55,7 @@ export function PointsPanel({ total, className = '' }: { total: number; classNam
                 type="button"
                 disabled={busy || total < 1}
                 onClick={redeem}
-                className="shrink-0 rounded-full bg-olive px-4 py-1.5 text-[11.5px] font-medium tracking-[0.08em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
+                className="shrink-0 rounded-full bg-olive px-4 py-1.5 text-[11.5px] font-medium tracking-[0.08em] text-on-accent uppercase transition hover:bg-olive-hover disabled:opacity-50"
               >
                 {busy ? 'Applying…' : 'Use points'}
               </button>

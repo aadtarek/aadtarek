@@ -34,7 +34,7 @@ export function TrackOrder() {
           </Field>
           <button
             type="submit"
-            className="h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+            className="h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
           >
             Track order
           </button>

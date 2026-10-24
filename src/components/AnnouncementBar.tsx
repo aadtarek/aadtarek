@@ -28,7 +28,7 @@ export function AnnouncementBar() {
 
   return (
     <div
-      className="bg-chip text-[10px] font-medium tracking-[0.08em] text-ink-soft uppercase"
+      className="rf-on-black text-[10px] font-medium tracking-[0.08em] text-ink-soft uppercase"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -51,7 +51,7 @@ export function AnnouncementBar() {
         <div className="hidden flex-1 items-center lg:flex">
           {ordered.map((m, i) => (
             <div key={m.text} className="flex flex-1 items-center">
-              {i > 0 && <span className="h-3.5 w-px bg-cream/60" aria-hidden />}
+              {i > 0 && <span className="h-3.5 w-px bg-olive/50" aria-hidden />}
               <div className="flex flex-1 justify-center">
                 <Message {...m} />
               </div>
@@ -75,7 +75,7 @@ export function AnnouncementBar() {
 function Message({ icon: Icon, text, animate = false }: { icon: LucideIcon; text: string; animate?: boolean }) {
   return (
     <p className={`flex items-center gap-2.5 truncate ${animate ? 'animate-fade-in' : ''}`}>
-      <Icon className="size-4 shrink-0" strokeWidth={1.5} />
+      <Icon className="size-4 shrink-0 text-olive" strokeWidth={1.5} />
       <span className="truncate">{text}</span>
     </p>
   )

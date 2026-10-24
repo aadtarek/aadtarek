@@ -180,7 +180,7 @@ export function Checkout() {
         )}
         <Link
           to="/shop"
-          className="mt-8 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+          className="mt-8 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
         >
           Continue shopping
         </Link>
@@ -194,7 +194,7 @@ export function Checkout() {
         <h1 className="font-serif text-[40px]">Your cart is empty.</h1>
         <Link
           to="/shop"
-          className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+          className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
         >
           Shop fragrances
         </Link>
@@ -344,7 +344,7 @@ export function Checkout() {
           <button
             type="submit"
             disabled={submitting || quoting || noDelivery}
-            className="rf-magnetic mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="rf-magnetic mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? 'Placing order…' : 'Place order'}
           </button>

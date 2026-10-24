@@ -189,7 +189,7 @@ export function Shop() {
               >
                 <SlidersHorizontal className="size-[18px]" strokeWidth={1.4} />
                 Filters
-                {active.length > 0 && <span className="grid size-5 place-items-center rounded-full bg-olive text-[11px] text-cream">{active.length}</span>}
+                {active.length > 0 && <span className="grid size-5 place-items-center rounded-full bg-olive text-[11px] text-on-accent">{active.length}</span>}
               </button>
 
               <ul className="hidden flex-1 flex-wrap items-center gap-2 lg:flex" aria-label="Active filters">
@@ -260,7 +260,7 @@ export function Shop() {
                     aria-label={`${n} per row`}
                     title={`${n} per row`}
                     onClick={() => setPerRow(n)}
-                    className={`grid size-8 place-items-center rounded-full transition ${perRow === n ? 'bg-olive text-cream' : 'text-ink-soft hover:text-ink'}`}
+                    className={`grid size-8 place-items-center rounded-full transition ${perRow === n ? 'bg-olive text-on-accent' : 'text-ink-soft hover:text-ink'}`}
                   >
                     {n === 2 ? <Columns2 className="size-4" strokeWidth={1.5} /> : <Columns3 className="size-4" strokeWidth={1.5} />}
                   </button>
@@ -278,7 +278,7 @@ export function Shop() {
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-cream uppercase hover:bg-olive-hover"
+                  className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
                 >
                   View all fragrances
                 </button>
@@ -307,7 +307,7 @@ export function Shop() {
               <button
                 type="button"
                 onClick={() => setSheetOpen(false)}
-                className="h-[52px] w-full rounded-lg bg-olive text-[15px] text-cream transition hover:bg-olive-hover"
+                className="h-[52px] w-full rounded-lg bg-olive text-[15px] text-on-accent transition hover:bg-olive-hover"
               >
                 Show {products.length} {products.length === 1 ? 'product' : 'products'}
               </button>
@@ -325,7 +325,7 @@ function PillButton({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`h-9 rounded-full border px-4 text-[13px] whitespace-nowrap transition ${active ? 'border-olive bg-olive text-cream' : 'border-line bg-cream hover:border-ink'}`}
+      className={`h-9 rounded-full border px-4 text-[13px] whitespace-nowrap transition ${active ? 'border-olive bg-olive text-on-accent' : 'border-line bg-cream hover:border-ink'}`}
     >
       {children}
     </button>
@@ -530,7 +530,7 @@ function PriceRange({
 
 function TryFirstBanner() {
   return (
-    <div className="mt-14 grid items-center gap-6 overflow-hidden rounded-3xl bg-chip p-8 sm:grid-cols-[1fr_auto] lg:mt-20 lg:p-12">
+    <div className="rf-on-amber mt-14 grid items-center gap-6 overflow-hidden rounded-3xl p-8 sm:grid-cols-[1fr_auto] lg:mt-20 lg:p-12">
       <div>
         <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">Not sure yet?</p>
         <p className="mt-2 font-serif text-[32px] leading-[1.05] sm:text-[42px]">
@@ -540,7 +540,7 @@ function TryFirstBanner() {
       </div>
       <Link
         to="/finder"
-        className="inline-flex h-12 items-center justify-center rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-cream uppercase transition hover:bg-olive-hover"
+        className="inline-flex h-12 items-center justify-center rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
       >
         Find your scent
       </Link>

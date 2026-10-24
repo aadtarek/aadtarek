@@ -36,7 +36,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
 
   return (
     <Overlay onClose={onClose} label={`Quick view: ${product.name}`}>
-      <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl sm:pb-0 [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)]">
+      <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl sm:pb-0 [animation:slide-up_.6s_cubic-bezier(.2,1.15,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:rf-spring-in_.6s_cubic-bezier(.2,1.25,.3,1)]">
         <button
           type="button"
           onClick={onClose}
@@ -90,7 +90,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
                 type="button"
                 onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id, qty)}
                 disabled={!selected.inStock}
-                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-olive text-[11px] font-medium tracking-[0.08em] text-cream uppercase transition hover:bg-olive-hover disabled:opacity-50"
+                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-olive text-[11px] font-medium tracking-[0.08em] text-on-accent uppercase transition hover:bg-olive-hover disabled:opacity-50"
               >
                 <ShoppingBag className="size-4" strokeWidth={1.5} aria-hidden />
                 Add to cart

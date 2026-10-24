@@ -22,7 +22,9 @@ export function QuantityInput({
         <Minus className="size-3.5" />
       </button>
       <span className={`grid ${size === 'sm' ? 'w-8 text-[13px]' : size === 'auto' ? 'w-8 text-[13px] sm:w-10 sm:text-sm' : 'w-10 text-sm'} place-items-center font-medium tabular-nums`} aria-live="polite">
-        {value}
+        <span key={value} className="rf-num-pop">
+          {value}
+        </span>
       </span>
       <button type="button" aria-label="Increase quantity" className={btn} disabled={value >= max} onClick={() => onChange(value + 1)}>
         <Plus className="size-3.5" />

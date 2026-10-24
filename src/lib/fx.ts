@@ -147,7 +147,7 @@ export function confetti(amount = 90) {
   const ctx = canvas.getContext('2d')
   if (!ctx) return canvas.remove()
   ctx.scale(dpr, dpr)
-  const colors = ['#c9a466', '#8a6a33', '#e8d3a6', '#f4ead6', '#b08d57', '#ffffff']
+  const colors = ['#e49b2d', '#f0ac45', '#100e0b', '#f4ead6', '#c47f17', '#ffffff']
   const pieces = Array.from({ length: amount }, () => ({
     x: rand(0, w),
     y: rand(-h * 0.5, -10),
@@ -228,6 +228,15 @@ function magnetic(e: PointerEvent) {
   el.style.setProperty('--my', `${(dy * 4).toFixed(1)}px`)
 }
 
+/** Lazy images that finish loading on screen fade in softly instead of popping in. */
+function imageIn(e: Event) {
+  const img = e.target
+  if (!(img instanceof HTMLImageElement) || img.loading !== 'lazy' || img.closest('#rf-fx-layer')) return
+  const r = img.getBoundingClientRect()
+  if (r.bottom < 0 || r.top > window.innerHeight) return
+  img.classList.add('rf-img-in')
+}
+
 let installed = false
 
 /** Installs the page-wide effects once (called from main.tsx). */
@@ -240,6 +249,13 @@ export function installFx() {
       if (!reduced()) ripple(e)
     },
     { passive: true },
+  )
+  document.addEventListener(
+    'load',
+    (e) => {
+      if (!reduced()) imageIn(e)
+    },
+    { capture: true, passive: true },
   )
   document.addEventListener(
     'pointermove',

@@ -30,11 +30,11 @@ export function SizePicker({
               onChange(v.id)
             }}
             className={`relative z-[1] flex flex-col items-center justify-center rounded-xl border px-2 py-2 transition sm:py-2.5 disabled:cursor-not-allowed disabled:opacity-40 ${
-              selected ? 'border-olive text-cream' : 'border-line-strong hover:border-ink'
+              selected ? 'border-olive text-on-accent' : 'border-line-strong hover:border-ink'
             }`}
           >
             <span className="text-[12px] font-semibold tracking-[0.06em] uppercase">{v.size}</span>
-            <span className={`mt-0.5 text-[11px] ${selected ? 'text-cream/80' : 'text-muted'}`}>
+            <span className={`mt-0.5 text-[11px] ${selected ? 'text-on-accent/75' : 'text-muted'}`}>
               {v.isSample ? 'Sample · ' : ''}
               {formatPrice(v.price)}
             </span>

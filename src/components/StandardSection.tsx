@@ -20,7 +20,7 @@ export function StandardSection() {
         className="pointer-events-none absolute top-0 left-0 hidden h-(--h) w-auto max-w-none [mask-image:linear-gradient(to_right,black_96%,transparent)] lg:block"
       />
       <div className="grid gap-10 px-4 py-12 sm:px-6 lg:h-(--h) lg:grid-cols-[calc(var(--h)*0.8525)_1fr] lg:gap-0 lg:pt-[calc(var(--h)*0.11)] lg:pr-[15px] lg:pb-0 lg:pl-0">
-        <div className="relative lg:pt-[calc(var(--h)*0.012)] lg:pr-6 lg:pl-[calc(var(--h)*0.1288)]">
+        <div className="rf-standard-copy relative lg:pt-[calc(var(--h)*0.012)] lg:pr-6 lg:pl-[calc(var(--h)*0.1288)]">
           <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[15.5px] lg:text-[17px] lg:tracking-[0.24em]">Rfaheya Standard™</p>
           <h2 id="standard-title" className="mt-4 font-serif text-[44px] leading-[1] sm:text-[60px] lg:mt-[24px] lg:text-[80px] lg:leading-[0.86]">
             More than
@@ -32,7 +32,7 @@ export function StandardSection() {
           </p>
           <Link
             to="/our-standard"
-            className="rf-magnetic group mt-7 inline-flex h-[53px] items-center gap-4 rounded-full bg-olive px-[30px] text-[13px] font-medium tracking-[0.18em] text-cream uppercase transition hover:bg-olive-hover sm:h-[55px] sm:text-[15.5px] lg:mt-[33px]"
+            className="rf-magnetic group mt-7 inline-flex h-[53px] items-center gap-4 rounded-full bg-olive px-[30px] text-[13px] font-medium tracking-[0.18em] text-on-accent uppercase transition hover:bg-olive-hover sm:h-[55px] sm:text-[15.5px] lg:mt-[33px]"
           >
             Explore Rfaheya Standard™
             <ArrowRight className="size-[18px] transition group-hover:translate-x-1" strokeWidth={1.5} />

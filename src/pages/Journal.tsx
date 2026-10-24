@@ -122,7 +122,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
             ))}
           </section>
         ))}
-        <div className="mt-12 rounded-lg bg-olive p-8 text-cream">
+        <div className="mt-12 rounded-lg bg-olive p-8 text-on-accent">
           <p className="font-serif text-[28px] leading-tight">Not sure where to start?</p>
           <p className="mt-2 text-cream/80">Answer 7 quick questions and we’ll match you with your scent.</p>
           <Link
