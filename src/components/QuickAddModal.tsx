@@ -46,8 +46,15 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
           <X className="size-5" strokeWidth={1.5} />
         </button>
         <div className="grid sm:grid-cols-[1fr_1.1fr]">
-          <div className="bg-chip sm:flex sm:items-center">
-            <img src={product.images[0].src} srcSet={product.images[0].srcset} sizes="(min-width: 640px) 26rem, 100vw" alt={product.images[0].alt} className="aspect-[5/4] w-full object-cover" />
+          {/* The photo fills the whole left side on larger screens */}
+          <div className="relative overflow-hidden bg-chip">
+            <img
+              src={product.images[0].src}
+              srcSet={product.images[0].srcset}
+              sizes="(min-width: 640px) 26rem, 100vw"
+              alt={product.images[0].alt}
+              className="aspect-[5/4] w-full object-cover sm:absolute sm:inset-0 sm:aspect-auto sm:size-full"
+            />
           </div>
           <div className="p-5 sm:p-7">
             {product.badge && <span className="rounded-full bg-chip px-2.5 py-1 text-[10.5px] font-medium tracking-[0.03em]">{product.badge}</span>}
