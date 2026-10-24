@@ -132,9 +132,9 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
         )}
 
         <div className="rf-pcard-bar mt-auto">
-          <div className="mt-2.5 flex items-center justify-between gap-1 rounded-full p-[3px] sm:mt-3.5 sm:p-1">
+          <div className="mt-2.5 flex flex-col gap-1 rounded-[18px] p-1 @[15rem]:flex-row @[15rem]:items-center @[15rem]:justify-between @[15rem]:rounded-full sm:mt-3.5">
             {sizes.length > 1 ? (
-              <div ref={pillRef} role="radiogroup" aria-label={`Size for ${product.name}`} className="relative flex min-w-0">
+              <div ref={pillRef} role="radiogroup" aria-label={`Size for ${product.name}`} className="relative flex w-full min-w-0 @[15rem]:w-auto">
                 <SlidingPill box={pillBox} className="rf-pcard-pill rounded-full" />
                 {sizes.map((v) => {
                   const on = v.id === selected.id
@@ -150,7 +150,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                         haptic(8)
                         setVariationId(v.id)
                       }}
-                      className={`relative z-[1] h-7 min-w-0 rounded-full px-[5px] text-[9.5px] font-semibold tabular-nums transition-colors duration-300 @[15rem]:px-2.5 @[15rem]:text-[12px] sm:h-9 disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
+                      className={`relative z-[1] h-8 min-w-0 flex-1 rounded-full px-1 text-[12.5px] font-semibold tabular-nums transition-colors duration-300 @[15rem]:flex-none @[15rem]:px-2.5 @[15rem]:text-[12px] sm:h-9 disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
                         on ? 'rf-pcard-ink' : 'text-muted hover:text-ink'
                       }`}
                     >
@@ -160,17 +160,17 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                 })}
               </div>
             ) : (
-              <span className="px-2 text-[11px] font-semibold text-muted">{selected.size}</span>
+              <span className="px-2 py-1 text-center text-[12px] font-semibold text-muted">{selected.size}</span>
             )}
             <button
               type="button"
               onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id)}
               disabled={!selected.inStock}
-              className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-[#14110d] px-2.5 text-[11px] font-semibold text-white transition hover:bg-[#2e2820] disabled:opacity-50 sm:h-9 sm:px-4 sm:text-[13px]"
+              className="inline-flex h-10 w-full shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#14110d] px-2 text-[11.5px] font-semibold whitespace-nowrap text-white transition hover:bg-[#2e2820] disabled:opacity-50 @[15rem]:h-9 @[15rem]:w-auto @[15rem]:px-4 @[15rem]:text-[13px]"
             >
-              <ShoppingBag className="size-3.5 shrink-0 sm:size-4" strokeWidth={1.8} aria-hidden />
-              <span className="sr-only">Add to cart · </span>
-              <span key={selected.price} className="rf-num-pop hidden tabular-nums @[15rem]:inline">
+              <ShoppingBag className="hidden size-4 shrink-0 @[15rem]:block" strokeWidth={1.8} aria-hidden />
+              <span className="@[15rem]:sr-only">Add to cart · </span>
+              <span key={selected.price} className="rf-num-pop tabular-nums">
                 {formatPrice(selected.price)}
               </span>
             </button>
