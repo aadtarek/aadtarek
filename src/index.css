@@ -10,7 +10,7 @@
   /* Brand amber (#E49B2D) with black: buttons, highlights and amber sections */
   --color-olive: #e49b2d;
   --color-olive-hover: #d08619;
-  --color-on-accent: #14110d;
+  --color-on-accent: #ffffff;
   --color-amber: #e49b2d;
   --color-noir: #100e0b;
   --color-ink: #1c1a17;
@@ -1038,7 +1038,7 @@ section[aria-labelledby="best-sellers-title"]
   color-scheme: dark;
   --color-olive: #e49b2d;
   --color-olive-hover: #f0ac45;
-  --color-on-accent: #14110d;
+  --color-on-accent: #ffffff;
   --color-ink: #f4ede2;
   --color-ink-soft: #d8cdbb;
   --color-muted: #a99d8b;
@@ -1086,7 +1086,7 @@ section[aria-labelledby="best-sellers-title"]
 .rf-on-amber .rf-light-card {
   --color-olive: #e49b2d;
   --color-olive-hover: #d08619;
-  --color-on-accent: #14110d;
+  --color-on-accent: #ffffff;
   --color-gold: #a8650c;
   --color-line: #e9e0d2;
   --color-line-strong: #d3c6b2;

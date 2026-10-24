@@ -1881,73 +1881,151 @@ add_action(
 <link rel="icon" type="image/svg+xml" href="<?php echo esc_url( $home . 'favicon.svg' ); ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Playfair+Display:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@0;1&display=swap">
+<script>try{if(JSON.parse(localStorage.getItem('rfaheya.theme'))==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
 <?php wp_head(); ?>
 <style>
-body.rfaheya-account { margin: 0; background: #f6f1eb; color: #18140b; font-family: "DM Sans", system-ui, sans-serif; font-size: 16px; line-height: 1.6; }
-.rf-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 5vw, 78px); background: #f9f6f1; border-bottom: 1px solid #e6e1d8; }
-.rf-logo img { display: block; height: 40px; width: auto; }
-.rf-logo span { font-family: "Playfair Display", serif; font-size: 28px; letter-spacing: .04em; color: #18140b; }
-.rf-nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
-.rf-nav a { color: #18140b; text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; }
-.rf-nav a:hover { color: #2a2f1b; text-decoration: underline; text-underline-offset: 4px; }
-.rf-main { max-width: 1100px; margin: 0 auto; padding: 48px 16px 96px; }
-.rf-eyebrow { margin: 0; font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: #3d3a33; }
-.rf-title { font-family: "Playfair Display", serif; font-weight: 400; font-size: clamp(38px, 6vw, 56px); line-height: 1.05; margin: 8px 0 36px; }
+:root { --amber: #e49b2d; --amber-hover: #d08619; --on-amber: #fff; --noir: #100e0b; --ink: #1c1a17; --soft: #4a443b; --muted: #74695b; --bg: #f8f4ed; --card: #fcfaf6; --chip: #f1eadf; --line: #e9e0d2; --line-strong: #d3c6b2; --ease: cubic-bezier(.16,1,.3,1); --spring: cubic-bezier(.2,1.25,.3,1); }
+:root.dark { color-scheme: dark; --ink: #f1ebe1; --soft: #d2c8b8; --muted: #a59a8b; --bg: #14120f; --card: #201c17; --chip: #29241d; --line: #332d25; --line-strong: #4b4236; }
+body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font-family: "DM Sans", system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+.rfaheya-account * { box-sizing: border-box; }
+@keyframes rf-rise { from { opacity: 0; transform: translateY(26px); } }
+@keyframes rf-pop { from { opacity: 0; transform: translateY(18px) scale(.96); } }
+@keyframes rf-glow { 50% { transform: translate(30px, -20px) scale(1.15); } }
+@keyframes rf-marquee { to { transform: translateX(-50%); } }
+/* Top: black announcement and header, like the storefront */
+.rf-announce { background: var(--noir); color: #d8cdbb; font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; overflow: hidden; white-space: nowrap; }
+.rf-announce div { display: inline-flex; gap: 48px; padding: 9px 24px; animation: rf-marquee 28s linear infinite; }
+.rf-announce b { color: var(--amber); font-weight: 500; }
+.rf-bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 5vw, 78px); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.rf-logo img { display: block; height: 38px; width: auto; }
+:root.dark .rf-logo img { filter: invert(1) brightness(.95); }
+.rf-logo span { font-family: "Instrument Serif", serif; font-size: 28px; letter-spacing: .04em; color: var(--ink); }
+.rf-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 26px; }
+.rf-nav a { color: var(--ink); text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 2px; transition: background-size .5s var(--ease); }
+.rf-nav a:hover { background-size: 100% 1px; }
+.rf-nav .rf-nav-cta { padding: 10px 18px; border-radius: 999px; background: var(--amber); color: var(--on-amber); background-image: none; }
+.rf-nav .rf-nav-cta:hover { background: var(--amber-hover); }
+@media (max-width: 720px) { .rf-nav a:not(.rf-nav-cta) { display: none; } }
+/* Hero band: black with an amber glow */
+.rf-hero { position: relative; overflow: hidden; background: var(--noir); color: #f4ede2; padding: clamp(40px, 7vw, 76px) clamp(16px, 5vw, 78px) clamp(36px, 6vw, 64px); }
+.rf-hero::before, .rf-hero::after { content: ""; position: absolute; border-radius: 50%; filter: blur(60px); pointer-events: none; animation: rf-glow 14s ease-in-out infinite; }
+.rf-hero::before { width: 420px; height: 420px; right: -80px; top: -160px; background: rgba(228,155,45,.38); }
+.rf-hero::after { width: 300px; height: 300px; left: 30%; bottom: -200px; background: rgba(228,155,45,.18); animation-duration: 18s; animation-direction: reverse; }
+.rf-hero-in { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.rf-eyebrow { margin: 0; font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--amber); animation: rf-rise .9s var(--ease) both; }
+.rf-title { font-family: "Instrument Serif", serif; font-weight: 400; font-size: clamp(42px, 7vw, 72px); line-height: 1; letter-spacing: -.01em; margin: 10px 0 0; animation: rf-rise 1s var(--ease) .08s both; }
+.rf-title em { color: var(--amber); }
+.rf-hero-sub { margin: 12px 0 0; color: #a99d8b; font-size: 16px; animation: rf-rise 1s var(--ease) .16s both; }
+.rf-hero-points { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-radius: 20px; background: rgba(255,255,255,.06); border: 1px solid rgba(228,155,45,.35); animation: rf-pop .9s var(--spring) .25s both; text-decoration: none; color: inherit; }
+.rf-hero-points strong { font-family: "Instrument Serif", serif; font-size: 40px; font-weight: 400; line-height: 1; color: var(--amber); }
+.rf-hero-points span { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #d8cdbb; line-height: 1.4; }
+.rf-main { max-width: 1100px; margin: 0 auto; padding: 40px 16px 96px; }
+.rf-main.rf-main-auth { padding-top: 48px; }
+/* WooCommerce account */
 .rfaheya-account .woocommerce { font-size: 16px; }
-.rfaheya-account .woocommerce a { color: #18140b; text-underline-offset: 4px; }
-.rfaheya-account .woocommerce h2, .rfaheya-account .woocommerce h3 { font-family: "Playfair Display", serif; font-weight: 400; }
-.rfaheya-account .woocommerce .button, .rfaheya-account .woocommerce button.button, .rfaheya-account .woocommerce input.button { background: #2a2f1b; color: #f9f6f1; border: 0; border-radius: 3px; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 500; padding: 15px 26px; cursor: pointer; }
-.rfaheya-account .woocommerce .button:hover, .rfaheya-account .woocommerce button.button:hover { background: #3a412a; color: #f9f6f1; }
-.rfaheya-account .woocommerce input.input-text, .rfaheya-account .woocommerce select, .rfaheya-account .woocommerce textarea { width: 100%; box-sizing: border-box; padding: 13px 14px; border: 1px solid #c9c3b8; border-radius: 3px; background: #fcf8f2; font: inherit; }
+.rfaheya-account .woocommerce::after { content: ""; display: table; clear: both; }
+.rfaheya-account .woocommerce a { color: var(--ink); text-underline-offset: 4px; }
+.rfaheya-account .woocommerce h2, .rfaheya-account .woocommerce h3 { font-family: "Instrument Serif", serif; font-weight: 400; font-size: 30px; line-height: 1.1; }
+.rfaheya-account .woocommerce .button, .rfaheya-account .woocommerce button.button, .rfaheya-account .woocommerce input.button, .rfaheya-account .woocommerce a.button { position: relative; overflow: hidden; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; background: var(--amber); color: var(--on-amber); border: 0; border-radius: 999px; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 500; padding: 14px 24px; cursor: pointer; text-decoration: none; transition: background .3s, transform .15s; }
+.rfaheya-account .woocommerce .button::after, .rf-primary::after, .rf-nav-cta::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,.4) 50%, transparent 75%); transform: translateX(-130%); pointer-events: none; }
+.rfaheya-account .woocommerce .button:hover::after, .rf-primary:hover::after, .rf-nav-cta:hover::after { transform: translateX(130%); transition: transform .9s var(--ease); }
+.rfaheya-account .woocommerce .button:hover { background: var(--amber-hover); color: var(--on-amber); }
+.rfaheya-account .woocommerce .button:active, .rf-primary:active { transform: scale(.97); }
+.rfaheya-account .woocommerce input.input-text, .rfaheya-account .woocommerce select, .rfaheya-account .woocommerce textarea { width: 100%; padding: 13px 16px; border: 1px solid var(--line-strong); border-radius: 14px; background: var(--card); color: var(--ink); font: inherit; transition: border-color .3s, box-shadow .3s; }
+.rfaheya-account .woocommerce input.input-text:focus, .rfaheya-account .woocommerce select:focus, .rfaheya-account .woocommerce textarea:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 4px rgba(228,155,45,.18); }
 .rfaheya-account .woocommerce form .form-row { margin: 0 0 16px; }
-.rfaheya-account .woocommerce form .form-row label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
-.rfaheya-account .woocommerce form.login, .rfaheya-account .woocommerce form.register { border: 1px solid #e6e1d8; border-radius: 8px; padding: 28px; background: #fcf8f2; }
+.rfaheya-account .woocommerce form .form-row label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; color: var(--soft); }
+.rfaheya-account .woocommerce fieldset { border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; margin: 24px 0; }
+.rfaheya-account .woocommerce form.login, .rfaheya-account .woocommerce form.register, .rfaheya-account .woocommerce form.lost_reset_password { border: 1px solid var(--line); border-radius: 22px; padding: 28px; background: var(--card); }
 .rfaheya-account .woocommerce .u-columns { display: grid; gap: 32px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 .rfaheya-account .woocommerce .u-columns .col-1, .rfaheya-account .woocommerce .u-columns .col-2 { width: auto; float: none; }
-.rfaheya-account .woocommerce-MyAccount-navigation ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid #e6e1d8; }
-.rfaheya-account .woocommerce-MyAccount-navigation li { border-bottom: 1px solid #e6e1d8; }
-.rfaheya-account .woocommerce-MyAccount-navigation li a { display: block; padding: 13px 0; text-decoration: none; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
-.rfaheya-account .woocommerce-MyAccount-navigation li.is-active a { font-weight: 600; color: #2a2f1b; }
-.rfaheya-account .woocommerce table.shop_table { width: 100%; border-collapse: collapse; background: #fcf8f2; border: 1px solid #e6e1d8; border-radius: 8px; }
-.rfaheya-account .woocommerce table.shop_table th, .rfaheya-account .woocommerce table.shop_table td { padding: 12px 14px; border-bottom: 1px solid #e6e1d8; text-align: left; }
-.rfaheya-account .woocommerce-message, .rfaheya-account .woocommerce-info, .rfaheya-account .woocommerce-error { list-style: none; margin: 0 0 24px; padding: 14px 18px; border-radius: 6px; background: #f0ebe2; border: 0; }
-.rfaheya-account .woocommerce-error { background: #f6e3df; }
-@media (min-width: 768px) { .rfaheya-account .woocommerce-MyAccount-navigation { float: left; width: 24%; } .rfaheya-account .woocommerce-MyAccount-content { float: right; width: 70%; } }
-.rf-foot a { color: #18140b; text-underline-offset: 4px; }
+/* Side menu: a card with an amber pill on the current page */
+.rfaheya-account .woocommerce-MyAccount-navigation { animation: rf-rise .9s var(--ease) .1s both; }
+.rfaheya-account .woocommerce-MyAccount-navigation ul { list-style: none; margin: 0; padding: 8px; border: 1px solid var(--line); border-radius: 22px; background: var(--card); }
+.rfaheya-account .woocommerce-MyAccount-navigation li a { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: 999px; text-decoration: none; font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); transition: background .35s var(--ease), color .35s, padding .35s var(--ease); }
+.rfaheya-account .woocommerce-MyAccount-navigation li a::after { content: "→"; opacity: 0; transform: translateX(-6px); transition: opacity .3s, transform .4s var(--ease); }
+.rfaheya-account .woocommerce-MyAccount-navigation li a:hover { background: var(--chip); color: var(--ink); padding-left: 20px; }
+.rfaheya-account .woocommerce-MyAccount-navigation li a:hover::after { opacity: 1; transform: none; }
+.rfaheya-account .woocommerce-MyAccount-navigation li.is-active a { background: var(--amber); color: var(--on-amber); }
+.rfaheya-account .woocommerce-MyAccount-navigation li.is-active a::after { opacity: 1; transform: none; }
+.rfaheya-account .woocommerce-MyAccount-navigation-link--customer-logout a { color: var(--muted); }
+.rfaheya-account .woocommerce-MyAccount-content { animation: rf-rise 1s var(--ease) .2s both; }
+.rfaheya-account .woocommerce-MyAccount-content > p:first-child { font-size: 17px; color: var(--soft); }
+.rfaheya-account .woocommerce table.shop_table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; }
+.rfaheya-account .woocommerce table.shop_table th { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); background: var(--chip); }
+.rfaheya-account .woocommerce table.shop_table th, .rfaheya-account .woocommerce table.shop_table td { padding: 14px 16px; border-bottom: 1px solid var(--line); text-align: left; }
+.rfaheya-account .woocommerce table.shop_table tbody tr { transition: background .3s; }
+.rfaheya-account .woocommerce table.shop_table tbody tr:hover { background: color-mix(in srgb, var(--amber) 8%, transparent); }
+.rfaheya-account .woocommerce table.shop_table tr:last-child td { border-bottom: 0; }
+.rfaheya-account .woocommerce table.shop_table .button { padding: 9px 16px; font-size: 11px; margin: 2px 4px 2px 0; }
+.rfaheya-account mark { background: color-mix(in srgb, var(--amber) 22%, transparent); color: var(--ink); padding: 1px 8px; border-radius: 999px; }
+.rfaheya-account .woocommerce-Addresses { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.rfaheya-account .woocommerce-Addresses .woocommerce-Address { width: auto; float: none; padding: 22px; border: 1px solid var(--line); border-radius: 22px; background: var(--card); transition: transform .5s var(--ease), box-shadow .5s; }
+.rfaheya-account .woocommerce-Addresses .woocommerce-Address:hover { transform: translateY(-4px); box-shadow: 0 24px 50px -30px rgba(16,14,11,.4); }
+.rfaheya-account .woocommerce-Address-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.rfaheya-account address { font-style: normal; color: var(--soft); }
+.rfaheya-account .woocommerce-message, .rfaheya-account .woocommerce-info, .rfaheya-account .woocommerce-error { list-style: none; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 24px; padding: 14px 18px; border-radius: 18px; background: var(--chip); border: 0; border-left: 4px solid var(--amber); animation: rf-pop .7s var(--spring) both; }
+.rfaheya-account .woocommerce-error { border-left-color: #c2410c; }
+.rfaheya-account .woocommerce-message::before, .rfaheya-account .woocommerce-info::before, .rfaheya-account .woocommerce-error::before { display: none; }
+@media (min-width: 768px) { .rfaheya-account .woocommerce-MyAccount-navigation { float: left; width: 26%; position: sticky; top: 92px; } .rfaheya-account .woocommerce-MyAccount-content { float: right; width: 69%; } }
+/* Points card on the dashboard */
+.rfaheya-account .rf-points { position: relative; overflow: hidden; margin: 28px 0; padding: 26px 28px; border-radius: 24px; background: var(--noir); color: #f4ede2; animation: rf-pop .9s var(--spring) .3s both; }
+.rfaheya-account .rf-points::before { content: ""; position: absolute; width: 280px; height: 280px; right: -90px; top: -120px; border-radius: 50%; background: rgba(228,155,45,.35); filter: blur(50px); animation: rf-glow 12s ease-in-out infinite; }
+.rfaheya-account .rf-points > * { position: relative; }
+.rf-points-label { margin: 0; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--amber); }
+.rf-points-total { margin: 8px 0 0; font-family: "Instrument Serif", serif; font-size: 56px; line-height: 1; color: var(--amber); }
+.rf-points-total span { font-family: "DM Sans", sans-serif; font-size: 15px; color: #a99d8b; }
+.rf-points-how { margin: 12px 0 0; color: #d8cdbb; font-size: 14px; }
+.rf-points-log { margin-top: 16px; width: 100%; font-size: 13px; border-collapse: collapse; }
+.rf-points-log td { padding: 8px 0; border-top: 1px solid rgba(255,255,255,.08); color: #d8cdbb; }
+.rf-points-log td:first-child { color: #a99d8b; }
+.rf-points-log td:last-child { text-align: right; font-weight: 600; color: var(--amber); }
+/* Sign in / register */
+.rf-foot a { color: var(--amber); text-underline-offset: 4px; }
 .rf-auth { display: grid; gap: 32px; align-items: stretch; max-width: 1040px; margin: 0 auto; }
 @media (min-width: 900px) { .rf-auth { grid-template-columns: 1fr 460px; } }
-.rf-auth-art { display: none; border-radius: 14px; background-size: cover; background-position: 70% center; min-height: 560px; position: relative; overflow: hidden; }
-.rf-auth-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(24,20,11,.55)); }
-.rf-auth-art p { position: absolute; left: 32px; bottom: 26px; z-index: 1; margin: 0; color: #f9f6f1; font-family: "Playfair Display", serif; font-size: 38px; line-height: 1.05; }
+.rf-auth-art { display: none; border-radius: 28px; background-size: cover; background-position: 70% center; min-height: 560px; position: relative; overflow: hidden; animation: rf-pop 1.1s var(--ease) both; }
+.rf-auth-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(16,14,11,.75)); }
+.rf-auth-art p { position: absolute; left: 32px; bottom: 26px; z-index: 1; margin: 0; color: #fff; font-family: "Instrument Serif", serif; font-size: 44px; line-height: 1.05; }
+.rf-auth-art p em { color: var(--amber); }
 @media (min-width: 900px) { .rf-auth-art { display: block; } }
-.rf-auth-card { background: #fcf8f2; border: 1px solid #e6e1d8; border-radius: 14px; padding: 28px clamp(20px, 4vw, 40px) 32px; box-shadow: 0 20px 50px -30px rgba(40,30,20,.35); }
-.rf-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: #f0ebe2; }
-.rf-tabs a { text-align: center; padding: 10px 8px; border-radius: 999px; font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: #3d3a33; text-decoration: none; }
-.rf-tabs a[aria-selected="true"] { background: #2a2f1b; color: #f9f6f1; }
-.rf-auth-title { font-family: "Playfair Display", serif; font-weight: 400; font-size: 34px; line-height: 1.1; margin: 26px 0 6px; }
-.rf-auth-sub { margin: 0 0 22px; color: #6f6a60; font-size: 15px; }
+.rf-auth-card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 28px clamp(20px, 4vw, 40px) 32px; box-shadow: 0 30px 70px -40px rgba(16,14,11,.45); animation: rf-pop .9s var(--spring) .1s both; }
+.rf-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: var(--chip); }
+.rf-tabs a { text-align: center; padding: 10px 8px; border-radius: 999px; font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); text-decoration: none; transition: background .4s var(--ease), color .3s; }
+.rf-tabs a[aria-selected="true"] { background: var(--noir); color: #fff; }
+:root.dark .rf-tabs a[aria-selected="true"] { background: var(--amber); color: var(--on-amber); }
+.rf-auth-title { font-family: "Instrument Serif", serif; font-weight: 400; font-size: 40px; line-height: 1.05; margin: 26px 0 6px; }
+.rf-auth-sub { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
 .rf-social { display: grid; gap: 10px; }
-.rf-social-btn { display: flex; align-items: center; justify-content: center; gap: 12px; height: 50px; border: 1px solid #c9c3b8; border-radius: 6px; background: #fff; color: #18140b; text-decoration: none; font-size: 15px; font-weight: 500; transition: border-color .15s, box-shadow .15s; }
-.rf-social-btn:hover { border-color: #18140b; box-shadow: 0 4px 14px -8px rgba(0,0,0,.3); }
-.rf-or { display: flex; align-items: center; gap: 14px; margin: 20px 0; color: #6f6a60; font-size: 13px; text-transform: uppercase; letter-spacing: .14em; }
-.rf-or::before, .rf-or::after { content: ""; flex: 1; height: 1px; background: #e6e1d8; }
+.rf-social-btn { display: flex; align-items: center; justify-content: center; gap: 12px; height: 50px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); text-decoration: none; font-size: 15px; font-weight: 500; transition: border-color .3s, box-shadow .3s, transform .4s var(--ease); }
+.rf-social-btn:hover { border-color: var(--amber); box-shadow: 0 10px 24px -14px rgba(16,14,11,.4); transform: translateY(-2px); }
+.rf-or { display: flex; align-items: center; gap: 14px; margin: 20px 0; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .14em; }
+.rf-or::before, .rf-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .rf-form { display: grid; gap: 14px; }
-.rf-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 500; color: #3d3a33; }
-.rf-form input[type=text], .rf-form input[type=email], .rf-form input[type=tel], .rf-form input[type=password] { height: 50px; box-sizing: border-box; width: 100%; padding: 0 14px; border: 1px solid #c9c3b8; border-radius: 6px; background: #fff; font: inherit; font-size: 15px; color: #18140b; }
-.rf-form input:focus { outline: none; border-color: #2a2f1b; box-shadow: 0 0 0 3px rgba(42,47,27,.12); }
+.rf-form label { display: grid; gap: 6px; font-size: 13px; font-weight: 500; color: var(--soft); }
+.rf-form input[type=text], .rf-form input[type=email], .rf-form input[type=tel], .rf-form input[type=password] { height: 50px; width: 100%; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); font: inherit; font-size: 15px; color: var(--ink); transition: border-color .3s, box-shadow .3s; }
+.rf-form input:focus { outline: none; border-color: var(--amber); box-shadow: 0 0 0 4px rgba(228,155,45,.18); }
 .rf-row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; }
-.rf-row-between a { color: #18140b; text-underline-offset: 4px; }
+.rf-row-between a { color: var(--ink); text-underline-offset: 4px; }
 .rf-form .rf-check { display: inline-flex; align-items: center; gap: 8px; font-weight: 400; }
-.rf-primary { height: 54px; border: 0; border-radius: 6px; background: #2a2f1b; color: #f9f6f1; font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; margin-top: 4px; }
-.rf-primary:hover { background: #3a412a; }
-.rf-switch { margin: 4px 0 0; text-align: center; font-size: 14px; color: #6f6a60; }
-.rf-switch a { color: #18140b; font-weight: 500; text-underline-offset: 4px; }
-.rf-foot { padding: 28px 16px; text-align: center; font-size: 13px; color: #6f6a60; border-top: 1px solid #e6e1d8; }
+.rf-form .rf-check input { accent-color: var(--amber); }
+.rf-primary { position: relative; overflow: hidden; isolation: isolate; height: 54px; border: 0; border-radius: 999px; background: var(--amber); color: var(--on-amber); font: inherit; font-size: 13px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; margin-top: 4px; transition: background .3s, transform .15s; }
+.rf-primary:hover { background: var(--amber-hover); }
+.rf-switch { margin: 4px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+.rf-switch a { color: var(--ink); font-weight: 500; text-underline-offset: 4px; }
+.rf-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 28px clamp(16px, 5vw, 78px); font-size: 13px; color: #a99d8b; background: var(--noir); }
+.rf-foot .rf-foot-logo { font-family: "Instrument Serif", serif; font-size: 22px; letter-spacing: .06em; color: #f4ede2; }
+@media (prefers-reduced-motion: reduce) { .rfaheya-account *, .rfaheya-account *::before, .rfaheya-account *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; } }
 </style>
 </head>
 <body <?php body_class( 'rfaheya-account' ); ?>>
 <?php wp_body_open(); ?>
+<div class="rf-announce" aria-hidden="true"><div>
+	<?php for ( $i = 0; $i < 2; $i++ ) : ?>
+		<span>Free shipping in Cairo &amp; Alexandria over <b>1,200 EGP</b></span><span>Earn <b>points</b> on every order</span><span>Try any scent in <b>5 ML</b> first</span><span>Zero risk guarantee</span>
+	<?php endfor; ?>
+</div></div>
 <header class="rf-bar">
 	<a class="rf-logo" href="<?php echo esc_url( $home ); ?>">
 		<?php if ( $logo ) : ?>
@@ -1963,23 +2041,64 @@ body.rfaheya-account { margin: 0; background: #f6f1eb; color: #18140b; font-fami
 		$link( 'journal', 'Journal' );
 		$link( 'contact', 'Contact' );
 		?>
+		<a class="rf-nav-cta" href="<?php echo esc_url( $home ); ?>">Back to the store</a>
 	</nav>
 </header>
-<main class="rf-main">
-	<?php if ( ! is_user_logged_in() && ! ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'lost-password' ) ) ) : ?>
+<?php if ( ! is_user_logged_in() && ! ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'lost-password' ) ) ) : ?>
+	<main class="rf-main rf-main-auth">
 		<?php rfaheya_auth_page(); ?>
-	<?php else : ?>
-		<p class="rf-eyebrow">My account</p>
+	</main>
+<?php else : ?>
+	<?php
+	$user      = wp_get_current_user();
+	$first     = $user->exists() ? ( $user->first_name ? $user->first_name : $user->display_name ) : '';
+	$endpoint  = function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url();
+	$loyalty   = function_exists( 'rfaheya_loyalty' ) ? rfaheya_loyalty() : array( 'enabled' => false );
+	$my_points = $user->exists() && $loyalty['enabled'] ? rfaheya_points( $user->ID ) : null;
+	?>
+	<section class="rf-hero">
+		<div class="rf-hero-in">
+			<div>
+				<p class="rf-eyebrow">My account</p>
+				<?php if ( $endpoint || ! $first ) : ?>
+					<h1 class="rf-title"><?php echo esc_html( get_the_title() ); ?></h1>
+				<?php else : ?>
+					<h1 class="rf-title">Hello, <em><?php echo esc_html( $first ); ?></em>.</h1>
+					<p class="rf-hero-sub">Your orders, addresses and points — all in one place.</p>
+				<?php endif; ?>
+			</div>
+			<?php if ( null !== $my_points ) : ?>
+				<a class="rf-hero-points" href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>">
+					<strong data-count="<?php echo esc_attr( $my_points ); ?>"><?php echo esc_html( number_format_i18n( $my_points ) ); ?></strong>
+					<span>Rfaheya<br>points</span>
+				</a>
+			<?php endif; ?>
+		</div>
+	</section>
+	<main class="rf-main">
 		<?php
 		while ( have_posts() ) {
 			the_post();
-			echo '<h1 class="rf-title">' . esc_html( get_the_title() ) . '</h1>';
 			the_content();
 		}
 		?>
-	<?php endif; ?>
-</main>
-<footer class="rf-foot">&copy; <?php echo esc_html( gmdate( 'Y' ) . ' ' . get_bloginfo( 'name' ) ); ?> · <a href="<?php echo esc_url( $home ); ?>">Back to the store</a></footer>
+	</main>
+<?php endif; ?>
+<footer class="rf-foot"><span class="rf-foot-logo">RFAHEYA</span><span>&copy; <?php echo esc_html( gmdate( 'Y' ) . ' ' . get_bloginfo( 'name' ) ); ?> · <a href="<?php echo esc_url( $home ); ?>">Back to the store</a></span></footer>
+<script>
+(function () {
+	if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+	document.querySelectorAll('[data-count]').forEach(function (el) {
+		var end = +el.getAttribute('data-count'), t0 = performance.now(), fmt = new Intl.NumberFormat();
+		if (!end) return;
+		(function step(t) {
+			var k = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - k, 3);
+			el.textContent = fmt.format(Math.round(end * e));
+			if (k < 1) requestAnimationFrame(step);
+		})(t0);
+	});
+})();
+</script>
 <?php wp_footer(); ?>
 </body>
 </html>
@@ -2252,7 +2371,7 @@ function rfaheya_auth_page() {
 	?>
 	<div class="rf-auth">
 		<?php if ( $image ) : ?>
-			<div class="rf-auth-art" style="background-image:url('<?php echo esc_url( $image ); ?>')"><p>Speak your scent.</p></div>
+			<div class="rf-auth-art" style="background-image:url('<?php echo esc_url( $image ); ?>')"><p>Speak <em>your scent.</em></p></div>
 		<?php endif; ?>
 		<div class="rf-auth-card">
 			<div class="rf-tabs" role="tablist">
@@ -2909,10 +3028,10 @@ add_action(
 		$points = rfaheya_points( $user_id );
 		$log    = array_filter( (array) get_user_meta( $user_id, 'rfaheya_points_log', true ), 'is_array' );
 		?>
-		<section class="rf-points" style="margin:28px 0;padding:22px 24px;border:1px solid #e9e0d2;border-radius:16px;background:#fcfaf6">
-			<p style="margin:0;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#8a6a33">Rfaheya points</p>
-			<p style="margin:6px 0 0;font-size:34px;line-height:1"><?php echo esc_html( number_format_i18n( $points ) ); ?> <span style="font-size:15px;color:#74695b">points · <?php echo esc_html( number_format_i18n( floor( $points * $loyalty['value'] ) ) ); ?> EGP</span></p>
-			<p style="margin:10px 0 0;color:#4a443b;font-size:14px">
+		<section class="rf-points">
+			<p class="rf-points-label">Rfaheya points</p>
+			<p class="rf-points-total"><?php echo esc_html( number_format_i18n( $points ) ); ?> <span>points · <?php echo esc_html( number_format_i18n( floor( $points * $loyalty['value'] ) ) ); ?> EGP</span></p>
+			<p class="rf-points-how">
 				<?php
 				echo esc_html(
 					sprintf(
@@ -2924,12 +3043,12 @@ add_action(
 				?>
 			</p>
 			<?php if ( $log ) : ?>
-				<table style="margin-top:14px;width:100%;font-size:13px">
+				<table class="rf-points-log">
 					<?php foreach ( array_slice( $log, 0, 8 ) as $row ) : ?>
 						<tr>
-							<td style="padding:4px 0;color:#74695b"><?php echo esc_html( mysql2date( get_option( 'date_format' ), $row['date'] ) ); ?></td>
+							<td><?php echo esc_html( mysql2date( get_option( 'date_format' ), $row['date'] ) ); ?></td>
 							<td><?php echo esc_html( $row['reason'] ); ?></td>
-							<td style="text-align:right;font-weight:600"><?php echo esc_html( ( $row['points'] > 0 ? '+' : '' ) . number_format_i18n( $row['points'] ) ); ?></td>
+							<td><?php echo esc_html( ( $row['points'] > 0 ? '+' : '' ) . number_format_i18n( $row['points'] ) ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				</table>
