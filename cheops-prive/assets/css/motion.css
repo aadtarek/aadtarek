@@ -1,0 +1,77 @@
+/* Cheops Privé motion layer: quiet, luxurious movement on every page.
+   Everything here switches off for visitors who ask for reduced motion. */
+
+/* 1. Soft cross-fade between pages (browsers that support view transitions; others just load normally). */
+@view-transition{navigation:auto}
+::view-transition-old(root){animation:cm-page-out .32s cubic-bezier(.4,0,.2,1) both}
+::view-transition-new(root){animation:cm-page-in .55s cubic-bezier(.2,.7,.2,1) both}
+.cheops-site-header{view-transition-name:cheops-header}
+@keyframes cm-page-out{to{opacity:0;transform:translateY(-10px)}}
+@keyframes cm-page-in{from{opacity:0;transform:translateY(14px)}}
+
+/* 2. Gold line with a small pyramid, drawn between sections as they come into view. */
+.cm-divider{display:flex;justify-content:center;align-items:center;height:34px;margin:6px auto;pointer-events:none}
+.cm-divider svg{width:min(260px,60vw);height:22px;overflow:visible}
+.cm-divider .cm-line,.cm-divider .cm-pyr{fill:none;stroke:#b99a5f;stroke-width:1;vector-effect:non-scaling-stroke}
+.cm-divider .cm-line{stroke-dasharray:110;stroke-dashoffset:110;transition:stroke-dashoffset 1.4s cubic-bezier(.65,0,.35,1)}
+.cm-divider .cm-pyr{stroke-dasharray:60;stroke-dashoffset:60;transition:stroke-dashoffset 1.1s cubic-bezier(.65,0,.35,1) .45s}
+.cm-divider.cm-in .cm-line,.cm-divider.cm-in .cm-pyr{stroke-dashoffset:0}
+
+/* 3. Images open like a curtain as they reach the screen. */
+.cm-reveal{clip-path:inset(9% 9% 9% 9% round 18px);scale:1.08;transition:clip-path 1.3s cubic-bezier(.16,1,.3,1),scale 1.6s cubic-bezier(.16,1,.3,1)}
+.cm-reveal.cm-in{clip-path:inset(0 0 0 0 round 0);scale:1}
+
+/* 4. Lazy images arrive soft, then sharpen. */
+.cm-blur{filter:blur(14px);opacity:.75}
+.cm-sharp{transition:filter .7s ease,opacity .7s ease}
+
+/* 5. Hero images drift very slowly. */
+:is(#heroImg,.hero-bg,.cheops-article-hero-img,.contact-hero-media,.cheops-city-hero-media){animation:cm-drift 26s ease-in-out infinite alternate}
+@keyframes cm-drift{from{scale:1}to{scale:1.07}}
+
+/* 6. Property cards: slow zoom, the card lifts and the arrow nudges (the site cursor already says "View"). */
+.pcard .zoom{overflow:hidden}
+.pcard .zoom img{transition:transform 1.4s cubic-bezier(.16,1,.3,1)}
+.pcard:hover .zoom img{transform:scale(1.06)}
+.pcard{transition:box-shadow .6s ease,translate .6s cubic-bezier(.16,1,.3,1)}
+.pcard:hover{translate:0 -4px;box-shadow:0 22px 50px -28px rgba(17,17,17,.35)}
+.pcard :is(.gold,.ar){display:inline-block;transition:translate .5s cubic-bezier(.16,1,.3,1)}
+.pcard:hover :is(.gold,.ar){translate:5px 0}
+html[dir="rtl"] .pcard:hover :is(.gold,.ar){translate:-5px 0}
+
+/* 7. Gold labels catch the light now and then. */
+.cm-shine{background:linear-gradient(110deg,#a8854b 0%,#a8854b 42%,#f3e3bb 50%,#a8854b 58%,#a8854b 100%);background-size:260% 100%;background-position:100% 0;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:cm-shine 7s ease-in-out infinite}
+@keyframes cm-shine{0%,62%{background-position:100% 0}100%{background-position:-60% 0}}
+
+/* 8. Header slides away while reading down, returns when scrolling up. */
+.cheops-site-header{transition:all .35s ease,translate .55s cubic-bezier(.16,1,.3,1)}
+.cheops-site-header.cm-away{translate:0 -140%}
+
+/* 9. Buttons lean towards the pointer. */
+.cm-magnet{transition:translate .45s cubic-bezier(.16,1,.3,1)}
+
+/* 10. Map pins drop in one after another the first time the map appears. */
+.cheops-project-map:not(.cm-map-done) .cheops-map-icon .cheops-pin{animation:cm-pin .8s cubic-bezier(.34,1.56,.64,1) both}
+.leaflet-marker-pane .cheops-map-icon:nth-child(2) .cheops-pin{animation-delay:.12s}
+.leaflet-marker-pane .cheops-map-icon:nth-child(3) .cheops-pin{animation-delay:.24s}
+.leaflet-marker-pane .cheops-map-icon:nth-child(4) .cheops-pin{animation-delay:.36s}
+.leaflet-marker-pane .cheops-map-icon:nth-child(5) .cheops-pin{animation-delay:.48s}
+.leaflet-marker-pane .cheops-map-icon:nth-child(6) .cheops-pin{animation-delay:.6s}
+.leaflet-marker-pane .cheops-map-icon:nth-child(7) .cheops-pin{animation-delay:.72s}
+.leaflet-marker-pane .cheops-map-icon:nth-child(8) .cheops-pin{animation-delay:.84s}
+@keyframes cm-pin{from{opacity:0;translate:0 -34px}to{opacity:1;translate:0 0}}
+
+/* 11. Home: the selected properties glide sideways while the page scrolls (wide screens). */
+.cm-hscroll{position:relative}
+.cm-hscroll-sticky{position:sticky;top:0;height:100vh;display:flex;align-items:center;overflow:hidden;width:100vw;margin-inline-start:calc(50% - 50vw)}
+.cm-hscroll #propGrid{display:flex!important;flex-wrap:nowrap!important;gap:28px!important;will-change:transform;padding-inline:clamp(24px,4vw,64px)}
+.cm-hscroll #propGrid>.pcard{flex:0 0 clamp(330px,28vw,430px)!important;max-width:none!important}
+
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-old(root),::view-transition-new(root){animation:none}
+  .cm-divider .cm-line,.cm-divider .cm-pyr{stroke-dashoffset:0;transition:none}
+  .cm-reveal{clip-path:none;scale:1;transition:none}
+  .cm-blur{filter:none;opacity:1}
+  :is(#heroImg,.hero-bg,.cheops-article-hero-img,.contact-hero-media,.cheops-city-hero-media),.cm-shine,.cheops-map-icon .cheops-pin{animation:none!important}
+  .pcard,.pcard .zoom img,.cheops-site-header{transition:none}
+}

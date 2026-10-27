@@ -2470,3 +2470,13 @@ function cheops_render_tenants_band() {
 /* =========================================================
    Logo band heading typography — Romie Regular only
    ========================================================= */
+
+/* Motion layer (assets/css/motion.css, assets/js/motion.js) on every front page. */
+add_action('wp_head', static function () {
+    if (is_admin() || (defined('CHEOPS_NO_MOTION') && CHEOPS_NO_MOTION)) return;
+    echo '<link rel="stylesheet" id="cheops-motion-css" href="' . esc_url(get_template_directory_uri() . '/assets/css/motion.css?ver=' . cheops_asset_ver('assets/css/motion.css')) . '">' . "\n";
+}, 30);
+add_action('wp_footer', static function () {
+    if (is_admin() || (defined('CHEOPS_NO_MOTION') && CHEOPS_NO_MOTION)) return;
+    echo '<script id="cheops-motion-js" src="' . esc_url(get_template_directory_uri() . '/assets/js/motion.js?ver=' . cheops_asset_ver('assets/js/motion.js')) . '" defer></script>' . "\n";
+}, 50);
