@@ -17,21 +17,6 @@
   };
   var below = function (el) { return el.getBoundingClientRect().top > window.innerHeight * 0.95; };
 
-  /* Gold line with a pyramid between page sections. */
-  var svg = '<svg viewBox="0 0 260 22" aria-hidden="true" focusable="false"><path class="cm-line" d="M130 15 H8"/><path class="cm-line" d="M130 15 H252"/><path class="cm-pyr" d="M118 15 L130 3 L142 15 Z"/></svg>';
-  var dividers = [];
-  doc.querySelectorAll('section.sec, section.section').forEach(function (sec) {
-    var prev = sec.previousElementSibling;
-    if (!prev || prev.tagName !== 'SECTION' || prev.classList.contains('hero') || prev.id === 'hero') return;
-    if (sec.classList.contains('ink') || prev.classList.contains('ink') || sec.closest('.cm-hscroll')) return;
-    var d = doc.createElement('div');
-    d.className = 'cm-divider';
-    d.innerHTML = svg;
-    sec.parentNode.insertBefore(d, sec);
-    dividers.push(d);
-  });
-  onView(dividers, function (d) { d.classList.add('cm-in'); });
-
   /* Curtain reveal for images below the first screen (pages with their own image motion keep it). */
   if (!body.classList.contains('tax-project_city') && !body.classList.contains('single-cheops_unit')) {
     var imgs = [].slice.call(doc.querySelectorAll('.zoom img, .image-panel img, .story-media img, .office-choice img, .cheops-insight-card img, .cheops-city-card img, .cheops-project-media img'))
