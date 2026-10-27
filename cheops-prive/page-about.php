@@ -164,10 +164,6 @@
         <p>Cheops Privé is a curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the North Coast. We focus on clarity and quality, not quantity.</p>
       </details>
       <details class="faq-item reveal">
-        <summary>Do you charge buyers a commission?</summary>
-        <p>No. Our service is free for buyers and end users. We are compensated by partner developers and sellers when a transaction completes through our introduction.</p>
-      </details>
-      <details class="faq-item reveal">
         <summary>Which areas do you cover?</summary>
         <p>Primarily New Cairo, Shorouk, Mostakbal City and the North Coast, with selected opportunities in other prime destinations on request.</p>
       </details>

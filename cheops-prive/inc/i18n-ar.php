@@ -133,6 +133,9 @@ return [
         'A curated discovery platform for luxury residences, offices, clinics and retail across New Cairo, the New Capital and the North Coast.' => 'منصة مختارة بعناية لاكتشاف الوحدات السكنية الفاخرة والمكاتب والعيادات والمساحات التجارية في القاهرة الجديدة والعاصمة الجديدة والساحل الشمالي.',
         'A cinematic property discovery platform for luxury residences, offices, clinics and retail across New Cairo, Mostakbal City, the New Capital and the North Coast.' => 'منصة لاكتشاف الوحدات السكنية الفاخرة والمكاتب والعيادات والمساحات التجارية في القاهرة الجديدة ومدينة المستقبل والعاصمة الجديدة والساحل الشمالي.',
         'Curated only' => 'اختيارات منتقاة بعناية',
+        'Building CX, Office no. 305, Laketown Plaza, New Cairo, Egypt' => 'مبنى CX، مكتب رقم 305، ليك تاون بلازا، القاهرة الجديدة، مصر',
+        'Our team will confirm shortly.' => 'فريقنا هيأكدلك المعاد قريب.',
+        'Price' => 'السعر',
     ],
     'Forms' => [
         'Thank you. Your enquiry has been sent.' => 'شكرًا لك. تم إرسال استفسارك.',
@@ -492,7 +495,8 @@ return [
     'Contact' => [
         'Private Property Advisory' => 'استشارات عقارية خاصة',
         'Let’s define your next address.' => 'لنحددّ عنوانك القادم.',
-        'Whether you are buying, renting, investing or positioning an asset for the market, start with a private conversation with Cheops Privé.' => 'سواء بتشتري أو بتأجر أو بتستثمر أو بتجهز عقار للطرح في السوق، ابدأ بمحادثة خاصة مع Cheops Privé.',
+        'Whether you are buying, renting, investing or positioning an asset for the market, start with a private conversation with Cheops Privé.' => 'سواء بتشتري أو بتأجر أو بتستثمر أو بتجهز عقار للطرح في السوق،
+ابدأ بمحادثة خاصة مع Cheops Privé.',
         'Call us' => 'اتصل بنا',
         'Head office' => 'المقر الرئيسي',
         'Phone' => 'الهاتف',

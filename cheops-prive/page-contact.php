@@ -34,7 +34,7 @@ if (function_exists('cheops_site_footer')) {
     <div>
       <div class="contact-eyebrow">Private property advisory</div>
       <h1 class="contact-title d">Let’s define your next address.</h1>
-      <p class="contact-lead">Whether you are buying, renting, investing or positioning an asset for the market, start with a private conversation with Cheops Privé.</p>
+      <p class="contact-lead">Whether you are buying, renting, investing or positioning an asset for the market,<br> start with a private conversation with Cheops Privé.</p>
       <div class="contact-hero-actions">
         <a class="contact-call" href="<?php echo esc_url(cheops_phone_url()); ?>"><span>Call us</span><b><?php echo cheops_arrow_icon(); ?></b></a>
         <a class="contact-whatsapp" href="<?php echo esc_url(cheops_whatsapp_url()); ?>" target="_blank" rel="noopener"><span>WhatsApp</span><b><?php echo cheops_arrow_icon(); ?></b></a>

@@ -236,6 +236,14 @@ function cheops_i18n_rules($t) {
     static $months = ['Jan' => 'يناير', 'Feb' => 'فبراير', 'Mar' => 'مارس', 'Apr' => 'أبريل', 'May' => 'مايو', 'Jun' => 'يونيو', 'Jul' => 'يوليو', 'Aug' => 'أغسطس', 'Sep' => 'سبتمبر', 'Oct' => 'أكتوبر', 'Nov' => 'نوفمبر', 'Dec' => 'ديسمبر',
         'January' => 'يناير', 'February' => 'فبراير', 'March' => 'مارس', 'April' => 'أبريل', 'June' => 'يونيو', 'July' => 'يوليو', 'August' => 'أغسطس', 'September' => 'سبتمبر', 'October' => 'أكتوبر', 'November' => 'نوفمبر', 'December' => 'ديسمبر'];
     if (preg_match('/^EGP\s*([\d.,]+)\s*M$/u', $t, $m)) return $m[1] . ' مليون جنيه';
+    if (preg_match('/^([\d.,]+)\s*M EGP$/u', $t, $m)) return $m[1] . ' مليون جنيه';
+    if (preg_match('/^(?:EGP\s*([\d.,]+)|([\d.,]+) EGP) per m²$/u', $t, $m)) return ($m[1] !== '' ? $m[1] : $m[2]) . ' جنيه للمتر';
+    if (strpos($t, ' + ') !== false) {
+        $parts = explode(' + ', $t);
+        $out = [];
+        foreach ($parts as $part) { $tr = cheops_i18n_rules(trim($part)); if ($tr === null) { $out = null; break; } $out[] = $tr; }
+        if ($out) return implode(' + ', $out);
+    }
     if (preg_match('/^EGP\s*([\d.,]+)(\s*\/\s*(?:sqm|m²))?$/u', $t, $m)) return $m[1] . ' جنيه' . (!empty($m[2]) ? '/م²' : '');
     if (preg_match('/^\$\s*([\d.,]+)\s*\/\s*(?:sqm|m²)$/u', $t, $m)) return $m[1] . ' دولار/م²';
     if (preg_match('/^([\d.,]+)\s*(?:m²|sqm|m2)$/u', $t, $m)) return $m[1] . ' م²';

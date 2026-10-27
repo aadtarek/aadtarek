@@ -9,4 +9,5 @@
 /* Every element on Arabic pages; :is(#cheops-ar#cheops-ar#cheops-ar) lifts these above the theme's own font rules. */
 html[dir="rtl"] body,html[dir="rtl"] body :is(*,#cheops-ar#cheops-ar#cheops-ar){font-family:"Neue Montreal","Cheops Arabic",Arial,sans-serif!important}
 html[dir="rtl"] body :is(h1,h2,h3,h4,h5,h6,.d,.statement,.section-title,.cheops-wordmark,#cheops-ar#cheops-ar#cheops-ar),html[dir="rtl"] body :is(h1,h2,h3,h4,h5,h6,.d,.statement,.section-title,.cheops-wordmark,#cheops-ar#cheops-ar#cheops-ar) *{font-family:"Romie","Cheops Arabic",Georgia,serif!important}
-
+/* English words marked as English (the "English" switch) keep the English menu font. */
+html[dir="rtl"] body :is([lang="en"],#cheops-ar#cheops-ar#cheops-ar){font-family:"Romie",Georgia,serif!important}

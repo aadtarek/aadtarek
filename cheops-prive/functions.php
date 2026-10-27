@@ -194,12 +194,26 @@ function cheops_prices_in_egp($text) {
     return preg_replace_callback('/(\d[\d,]*(?:\.\d+)?)\s?(?:USD|US dollars?)\b/u', static function ($m) use ($egp) { return $egp($m[1]) . ' EGP'; }, $text);
 }
 
+/**
+ * Prices read at a glance: 21,117,363 EGP becomes 21.12M, and a price per square
+ * metre says so ("EGP 240,000 per m²" instead of "/ sqm").
+ */
+function cheops_price_short($text) {
+    $short = static function ($n) {
+        $v = (float) str_replace(',', '', $n);
+        if ($v < 1000000) return $n;
+        return rtrim(rtrim(number_format($v / 1000000, 2, '.', ''), '0'), '.') . 'M';
+    };
+    $text = preg_replace_callback('/\bEGP\s?(\d{1,3}(?:,\d{3}){2,})(?![\d,])/u', static function ($m) use ($short) { return 'EGP ' . $short($m[1]); }, (string) $text);
+    $text = preg_replace_callback('/(?<![\d,.])(\d{1,3}(?:,\d{3}){2,})\s?EGP\b/u', static function ($m) use ($short) { return $short($m[1]) . ' EGP'; }, $text);
+    return preg_replace('/\s*\/\s*(?:sqm|sq\.?\s?m|m2|m²)\b/u', ' per m²', $text);
+}
+
 function cheops_prices_in_egp_html($html) {
-    if (strpos($html, '$') === false && strpos($html, 'USD') === false) return $html;
     $parts = preg_split('#(<script\b.*?</script>|<style\b.*?</style>|<textarea\b.*?</textarea>|<[^>]*>)#is', $html, -1, PREG_SPLIT_DELIM_CAPTURE);
     if (!is_array($parts)) return $html;
     foreach ($parts as $i => $part) {
-        if ($i % 2 === 0 && $part !== '') $parts[$i] = cheops_prices_in_egp($part);
+        if ($i % 2 === 0 && $part !== '') $parts[$i] = cheops_price_short(cheops_prices_in_egp($part));
     }
     return implode('', $parts);
 }
@@ -295,7 +309,7 @@ function cheops_email() {
     return get_theme_mod('cheops_email', 'hello@cheopsprive.com');
 }
 function cheops_address() {
-    return preg_replace('/\s+[–—-]\s+/u', ', ', (string) get_theme_mod('cheops_address', 'Bldg C, Laketown Plaza, New Cairo, Egypt'));
+    return preg_replace('/\s+[–—-]\s+/u', ', ', (string) get_theme_mod('cheops_address', 'Building CX, Office no. 305, Laketown Plaza, New Cairo, Egypt'));
 }
 function cheops_whatsapp_url($message = '') {
     $raw = preg_replace('/\D+/', '', get_theme_mod('cheops_whatsapp', '01279366691'));
@@ -340,7 +354,7 @@ function cheops_customize_register( $wp_customize ) {
         ],
         'cheops_address' => [
             'label' => 'Office address',
-            'default' => 'Bldg C, Laketown Plaza, New Cairo, Egypt',
+            'default' => 'Building CX, Office no. 305, Laketown Plaza, New Cairo, Egypt',
             'sanitize' => 'sanitize_text_field',
         ],
     ];
@@ -382,6 +396,14 @@ function cheops_customize_register( $wp_customize ) {
         $wp_customize->add_setting($id, ['default' => $cfg[1], 'sanitize_callback' => 'sanitize_text_field']);
         $wp_customize->add_control($id, ['section' => 'cheops_theme_options', 'label' => __($cfg[0], 'cheops-prive'), 'type' => 'text']);
     }
+
+    // Background image of the four service pages.
+    $wp_customize->add_setting('cheops_service_hero', ['default' => '', 'sanitize_callback' => 'esc_url_raw']);
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'cheops_service_hero', [
+        'section' => 'cheops_theme_options',
+        'label' => __('Service pages background image', 'cheops-prive'),
+        'description' => __('For Sale, For Rent, Income Property and Private Consultation.', 'cheops-prive'),
+    ]));
 
     // Prices quoted in US dollars are shown in Egyptian pounds at this rate.
     $wp_customize->add_setting('cheops_usd_egp_rate', ['default' => '51', 'sanitize_callback' => static function ($v) { $v = (float) str_replace(',', '', (string) $v); return $v > 0 ? (string) $v : '51'; }]);
@@ -450,15 +472,18 @@ function cheops_developer_logo_url($n) {
  * logo numbers (10-21, files on the site) or "a<ID>" for logos uploaded to the
  * Media Library from the Customizer.
  */
-/** Developer wordmarks shipped with the theme (replace them with real logos from the Customizer). */
-function cheops_theme_logo_files() {
-    return ['t-ora' => 'ora.svg', 't-emaar' => 'emaar.svg', 't-lmd' => 'lmd.svg', 't-marakez' => 'marakez.svg', 't-w-cairo' => 'w-cairo.svg'];
+/** The eight developer logos (Our Developers band), in order. */
+function cheops_developer_logo_files() {
+    $base = 'https://cheopsprive.com/wp-content/uploads/2026/10/';
+    return ['d-35' => $base . '35.png', 'd-36' => $base . '36.png', 'd-37' => $base . '37.png', 'd-38' => $base . '38.png',
+            'd-39' => $base . '39.png', 'd-40' => $base . '40.png', 'd-41' => $base . '41.png', 'd-w-residence' => $base . 'w-residence.png'];
 }
 
 function cheops_logo_groups() {
     $groups = [];
-    foreach (cheops_developer_logo_numbers() as $n) $groups[(string) $n] = 'developer';
-    foreach (array_keys(cheops_theme_logo_files()) as $key) $groups[$key] = 'developer';
+    // The original logos (10-21) are project logos or hidden; the developers band shows the eight new ones.
+    foreach (cheops_developer_logo_numbers() as $n) $groups[(string) $n] = 'hidden';
+    foreach (array_keys(cheops_developer_logo_files()) as $key) $groups[$key] = 'developer';
     $groups['13'] = $groups['14'] = 'hidden'; // left out of the original band
     // The two Lake Town logos taken out of the developers band earlier are project logos.
     foreach (array_filter(array_map('intval', explode(',', (string) get_theme_mod('cheops_hidden_developer_logos', '')))) as $n) {
@@ -478,6 +503,31 @@ function cheops_logo_groups() {
     return $ordered;
 }
 
+/* Once: the office address becomes Building CX, Office no. 305 (only if it still reads the old Building C). */
+add_action('init', static function () {
+    if (get_option('cheops_address_cx305') === '1') return;
+    $saved = (string) get_theme_mod('cheops_address', '');
+    if ($saved !== '' && preg_match('/^(Bldg|Building)\.?\s*C\b(?!X)/i', trim($saved))) set_theme_mod('cheops_address', 'Building CX, Office no. 305, Laketown Plaza, New Cairo, Egypt');
+    update_option('cheops_address_cx305', '1', true);
+});
+
+/* Once: the developers band switches to the eight new logos (older developer logos are hidden, still selectable in the Customizer). */
+add_action('init', static function () {
+    if (get_option('cheops_dev_logos_v3') === '1') return;
+    $saved = (string) get_theme_mod('cheops_logo_groups', '');
+    if ($saved !== '') {
+        $out = [];
+        foreach (explode(',', $saved) as $pair) {
+            $parts = explode(':', $pair);
+            if (count($parts) !== 2 || strpos($parts[0], 't-') === 0) continue;
+            if (ctype_digit($parts[0]) && $parts[1] === 'developer') $parts[1] = 'hidden';
+            $out[] = $parts[0] . ':' . $parts[1];
+        }
+        set_theme_mod('cheops_logo_groups', implode(',', $out));
+    }
+    update_option('cheops_dev_logos_v3', '1', true);
+});
+
 /** Attachment ID for an uploaded logo key ("a123"), or 0. */
 function cheops_logo_upload_id($key) {
     if (!preg_match('/^a(\d+)$/', (string) $key, $m)) return 0;
@@ -488,14 +538,14 @@ function cheops_logo_upload_id($key) {
 function cheops_logo_url($key) {
     $id = cheops_logo_upload_id($key);
     if ($id) return (string) wp_get_attachment_image_url($id, 'medium');
-    $files = cheops_theme_logo_files();
-    if (isset($files[$key])) return get_template_directory_uri() . '/assets/images/dev-logos/' . $files[$key];
+    $files = cheops_developer_logo_files();
+    if (isset($files[$key])) return $files[$key];
     return cheops_developer_logo_url((int) $key);
 }
 
 function cheops_sanitize_logo_groups($value) {
     $out = [];
-    $builtin = array_merge(array_map('strval', cheops_developer_logo_numbers()), array_keys(cheops_theme_logo_files()));
+    $builtin = array_merge(array_map('strval', cheops_developer_logo_numbers()), array_keys(cheops_developer_logo_files()));
     foreach (explode(',', (string) $value) as $pair) {
         $parts = explode(':', $pair);
         if (count($parts) !== 2 || !in_array($parts[1], ['developer', 'project', 'hidden'], true)) continue;
@@ -831,6 +881,12 @@ function cheops_hero_img_attrs($url, $preload = false) {
 
 function cheops_intro_video_enabled() {
     return (bool) get_theme_mod('cheops_intro_video', true);
+}
+
+/** Hero image of the service pages (Customizer → Service pages background image). */
+function cheops_service_hero_url() {
+    $url = (string) get_theme_mod('cheops_service_hero', '');
+    return $url !== '' ? $url : 'https://cheopsprive.com/wp-content/uploads/2026/10/serivice-.jpg.jpeg';
 }
 
 /** Price shown on the site; leased units never show one. */
@@ -1900,7 +1956,7 @@ function cheops_floating_widgets() {
       <div class="cheops-modal">
         <button class="cheops-modal-close" type="button" data-close aria-label="Close">&times;</button>
         <h3>Book a meeting</h3>
-        <p class="desc">Pick a day and time that works for you and our team will confirm shortly.</p>
+        <p class="desc">Our team will confirm shortly.</p>
         <form id="cheopsBookForm">
           <label>Name</label><input type="text" name="name" required>
           <label>Phone or email</label><input type="text" name="contact" required>
@@ -2272,6 +2328,8 @@ function cheops_project_map_items() {
         $items = cheops_project_map_items_uncached();
         set_transient($key, $items, DAY_IN_SECONDS);
     }
+    foreach ($items as &$item) $item['price'] = cheops_price_short(cheops_prices_in_egp((string) $item['price']));
+    unset($item);
     // The map panel is filled in by script, so its texts are translated here.
     if (cheops_is_ar()) {
         foreach ($items as &$item) {
