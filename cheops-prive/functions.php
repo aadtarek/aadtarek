@@ -1458,13 +1458,13 @@ function cheops_site_header() {
     echo '<div class="cheops-nav-drop"><button type="button">Services '.cheops_chevron_icon().'</button><div class="cheops-nav-drop-panel">';
     foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '</div></div><a href="'.esc_url(home_url('/contact/')).'">Contact</a>'.cheops_lang_switch_html('cheops-nav-lang').'</nav>';
-    echo '<div class="cheops-header-actions"><a class="cheops-header-cta cheops-header-doc" href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a class="cheops-header-cta cheops-header-doc cheops-header-doc-alt" href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><button class="cheops-mobile-toggle" id="cheopsMobileToggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div></div></header>';
+    echo '<div class="cheops-header-actions">'.cheops_theme_toggle_html().'<a class="cheops-header-cta cheops-header-doc" href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a class="cheops-header-cta cheops-header-doc cheops-header-doc-alt" href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><button class="cheops-mobile-toggle" id="cheopsMobileToggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div></div></header>';
     echo '<aside class="cheops-mobile-menu" id="cheopsMobileMenu" aria-hidden="true"><div class="cheops-mobile-menu-glow"></div><div class="cheops-mobile-menu-inner"><div class="cheops-mobile-menu-kicker">Cheops Privé <span>Private Property Advisory</span></div><nav class="cheops-mobile-nav" aria-label="Mobile navigation">';
     $delay=0; foreach($links as $l){$delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url($l[1]).'"><span>'.esc_html($l[0]).'</span></a>';}
     $delay+=1; echo '<div class="cheops-mobile-services" style="--d:'.($delay*55).'ms"><button class="cheops-mobile-services-toggle" type="button" aria-expanded="false"><span>Services</span><b>＋</b></button><div class="cheops-mobile-services-panel"><div>';
     foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '</div></div></div>';
-    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span></a></nav><div class="cheops-mobile-menu-foot">'.cheops_lang_switch_html('cheops-lang-switch-mobile').'<a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
+    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span></a></nav><div class="cheops-mobile-menu-foot">'.cheops_lang_switch_html('cheops-lang-switch-mobile').cheops_theme_toggle_html('cheops-theme-toggle-mobile').'<a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
 }
 
 
@@ -2470,6 +2470,31 @@ function cheops_render_tenants_band() {
 /* =========================================================
    Logo band heading typography — Romie Regular only
    ========================================================= */
+
+/* Big moving words band (motion.js speeds it up and flips it with the scroll). */
+function cheops_render_marquee() {
+    $words = ['Define your next address', 'Cheops Privé', 'Private Property Advisory', 'Live Beyond Expectations'];
+    $row = '';
+    foreach ($words as $i => $w) $row .= '<span class="cm-mq-word' . ($i % 2 ? ' cm-mq-outline' : '') . '">' . esc_html($w) . '</span><span class="cm-mq-star" aria-hidden="true">✦</span>';
+    echo '<div class="cm-marquee" aria-hidden="true"><div class="cm-mq-track"><div class="cm-mq-row">' . $row . '</div><div class="cm-mq-row">' . $row . '</div></div></div>';
+}
+
+/* Dark mode: the saved choice is set before the page paints; dark.js does the rest. */
+function cheops_theme_toggle_html($class = '') {
+    $moon = '<svg class="cm-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
+    $sun = '<svg class="cm-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>';
+    return '<button type="button" class="cheops-theme-toggle ' . esc_attr($class) . '" aria-label="Dark mode" aria-pressed="false" title="Dark mode">' . $moon . $sun . '</button>';
+}
+add_action('wp_head', static function () {
+    if (is_admin()) return;
+    echo "<script>try{if(localStorage.getItem('cheops_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}</script>\n";
+}, 0);
+add_action('wp_head', static function () {
+    if (is_admin()) return;
+    $dir = get_template_directory_uri() . '/assets/';
+    echo '<link rel="stylesheet" id="cheops-dark-css" href="' . esc_url($dir . 'css/dark.css?ver=' . cheops_asset_ver('assets/css/dark.css')) . '">' . "\n";
+    echo '<script id="cheops-dark-js" src="' . esc_url($dir . 'js/dark.js?ver=' . cheops_asset_ver('assets/js/dark.js')) . '" defer></script>' . "\n";
+}, 31);
 
 /* Motion layer (assets/css/motion.css, assets/js/motion.js) on every front page. */
 add_action('wp_head', static function () {

@@ -1,0 +1,52 @@
+/* Cheops Privé dark mode (with assets/js/dark.js). Surfaces and text are swapped by
+   the script; these rules cover the header, logos, fields and hover states. */
+html[data-theme="dark"]{color-scheme:dark;background:#121110}
+html[data-theme="dark"] body{background:#121110!important;color:#eee8de}
+/* Until the page is repainted, keep it from flashing white (shown anyway after 1.2s). */
+html[data-theme="dark"]:not(.cm-dark-ready) body{opacity:0;animation:cm-dark-show 0s 1.2s forwards}
+@keyframes cm-dark-show{to{opacity:1}}
+html.cm-theme-switching body,html.cm-theme-switching body *{transition:background-color .55s ease,color .55s ease,border-color .55s ease!important}
+
+/* Header: always the dark glass look. */
+html[data-theme="dark"] body .cheops-site-header .cheops-site-header-inner{background:rgba(18,17,15,.86)!important;border-color:rgba(255,255,255,.1)!important;backdrop-filter:blur(16px)}
+html[data-theme="dark"] body .cheops-site-header :is(.cheops-desktop-nav>a,.cheops-nav-drop>button,.cheops-wordmark,.cheops-nav-lang){color:#f1ebe1!important}
+html[data-theme="dark"] body .cheops-site-header .cheops-header-cta{background:#f1ebe1!important;color:#151413!important;border-color:#f1ebe1!important}
+html[data-theme="dark"] body .cheops-site-header .cheops-header-doc-alt{background:transparent!important;color:#f1ebe1!important;border-color:rgba(255,255,255,.3)!important}
+html[data-theme="dark"] body .cheops-site-header .cheops-nav-drop-panel{background:#1b1a18!important;border-color:rgba(255,255,255,.1)!important}
+html[data-theme="dark"] body .cheops-site-header .cheops-nav-drop-panel a{color:#eee8de!important}
+html[data-theme="dark"] body .cheops-site-header .cheops-mobile-toggle{background:#1b1a18!important;border-color:rgba(255,255,255,.2)!important}
+html[data-theme="dark"] body .cheops-site-header .cheops-mobile-toggle span{background:#f1ebe1!important}
+
+/* Dark logos on transparent backgrounds turn light. */
+html[data-theme="dark"] .cheops-logo-item img,html[data-theme="dark"] .foot-logo{filter:invert(1) brightness(1.15)}
+
+/* Form fields and placeholders. */
+html[data-theme="dark"] body :is(input,select,textarea){background-color:#1d1c1a!important;color:#eee8de!important;border-color:rgba(255,255,255,.16)!important}
+html[data-theme="dark"] body ::placeholder{color:rgba(238,232,222,.45)!important}
+
+/* Dark buttons stay visible on dark surfaces. */
+html[data-theme="dark"] body :is(.btn:not(.btn-light):not(.light):not(.ghost):not(.btn-ghost),.property-contact-btn){background:#f1ebe1!important;color:#141312!important;border-color:#f1ebe1!important}
+
+/* The theme switch. */
+.cheops-theme-toggle{display:inline-grid;place-items:center;width:34px;height:34px;padding:0;margin-inline-start:4px;border:1px solid currentColor;border-radius:50%;background:transparent;color:inherit;cursor:pointer;opacity:.8;pointer-events:auto;transition:opacity .2s,transform .5s cubic-bezier(.16,1,.3,1)}
+.cheops-theme-toggle:hover{opacity:1;transform:rotate(-20deg)}
+.cheops-theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cheops-theme-toggle .cm-sun{display:none}
+html[data-theme="dark"] .cheops-theme-toggle .cm-sun{display:block}
+html[data-theme="dark"] .cheops-theme-toggle .cm-moon{display:none}
+.cheops-mobile-menu-foot .cheops-theme-toggle{width:auto;height:auto;padding:10px 16px;border-radius:999px;gap:8px;display:inline-flex;align-items:center;font-size:12px}
+
+/* Light washes drawn with ::before / ::after (found by dark.js). */
+html[data-theme="dark"] .cm-dark-before::before,html[data-theme="dark"] .cm-dark-after::after{background:#1b1a18!important;background-image:none!important}
+
+/* Marked by dark.js; these hold even if a script rewrites the element's inline style. */
+html[data-theme="dark"] :is([data-cmbg="w"],#cm#cm#cm){background-color:rgba(24,23,21,.94)!important}
+html[data-theme="dark"] :is([data-cmbg="c"],#cm#cm#cm){background-color:rgba(31,29,26,.94)!important}
+html[data-theme="dark"] :is([data-cmbg="t"],#cm#cm#cm){background-color:rgba(44,40,34,.94)!important}
+html[data-theme="dark"] :is([data-cmfg="i"],#cm#cm#cm){color:#eee8de!important}
+html[data-theme="dark"] :is([data-cmfg="m"],#cm#cm#cm){color:#aaa399!important}
+/* Switch colour follows the header: light on the dark top, dark on the light scrolled bar. */
+.cheops-site-header .cheops-theme-toggle{color:#fff}
+.cheops-site-header.is-scrolled .cheops-theme-toggle,.single-cheops_unit .cheops-site-header .cheops-theme-toggle,.page-template-page-contact .cheops-site-header .cheops-theme-toggle{color:#171717}
+html[data-theme="dark"] body .cheops-site-header .cheops-theme-toggle{color:#f1ebe1!important}
+.cheops-mobile-menu .cheops-theme-toggle{color:inherit}

@@ -3,11 +3,11 @@
 
 /* 1. Soft cross-fade between pages (browsers that support view transitions; others just load normally). */
 @view-transition{navigation:auto}
-::view-transition-old(root){animation:cm-page-out .32s cubic-bezier(.4,0,.2,1) both}
-::view-transition-new(root){animation:cm-page-in .55s cubic-bezier(.2,.7,.2,1) both}
+::view-transition-old(root){animation:cm-page-out .7s cubic-bezier(.65,0,.35,1) both}
+::view-transition-new(root){animation:cm-page-in .8s cubic-bezier(.65,0,.35,1) both}
 .cheops-site-header{view-transition-name:cheops-header}
-@keyframes cm-page-out{to{opacity:0;transform:translateY(-10px)}}
-@keyframes cm-page-in{from{opacity:0;transform:translateY(14px)}}
+@keyframes cm-page-out{to{opacity:.35;scale:.96;filter:blur(2px)}}
+@keyframes cm-page-in{from{clip-path:circle(0% at 50% 55%)}to{clip-path:circle(150% at 50% 55%)}}
 
 /* 3. Images open like a curtain as they reach the screen. */
 .cm-reveal{clip-path:inset(9% 9% 9% 9% round 18px);scale:1.08;transition:clip-path 1.3s cubic-bezier(.16,1,.3,1),scale 1.6s cubic-bezier(.16,1,.3,1)}
@@ -59,10 +59,45 @@ html[dir="rtl"] .pcard:hover :is(.gold,.ar){translate:-5px 0}
 .cm-hscroll #propGrid{display:flex!important;flex-wrap:nowrap!important;gap:28px!important;will-change:transform;padding-inline:clamp(24px,4vw,64px)}
 .cm-hscroll #propGrid>.pcard{flex:0 0 clamp(330px,28vw,430px)!important;max-width:none!important}
 
+/* 12. Gold reading bar at the very top. */
+.cm-progress{position:fixed;inset:0 0 auto 0;height:2px;z-index:10000;background:linear-gradient(90deg,#a8854b,#f1dfb3,#a8854b);transform-origin:0 50%;scale:0 1;pointer-events:none}
+html[dir="rtl"] .cm-progress{transform-origin:100% 50%}
+
+/* 13. Hero spotlight: a soft warm light follows the pointer. */
+.cm-spot{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .8s ease;background:radial-gradient(520px circle at var(--cm-x,50%) var(--cm-y,50%),rgba(241,223,179,.20),rgba(241,223,179,.06) 35%,transparent 65%);mix-blend-mode:soft-light}
+.cm-spot.cm-on{opacity:1}
+
+/* 14. Big moving words band. */
+.cm-marquee{direction:ltr;overflow:hidden;padding:clamp(18px,3vw,40px) 0;user-select:none;pointer-events:none}
+.cm-mq-track{display:flex;width:max-content;will-change:transform}
+.cm-mq-row{display:flex;align-items:center;flex-shrink:0}
+.cm-mq-word{font-family:"Romie",Georgia,serif;font-size:clamp(46px,8.5vw,138px);line-height:1;letter-spacing:-.03em;white-space:nowrap;padding:0 .35em;color:#161616}
+.cm-mq-outline{color:transparent;-webkit-text-stroke:1px #b99a5f}
+.cm-mq-star{font-size:clamp(18px,2.6vw,40px);color:#b99a5f}
+html[data-theme="dark"] .cm-mq-word:not(.cm-mq-outline){color:#eee8de}
+html[dir="rtl"] .cm-mq-word{letter-spacing:0;-webkit-text-stroke-width:1.2px}
+
+/* 15. Words light up as you read. */
+.cm-scrub .cm-w{opacity:.16;transition:opacity .25s linear}
+.cm-scrub .cm-w.cm-lit{opacity:1}
+
+/* 16. Cards tilt in 3D with a glare (mouse only). */
+.cm-tilt{transition:rotate .6s cubic-bezier(.16,1,.3,1);transform-style:preserve-3d}
+.cm-tilt.cm-tilting{transition:rotate .12s linear}
+.cm-glare{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;opacity:0;transition:opacity .5s ease;background:radial-gradient(420px circle at var(--cm-gx,50%) var(--cm-gy,50%),rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay}
+.cm-tilt:hover .cm-glare{opacity:1}
+.cm-persp{perspective:1100px}
+
+/* 17. Images drift inside their frames while scrolling. */
+.cm-parallax,.cm-reveal.cm-in.cm-parallax{will-change:translate;scale:1.14}
+
 @media (prefers-reduced-motion:reduce){
   ::view-transition-old(root),::view-transition-new(root){animation:none}
   .cm-reveal{clip-path:none;scale:1;transition:none}
   .cm-blur{filter:none;opacity:1}
   :is(#heroImg,.hero-bg,.cheops-article-hero-img,.contact-hero-media,.cheops-city-hero-media),.cm-shine,.cheops-map-icon .cheops-pin{animation:none!important}
   .pcard,.pcard .zoom img,.cheops-site-header{transition:none}
+  .cm-progress,.cm-spot,.cm-glare{display:none}
+  .cm-mq-track{transform:none!important}
+  .cm-scrub .cm-w{opacity:1}
 }

@@ -136,6 +136,7 @@ return [
         'Building CX, Office no. 305, Laketown Plaza, New Cairo, Egypt' => 'مبنى CX، مكتب رقم 305، ليك تاون بلازا، القاهرة الجديدة، مصر',
         'Our team will confirm shortly.' => 'فريقنا هيأكدلك المعاد قريب.',
         'Price' => 'السعر',
+        'Dark mode' => 'الوضع الداكن',
     ],
     'Forms' => [
         'Thank you. Your enquiry has been sent.' => 'شكرًا لك. تم إرسال استفسارك.',
