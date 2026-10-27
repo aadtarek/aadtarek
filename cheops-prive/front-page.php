@@ -179,7 +179,6 @@
 </section>
 
 
-<?php cheops_render_marquee(); ?>
 <section class="sec wrap" id="about">
   <div class="about-shell reveal">
     <div class="about-top">

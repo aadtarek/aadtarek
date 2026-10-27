@@ -183,6 +183,19 @@ function cheops_headline_style_html($html) {
 }
 
 /* One currency on the site: dollar prices are shown in Egyptian pounds (rate set in the Customizer). */
+function cheops_header_doc_defaults() {
+    return [
+        'residential'    => 'https://drive.google.com/file/d/1IWzDaMAfqADJ9Q7PQqQWh1xkTe1FGzSa/view',
+        'administrative' => 'https://drive.google.com/file/d/1cU9hcaD1U06zxxGTvaEV_n3pwDZKi_YM/view?usp=drive_link',
+    ];
+}
+
+function cheops_header_doc_url($key) {
+    $defaults = cheops_header_doc_defaults();
+    $url = trim((string) get_theme_mod('cheops_'.$key.'_link', $defaults[$key]));
+    return $url !== '' ? $url : $defaults[$key];
+}
+
 function cheops_usd_egp_rate() {
     $rate = (float) get_theme_mod('cheops_usd_egp_rate', '51');
     return $rate > 0 ? $rate : 51.0;
@@ -410,6 +423,14 @@ function cheops_customize_register( $wp_customize ) {
     $wp_customize->add_control('cheops_usd_egp_rate', ['section' => 'cheops_theme_options', 'type' => 'text',
         'label' => __('Dollar rate (EGP for 1 USD)', 'cheops-prive'),
         'description' => __('Prices entered in dollars (for example Lake Town rents) are shown in Egyptian pounds using this rate.', 'cheops-prive')]);
+
+    // Header buttons: the Residential and Administrative profiles change often, so their links live here.
+    foreach (cheops_header_doc_defaults() as $key => $url) {
+        $wp_customize->add_setting('cheops_'.$key.'_link', ['default' => $url, 'sanitize_callback' => 'esc_url_raw']);
+        $wp_customize->add_control('cheops_'.$key.'_link', ['section' => 'cheops_theme_options', 'type' => 'url',
+            'label' => $key === 'residential' ? __('Residential button link', 'cheops-prive') : __('Administrative button link', 'cheops-prive'),
+            'description' => __('Shown in the header and the mobile menu. Paste the new file link whenever it is updated.', 'cheops-prive')]);
+    }
 
     // Intro video on the first visit to Home. It covers the page for up to 4 seconds and
     // downloads ~570KB, so switching it off gives a faster first view.
@@ -1449,8 +1470,8 @@ function cheops_chevron_icon() {
 function cheops_site_header() {
     $links=[['Home',home_url('/')],['About',home_url('/about/')],['Properties',home_url('/properties/')]];
     $services=[['For Rent',home_url('/for-rent/')],['For Sale',home_url('/for-sale/')],['Income Property',home_url('/income-property/')],['Private Consultation',home_url('/private-consultation/')]];
-    $portfolio_url='https://drive.google.com/file/d/1IWzDaMAfqADJ9Q7PQqQWh1xkTe1FGzSa/view';
-    $profile_url='https://drive.google.com/file/d/1cU9hcaD1U06zxxGTvaEV_n3pwDZKi_YM/view?usp=drive_link';
+    $portfolio_url=cheops_header_doc_url('residential');
+    $profile_url=cheops_header_doc_url('administrative');
     echo '<header class="cheops-site-header" id="cheopsSiteHeader"><div class="cheops-site-header-inner">';
     echo '<a class="cheops-brand cheops-logo-crop" href="'.esc_url(home_url('/')).'" aria-label="Cheops Privé home"><span class="cheops-wordmark" aria-hidden="true"><strong>CHEOPS</strong><small>PRIVÉ</small></span></a>';
     echo '<nav class="cheops-desktop-nav" aria-label="Primary navigation">';

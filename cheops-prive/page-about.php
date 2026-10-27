@@ -119,7 +119,6 @@
     </div>
   </div>
 </section>
-<?php cheops_render_marquee(); ?>
 <section class="sec wrap" id="services">
 <p class="eyebrow gold">What we do</p>
 <h2 class="d d-lg reveal" style="margin-top:20px"><span class="rl"><span>Four ways we work</span></span><span class="rl"><span>with you.</span></span></h2>
