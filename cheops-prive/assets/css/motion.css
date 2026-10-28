@@ -74,7 +74,6 @@ html[dir="rtl"] .cm-progress{transform-origin:100% 50%}
 .cm-mq-word{font-family:"Romie",Georgia,serif;font-size:clamp(46px,8.5vw,138px);line-height:1;letter-spacing:-.03em;white-space:nowrap;padding:0 .35em;color:#161616}
 .cm-mq-outline{color:transparent;-webkit-text-stroke:1px #b99a5f}
 .cm-mq-star{font-size:clamp(18px,2.6vw,40px);color:#b99a5f}
-html[data-theme="dark"] .cm-mq-word:not(.cm-mq-outline){color:#eee8de}
 html[dir="rtl"] .cm-mq-word{letter-spacing:0;-webkit-text-stroke-width:1.2px}
 
 /* 15. Words light up as you read. */

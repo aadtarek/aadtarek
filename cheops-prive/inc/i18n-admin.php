@@ -43,7 +43,7 @@ function cheops_site_content_page() {
     $ar_home = cheops_url_in_lang(home_url('/'), 'ar');
     ?>
     <div class="wrap cheops-sc">
-      <h1>Site Content <small style="font-size:12px;font-weight:400;color:#787c82">Theme build 2026-10-27 · v5.1 header links</small></h1>
+      <h1>Site Content <small style="font-size:12px;font-weight:400;color:#787c82">Theme build 2026-10-27 · v5.2 no prices, no dark mode</small></h1>
       <p class="cheops-sc-intro">Every text on the website in <strong>English</strong> and <strong>Arabic</strong>. Change a text and press <strong>Save changes</strong>. The English column changes the English site; the Arabic column changes the Arabic site (<a href="<?php echo esc_url($ar_home); ?>" target="_blank" rel="noopener"><?php echo esc_html($ar_home); ?></a>). Leave a box as it is to keep the current text. For a heading shown on two lines, put each line on its own line.</p>
       <?php if (isset($_GET['saved'])) : ?><div class="notice notice-success is-dismissible"><p>Saved. The website shows the new texts now.</p></div><?php endif; ?>
       <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" id="cheopsScForm">

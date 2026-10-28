@@ -424,6 +424,11 @@ function cheops_customize_register( $wp_customize ) {
         'label' => __('Dollar rate (EGP for 1 USD)', 'cheops-prive'),
         'description' => __('Prices entered in dollars (for example Lake Town rents) are shown in Egyptian pounds using this rate.', 'cheops-prive')]);
 
+    $wp_customize->add_setting('cheops_show_unit_prices', ['default' => false, 'sanitize_callback' => 'wp_validate_boolean']);
+    $wp_customize->add_control('cheops_show_unit_prices', ['section' => 'cheops_theme_options', 'type' => 'checkbox',
+        'label' => __('Show unit prices', 'cheops-prive'),
+        'description' => __('Off: prices, payment plans and the price filter are hidden on every unit. The prices stay saved in each unit.', 'cheops-prive')]);
+
     // Header buttons: the Residential and Administrative profiles change often, so their links live here.
     foreach (cheops_header_doc_defaults() as $key => $url) {
         $wp_customize->add_setting('cheops_'.$key.'_link', ['default' => $url, 'sanitize_callback' => 'esc_url_raw']);
@@ -910,6 +915,22 @@ function cheops_service_hero_url() {
     return $url !== '' ? $url : 'https://cheopsprive.com/wp-content/uploads/2026/10/serivice-.jpg.jpeg';
 }
 
+/** Unit prices are hidden on the site unless switched back on in the Customizer (the numbers stay saved). */
+function cheops_show_unit_prices() {
+    return (bool) get_theme_mod('cheops_show_unit_prices', false);
+}
+
+// With prices hidden, "Price:" lines written into a unit's description are left out too.
+add_filter('the_content', static function ($content) {
+    if (cheops_show_unit_prices() || get_post_type() !== 'cheops_unit') return $content;
+    return preg_replace('/^[ \t]*(?:Price|Rent|السعر|الإيجار)[ \t]*:[^\n]*\n?/miu', '', $content);
+}, 5);
+
+/** What a unit card shows where the price goes. */
+function cheops_unit_card_price($post_id) {
+    return cheops_show_unit_prices() || cheops_unit_status($post_id) === 'leased' ? cheops_unit_price_text($post_id) : 'View details';
+}
+
 /** Price shown on the site; leased units never show one. */
 function cheops_unit_price_text($post_id) {
     if (cheops_unit_status($post_id) === 'leased') return 'Leased';
@@ -1242,7 +1263,7 @@ function cheops_render_unit_card($post_id) {
     echo '<p class="meta" style="margin-top:8px">'.esc_html($place ?: $loc).'</p>';
     $spec=[]; if($beds) $spec[]=$beds.' Beds'; if($baths) $spec[]=$baths.' Baths'; if($area) $spec[]=esc_html($area).' m²';
     echo '<p style="margin-top:14px;font-size:.82rem;color:var(--muted)">'.implode(' · ',$spec).'</p>';
-    echo '<div style="margin-top:18px;display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px"><p class="d" style="font-size:1.3rem;margin:0">'.esc_html(cheops_unit_price_text($post_id)).'</p><a href="'.esc_url($url).'" class="gold" aria-label="View '.esc_attr($title).'">→</a></div></div>';
+    echo '<div style="margin-top:18px;display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--line);padding-top:16px"><p class="d" style="font-size:1.3rem;margin:0">'.esc_html(cheops_unit_card_price($post_id)).'</p><a href="'.esc_url($url).'" class="gold" aria-label="View '.esc_attr($title).'">→</a></div></div>';
     echo '<div class="property-contact-actions"><a aria-label="Contact on WhatsApp" class="property-contact-btn whatsapp-btn" href="'.esc_url(cheops_whatsapp_url(cheops_whatsapp_unit_message($post_id))).'" rel="noopener" target="_blank">WhatsApp <span class="ar">→</span></a><a aria-label="Call now" class="property-contact-btn call-btn" href="'.esc_url(cheops_phone_url()).'">Call <span class="ar">→</span></a></div></article>';
 }
 
@@ -1479,13 +1500,13 @@ function cheops_site_header() {
     echo '<div class="cheops-nav-drop"><button type="button">Services '.cheops_chevron_icon().'</button><div class="cheops-nav-drop-panel">';
     foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '</div></div><a href="'.esc_url(home_url('/contact/')).'">Contact</a>'.cheops_lang_switch_html('cheops-nav-lang').'</nav>';
-    echo '<div class="cheops-header-actions">'.cheops_theme_toggle_html().'<a class="cheops-header-cta cheops-header-doc" href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a class="cheops-header-cta cheops-header-doc cheops-header-doc-alt" href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><button class="cheops-mobile-toggle" id="cheopsMobileToggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div></div></header>';
+    echo '<div class="cheops-header-actions"><a class="cheops-header-cta cheops-header-doc" href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a class="cheops-header-cta cheops-header-doc cheops-header-doc-alt" href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><button class="cheops-mobile-toggle" id="cheopsMobileToggle" aria-label="Open menu" aria-expanded="false"><span></span><span></span></button></div></div></header>';
     echo '<aside class="cheops-mobile-menu" id="cheopsMobileMenu" aria-hidden="true"><div class="cheops-mobile-menu-glow"></div><div class="cheops-mobile-menu-inner"><div class="cheops-mobile-menu-kicker">Cheops Privé <span>Private Property Advisory</span></div><nav class="cheops-mobile-nav" aria-label="Mobile navigation">';
     $delay=0; foreach($links as $l){$delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url($l[1]).'"><span>'.esc_html($l[0]).'</span></a>';}
     $delay+=1; echo '<div class="cheops-mobile-services" style="--d:'.($delay*55).'ms"><button class="cheops-mobile-services-toggle" type="button" aria-expanded="false"><span>Services</span><b>＋</b></button><div class="cheops-mobile-services-panel"><div>';
     foreach($services as $l) echo '<a href="'.esc_url($l[1]).'">'.esc_html($l[0]).'</a>';
     echo '</div></div></div>';
-    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span></a></nav><div class="cheops-mobile-menu-foot">'.cheops_lang_switch_html('cheops-lang-switch-mobile').cheops_theme_toggle_html('cheops-theme-toggle-mobile').'<a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
+    $delay+=1; echo '<a class="mobile-main-link" style="--d:'.($delay*55).'ms" href="'.esc_url(home_url('/contact/')).'"><span>Contact</span></a></nav><div class="cheops-mobile-menu-foot">'.cheops_lang_switch_html('cheops-lang-switch-mobile').'<a href="'.esc_url($portfolio_url).'" target="_blank" rel="noopener">Residential</a><a href="'.esc_url($profile_url).'" target="_blank" rel="noopener">Administrative</a><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div></div></aside>';
 }
 
 
@@ -2499,23 +2520,6 @@ function cheops_render_marquee() {
     foreach ($words as $i => $w) $row .= '<span class="cm-mq-word' . ($i % 2 ? ' cm-mq-outline' : '') . '">' . esc_html($w) . '</span><span class="cm-mq-star" aria-hidden="true">✦</span>';
     echo '<div class="cm-marquee" aria-hidden="true"><div class="cm-mq-track"><div class="cm-mq-row">' . $row . '</div><div class="cm-mq-row">' . $row . '</div></div></div>';
 }
-
-/* Dark mode: the saved choice is set before the page paints; dark.js does the rest. */
-function cheops_theme_toggle_html($class = '') {
-    $moon = '<svg class="cm-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>';
-    $sun = '<svg class="cm-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>';
-    return '<button type="button" class="cheops-theme-toggle ' . esc_attr($class) . '" aria-label="Dark mode" aria-pressed="false" title="Dark mode">' . $moon . $sun . '</button>';
-}
-add_action('wp_head', static function () {
-    if (is_admin()) return;
-    echo "<script>try{if(localStorage.getItem('cheops_theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}</script>\n";
-}, 0);
-add_action('wp_head', static function () {
-    if (is_admin()) return;
-    $dir = get_template_directory_uri() . '/assets/';
-    echo '<link rel="stylesheet" id="cheops-dark-css" href="' . esc_url($dir . 'css/dark.css?ver=' . cheops_asset_ver('assets/css/dark.css')) . '">' . "\n";
-    echo '<script id="cheops-dark-js" src="' . esc_url($dir . 'js/dark.js?ver=' . cheops_asset_ver('assets/js/dark.js')) . '" defer></script>' . "\n";
-}, 31);
 
 /* Motion layer (assets/css/motion.css, assets/js/motion.js) on every front page. */
 add_action('wp_head', static function () {

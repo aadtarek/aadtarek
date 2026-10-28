@@ -49,7 +49,7 @@ $floorplan_url=$floorplan ? wp_get_attachment_image_url($floorplan,'full') : (($
 $masterplan_url=$masterplan ? wp_get_attachment_image_url($masterplan,'full') : (($masterplan_asset && function_exists('cheops_portfolio_asset_url')) ? cheops_portfolio_asset_url($masterplan_asset) : '');
 $price_text=cheops_unit_price_text($id);
 $is_leased=cheops_unit_status($id)==='leased';
-if($is_leased){ $payment=$down=$installment=$remaining=$maintenance=$due=''; }
+if($is_leased || !cheops_show_unit_prices()){ $payment=$down=$installment=$remaining=$maintenance=$due=''; }
 ?><!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width,initial-scale=1"><?php cheops_page_css('single-unit'); ?>
 <?php wp_head(); ?>
 </head><body <?php body_class(); ?>><?php cheops_site_header(); ?>
@@ -94,8 +94,8 @@ if($is_leased){ $payment=$down=$installment=$remaining=$maintenance=$due=''; }
 
     <aside class="sp-side"><div class="sp-contact">
       <div class="sp-contact-label"><?php echo esc_html($deal_label); ?> · <?php echo esc_html($type); ?></div>
-      <div class="sp-price"><?php echo esc_html($price_text); ?></div>
-      <?php if($deal==='rent'): ?><div class="sp-price-sub">Rental amount · <?php echo esc_html(cheops_rent_periods()[$period] ?? 'Monthly'); ?></div><?php else: ?><div class="sp-price-sub">Final availability and terms are confirmed privately.</div><?php endif; ?>
+      <?php if(!cheops_show_unit_prices() && !$is_leased): ?><div class="sp-price">Price on request</div><div class="sp-price-sub">Contact us for pricing and availability.</div><?php else: ?><div class="sp-price"><?php echo esc_html($price_text); ?></div>
+      <?php if($deal==='rent'): ?><div class="sp-price-sub">Rental amount · <?php echo esc_html(cheops_rent_periods()[$period] ?? 'Monthly'); ?></div><?php else: ?><div class="sp-price-sub">Final availability and terms are confirmed privately.</div><?php endif; endif; ?>
       <div class="sp-cta"><a class="sp-btn" href="<?php echo esc_url(cheops_phone_url()); ?>">Call us</a><a class="sp-btn alt" href="<?php echo esc_url(cheops_whatsapp_url(cheops_whatsapp_unit_message($id))); ?>" target="_blank" rel="noopener">WhatsApp</a></div>
       <div class="sp-mini">
         <?php foreach([['Reference',$reference],['Project',$project],['Location',$loc],['Developer',$dev]] as $row): if(!$row[1])continue; ?><div class="sp-mini-row"><span><?php echo esc_html($row[0]); ?></span><strong><?php echo esc_html($row[1]); ?></strong></div><?php endforeach; ?>
@@ -112,7 +112,7 @@ $rq=new WP_Query(['post_type'=>'cheops_unit','post_status'=>'publish','posts_per
 if(!$rq->have_posts())$rq=new WP_Query(['post_type'=>'cheops_unit','post_status'=>'publish','posts_per_page'=>3,'post__not_in'=>[$id]]);
 while($rq->have_posts()):$rq->the_post();$rid=get_the_ID();$rimg=get_the_post_thumbnail_url($rid,'medium_large');
 if(!$rimg && function_exists('cheops_portfolio_asset_url')){$rasset=get_post_meta($rid,'_cheops_portfolio_cover',true);if($rasset)$rimg=cheops_portfolio_asset_url($rasset);}
-?><a class="sp-related-card" href="<?php the_permalink(); ?>"><?php if($rimg): ?><img src="<?php echo esc_url(cheops_img_variant($rimg, 800)); ?>" loading="lazy" decoding="async" alt="<?php the_title_attribute(); ?>"><?php endif; ?><div class="sp-related-card-body"><h3><?php the_title(); ?></h3><p><?php echo esc_html(implode(' · ',array_filter([cheops_first_term_name($rid,'unit_type',''),cheops_first_term_name($rid,'unit_location','')]))); ?></p><div class="rprice"><?php echo esc_html(cheops_unit_price_text($rid)); ?></div></div></a><?php endwhile;wp_reset_postdata(); ?>
+?><a class="sp-related-card" href="<?php the_permalink(); ?>"><?php if($rimg): ?><img src="<?php echo esc_url(cheops_img_variant($rimg, 800)); ?>" loading="lazy" decoding="async" alt="<?php the_title_attribute(); ?>"><?php endif; ?><div class="sp-related-card-body"><h3><?php the_title(); ?></h3><p><?php echo esc_html(implode(' · ',array_filter([cheops_first_term_name($rid,'unit_type',''),cheops_first_term_name($rid,'unit_location','')]))); ?></p><div class="rprice"><?php echo esc_html(cheops_unit_card_price($rid)); ?></div></div></a><?php endwhile;wp_reset_postdata(); ?>
 </div></div></section>
 </main>
 
