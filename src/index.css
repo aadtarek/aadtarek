@@ -1355,70 +1355,66 @@ section[aria-labelledby="best-sellers-title"]
   animation: rf-line-in 0.5s var(--rf-ease-soft);
 }
 
-/* Product card (ProductCard.tsx): pastel colour from the fragrance family */
-.rf-pcard {
-  background: var(--tint);
+/* Product card (ProductCard.tsx): white card whose details fade into the family colour */
+.rf-pcard-in {
+  background: #fff;
+  box-shadow:
+    0 1px 0 rgb(60 40 10 / 0.04),
+    0 26px 50px -36px rgb(60 40 10 / 0.45);
   transition:
     transform 0.6s var(--rf-ease-soft),
     box-shadow 0.6s var(--rf-ease-soft);
+}
+.rf-pcard-body {
+  background: linear-gradient(165deg, #fff 30%, var(--tint));
 }
 .rf-pcard-ink {
   color: var(--tint-ink);
 }
 .rf-pcard-chip {
-  background: rgb(255 255 255 / 0.7);
+  background: rgb(255 255 255 / 0.9);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.05);
 }
-.rf-pcard-bar > div {
-  background: #fff;
-}
-.rf-pcard-pill {
-  background: var(--tint);
+.rf-pcard-sizes {
+  background: rgb(255 255 255 / 0.8);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.04);
 }
 .rf-pcard-alt {
   opacity: 0;
   transition: opacity 0.8s var(--rf-ease-soft);
 }
+.rf-pcard-img {
+  transition: transform 1.2s var(--rf-ease-soft);
+}
 .rf-pcard-chip img {
   transition: transform 0.5s var(--rf-spring);
 }
-.rf-pcard-chip:hover img {
-  transform: rotate(-10deg) scale(1.2);
+.rf-pcard-note:hover .rf-pcard-chip img {
+  transform: rotate(-12deg) scale(1.25);
 }
 /* Dark theme: the same colours, deepened */
-:root.dark .rf-pcard {
-  background: color-mix(in srgb, var(--tint) 18%, var(--color-card));
+:root.dark .rf-pcard-in {
+  background: var(--color-card);
+}
+:root.dark .rf-pcard-body {
+  background: linear-gradient(165deg, var(--color-card) 30%, color-mix(in srgb, var(--tint) 18%, var(--color-card)));
 }
 :root.dark .rf-pcard-ink {
   color: var(--tint);
 }
-:root.dark .rf-pcard-chip {
+:root.dark .rf-pcard-chip,
+:root.dark .rf-pcard-sizes {
   background: rgb(255 255 255 / 0.07);
 }
-:root.dark .rf-pcard-bar > div {
-  background: var(--color-cream);
-}
-:root.dark .rf-pcard-pill {
-  background: color-mix(in srgb, var(--tint) 22%, transparent);
-}
 @media (hover: hover) and (pointer: fine) {
-  .rf-pcard:hover {
+  .rf-pcard:hover .rf-pcard-in {
     transform: translateY(-5px);
-    box-shadow: 0 30px 55px -32px rgb(16 14 11 / 0.45);
+    box-shadow: 0 34px 60px -34px rgb(60 40 10 / 0.5);
   }
   .rf-pcard:hover .rf-pcard-alt {
     opacity: 1;
   }
-  .rf-pcard-qv {
-    opacity: 0;
-    transform: translateY(6px) scale(0.9);
-    transition:
-      opacity 0.4s var(--rf-ease-soft),
-      transform 0.5s var(--rf-spring),
-      background-color 0.3s;
-  }
-  .rf-pcard:hover .rf-pcard-qv,
-  .rf-pcard-qv:focus-visible {
-    opacity: 1;
-    transform: none;
+  .rf-pcard:hover .rf-pcard-img {
+    transform: scale(1.04);
   }
 }

@@ -80,9 +80,9 @@ export function Shop() {
   const filtered = applyFilters(all, filters)
   const products = matched && !params.get('sort') ? filtered : sortProducts(filtered, sort)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [columns, setColumns] = useState<1 | 2>(2)
+  const [columns, setColumns] = useState<1 | 2>(1)
   // Products per row from the small breakpoint up (the visitor's choice is remembered).
-  const [perRow, setPerRow] = usePersistentState<2 | 3>('rfaheya.shopColumns', 3, (v) => (v === 2 || v === 3 ? v : undefined))
+  const [perRow, setPerRow] = usePersistentState<2 | 3>('rfaheya.shopColumns', 2, (v) => (v === 2 || v === 3 ? v : undefined))
 
   const prices = all.flatMap((p) => Object.values(priceRange(p)))
   const bounds = {
@@ -284,7 +284,7 @@ export function Shop() {
                 </button>
               </div>
             ) : (
-              <ul className={`mt-6 grid gap-x-3 gap-y-9 sm:gap-x-5 ${perRow === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <ul className={`mt-6 grid gap-x-3 gap-y-4 sm:gap-x-5 sm:gap-y-6 ${perRow === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {products.map((p) => (
                   <li key={p.id}>
                     <ProductCard product={p} />
