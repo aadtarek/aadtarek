@@ -1,12 +1,12 @@
-import { Handbag, Heart, House, Search, Store, UserRound, type LucideIcon } from 'lucide-react'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { wp } from '../api/wp'
 import { haptic } from '../lib/fx'
+import { BagIcon, HeartIcon, HomeIcon, SearchIcon, ShopIcon, UserIcon, type LineIconProps } from './LineIcons'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
 
-type Tab = { key: string; label: string; Icon: LucideIcon; to?: string; href?: string; onTap?: () => void; badge?: number; cart?: boolean }
+type Tab = { key: string; label: string; Icon: ComponentType<LineIconProps>; to?: string; href?: string; onTap?: () => void; badge?: number; cart?: boolean }
 
 /**
  * Phones: a floating "liquid glass" tab bar (iOS style) with a round search button.
@@ -34,11 +34,11 @@ export function TabBar() {
   useEffect(() => setHidden(false), [pathname])
 
   const tabs: Tab[] = [
-    { key: 'home', label: 'Home', Icon: House, to: '/' },
-    { key: 'shop', label: 'Shop', Icon: Store, to: '/shop' },
-    { key: 'wishlist', label: 'Wishlist', Icon: Heart, to: '/wishlist', badge: wishlist.ids.length },
-    { key: 'cart', label: 'Cart', Icon: Handbag, onTap: cart.open, badge: cart.count, cart: true },
-    wp ? { key: 'account', label: 'Account', Icon: UserRound, href: wp.myAccountUrl } : { key: 'account', label: 'Account', Icon: UserRound, to: '/account' },
+    { key: 'home', label: 'Home', Icon: HomeIcon, to: '/' },
+    { key: 'shop', label: 'Shop', Icon: ShopIcon, to: '/shop' },
+    { key: 'wishlist', label: 'Wishlist', Icon: HeartIcon, to: '/wishlist', badge: wishlist.ids.length },
+    { key: 'cart', label: 'Cart', Icon: BagIcon, onTap: cart.open, badge: cart.count, cart: true },
+    wp ? { key: 'account', label: 'Account', Icon: UserIcon, href: wp.myAccountUrl } : { key: 'account', label: 'Account', Icon: UserIcon, to: '/account' },
   ]
   const current =
     pathname === '/' ? 'home' : pathname.startsWith('/shop') || pathname.startsWith('/product') || pathname.startsWith('/collections') ? 'shop' : pathname.startsWith('/wishlist') ? 'wishlist' : pathname.startsWith('/account') ? 'account' : ''
@@ -85,7 +85,7 @@ export function TabBar() {
           const body = (
             <>
               <span className="relative">
-                <t.Icon className={`size-[22px] transition ${on ? 'text-ink' : 'text-ink-soft'}`} strokeWidth={on ? 1.9 : 1.5} />
+                <t.Icon className={`size-[22px] transition ${on ? 'text-ink' : 'text-ink-soft'}`} strokeWidth={on ? 1.7 : 1.3} />
                 {t.badge ? (
                   <span
                     data-cart-count={t.cart ? '' : undefined}
@@ -125,7 +125,7 @@ export function TabBar() {
         onClick={() => window.dispatchEvent(new Event('rf:search'))}
         className="rf-glass grid size-[62px] shrink-0 place-items-center rounded-full text-ink"
       >
-        <Search className="size-[22px]" strokeWidth={1.6} />
+        <SearchIcon className="size-[22px]" />
       </button>
     </nav>
   )

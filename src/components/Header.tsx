@@ -1,4 +1,5 @@
-import { Handbag, Heart, Menu, Moon, Search, Sun, UserRound, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
+import { BagIcon, HeartIcon, MoonIcon, SearchIcon, SunIcon, UserIcon } from './LineIcons'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { wp } from '../api/wp'
@@ -112,12 +113,12 @@ export function Header() {
             onClick={() => setSearchOpen(true)}
             className="mr-3 hidden h-[34px] w-[220px] items-center gap-2.5 rounded-full border border-line-strong/70 bg-cream/70 px-3.5 text-[13px] text-muted transition hover:border-olive 2xl:flex"
           >
-            <Search className="size-4 shrink-0" strokeWidth={1.5} />
+            <SearchIcon className="size-4 shrink-0" />
             Search fragrances…
             <kbd className="ml-auto rounded border border-line-strong px-1.5 font-sans text-[10px] text-muted">/</kbd>
           </button>
           <button type="button" aria-label="Search" className={`${iconBtn} 2xl:hidden`} onClick={() => setSearchOpen(true)}>
-            <Search className="size-[21px]" strokeWidth={1.5} />
+            <SearchIcon className="size-[21px]" />
           </button>
           <button
             type="button"
@@ -126,24 +127,24 @@ export function Header() {
             aria-pressed={theme === 'dark'}
             className={`${iconBtn} hidden sm:grid`}
           >
-            {theme === 'dark' ? <Sun className="size-[21px]" strokeWidth={1.5} /> : <Moon className="size-[20px]" strokeWidth={1.5} />}
+            {theme === 'dark' ? <SunIcon className="size-[21px]" /> : <MoonIcon className="size-[20px]" />}
           </button>
           <Link to="/wishlist" aria-label={`Wishlist (${wishlist.ids.length})`} className={iconBtn}>
-            <Heart className="size-[22px]" strokeWidth={1.5} />
+            <HeartIcon className="size-[22px]" />
             {wishlist.ids.length > 0 && <CountBadge count={wishlist.ids.length} />}
           </Link>
           {/* With WordPress, the account lives in WooCommerce's My Account page. */}
           {wp ? (
             <a href={wp.myAccountUrl} aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
-              <UserRound className="size-[22px]" strokeWidth={1.5} />
+              <UserIcon className="size-[22px]" />
             </a>
           ) : (
             <Link to="/account" aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
-              <UserRound className="size-[22px]" strokeWidth={1.5} />
+              <UserIcon className="size-[22px]" />
             </Link>
           )}
           <button type="button" aria-label={`Cart, ${count} items`} onClick={open} className={iconBtn} data-cart-target>
-            <Handbag className="size-[22px]" strokeWidth={1.5} />
+            <BagIcon className="size-[22px]" />
             <CountBadge count={count} />
           </button>
         </div>
@@ -196,7 +197,7 @@ export function Header() {
                 className="flex items-center justify-between py-4 text-left text-[13px] font-medium tracking-[0.1em] uppercase"
               >
                 {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-                {theme === 'dark' ? <Sun className="size-5" strokeWidth={1.5} /> : <Moon className="size-5" strokeWidth={1.5} />}
+                {theme === 'dark' ? <SunIcon className="size-5" /> : <MoonIcon className="size-5" />}
               </button>
             </nav>
           </div>

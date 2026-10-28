@@ -1418,3 +1418,108 @@ section[aria-labelledby="best-sellers-title"]
     transform: scale(1.04);
   }
 }
+
+/* Fine-line icons: one weight across the site (the store's own icons are in LineIcons.tsx). */
+svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
+  stroke-width: 1.3;
+}
+/* Each icon has a small animation on hover (desktop) or tap. */
+@keyframes rf-ic-beat {
+  15% {
+    transform: scale(1.22);
+  }
+  30% {
+    transform: scale(0.95);
+  }
+  45% {
+    transform: scale(1.1);
+  }
+}
+@keyframes rf-ic-wiggle {
+  20% {
+    transform: rotate(-12deg);
+  }
+  45% {
+    transform: rotate(10deg);
+  }
+  70% {
+    transform: rotate(-5deg);
+  }
+}
+@keyframes rf-ic-tilt {
+  40% {
+    transform: rotate(-18deg) scale(1.12);
+  }
+}
+@keyframes rf-ic-hop {
+  35% {
+    transform: translateY(-4px);
+  }
+  65% {
+    transform: translateY(0);
+  }
+  80% {
+    transform: translateY(-1.5px);
+  }
+}
+@keyframes rf-ic-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rf-ic {
+  overflow: visible;
+}
+.rf-ic-heart,
+.rf-ic-search,
+.rf-ic-moon,
+.rf-ic-sun {
+  transform-origin: center;
+}
+.rf-ic-bag {
+  transform-origin: 50% 20%;
+}
+.rf-ic-shop {
+  transform-origin: 50% 90%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .rf-ic-heart.rf-ic-play {
+    animation: rf-ic-beat 0.9s ease;
+  }
+  .rf-ic-bag.rf-ic-play,
+  .rf-ic-shop.rf-ic-play {
+    animation: rf-ic-wiggle 0.8s ease;
+  }
+  .rf-ic-search.rf-ic-play {
+    animation: rf-ic-tilt 0.7s var(--rf-spring);
+  }
+  .rf-ic-home.rf-ic-play,
+  .rf-ic-user.rf-ic-play {
+    animation: rf-ic-hop 0.7s ease;
+  }
+  .rf-ic-moon.rf-ic-play,
+  .rf-ic-sun.rf-ic-play {
+    animation: rf-ic-spin 0.8s var(--rf-ease-soft);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    :is(a, button):hover > .rf-ic-heart,
+    :is(a, button):hover > span > .rf-ic-heart {
+      animation: rf-ic-beat 0.9s ease;
+    }
+    :is(a, button):hover > :is(.rf-ic-bag, .rf-ic-shop),
+    :is(a, button):hover > span > :is(.rf-ic-bag, .rf-ic-shop) {
+      animation: rf-ic-wiggle 0.8s ease;
+    }
+    :is(a, button):hover > .rf-ic-search,
+    :is(a, button):hover > span > .rf-ic-search {
+      animation: rf-ic-tilt 0.7s var(--rf-spring);
+    }
+    :is(a, button):hover > :is(.rf-ic-home, .rf-ic-user),
+    :is(a, button):hover > span > :is(.rf-ic-home, .rf-ic-user) {
+      animation: rf-ic-hop 0.7s ease;
+    }
+    :is(a, button):hover > :is(.rf-ic-moon, .rf-ic-sun) {
+      animation: rf-ic-spin 0.8s var(--rf-ease-soft);
+    }
+  }
+}

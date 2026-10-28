@@ -238,6 +238,17 @@ function imageIn(e: Event) {
   img.classList.add('rf-img-in')
 }
 
+/** Tapping an icon button plays its icon's little animation (phones have no hover). */
+function playIcon(e: PointerEvent) {
+  const host = (e.target as Element | null)?.closest('a, button')
+  const icon = host?.querySelector<SVGElement>('svg.rf-ic')
+  if (!icon) return
+  icon.classList.remove('rf-ic-play')
+  void icon.getBoundingClientRect()
+  icon.classList.add('rf-ic-play')
+  icon.addEventListener('animationend', () => icon.classList.remove('rf-ic-play'), { once: true })
+}
+
 let installed = false
 
 /** Installs the page-wide effects once (called from main.tsx). */
@@ -247,7 +258,10 @@ export function installFx() {
   document.addEventListener(
     'pointerdown',
     (e) => {
-      if (!reduced()) ripple(e)
+      if (!reduced()) {
+        ripple(e)
+        playIcon(e)
+      }
     },
     { passive: true },
   )

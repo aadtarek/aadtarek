@@ -1,4 +1,4 @@
-import { Eye, Heart, ShoppingBag } from 'lucide-react'
+import { Eye } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { composition, familyName, fullSizeVariations, sampleVariation } from '../api/catalog'
@@ -8,6 +8,7 @@ import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
 import type { FamilySlug, Product } from '../types'
 import { BottleIcon } from './Icons'
+import { BagIcon, HeartIcon } from './LineIcons'
 import { SlidingPill, useSlidingPill } from './SlidingPill'
 import { addWithFlight } from '../lib/addToCart'
 import { haptic, heartBurst } from '../lib/fx'
@@ -101,7 +102,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
             aria-label={wished ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
             className="absolute top-1.5 right-1.5 grid size-8 place-items-center rounded-full bg-white/85 text-[#14110d] backdrop-blur-md transition hover:scale-110 hover:bg-white @[28rem]:top-3 @[28rem]:right-3 @[28rem]:size-9"
           >
-            <Heart key={String(wished)} className={`size-4 transition ${wished ? 'rf-heart-beat fill-[#e49b2d] text-[#e49b2d]' : ''}`} strokeWidth={1.7} />
+            <HeartIcon key={String(wished)} className={`size-[17px] transition ${wished ? 'rf-heart-beat fill-[#e49b2d] text-[#e49b2d]' : ''}`} strokeWidth={1.5} />
           </button>
           <button
             type="button"
@@ -201,7 +202,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
               disabled={!selected.inStock}
               className="inline-flex size-10 shrink-0 items-center justify-center gap-2 rounded-full bg-olive text-on-accent shadow-[0_12px_22px_-12px_rgba(228,155,45,0.95)] transition hover:bg-olive-hover disabled:opacity-50 @[28rem]:h-11 @[28rem]:w-auto @[28rem]:gap-1.5 @[28rem]:px-4"
             >
-              <ShoppingBag className="size-[17px] shrink-0" strokeWidth={1.8} aria-hidden />
+              <BagIcon className="size-[18px] shrink-0" strokeWidth={1.6} />
               <span className="sr-only text-[11.5px] font-semibold tracking-[0.06em] whitespace-nowrap uppercase @[28rem]:not-sr-only">Add to cart</span>
             </button>
           </div>
