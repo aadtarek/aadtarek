@@ -83,9 +83,9 @@ html[dir="rtl"] .cm-mq-word{letter-spacing:0;-webkit-text-stroke-width:1.2px}
 /* 16. Cards tilt in 3D with a glare (mouse only). */
 .cm-tilt{transition:rotate .6s cubic-bezier(.16,1,.3,1);transform-style:preserve-3d}
 .cm-tilt.cm-tilting{transition:rotate .12s linear}
-.cm-glare{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;opacity:0;transition:opacity .5s ease;background:radial-gradient(420px circle at var(--cm-gx,50%) var(--cm-gy,50%),rgba(255,255,255,.22),transparent 55%);mix-blend-mode:overlay}
+.cm-glare{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;opacity:0;transition:opacity .5s ease;background:radial-gradient(420px circle at var(--cm-gx,50%) var(--cm-gy,50%),rgba(255,255,255,.10),transparent 55%);mix-blend-mode:overlay}
 .cm-tilt:hover .cm-glare{opacity:1}
-.cm-persp{perspective:1100px}
+.cm-persp{perspective:1600px}
 
 /* 17. Images drift inside their frames while scrolling. */
 .cm-parallax,.cm-reveal.cm-in.cm-parallax{will-change:translate;scale:1.14}

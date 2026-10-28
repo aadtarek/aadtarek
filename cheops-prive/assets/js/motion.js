@@ -208,7 +208,7 @@
       c.appendChild(g);
       c.addEventListener('pointermove', function (e) {
         var r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
-        var ang = Math.min(7, Math.hypot(x, y) * 14);
+        var ang = Math.min(2.5, Math.hypot(x, y) * 5);
         c.classList.add('cm-tilting');
         c.style.rotate = (-y).toFixed(3) + ' ' + x.toFixed(3) + ' 0 ' + ang.toFixed(2) + 'deg';
         c.style.setProperty('--cm-gx', ((x + 0.5) * 100).toFixed(1) + '%');
