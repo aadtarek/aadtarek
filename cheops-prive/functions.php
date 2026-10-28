@@ -125,6 +125,7 @@ function cheops_footer_social_icons() {
         'Facebook ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M13.3 21v-8.2h2.8l.4-3.2h-3.2v-2c0-.9.3-1.6 1.6-1.6h1.7V3.1c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.4H7.1v3.2h2.8V21z"/></svg><span class="cheops-home-sr-only">Facebook</span>',
         'Instagram ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.5" cy="6.5" r="1.1"/></svg><span class="cheops-home-sr-only">Instagram</span>',
         'LinkedIn ↗' => '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M5.4 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM3.7 8.5H7V21H3.7Zm5.5 0h3.2v1.7h.1c.5-1 1.6-2 3.6-2 3.8 0 4.5 2.4 4.5 5.5V21h-3.4v-6.5c0-1.6 0-3.5-2.1-3.5s-2.5 1.7-2.5 3.4V21H9.2Z"/></svg><span class="cheops-home-sr-only">LinkedIn</span>',
+        'TikTok ↗' => '<svg viewBox="-2.5 -2.5 29 29" width="20" height="20" aria-hidden="true" focusable="false"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
     ];
 }
 
@@ -1514,6 +1515,7 @@ function cheops_site_footer() {
     $fb='https://www.facebook.com/cheopsprive';
     $ig='https://www.instagram.com/cheopsprive/?hl=en';
     $li='https://www.linkedin.com/company/cheopsprive';
+    $tt='https://www.tiktok.com/@cheopsprive';
     echo '<footer class="cheops-site-footer"><div class="cheops-site-footer-inner">';
     echo '<div class="cheops-footer-main">';
     echo '<div class="cheops-footer-brand"><a class="cheops-footer-wordmark" href="'.esc_url(home_url('/')).'" aria-label="Cheops Privé home"><span class="cheops-wordmark"><strong>CHEOPS</strong><small>PRIVÉ</small></span></a><p>Curated property guidance across Egypt’s secondary market residential and business destinations</p><a class="cheops-footer-cta" href="'.esc_url(home_url('/contact/')).'">Start a conversation <span>→</span></a></div>';
@@ -1521,7 +1523,7 @@ function cheops_site_footer() {
     echo '<div class="cheops-footer-col"><h4>Services</h4><a href="'.esc_url(home_url('/for-rent/')).'">For Rent</a><a href="'.esc_url(home_url('/for-sale/')).'">For Sale</a><a href="'.esc_url(home_url('/income-property/')).'">Income Property</a><a href="'.esc_url(home_url('/private-consultation/')).'">Private Consultation</a></div>';
     echo '<div class="cheops-footer-col cheops-footer-contact"><h4>Contact</h4><p>'.esc_html(cheops_address()).'</p><a href="'.esc_url(cheops_phone_url()).'">'.esc_html(cheops_phone_display()).'</a><a href="mailto:'.esc_attr(cheops_email()).'">'.esc_html(cheops_email()).'</a></div>';
     echo '</div>';
-    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social">'.strtr('<a href="'.esc_url($fb).'" target="_blank" rel="noopener" aria-label="Facebook">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener" aria-label="Instagram">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn ↗</a>', cheops_footer_social_icons()).'</div><div class="cheops-footer-meta"><span>© '.esc_html(date('Y')).' Cheops Privé</span></div></div>';
+    echo '<div class="cheops-footer-lower"><div class="cheops-footer-social">'.strtr('<a href="'.esc_url($fb).'" target="_blank" rel="noopener" aria-label="Facebook">Facebook ↗</a><a href="'.esc_url($ig).'" target="_blank" rel="noopener" aria-label="Instagram">Instagram ↗</a><a href="'.esc_url($li).'" target="_blank" rel="noopener" aria-label="LinkedIn">LinkedIn ↗</a><a href="'.esc_url($tt).'" target="_blank" rel="noopener" aria-label="TikTok">TikTok ↗</a>', cheops_footer_social_icons()).'</div><div class="cheops-footer-meta"><span>© '.esc_html(date('Y')).' Cheops Privé</span></div></div>';
     echo '</div></footer>';
 }
 add_action('wp_footer','cheops_site_footer',5);
