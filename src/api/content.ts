@@ -127,11 +127,15 @@ export const fetchPage = (slug: string) =>
     const list = await wpGet<RawPage[]>(`wp/v2/pages?slug=${encodeURIComponent(slug)}`)
     const p = list[0]
     if (!p) return null
+    // A page without its own excerpt gets one cut from its text by WordPress; that would repeat the first lines.
+    const excerpt = stripHtml(p.excerpt?.rendered ?? '')
+    const text = stripHtml(p.content.rendered).replace(/\s+/g, ' ')
+    const generated = /\[(…|&hellip;|\.\.\.)\]\s*$/.test(excerpt) || text.startsWith(excerpt.replace(/\s+/g, ' ').slice(0, 80))
     return {
       slug: p.slug,
       title: stripHtml(p.title.rendered),
       eyebrow: p.meta?.rfaheya_eyebrow ?? '',
-      intro: stripHtml(p.excerpt?.rendered ?? ''),
+      intro: generated ? '' : excerpt,
       html: p.content.rendered,
     }
   })

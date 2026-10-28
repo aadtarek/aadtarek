@@ -8,7 +8,7 @@
  */
 import { copyFileSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import { contentPages } from '../src/data/content'
+import { contentPages, splitLabel } from '../src/data/content'
 import { families } from '../src/data/families'
 import { faqs } from '../src/data/faqs'
 import { articles } from '../src/data/journal'
@@ -50,8 +50,14 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 // Block editor markup, so the imported content opens as normal blocks in WordPress.
 const h2 = (t: string) => `<!-- wp:heading -->\n<h2 class="wp-block-heading">${esc(t)}</h2>\n<!-- /wp:heading -->`
 const p = (t: string) => `<!-- wp:paragraph -->\n<p>${esc(t)}</p>\n<!-- /wp:paragraph -->`
+const h3 = (t: string) => `<!-- wp:heading {"level":3} -->\n<h3 class="wp-block-heading">${esc(t)}</h3>\n<!-- /wp:heading -->`
+/** A list item; a leading “Label: ” is bold. */
+const li = (t: string) => {
+  const label = splitLabel(t)
+  return label ? `<strong>${esc(label[0])}:</strong> ${esc(label[1])}` : esc(t)
+}
 const ul = (items: string[]) =>
-  `<!-- wp:list -->\n<ul class="wp-block-list">${items.map((t) => `<!-- wp:list-item -->\n<li>${esc(t)}</li>\n<!-- /wp:list-item -->`).join('')}</ul>\n<!-- /wp:list -->`
+  `<!-- wp:list -->\n<ul class="wp-block-list">${items.map((t) => `<!-- wp:list-item -->\n<li>${li(t)}</li>\n<!-- /wp:list-item -->`).join('')}</ul>\n<!-- /wp:list -->`
 
 /** Copies a built asset (e.g. /assets/hero-abc123.webp) into media/ and returns its file name. */
 function media(url: string): string {
@@ -82,7 +88,9 @@ const content = {
     title: page.title,
     eyebrow: page.eyebrow,
     excerpt: page.intro,
-    content: page.sections.flatMap((s) => [h2(s.heading), ...(s.paragraphs ?? []).map(p), ...(s.list ? [ul(s.list)] : [])]).join('\n\n'),
+    content: page.sections
+      .flatMap((s) => [s.level === 3 ? h3(s.heading) : h2(s.heading), ...(s.paragraphs ?? []).map(p), ...(s.list ? [ul(s.list)] : []), ...(s.after ?? []).map(p)])
+      .join('\n\n'),
   })),
   faqs: faqs.map((f) => ({ q: f.q, a: p(f.a) })),
   families: families.map((f) => ({ slug: f.slug, name: f.name, tagline: f.tagline, image: media(f.image) })),

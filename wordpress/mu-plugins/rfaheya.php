@@ -247,6 +247,59 @@ function rfaheya_settings_page() {
 	<?php
 }
 
+// ==================================================================== information pages
+
+/**
+ * One-time page refresh: the starter Shipping, Size Guide, Ingredients,
+ * Sustainability and Terms pages are removed (moved to the trash), and the
+ * starter Privacy Policy and Returns & Refunds pages get the store's own
+ * text from rfaheya/content.json. Only pages the starter import created
+ * (they carry the rfaheya_eyebrow field) are touched.
+ */
+add_action(
+	'init',
+	function () {
+		if ( (int) get_option( 'rfaheya_pages_set', 1 ) >= 2 ) {
+			return;
+		}
+		$file = __DIR__ . '/rfaheya/content.json';
+		$data = is_readable( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null;
+		if ( ! is_array( $data ) || ! isset( $data['pages'] ) ) {
+			return;
+		}
+		$ours = function ( $slug ) {
+			$page = get_page_by_path( $slug );
+			return $page && '' !== (string) get_post_meta( $page->ID, 'rfaheya_eyebrow', true ) ? $page : null;
+		};
+		foreach ( array( 'shipping', 'size-guide', 'ingredients', 'sustainability', 'terms' ) as $slug ) {
+			$page = $ours( $slug );
+			if ( ! $page ) {
+				continue;
+			}
+			if ( (int) get_option( 'woocommerce_terms_page_id' ) === (int) $page->ID ) {
+				update_option( 'woocommerce_terms_page_id', 0 );
+			}
+			wp_trash_post( $page->ID );
+		}
+		foreach ( (array) $data['pages'] as $p ) {
+			$page = $ours( $p['slug'] );
+			if ( ! $page ) {
+				continue;
+			}
+			wp_update_post(
+				array(
+					'ID'           => $page->ID,
+					'post_title'   => $p['title'],
+					'post_excerpt' => $p['excerpt'],
+					'post_content' => $p['content'],
+				)
+			);
+			update_post_meta( $page->ID, 'rfaheya_eyebrow', $p['eyebrow'] );
+		}
+		update_option( 'rfaheya_pages_set', 2 );
+	}
+);
+
 // ==================================================================== FAQs
 
 /**

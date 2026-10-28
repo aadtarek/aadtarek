@@ -33,8 +33,6 @@ const columns: { title: string; links: { label: string; to: string }[] }[] = [
     links: [
       { label: 'Our Story', to: '/about' },
       { label: 'Rfaheya Standard™', to: '/our-standard' },
-      { label: 'Ingredients & Quality', to: '/ingredients' },
-      { label: 'Sustainability', to: '/sustainability' },
       { label: 'Blog', to: '/journal' },
       { label: 'Contact Us', to: '/contact' },
     ],
@@ -43,12 +41,9 @@ const columns: { title: string; links: { label: string; to: string }[] }[] = [
     title: 'Help',
     links: [
       { label: 'FAQs', to: '/faqs' },
-      { label: 'Shipping & Delivery', to: '/shipping' },
       { label: 'Returns & Refunds', to: '/returns' },
       { label: 'Track Your Order', to: '/track-order' },
-      { label: 'Size Guide', to: '/size-guide' },
       { label: 'Privacy Policy', to: '/privacy' },
-      { label: 'Terms & Conditions', to: '/terms' },
     ],
   },
 ]
