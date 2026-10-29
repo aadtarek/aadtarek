@@ -248,6 +248,86 @@ function rfaheya_settings_page() {
 	<?php
 }
 
+// ==================================================================== products missing from the storefront
+
+/**
+ * Products that exist in WooCommerce but don't show on the storefront, with the
+ * reason. Shown on the Products screen and on Settings → Rfaheya Store.
+ */
+function rfaheya_missing_products() {
+	if ( ! function_exists( 'wc_get_product' ) ) {
+		return array();
+	}
+	$shown = array();
+	$data  = rfaheya_bootstrap();
+	if ( empty( $data['products'] ) ) {
+		return array();
+	}
+	foreach ( (array) $data['products'] as $p ) {
+		$shown[ (int) $p['id'] ] = true;
+	}
+	$gift = (int) ( (array) get_option( 'rfaheya_gift_box', array() ) + array( 'product' => 0 ) )['product'];
+	$hide_out = 'yes' === get_option( 'woocommerce_hide_out_of_stock_items' );
+	$missing  = array();
+	$ids      = get_posts(
+		array(
+			'post_type'   => 'product',
+			'post_status' => array( 'publish', 'draft', 'pending', 'private', 'future' ),
+			'numberposts' => -1,
+			'fields'      => 'ids',
+		)
+	);
+	foreach ( $ids as $id ) {
+		if ( isset( $shown[ $id ] ) || $id === $gift ) {
+			continue;
+		}
+		$product = wc_get_product( $id );
+		if ( ! $product ) {
+			continue;
+		}
+		$status = get_post_status( $id );
+		if ( 'publish' !== $status ) {
+			$labels = array( 'draft' => 'Draft', 'pending' => 'Pending review', 'private' => 'Private', 'future' => 'Scheduled' );
+			$reason = sprintf( 'Not published (%s) — open it and press Publish.', isset( $labels[ $status ] ) ? $labels[ $status ] : $status );
+		} elseif ( post_password_required( $id ) || '' !== get_post_field( 'post_password', $id ) ) {
+			$reason = 'Password protected — remove the password (Publish box → Visibility: Public).';
+		} elseif ( in_array( $product->get_catalog_visibility(), array( 'hidden', 'search' ), true ) ) {
+			$reason = 'Catalog visibility is “' . $product->get_catalog_visibility() . '” — set it to “Shop and search results” (Publish box).';
+		} elseif ( $hide_out && ! $product->is_in_stock() ) {
+			$reason = 'Out of stock, and WooCommerce → Settings → Products → Inventory hides out-of-stock products.';
+		} elseif ( '' === (string) $product->get_price() ) {
+			$reason = 'No price — add a price (or prices on its variations).';
+		} else {
+			$reason = 'Not in the storefront data yet — it refreshes on its own within a few minutes after any save.';
+		}
+		$missing[] = array(
+			'id'     => $id,
+			'name'   => get_the_title( $id ),
+			'reason' => $reason,
+		);
+	}
+	return $missing;
+}
+
+add_action(
+	'admin_notices',
+	function () {
+		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+		if ( ! $screen || ! current_user_can( 'edit_products' ) || ! in_array( $screen->id, array( 'edit-product', 'settings_page_rfaheya-store' ), true ) ) {
+			return;
+		}
+		$missing = rfaheya_missing_products();
+		if ( ! $missing ) {
+			return;
+		}
+		echo '<div class="notice notice-warning"><p><strong>' . esc_html( sprintf( '%d product(s) don’t show on the storefront:', count( $missing ) ) ) . '</strong></p><ul style="list-style:disc;margin-left:20px">';
+		foreach ( array_slice( $missing, 0, 25 ) as $m ) {
+			printf( '<li><a href="%s">%s</a> — %s</li>', esc_url( get_edit_post_link( $m['id'] ) ), esc_html( $m['name'] ), esc_html( $m['reason'] ) );
+		}
+		echo '</ul></div>';
+	}
+);
+
 // ==================================================================== logo
 
 /** The logo chosen in Settings → Rfaheya Store (empty: the storefront's built-in logo). */
@@ -1288,7 +1368,15 @@ function rfaheya_bootstrap() {
 	if ( get_transient( 'rfaheya_bootstrap_failed' ) ) {
 		return array( 'products' => array() );
 	}
-	$products   = rfaheya_store_data( '/wc/store/v1/products', array( 'per_page' => 100, 'orderby' => 'popularity', 'order' => 'desc' ) );
+	// Every product, 100 per page (a store with more than 100 used to show only the first 100).
+	$products = array();
+	for ( $page = 1; $page <= 30; $page++ ) {
+		$batch    = rfaheya_store_data( '/wc/store/v1/products', array( 'per_page' => 100, 'page' => $page, 'orderby' => 'popularity', 'order' => 'desc' ) );
+		$products = array_merge( $products, $batch );
+		if ( count( $batch ) < 100 ) {
+			break;
+		}
+	}
 	$ids        = array();
 	foreach ( $products as $p ) {
 		foreach ( (array) ( isset( $p['variations'] ) ? $p['variations'] : array() ) as $v ) {

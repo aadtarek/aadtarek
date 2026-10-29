@@ -256,16 +256,21 @@ export function buildCatalog(
 /** Products in both orders and all their variations, requested at the same time. */
 export async function fetchWooRaw(): Promise<{ byPopularity: RawProduct[]; dateOrder: number[]; variations: RawProduct[] }> {
   const variationPage = (page: number) => storeApi<RawProduct[]>(`products?type=variation&per_page=100&page=${page}`).catch(() => [] as RawProduct[])
-  // The first three pages of sizes at once; more only for very large stores.
-  const [byPopularity, byDate, p1, p2, p3] = await Promise.all([
-    storeApi<RawProduct[]>('products?per_page=100&orderby=popularity&order=desc'),
-    storeApi<RawProduct[]>('products?per_page=100&orderby=date&order=asc'),
-    variationPage(1),
-    variationPage(2),
-    variationPage(3),
-  ])
+  // Products come 100 per page: the first pages load together, more only for stores with over 100 products.
+  const all = async (path: string, first: RawProduct[]) => {
+    const list = [...first]
+    for (let page = 2, last = first; last.length === 100 && page <= 30; page++) {
+      last = await storeApi<RawProduct[]>(`${path}&page=${page}`)
+      list.push(...last)
+    }
+    return list
+  }
+  const popular = 'products?per_page=100&orderby=popularity&order=desc'
+  const oldest = 'products?per_page=100&orderby=date&order=asc'
+  const [popular1, oldest1, p1, p2, p3] = await Promise.all([storeApi<RawProduct[]>(popular), storeApi<RawProduct[]>(oldest), variationPage(1), variationPage(2), variationPage(3)])
+  const [byPopularity, byDate] = await Promise.all([all(popular, popular1), all(oldest, oldest1)])
   const variations = [...p1, ...p2, ...p3]
-  for (let page = 4, last = p3; last.length === 100 && page <= 10; page++) {
+  for (let page = 4, last = p3; last.length === 100 && page <= 30; page++) {
     last = await variationPage(page)
     variations.push(...last)
   }
