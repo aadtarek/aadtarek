@@ -1423,7 +1423,7 @@ section[aria-labelledby="best-sellers-title"]
 /* Card layout. Phones (narrow card): a tall photo, then compact rows of the same
    height rhythm; the price sits beside a round add button. Wider cards: tiles. */
 .rf-pc-photo {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 5 / 4;
 }
 .rf-pc-grid {
   display: grid;
@@ -1931,4 +1931,87 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
 :root.dark .rf-spot-ghost {
   background: rgb(255 255 255 / 0.1);
   color: var(--color-ink);
+}
+
+/* Phones (narrow card): two-tone — the whole card in the fragrance's colour, the
+   notes as chips, round size buttons, the price on its own line and a gold Add to cart. */
+@container (width < 17rem) {
+  .rf-pcard-in {
+    background: var(--tint);
+  }
+  :root.dark .rf-pcard-in {
+    background: color-mix(in srgb, var(--tint) 16%, var(--color-card));
+  }
+  .rf-pcard .rf-pcard-tile {
+    background: transparent;
+  }
+  .rf-pc-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'info' 'notes' 'sizes' 'price' 'add';
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .rf-pc-info,
+  .rf-pc-notes {
+    padding: 0 4px;
+  }
+  .rf-pc-notes {
+    flex-wrap: wrap;
+    gap: 3px;
+    white-space: normal;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .rf-pc-notes li {
+    background: rgb(255 255 255 / 0.72);
+    border-radius: 999px;
+    padding: 2px 7px 2px 3px;
+  }
+  :root.dark .rf-pc-notes li {
+    background: rgb(255 255 255 / 0.08);
+  }
+  .rf-pc-sizes {
+    justify-content: center;
+    gap: 6px;
+    padding: 2px 0;
+  }
+  .rf-pc-size-btn {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.55);
+  }
+  :root.dark .rf-pc-size-btn {
+    background: rgb(255 255 255 / 0.07);
+  }
+  .rf-pc-pill {
+    border-radius: 999px;
+    box-shadow: 0 0 0 1.5px var(--tint-ink);
+  }
+  .rf-pc-price {
+    justify-content: center;
+    padding: 2px 0 0;
+  }
+  .rf-pc-amount {
+    font-size: 19px;
+  }
+  .rf-pc-add {
+    width: 100%;
+    height: 38px;
+    gap: 6px;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+  }
+  .rf-pc-add-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+  .rf-pc-try {
+    padding-top: 6px;
+  }
 }
