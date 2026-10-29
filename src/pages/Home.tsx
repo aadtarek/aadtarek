@@ -1,5 +1,4 @@
 import { BestSellers } from '../components/BestSellers'
-import { BundleBuilder } from '../components/BundleBuilder'
 import { ExploreFamilies } from '../components/ExploreFamilies'
 import { FeatureStrip } from '../components/FeatureStrip'
 import { Hero } from '../components/Hero'
@@ -15,7 +14,6 @@ export function Home() {
       {HERO_SLIDER.enabled ? <HeroSpotlight /> : <Hero />}
       <FeatureStrip />
       <BestSellers />
-      <BundleBuilder />
       <WearVideosSection />
       <ExploreFamilies />
       <StandardSection />

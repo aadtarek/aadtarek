@@ -12,7 +12,6 @@ import visa from '../assets/payments/visa.png'
 import { FREE_SHIPPING, HOME, SOCIAL_LINKS } from '../config'
 import { usePersistentState } from '../lib/storage'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from './SocialIcons'
-import { GoldenDust } from './Ambient'
 
 const columns: { title: string; links: { label: string; to: string }[] }[] = [
   {
@@ -66,8 +65,9 @@ const payments = [
 
 export function Footer({ showCta = true }: { showCta?: boolean }) {
   return (
-    <footer className="bg-footer">
+    <>
       {showCta && <CtaBanner />}
+      <footer className="bg-footer">
       <div className="rf-on-black">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[45px]">
           <div className="h-px bg-line-strong/50" />
@@ -97,34 +97,44 @@ export function Footer({ showCta = true }: { showCta?: boolean }) {
           <BottomBar />
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   )
 }
 
+/** Last banner before the footer: a rounded island with the photo, the copy over its light side. */
 function CtaBanner() {
   return (
-    <section aria-labelledby="cta-title" className="relative flex flex-col overflow-hidden">
-      <img
-        src={cta}
-        alt="Rfaheya Vanilla Oud on a stone plinth with vanilla, amber and oud wood"
-        loading="lazy"
-        className="order-2 h-56 w-full object-cover object-[78%_center] xs:h-64 md:absolute md:inset-0 md:order-none md:h-full md:object-right"
-      />
-      {/* Dark mode only: keeps the light copy readable over the photo. */}
-      <div aria-hidden className="rf-dark-wash pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/75 via-black/45 to-transparent" />
-      <GoldenDust density={0.7} />
-      <div className="relative mx-auto flex w-full max-w-[1600px] flex-col justify-center px-4 pt-10 pb-6 sm:px-6 md:min-h-[347px] md:py-10 lg:px-[100px]">
-        <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[16px]">Speak your scent</p>
-        <h2 id="cta-title" className="mt-3 max-w-[9.5em] font-serif text-[38px] leading-[1.04] sm:text-[56px] lg:mt-[10px] lg:text-[62px]">
-          Find the fragrance that feels like you.
-        </h2>
-        <Link
-          to="/shop"
-          className="rf-magnetic group mt-6 inline-flex h-[56px] items-center gap-4 self-start rounded-full bg-olive px-[58px] text-[14px] font-medium tracking-[0.15em] text-on-accent uppercase transition hover:bg-olive-hover sm:text-[15.5px] lg:mt-[22px]"
-        >
-          Shop fragrances
-          <ArrowRight className="size-[19px] transition group-hover:translate-x-1" strokeWidth={1.5} />
-        </Link>
+    <section aria-labelledby="cta-title" className="container-x pt-6 pb-12 lg:pt-8 lg:pb-16">
+      <div className="relative h-[540px] overflow-hidden rounded-[28px] md:h-[440px] lg:rounded-[36px]">
+        <img
+          src={cta}
+          alt="Rfaheya Vanilla Oud on a stone plinth with vanilla, amber and oud wood"
+          loading="lazy"
+          className="absolute inset-0 size-full object-cover object-[75%_center] md:object-right"
+        />
+        <div aria-hidden className="rf-cta-wash pointer-events-none absolute inset-0" />
+        <div className="relative flex h-full flex-col px-[22px] pt-9 md:justify-center md:px-16 md:pt-0">
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Speak your scent</p>
+          <h2 id="cta-title" className="mt-3 max-w-[9.5em] font-serif text-[38px] leading-[1.02] sm:text-[48px] lg:text-[58px]">
+            Find the fragrance that feels like you.
+          </h2>
+          <div className="mt-6 flex flex-wrap gap-2.5">
+            <Link
+              to="/finder"
+              className="rf-magnetic group inline-flex h-[50px] items-center gap-2.5 rounded-full bg-olive px-[26px] text-[12px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover"
+            >
+              Take the scent quiz
+              <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.6} />
+            </Link>
+            <Link
+              to="/shop"
+              className="inline-flex h-[50px] items-center rounded-full border border-ink px-6 text-[12px] font-semibold tracking-[0.12em] uppercase transition hover:bg-ink hover:text-cream"
+            >
+              Shop all
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   )

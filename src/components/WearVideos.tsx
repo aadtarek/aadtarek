@@ -36,7 +36,8 @@ export function WearVideoCard({ video, index, onOpen }: { video: WearVideo; inde
     <button
       type="button"
       onClick={onOpen}
-      className="group relative block aspect-[9/16] w-full overflow-hidden rounded-[6px] bg-ink text-left ring-1 ring-line"
+      aria-label={`Play ${video.title}`}
+      className="group relative block aspect-[9/15] w-full overflow-hidden rounded-[22px] bg-ink text-left sm:rounded-[26px]"
     >
       <video
         ref={ref}
@@ -46,27 +47,23 @@ export function WearVideoCard({ video, index, onOpen }: { video: WearVideo; inde
         loop
         playsInline
         preload="none"
-        className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+        className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
       />
-      <span aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent" />
-      {product && (
-        <img
-          src={product.images[0].src}
-          alt=""
-          className="absolute right-3 bottom-[118px] size-14 rounded-xl border-2 border-white object-cover shadow-lg sm:size-16"
-        />
-      )}
-      <span className="absolute inset-x-3 bottom-3 flex items-end gap-3 rounded-xl bg-[#f1f0ef] px-4 py-3.5 shadow-lg">
+      <span aria-hidden className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/55 to-transparent" />
+      <span aria-hidden className="absolute top-3 left-3 grid size-10 place-items-center rounded-full bg-white/30 text-white backdrop-blur-md transition group-hover:scale-110 sm:top-3.5 sm:left-3.5 sm:size-[42px]">
+        <Play className="size-4 fill-current" strokeWidth={0} />
+      </span>
+      <span aria-hidden className="absolute top-[22px] right-4 text-[11px] font-semibold tracking-[0.08em] text-white/90">
+        {String(index + 1).padStart(2, '0')}
+      </span>
+      <span className="absolute inset-x-2.5 bottom-2.5 flex items-center gap-2.5 rounded-[18px] bg-white/85 p-2 text-[#14110d] backdrop-blur-xl">
+        {product && <img src={product.images[0].src} alt="" className="size-11 shrink-0 rounded-xl object-cover" />}
         <span className="min-w-0 flex-1">
-          <span className="flex items-center justify-between gap-2 text-[8.5px] font-semibold tracking-[0.1em] text-ink-soft uppercase">
-            <span className="truncate">{video.label}</span>
-            <span className="tracking-normal">{String(index + 1).padStart(2, '0')}</span>
-          </span>
-          <span className="mt-1 block truncate text-[17px] leading-tight font-medium text-ink">{video.title}</span>
-          {video.tags && <span className="mt-1 block truncate text-[9.5px] font-semibold tracking-[0.14em] text-ink-soft uppercase">{video.tags}</span>}
+          <span className="block truncate text-[14px] leading-tight font-semibold">{video.title}</span>
+          {video.tags && <span className="mt-0.5 block truncate text-[11.5px] text-[#7b6e5b]">{video.tags}</span>}
         </span>
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-ink text-white transition group-hover:bg-olive">
-          <Play className="size-4 fill-current" strokeWidth={0} />
+        <span aria-hidden className="grid size-[34px] shrink-0 place-items-center rounded-full bg-olive text-white transition group-hover:scale-110">
+          <ShoppingBag className="size-4" strokeWidth={1.6} />
         </span>
       </span>
     </button>
@@ -74,29 +71,29 @@ export function WearVideoCard({ video, index, onOpen }: { video: WearVideo; inde
 }
 
 /** "Wear reports" carousel (home page / product page). Hidden when there are no videos. */
-export function WearVideosSection({ productId, title = 'Worn by you.' }: { productId?: number; title?: string }) {
+export function WearVideosSection({ productId, title = 'Worn by you' }: { productId?: number; title?: string }) {
   // The videos arrive just after the products.
   useCatalogVersion()
   const videos = getVideos(productId)
   const [open, setOpen] = useState<number | null>(null)
   if (videos.length === 0) return null
   return (
-    <section aria-labelledby="wear-title" className="relative overflow-hidden bg-cream py-12 lg:py-16">
+    <section aria-labelledby="wear-title" className="relative overflow-hidden py-12 lg:py-16">
       <div className="container-x">
-        <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Rfaheya wear reports</p>
-        <h2 id="wear-title" className="mt-2 font-serif text-[36px] leading-[1.05] sm:text-[48px]">
+        <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Rfaheya wear reports</p>
+        <h2 id="wear-title" className="mt-2.5 font-serif text-[36px] leading-none sm:text-[52px]">
           {title}
         </h2>
-        <div className="mt-8">
+        <div className="mt-6 lg:mt-8">
           <Carousel
             label="Wear report videos"
             itemLabel="video"
             items={videos}
             getKey={(v) => v.id}
             renderItem={(v) => <WearVideoCard video={v} index={videos.indexOf(v)} onOpen={() => setOpen(videos.indexOf(v))} />}
-            perViewFor={(w) => (w >= 1180 ? 5 : w >= 860 ? 4 : w >= 560 ? 2.6 : 1.6)}
+            perViewFor={(w) => (w >= 860 ? 4 : w >= 560 ? 2.6 : 1.6)}
             arrowTop="50%"
-            gap={14}
+            gap={16}
           />
         </div>
       </div>

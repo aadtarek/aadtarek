@@ -1,45 +1,42 @@
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Check } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { findProductById } from '../api/catalog'
 import type { Review } from '../types'
-import { Stars, VerifiedBadge } from './Stars'
+import { Stars } from './Stars'
 
-const portraits = import.meta.glob<string>('../assets/reviews/*.webp', { eager: true, import: 'default' })
-
+/** A white review card: stars, the quote, who wrote it and a chip linking to the fragrance. */
 export function ReviewCard({ review }: { review: Review }) {
   const product = findProductById(review.productId)
   if (!product) return null
-  const image = portraits[`../assets/reviews/${product.slug}.webp`] ?? product.images[0].src
 
   return (
-    <article className="flex h-full gap-4 rounded-lg border border-line bg-[#f7f6f4] p-4 sm:gap-6 sm:py-[19px] sm:pr-[19px] sm:pl-[26px]">
-      <div className="flex min-w-0 flex-1 flex-col">
-        <div className="pt-1 sm:pt-[12px]">
-          <Stars rating={review.rating} className="size-[21px]" />
-        </div>
-        <blockquote className="mt-[13px] font-serif text-[17px] leading-[1.27] font-normal tracking-[-0.035em] text-ink sm:text-[18.5px]">
-          “{review.text}”
-        </blockquote>
-        <div className="mt-[11px] border-t border-line pt-[10px]">
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="text-[15px] text-ink">{review.author}</span>
-            {review.verified && <VerifiedBadge />}
-          </p>
-          <p className="mt-[5px] text-[13.5px] tracking-[0.12em] text-muted uppercase">
-            {product.name}
-            {review.size && ` · ${review.size}`}
-          </p>
-        </div>
-        <Link
-          to={`/product/${product.slug}`}
-          className="group mt-auto inline-flex items-center gap-3 self-start pt-6 text-[13.5px] font-semibold tracking-[0.12em] uppercase"
-        >
-          View product
-          <ArrowRight className="size-[18px] transition group-hover:translate-x-1" strokeWidth={1.5} />
-        </Link>
+    <article className="rf-white flex h-full flex-col rounded-[24px] border border-line p-5 sm:p-6">
+      <Stars rating={review.rating} className="size-[15px]" />
+      <blockquote className="mt-3.5 flex-1 font-serif text-[19px] leading-[1.3] text-ink sm:text-[21px]">“{review.text}”</blockquote>
+      <div className="mt-5 flex items-center gap-2.5">
+        <span aria-hidden className="grid size-[38px] shrink-0 place-items-center rounded-full bg-[#f3e3c9] text-[15px] font-bold text-[#8a5a1c]">
+          {review.author.trim().charAt(0).toUpperCase()}
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-[14px] font-semibold text-ink">{review.author}</span>
+          {review.verified && (
+            <span className="flex items-center gap-1 text-[11.5px] font-medium text-[#55662a]">
+              <Check className="size-3" strokeWidth={2.4} />
+              Verified purchase
+            </span>
+          )}
+        </span>
       </div>
-      <Link to={`/product/${product.slug}`} tabIndex={-1} aria-hidden className="w-[38%] max-w-[148px] shrink-0 self-stretch">
-        <img src={image} alt="" loading="lazy" draggable={false} className="size-full rounded-md object-cover" />
+      <Link
+        to={`/product/${product.slug}`}
+        className="group mt-4 flex items-center gap-2.5 rounded-full bg-chip py-1.5 pr-3 pl-1.5 text-[12px] font-semibold text-ink-soft transition hover:text-ink"
+      >
+        <img src={product.images[0].src} alt="" loading="lazy" className="size-8 shrink-0 rounded-full object-cover" />
+        <span className="min-w-0 flex-1 truncate">
+          {product.name}
+          {review.size && ` · ${review.size.replace(/\s*ML$/i, ' ml')}`}
+        </span>
+        <ArrowRight className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" strokeWidth={1.6} />
       </Link>
     </article>
   )

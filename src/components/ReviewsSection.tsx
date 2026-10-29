@@ -6,78 +6,60 @@ import type { Review } from '../types'
 import { Carousel } from './Carousel'
 import { ReviewCard } from './ReviewCard'
 import { Stars } from './Stars'
-import { Aura } from './Ambient'
 
 function reviewsPerView(width: number) {
-  if (width >= 1100) return 3
-  if (width >= 700) return 2
-  return 1.08
+  if (width >= 820) return 3
+  if (width >= 520) return 2
+  return 1.15
 }
 
+/** Home: the average rating large on one side, the review cards on the other. */
 export function ReviewsSection() {
   const [reviews, setReviews] = useState<Review[]>([])
   useEffect(() => {
     getReviews().then(setReviews)
   }, [])
-  const { average } = ratingSummary(reviews)
+  const { average, count } = ratingSummary(reviews)
   // No reviews yet (e.g. a fresh WooCommerce store): hide the section rather than show an empty one.
   if (reviews.length === 0) return null
 
   return (
-    <section aria-labelledby="reviews-title" className="rf-on-amber relative isolate overflow-hidden pt-12 pb-10 lg:pt-[62px] lg:pb-[50px]">
-      <Aura />
-      <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[84px]">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-[12px] tracking-[0.2em] text-ink-soft uppercase sm:text-[15px]">Customer reviews</p>
-            <h2 id="reviews-title" className="mt-2 font-serif text-[38px] leading-[1.05] sm:text-[58px]">
-              What our customers say.
-            </h2>
-            <p className="mt-2 text-[16px] text-ink-soft sm:text-[18px]">Real experiences from people who wear Rfaheya.</p>
+    <section aria-labelledby="reviews-title" className="container-x py-12 lg:py-16">
+      <div className="grid items-center gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-10">
+        <div className="text-center lg:text-left">
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Customer reviews</p>
+          <h2 id="reviews-title" className="sr-only">
+            What our customers say
+          </h2>
+          <p aria-hidden className="mt-2 font-serif text-[84px] leading-none lg:text-[120px]">
+            {average.toFixed(1)}
+          </p>
+          <div className="flex justify-center lg:justify-start">
+            <Stars rating={average} className="size-[18px]" />
           </div>
-
-          {reviews.length > 0 && (
-            <div className="flex items-center gap-6 lg:mt-[37px] lg:gap-[46px]">
-              <div>
-                <p className="flex items-center gap-4">
-                  <Stars rating={average} className="size-[21px]" />
-                  <span className="text-[28px] leading-none font-medium">{average.toFixed(1)}/5</span>
-                </p>
-                <p className="mt-[9px] text-[14.5px] text-ink-soft">Based on verified purchases</p>
-              </div>
-              <span aria-hidden className="hidden h-[58px] w-px bg-line-strong/70 sm:block" />
-              <Link
-                to="/reviews"
-                className="group hidden shrink-0 items-center gap-3 text-[13.5px] font-medium tracking-[0.15em] uppercase sm:flex"
-              >
-                View all reviews
-                <ArrowRight className="size-[18px] transition group-hover:translate-x-1" strokeWidth={1.5} />
-              </Link>
-            </div>
-          )}
+          <p className="mt-3 text-[14.5px] text-ink-soft lg:text-[16px]">
+            From {count} verified {count === 1 ? 'purchase' : 'purchases'}
+          </p>
+          <Link
+            to="/reviews"
+            className="rf-white group mt-5 inline-flex h-[42px] items-center gap-2 rounded-full border border-line px-[18px] text-[11px] font-semibold tracking-[0.12em] uppercase transition hover:border-ink"
+          >
+            Read all reviews
+            <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.5} />
+          </Link>
         </div>
-
-        <div className="mt-7 lg:mt-[34px]">
-          {reviews.length > 0 && (
-            <Carousel
-              label="Customer reviews"
-              itemLabel="review"
-              items={reviews}
-              getKey={(r) => r.id}
-              renderItem={(r) => <ReviewCard review={r} />}
-              perViewFor={reviewsPerView}
-              arrowTop="calc(50% - 46px)"
-              gap={13}
-            />
-          )}
+        <div className="min-w-0">
+          <Carousel
+            label="Customer reviews"
+            itemLabel="review"
+            items={reviews}
+            getKey={(r) => r.id}
+            renderItem={(r) => <ReviewCard review={r} />}
+            perViewFor={reviewsPerView}
+            arrowTop="50%"
+            gap={16}
+          />
         </div>
-        <Link
-          to="/reviews"
-          className="group mt-6 flex items-center justify-center gap-3 text-[13px] font-medium tracking-[0.15em] uppercase sm:hidden"
-        >
-          View all reviews
-          <ArrowRight className="size-[18px]" strokeWidth={1.5} />
-        </Link>
       </div>
     </section>
   )
