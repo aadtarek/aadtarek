@@ -39,6 +39,7 @@ function rfaheya_fields() {
 			'hero_title'     => array( 'Hero — title (press Enter for a new line)', '', 'textarea' ),
 			'hero_text'      => array( 'Hero — text', '', 'textarea' ),
 			'hero_image'     => array( 'Hero — image', '', 'image' ),
+			'logo'           => array( 'Logo (header, footer and My Account) — PNG or SVG; empty uses the built-in logo', '', 'image' ),
 		),
 		'login'   => array(
 			'google_client_id'     => array( 'Google — Client ID', '', 'text' ),
@@ -246,6 +247,53 @@ function rfaheya_settings_page() {
 	</div>
 	<?php
 }
+
+// ==================================================================== logo
+
+/** The logo chosen in Settings → Rfaheya Store (empty: the storefront's built-in logo). */
+function rfaheya_logo_url() {
+	$id = (int) rfaheya_options()['home']['logo'];
+	return $id ? (string) wp_get_attachment_image_url( $id, 'full' ) : '';
+}
+
+/**
+ * One-time: a logo already uploaded to the media library as “LOGO-1.png” becomes
+ * the store logo (it can be changed or removed in Settings → Rfaheya Store).
+ */
+add_action(
+	'admin_init',
+	function () {
+		if ( get_option( 'rfaheya_logo_seeded' ) ) {
+			return;
+		}
+		update_option( 'rfaheya_logo_seeded', 1 );
+		$saved = get_option( RFAHEYA_OPTION, array() );
+		$saved = is_array( $saved ) ? $saved : array();
+		if ( ! empty( $saved['home']['logo'] ) ) {
+			return;
+		}
+		$found = get_posts(
+			array(
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image',
+				'posts_per_page' => 1,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'meta_query'     => array(
+					array(
+						'key'     => '_wp_attached_file',
+						'value'   => '/LOGO-1\\.(png|svg|webp)$',
+						'compare' => 'REGEXP',
+					),
+				),
+			)
+		);
+		if ( $found ) {
+			$saved['home']['logo'] = (string) $found[0]->ID;
+			update_option( RFAHEYA_OPTION, $saved );
+		}
+	}
+);
 
 // ==================================================================== information pages
 
@@ -1135,6 +1183,7 @@ function rfaheya_settings_data() {
 			'image'   => $h['hero_image'] ? (string) wp_get_attachment_image_url( (int) $h['hero_image'], 'full' ) : '',
 		'srcset'  => $h['hero_image'] ? (string) wp_get_attachment_image_srcset( (int) $h['hero_image'], 'full' ) : '',
 		),
+		'logo'          => rfaheya_logo_url(),
 	);
 	return array(
 			'contact'      => $o['contact'],
@@ -1309,6 +1358,11 @@ function rfaheya_storefront_shell() {
 	if ( $fresh ) {
 		update_option( 'rfaheya_index_build', $build, false );
 		rfaheya_purge_page_cache();
+	}
+	// The dashboard logo shows from the first paint (no swap once the settings arrive).
+	$logo = rfaheya_logo_url();
+	if ( $logo ) {
+		$html = str_replace( '<head>', '<head><script>window.__rfLogo=' . wp_json_encode( $logo, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . '</script><link rel="preload" as="image" href="' . esc_url( $logo ) . '">', $html );
 	}
 	if ( $data ) {
 		$html = str_replace( '<head>', '<head><script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>', $html );
@@ -1924,7 +1978,11 @@ add_action(
 		if ( ! rfaheya_is_account() ) {
 			return;
 		}
-		$logo = file_exists( __DIR__ . '/rfaheya/logo.svg' ) ? WPMU_PLUGIN_URL . '/rfaheya/logo.svg' : '';
+		$logo = rfaheya_logo_url();
+		$own  = '' !== $logo;
+		if ( ! $own ) {
+			$logo = file_exists( __DIR__ . '/rfaheya/logo.svg' ) ? WPMU_PLUGIN_URL . '/rfaheya/logo.svg' : '';
+		}
 		$home = home_url( '/' );
 		$link = function ( $path, $label ) use ( $home ) {
 			echo '<a href="' . esc_url( $home . ltrim( $path, '/' ) ) . '">' . esc_html( $label ) . '</a>';
@@ -1958,7 +2016,7 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 .rf-announce b { color: var(--amber); font-weight: 500; }
 .rf-bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 5vw, 78px); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .rf-logo img { display: block; height: 38px; width: auto; }
-:root.dark .rf-logo img { filter: invert(1) brightness(.95); }
+:root.dark .rf-logo img:not(.rf-own-logo) { filter: invert(1) brightness(.95); }
 .rf-logo span { font-family: "Instrument Serif", serif; font-size: 28px; letter-spacing: .04em; color: var(--ink); }
 .rf-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 26px; }
 .rf-nav a { color: var(--ink); text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 2px; transition: background-size .5s var(--ease); }
@@ -2088,7 +2146,7 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 <header class="rf-bar">
 	<a class="rf-logo" href="<?php echo esc_url( $home ); ?>">
 		<?php if ( $logo ) : ?>
-			<img src="<?php echo esc_url( $logo ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" width="140" height="44">
+			<img src="<?php echo esc_url( $logo ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"<?php echo $own ? ' class="rf-own-logo"' : ' width="140" height="44"'; ?>>
 		<?php else : ?>
 			<span>RFAHEYA</span>
 		<?php endif; ?>

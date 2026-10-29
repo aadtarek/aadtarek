@@ -7,6 +7,7 @@ import { Header } from './components/Header'
 import { Hero } from './components/Hero'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
+import { TabBar } from './components/TabBar'
 import { Home } from './pages/Home'
 import { NotFound } from './pages/NotFound'
 import { AccountProvider } from './store/account'
@@ -86,6 +87,8 @@ export default function App() {
               </Route>
             </Routes>
             </RouteGate>
+            {/* Outside the page tree: it shows with the first paint and stays while pages change. */}
+            <TabBar />
             </RewardsProvider>
           </CartProvider>
         </WishlistProvider>

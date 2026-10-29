@@ -80,9 +80,9 @@ export function Shop() {
   const filtered = applyFilters(all, filters)
   const products = matched && !params.get('sort') ? filtered : sortProducts(filtered, sort)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [columns, setColumns] = useState<1 | 2>(1)
+  const [columns, setColumns] = useState<1 | 2>(2)
   // Products per row from the small breakpoint up (the visitor's choice is remembered).
-  const [perRow, setPerRow] = usePersistentState<2 | 3>('rfaheya.shopColumns', 2, (v) => (v === 2 || v === 3 ? v : undefined))
+  const [perRow, setPerRow] = usePersistentState<2 | 3>('rfaheya.shopColumns', 3, (v) => (v === 2 || v === 3 ? v : undefined))
 
   const prices = all.flatMap((p) => Object.values(priceRange(p)))
   const bounds = {

@@ -20,12 +20,17 @@ export function TabBar() {
   const [hidden, setHidden] = useState(false)
 
   useEffect(() => {
+    // Hides after a deliberate scroll down and comes back on a short scroll up, so it doesn't flicker.
     let last = window.scrollY
+    let travel = 0
     const onScroll = () => {
       const y = window.scrollY
-      if (Math.abs(y - last) < 8) return
-      setHidden(y > last && y > 140)
+      const step = y - last
       last = y
+      travel = Math.sign(step) === Math.sign(travel) ? travel + step : step
+      if (y < 140) setHidden(false)
+      else if (travel > 48) setHidden(true)
+      else if (travel < -24) setHidden(false)
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -65,12 +70,14 @@ export function TabBar() {
     icon?.classList.add('rf-tab-pop')
   }
 
+  // The quiz is a full-screen flow of its own.
+  if (pathname.startsWith('/finder/quiz')) return null
+
   return (
     <nav
       aria-label="Quick navigation"
-      className={`rf-tabbar fixed inset-x-0 bottom-0 z-40 flex items-end justify-center gap-2 px-3 pb-[calc(10px+env(safe-area-inset-bottom))] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] lg:hidden ${
-        hidden ? 'translate-y-[140%]' : 'translate-y-0'
-      }`}
+      data-hidden={hidden || undefined}
+      className="rf-tabbar fixed inset-x-0 bottom-0 z-40 flex items-end justify-center gap-2 px-3 pb-[calc(10px+env(safe-area-inset-bottom))] lg:hidden"
     >
       <div ref={bar} className="rf-glass relative flex h-[62px] min-w-0 flex-1 items-stretch rounded-full p-1">
         {lens && (

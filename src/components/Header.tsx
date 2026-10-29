@@ -56,17 +56,18 @@ export function Header() {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
   }, [menuOpen])
 
-  // On the home page the header sits transparent over the hero until the page scrolls.
+  // At the top the header spans the page (transparent over the home hero); once the page
+  // scrolls it becomes a floating rounded bar in the middle.
   const isHome = location.pathname === '/'
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
-    if (!isHome) return
-    const update = () => setScrolled(window.scrollY > 24)
+    const update = () => setScrolled((was) => (was ? window.scrollY > 12 : window.scrollY > 40))
     update()
     window.addEventListener('scroll', update, { passive: true })
     return () => window.removeEventListener('scroll', update)
-  }, [isHome])
+  }, [])
   const clear = isHome && !scrolled && !searchOpen
+  const floating = scrolled && !menuOpen
 
   /** "Shop" and "Best Sellers" share /shop, so the query string decides which is active. */
   const isActive = (to: string) => {
@@ -81,11 +82,12 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b transition-[background-color,border-color,backdrop-filter] duration-300 ${
-        clear ? 'border-transparent bg-transparent' : 'border-line/70 bg-cream/95 backdrop-blur'
+      data-floating={floating || undefined}
+      className={`rf-header sticky top-0 z-40 border-b transition-[background-color,border-color,backdrop-filter] duration-500 ${
+        floating ? 'pointer-events-none border-transparent bg-transparent' : clear ? 'border-transparent bg-transparent' : 'border-line/70 bg-cream/95 backdrop-blur'
       }`}
     >
-      <div className="container-x flex h-16 items-center gap-4 lg:h-[66px]">
+      <div className="rf-header-bar container-x pointer-events-auto flex h-16 items-center gap-4 lg:h-[66px]">
         <button type="button" aria-label="Open menu" className={`${iconBtn} -ml-2 lg:hidden`} onClick={() => setMenuOpen(true)}>
           <Menu className="size-[22px]" strokeWidth={1.5} />
         </button>

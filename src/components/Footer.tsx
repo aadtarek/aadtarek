@@ -9,7 +9,7 @@ import mastercard from '../assets/payments/mastercard.png'
 import meeza from '../assets/payments/meeza.png'
 import valu from '../assets/payments/valu.png'
 import visa from '../assets/payments/visa.png'
-import { FREE_SHIPPING, SOCIAL_LINKS } from '../config'
+import { FREE_SHIPPING, HOME, SOCIAL_LINKS } from '../config'
 import { usePersistentState } from '../lib/storage'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from './SocialIcons'
 import { GoldenDust } from './Ambient'
@@ -134,7 +134,11 @@ function BrandColumn() {
   return (
     <div className="xl:pr-8 xl:pl-[50px]">
       <Link to="/" aria-label="Rfaheya — home" className="block w-[192px]">
-        <img src={wordmark} alt="Rfaheya" width={1098} height={223} loading="lazy" className="rf-wordmark h-auto w-full" />
+        {HOME.logo ? (
+          <img src={HOME.logo} alt="Rfaheya" loading="lazy" className="rf-own-logo h-auto max-h-24 w-auto max-w-full" />
+        ) : (
+          <img src={wordmark} alt="Rfaheya" width={1098} height={223} loading="lazy" className="rf-wordmark h-auto w-full" />
+        )}
       </Link>
       <p className="mt-[22px] text-[15px] tracking-[0.42em] text-muted uppercase">Speak your scent</p>
       <p className="mt-[24px] max-w-[302px] text-[16px] leading-[1.45] text-ink-soft">

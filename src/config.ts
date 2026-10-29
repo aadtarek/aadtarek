@@ -59,7 +59,9 @@ export const DEFAULT_HOME = {
   },
 }
 
-export const HOME = { announcements: [...DEFAULT_HOME.announcements], hero: { ...DEFAULT_HOME.hero } }
+/** `__rfLogo`: the dashboard logo, put in the page by WordPress so it shows from the first paint. */
+const bootLogo = typeof window !== 'undefined' ? ((window as { __rfLogo?: unknown }).__rfLogo ?? '') : ''
+export const HOME = { announcements: [...DEFAULT_HOME.announcements], hero: { ...DEFAULT_HOME.hero }, logo: typeof bootLogo === 'string' ? bootLogo : '' }
 
 /**
  * "Build your bundle": any `count` bottles of `size` for `price`.
@@ -141,6 +143,7 @@ export function applyStoreSettings(settings: StoreSettings) {
     const lines = (home.announcements ?? []).map((l) => l.trim()).filter(Boolean)
     if (lines.length) HOME.announcements = lines
     merge(HOME.hero, home.hero)
+    if (typeof home.logo === 'string') HOME.logo = home.logo.trim()
   }
   const b = settings.bundle
   if (b) {

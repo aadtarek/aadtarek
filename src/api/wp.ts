@@ -35,6 +35,8 @@ export interface StoreSettings {
   home?: {
     announcements?: string[]
     hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image' | 'srcset', string>>
+    /** Logo chosen in the dashboard (URL), empty for the built-in one */
+    logo?: string
   }
   bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
   shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number }

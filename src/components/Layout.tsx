@@ -6,8 +6,8 @@ import { Footer } from './Footer'
 import { Header } from './Header'
 import { QuickAddModal } from './QuickAddModal'
 import { RewardsPopup } from './RewardsPopup'
-import { TabBar } from './TabBar'
 import { installFx } from '../lib/fx'
+import { readLogoColor } from '../lib/logoColor'
 import { useScrollReveal } from '../lib/useScrollReveal'
 
 export function Layout() {
@@ -18,6 +18,7 @@ export function Layout() {
   const animate = pathname !== firstPath
   useScrollReveal(main, pathname)
   useEffect(installFx, [])
+  useEffect(readLogoColor, [])
   useEffect(() => {
     // The effect must not return scrollTo's value: some browsers return a Promise.
     window.scrollTo(0, 0)
@@ -38,7 +39,6 @@ export function Layout() {
       <CartDrawer />
       <QuickAddModal />
       <RewardsPopup />
-      <TabBar />
     </div>
   )
 }

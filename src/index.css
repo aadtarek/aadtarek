@@ -737,7 +737,7 @@ section[aria-labelledby="best-sellers-title"]
   img {
     filter: brightness(0.94);
   }
-  a[aria-label='Rfaheya — home'] img {
+  a[aria-label='Rfaheya — home'] img:not(.rf-own-logo) {
     filter: invert(1) brightness(0.95);
   }
   /* The About page is art-directed on light photography: it stays light. Sections that are
@@ -1025,9 +1025,28 @@ section[aria-labelledby="best-sellers-title"]
     transform: scale(1);
   }
 }
+/* Slides up when the site opens and moves the same way when it hides and comes back. */
+.rf-tabbar {
+  transition:
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    translate 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease;
+  animation: rf-tabbar-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.1s backwards;
+}
+.rf-tabbar[data-hidden] {
+  transform: translateY(calc(100% + 24px)) scale(0.94);
+  opacity: 0;
+}
+@keyframes rf-tabbar-in {
+  from {
+    transform: translateY(calc(100% + 24px)) scale(0.94);
+    opacity: 0;
+  }
+}
 /* The product page's buy bar takes the bar's place while it shows. */
 :root[data-sticky-buy] .rf-tabbar {
   translate: 0 150%;
+  opacity: 0;
 }
 
 /* Colour sections: black (amber accents, light text) and amber (black buttons, dark text).
@@ -1097,8 +1116,19 @@ section[aria-labelledby="best-sellers-title"]
 .rf-on-black .rf-wordmark {
   filter: invert(1) brightness(0.96);
 }
-:root.dark .rf-on-black a[aria-label='Rfaheya — home'] img {
+:root.dark .rf-on-black a[aria-label='Rfaheya — home'] img:not(.rf-own-logo) {
   filter: invert(1) brightness(0.96);
+}
+/* A dark logo from the dashboard shows light on dark backgrounds (dark theme, black footer). */
+:root.dark[data-logo-dark] .rf-own-logo,
+:root[data-logo-dark] .rf-on-black .rf-own-logo {
+  filter: brightness(0) invert(1);
+}
+:root {
+  --rf-logo-color: #a8650c;
+}
+:root.dark {
+  --rf-logo-color: #e49b2d;
 }
 .rf-on-black .rf-pay-logo {
   background: #fdf9f2;
@@ -1355,29 +1385,43 @@ section[aria-labelledby="best-sellers-title"]
   animation: rf-line-in 0.5s var(--rf-ease-soft);
 }
 
-/* Product card (ProductCard.tsx): white card whose details fade into the family colour */
+/* Product card (ProductCard.tsx): tiles on a white card; the text is gold, “Inspired by” takes the logo's colour */
+.rf-pcard {
+  --rf-card-gold: #9a6414;
+  --rf-card-gold-strong: #6f4508;
+}
+:root.dark .rf-pcard {
+  --rf-card-gold: #e2ae5f;
+  --rf-card-gold-strong: #f4cf8f;
+}
 .rf-pcard-in {
   background: #fff;
   box-shadow:
     0 1px 0 rgb(60 40 10 / 0.04),
-    0 26px 50px -36px rgb(60 40 10 / 0.45);
+    0 22px 44px -34px rgb(60 40 10 / 0.5);
   transition:
     transform 0.6s var(--rf-ease-soft),
     box-shadow 0.6s var(--rf-ease-soft);
 }
-.rf-pcard-body {
-  background: linear-gradient(165deg, #fff 30%, var(--tint));
+.rf-pcard-tile {
+  background: #f8f3ea;
 }
-.rf-pcard-ink {
-  color: var(--tint-ink);
+.rf-pcard-price {
+  background: var(--tint);
 }
-.rf-pcard-chip {
-  background: rgb(255 255 255 / 0.9);
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.05);
+.rf-pcard-pill {
+  background: #fff;
+  box-shadow: 0 3px 10px -3px rgb(60 40 10 / 0.25);
 }
-.rf-pcard-sizes {
-  background: rgb(255 255 255 / 0.8);
-  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.04);
+.rf-pcard-gold {
+  color: var(--rf-card-gold);
+}
+.rf-pcard-gold-strong,
+.rf-pcard-name {
+  color: var(--rf-card-gold-strong);
+}
+.rf-pcard-inspired {
+  color: var(--rf-logo-color);
 }
 .rf-pcard-alt {
   opacity: 0;
@@ -1386,25 +1430,23 @@ section[aria-labelledby="best-sellers-title"]
 .rf-pcard-img {
   transition: transform 1.2s var(--rf-ease-soft);
 }
-.rf-pcard-chip img {
+.rf-pcard-note img {
   transition: transform 0.5s var(--rf-spring);
 }
-.rf-pcard-note:hover .rf-pcard-chip img {
+.rf-pcard-note:hover img {
   transform: rotate(-12deg) scale(1.25);
 }
-/* Dark theme: the same colours, deepened */
 :root.dark .rf-pcard-in {
   background: var(--color-card);
 }
-:root.dark .rf-pcard-body {
-  background: linear-gradient(165deg, var(--color-card) 30%, color-mix(in srgb, var(--tint) 18%, var(--color-card)));
+:root.dark .rf-pcard-tile {
+  background: rgb(255 255 255 / 0.05);
 }
-:root.dark .rf-pcard-ink {
-  color: var(--tint);
+:root.dark .rf-pcard-price {
+  background: color-mix(in srgb, var(--tint) 20%, var(--color-card));
 }
-:root.dark .rf-pcard-chip,
-:root.dark .rf-pcard-sizes {
-  background: rgb(255 255 255 / 0.07);
+:root.dark .rf-pcard-pill {
+  background: rgb(255 255 255 / 0.12);
 }
 @media (hover: hover) and (pointer: fine) {
   .rf-pcard:hover .rf-pcard-in {
@@ -1416,6 +1458,19 @@ section[aria-labelledby="best-sellers-title"]
   }
   .rf-pcard:hover .rf-pcard-img {
     transform: scale(1.04);
+  }
+  .rf-pcard-qv {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+    transition:
+      opacity 0.4s var(--rf-ease-soft),
+      transform 0.5s var(--rf-spring),
+      background-color 0.3s;
+  }
+  .rf-pcard:hover .rf-pcard-qv,
+  .rf-pcard-qv:focus-visible {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -1522,4 +1577,45 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
       animation: rf-ic-spin 0.8s var(--rf-ease-soft);
     }
   }
+}
+
+/* Header: full width at the top of the page, a floating rounded bar once the page scrolls. */
+.rf-header-bar {
+  transition:
+    max-width 0.6s var(--rf-ease-soft),
+    margin 0.6s var(--rf-ease-soft),
+    height 0.6s var(--rf-ease-soft),
+    padding 0.6s var(--rf-ease-soft),
+    border-radius 0.6s var(--rf-ease-soft),
+    background-color 0.5s ease,
+    box-shadow 0.6s ease;
+}
+.rf-header[data-floating] .rf-header-bar {
+  max-width: min(1180px, calc(100% - 20px));
+  margin-top: 8px;
+  height: 56px;
+  padding-inline: 14px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-cream) 82%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
+  box-shadow:
+    0 18px 40px -22px rgb(42 36 29 / 0.45),
+    0 0 0 1px color-mix(in srgb, var(--color-line) 80%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.6);
+}
+@media (min-width: 64rem) {
+  .rf-header[data-floating] .rf-header-bar {
+    margin-top: 10px;
+    padding-inline: 26px 16px;
+  }
+}
+.rf-header[data-floating] .rf-header-bar a[aria-label='Rfaheya — home'] {
+  height: 32px;
+  transition: height 0.6s var(--rf-ease-soft);
+}
+:root.dark .rf-header[data-floating] .rf-header-bar {
+  box-shadow:
+    0 18px 40px -22px rgb(0 0 0 / 0.7),
+    0 0 0 1px rgb(255 255 255 / 0.08);
 }
