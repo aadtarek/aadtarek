@@ -1406,9 +1406,6 @@ section[aria-labelledby="best-sellers-title"]
 .rf-pcard-tile {
   background: #f8f3ea;
 }
-.rf-pcard-price {
-  background: var(--tint);
-}
 .rf-pcard-pill {
   background: #fff;
   box-shadow: 0 3px 10px -3px rgb(60 40 10 / 0.25);
@@ -1422,6 +1419,230 @@ section[aria-labelledby="best-sellers-title"]
 }
 .rf-pcard-inspired {
   color: var(--rf-logo-color);
+}
+/* Card layout. Phones (narrow card): a tall photo, then compact rows of the same
+   height rhythm; the price sits beside a round add button. Wider cards: tiles. */
+.rf-pc-photo {
+  aspect-ratio: 4 / 5;
+}
+.rf-pc-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'info info' 'notes notes' 'sizes sizes' 'price add';
+  gap: 5px;
+  margin-top: 5px;
+}
+.rf-pc-info {
+  grid-area: info;
+  border-radius: 13px;
+  padding: 7px 9px 8px;
+}
+.rf-pc-tags {
+  font-size: 8px;
+  letter-spacing: 0.14em;
+}
+.rf-pc-title {
+  margin-top: 2px;
+  font-size: 16.5px;
+  line-height: 1.08;
+}
+.rf-pc-dna {
+  margin-top: 2px;
+  font-size: 9.5px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rf-pc-notes {
+  grid-area: notes;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  border-radius: 13px;
+  padding: 6px 9px;
+  font-size: 9.5px;
+  -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+  mask-image: linear-gradient(to right, #000 85%, transparent);
+}
+.rf-pc-notes li {
+  gap: 3px;
+}
+.rf-pc-notes img {
+  width: 13px;
+  height: 13px;
+}
+.rf-pc-sizes {
+  grid-area: sizes;
+  border-radius: 13px;
+  padding: 3px;
+}
+.rf-pc-pill {
+  border-radius: 10px;
+}
+.rf-pc-size-btn {
+  height: 28px;
+  border-radius: 10px;
+  font-size: 11.5px;
+}
+.rf-pc-price {
+  grid-area: price;
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  padding: 0 2px 0 4px;
+  align-self: center;
+  background: none;
+}
+.rf-pc-amount {
+  font-size: 17px;
+  line-height: 1;
+}
+.rf-pc-unit {
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+}
+.rf-pc-size {
+  display: none;
+}
+.rf-pc-add {
+  grid-area: add;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  gap: 4px;
+  box-shadow: 0 8px 16px -8px rgb(228 155 45 / 0.9);
+}
+.rf-pc-add svg {
+  width: 17px;
+  height: 17px;
+}
+.rf-pc-add-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.rf-pc-try {
+  padding: 6px 6px 2px;
+  font-size: 9.5px;
+}
+.rf-pc-try svg {
+  width: 12px;
+  height: 12px;
+}
+@container (min-width: 17rem) {
+  .rf-pc-photo {
+    aspect-ratio: 5 / 4;
+  }
+  .rf-pc-grid {
+    grid-template-columns: minmax(0, 1fr) 5.4rem;
+    grid-template-areas: 'info price' 'notes notes' 'sizes add';
+    gap: 7px;
+    margin-top: 7px;
+  }
+  .rf-pc-info {
+    border-radius: 18px;
+    padding: 12px 14px;
+  }
+  .rf-pc-tags {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+  .rf-pc-title {
+    margin-top: 4px;
+    font-size: 23px;
+  }
+  .rf-pc-dna {
+    margin-top: 4px;
+    font-size: 12px;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .rf-pc-notes {
+    gap: 14px;
+    border-radius: 18px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    -webkit-mask-image: none;
+    mask-image: none;
+    flex-wrap: wrap;
+  }
+  .rf-pc-notes li {
+    gap: 6px;
+  }
+  .rf-pc-notes img {
+    width: 18px;
+    height: 18px;
+  }
+  .rf-pc-sizes {
+    border-radius: 18px;
+    padding: 4px;
+  }
+  .rf-pc-pill {
+    border-radius: 14px;
+  }
+  .rf-pc-size-btn {
+    height: 40px;
+    border-radius: 14px;
+    font-size: 13px;
+  }
+  .rf-pc-price {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 8px 4px;
+    align-self: stretch;
+    border-radius: 18px;
+    background: var(--tint);
+  }
+  :root.dark .rf-pc-price {
+    background: color-mix(in srgb, var(--tint) 20%, var(--color-card));
+  }
+  .rf-pc-amount {
+    margin-top: 2px;
+    font-size: 25px;
+  }
+  .rf-pc-unit {
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+  }
+  .rf-pc-size {
+    display: inline;
+  }
+  .rf-pc-add {
+    width: auto;
+    height: auto;
+    flex-direction: column;
+    border-radius: 18px;
+    padding: 6px;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+  }
+  .rf-pc-add-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+  .rf-pc-try {
+    padding: 8px 8px 3px;
+    font-size: 11.5px;
+  }
+  .rf-pc-try svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 .rf-pcard-alt {
   opacity: 0;
@@ -1441,9 +1662,6 @@ section[aria-labelledby="best-sellers-title"]
 }
 :root.dark .rf-pcard-tile {
   background: rgb(255 255 255 / 0.05);
-}
-:root.dark .rf-pcard-price {
-  background: color-mix(in srgb, var(--tint) 20%, var(--color-card));
 }
 :root.dark .rf-pcard-pill {
   background: rgb(255 255 255 / 0.12);
