@@ -6,22 +6,14 @@ import { formatPrice } from '../lib/format'
 import { profileChips } from '../lib/profile'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
-import type { FamilySlug, Product } from '../types'
+import type { Product } from '../types'
 import { BottleIcon } from './Icons'
 import { BagIcon, HeartIcon } from './LineIcons'
 import { SlidingPill, useSlidingPill } from './SlidingPill'
 import { addWithFlight } from '../lib/addToCart'
 import { haptic, heartBurst } from '../lib/fx'
+import { tintFor } from '../lib/tints'
 
-/** Each card takes a soft colour from its fragrance family (tint = background, ink = small text). */
-const TINTS: Record<FamilySlug, { tint: string; ink: string }> = {
-  oriental: { tint: '#f3e3c9', ink: '#8a5a1c' },
-  floral: { tint: '#f6dcdc', ink: '#8f2f3a' },
-  fresh: { tint: '#e6ecd2', ink: '#55662a' },
-  sweet: { tint: '#f8e2cf', ink: '#94511f' },
-  fruity: { tint: '#fadcd2', ink: '#a43f2a' },
-}
-const DEFAULT_TINT = { tint: '#f1eadf', ink: '#74695b' }
 
 /**
  * Product card in tiles (bento): the photo, then the family, name and “Inspired by”,
@@ -41,7 +33,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   const [pillRef, pillBox] = useSlidingPill<HTMLDivElement>(variationId)
   const [main, alt] = product.images
   const notes = product.notes.slice(0, 3)
-  const { tint, ink } = (product.families[0] && TINTS[product.families[0]]) || DEFAULT_TINT
+  const { tint, ink } = tintFor(product)
   const sizeLabel = (size: string) => size.replace(/\s*ML$/i, '')
 
   return (

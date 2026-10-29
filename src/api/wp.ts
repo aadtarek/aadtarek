@@ -38,6 +38,7 @@ export interface StoreSettings {
     /** Logo chosen in the dashboard (URL), empty for the built-in one */
     logo?: string
   }
+  heroSlider?: { enabled?: boolean; interval?: number; slides?: { productId?: number; image?: string; srcset?: string; text?: string }[] }
   bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
   shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number }
   loyalty?: Partial<{ enabled: boolean; earn: number; value: number; min: number; welcome: boolean; welcomePercent: number }>

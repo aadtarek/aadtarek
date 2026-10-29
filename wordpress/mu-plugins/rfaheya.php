@@ -41,6 +41,19 @@ function rfaheya_fields() {
 			'hero_image'     => array( 'Hero — image', '', 'image' ),
 			'logo'           => array( 'Logo (header, footer and My Account) — PNG or SVG; empty uses the built-in logo', '', 'image' ),
 		),
+		'slider'  => array(
+			'enabled'         => array( 'Show the hero slider on the home page (otherwise the single hero above)', 'yes', 'yesno' ),
+			'interval'        => array( 'Seconds per slide', '6', 'text' ),
+			'slide_1_product' => array( 'Slide 1 — fragrance (empty: best seller no. 1)', '', 'product' ),
+			'slide_1_image'   => array( 'Slide 1 — image in the circle (empty: the product photo)', '', 'image' ),
+			'slide_1_text'    => array( 'Slide 1 — short line (empty: the product’s short description)', '', 'text' ),
+			'slide_2_product' => array( 'Slide 2 — fragrance (empty: best seller no. 2)', '', 'product' ),
+			'slide_2_image'   => array( 'Slide 2 — image in the circle', '', 'image' ),
+			'slide_2_text'    => array( 'Slide 2 — short line', '', 'text' ),
+			'slide_3_product' => array( 'Slide 3 — fragrance (empty: best seller no. 3)', '', 'product' ),
+			'slide_3_image'   => array( 'Slide 3 — image in the circle', '', 'image' ),
+			'slide_3_text'    => array( 'Slide 3 — short line', '', 'text' ),
+		),
 		'login'   => array(
 			'google_client_id'     => array( 'Google — Client ID', '', 'text' ),
 			'google_client_secret' => array( 'Google — Client secret', '', 'secret' ),
@@ -84,6 +97,7 @@ function rfaheya_group_title( $group ) {
 		'social'  => 'Social links',
 		'home'    => 'Home page (empty fields keep the storefront’s built-in text)',
 		'bundle'  => 'Bundle (home page “Build your trio”; the discount is applied in the cart)',
+		'slider'  => 'Home hero slider (three fragrances, each on its fragrance family’s colour)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
 		'shipping' => 'Free shipping & spend-more offer (the bar on the product page, cart and checkout; applied in the WooCommerce cart and shipping rates)',
 		'gift'     => 'Gift boxes (customers fill a box with any fragrances; a hidden “Gift box” product carries the packaging price)',
@@ -127,6 +141,7 @@ add_action(
 									$value = str_replace( "\r\n", "\n", sanitize_textarea_field( $value ) );
 									break;
 								case 'image':
+								case 'product':
 									$value = $value ? (string) absint( $value ) : '';
 									break;
 								case 'yesno':
@@ -219,6 +234,13 @@ function rfaheya_settings_page() {
 									<select id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $input ); ?>">
 										<option value="yes" <?php selected( $value, 'yes' ); ?>>Yes</option>
 										<option value="no" <?php selected( $value, 'no' ); ?>>No</option>
+									</select>
+								<?php elseif ( 'product' === $field[2] ) : ?>
+									<select id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $input ); ?>">
+										<option value="">— Best seller —</option>
+										<?php foreach ( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) as $rfaheya_p ) : ?>
+											<option value="<?php echo esc_attr( $rfaheya_p->ID ); ?>" <?php selected( (int) $value, $rfaheya_p->ID ); ?>><?php echo esc_html( get_the_title( $rfaheya_p ) ); ?></option>
+										<?php endforeach; ?>
 									</select>
 								<?php elseif ( 'image' === $field[2] ) : ?>
 									<input id="<?php echo esc_attr( $id ); ?>" type="hidden" name="<?php echo esc_attr( $input ); ?>" value="<?php echo esc_attr( $value ); ?>">
@@ -327,6 +349,26 @@ add_action(
 		echo '</ul></div>';
 	}
 );
+
+// ==================================================================== hero slider
+
+function rfaheya_hero_slider_data( $s ) {
+	$slides = array();
+	for ( $i = 1; $i <= 3; $i++ ) {
+		$image    = (int) $s[ "slide_{$i}_image" ];
+		$slides[] = array(
+			'productId' => (int) $s[ "slide_{$i}_product" ],
+			'image'     => $image ? (string) wp_get_attachment_image_url( $image, 'large' ) : '',
+			'srcset'    => $image ? (string) wp_get_attachment_image_srcset( $image, 'large' ) : '',
+			'text'      => (string) $s[ "slide_{$i}_text" ],
+		);
+	}
+	return array(
+		'enabled'  => 'no' !== $s['enabled'],
+		'interval' => max( 2, (float) $s['interval'] ),
+		'slides'   => $slides,
+	);
+}
 
 // ==================================================================== logo
 
@@ -1279,6 +1321,7 @@ function rfaheya_settings_data() {
 				'price'   => (float) $o['bundle']['price'],
 			),
 			'gift'         => rfaheya_gift_box_data(),
+			'heroSlider'   => rfaheya_hero_slider_data( $o['slider'] ),
 			'loyalty'      => rfaheya_loyalty(),
 			'shipping'     => array(
 				'freeShipping' => 'no' !== $o['shipping']['free_enabled'],
@@ -1468,7 +1511,13 @@ function rfaheya_storefront_shell() {
 	}
 	// Start the LCP image before the storefront module has parsed the catalogue.
 	$path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH );
-	if ( '/' === $path ) {
+	$slider = isset( $data['settings']['heroSlider'] ) ? $data['settings']['heroSlider'] : rfaheya_hero_slider_data( rfaheya_options()['slider'] );
+	if ( '/' === $path && ! empty( $slider['enabled'] ) ) {
+		// The slider's first picture (a chosen one; otherwise it comes with the product data).
+		if ( ! empty( $slider['slides'][0]['image'] ) ) {
+			$html = str_replace( '</head>', '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $slider['slides'][0]['image'] ) . '"></head>', $html );
+		}
+	} elseif ( '/' === $path ) {
 		$hero = isset( $data['settings']['home']['hero']['image'] ) ? $data['settings']['home']['hero']['image'] : '';
 		$srcset = isset( $data['settings']['home']['hero']['srcset'] ) ? $data['settings']['home']['hero']['srcset'] : '';
 		$hero = $hero ? $hero : '/assets/hero-XWCSYKce.webp';

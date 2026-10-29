@@ -67,6 +67,17 @@ export const HOME = { announcements: [...DEFAULT_HOME.announcements], hero: { ..
  * "Build your bundle": any `count` bottles of `size` for `price`.
  * With WordPress: Settings → Rfaheya Store → Bundle (WooCommerce applies the same discount in the cart).
  */
+/**
+ * Home hero slider: up to three fragrances, each on its family's colour.
+ * With WordPress: Settings → Rfaheya Store → Hero slider (empty slides use the best sellers).
+ */
+export const HERO_SLIDER = {
+  enabled: true,
+  /** Seconds per slide */
+  interval: 6,
+  slides: [] as { productId: number; image: string; srcset: string; text: string }[],
+}
+
 export const BUNDLE = {
   enabled: true,
   title: 'Build your trio.',
@@ -173,6 +184,13 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (Number(l.min) >= 1) LOYALTY.min = Number(l.min)
     if (typeof l.welcome === 'boolean') LOYALTY.welcome = l.welcome
     if (Number(l.welcomePercent) >= 0) LOYALTY.welcomePercent = Number(l.welcomePercent)
+  }
+  const hs = settings.heroSlider
+  if (hs) {
+    if (typeof hs.enabled === 'boolean') HERO_SLIDER.enabled = hs.enabled
+    if (Number(hs.interval) >= 2) HERO_SLIDER.interval = Number(hs.interval)
+    if (Array.isArray(hs.slides))
+      HERO_SLIDER.slides = hs.slides.map((x) => ({ productId: Number(x.productId) || 0, image: x.image ?? '', srcset: x.srcset ?? '', text: x.text ?? '' }))
   }
   const f = settings.shipping
   if (f) {
