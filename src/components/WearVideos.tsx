@@ -10,7 +10,6 @@ import type { WearVideo } from '../types'
 import { Carousel } from './Carousel'
 import { BottleIcon } from './Icons'
 import { Overlay } from './Overlay'
-import { GoldenDust } from './Ambient'
 
 /** Plays muted while on screen (cards), paused otherwise. */
 function useAutoplay(ref: React.RefObject<HTMLVideoElement | null>) {
@@ -37,7 +36,7 @@ export function WearVideoCard({ video, index, onOpen }: { video: WearVideo; inde
     <button
       type="button"
       onClick={onOpen}
-      className="group relative block aspect-[9/16] w-full overflow-hidden rounded-[6px] bg-ink text-left ring-1 ring-white/10"
+      className="group relative block aspect-[9/16] w-full overflow-hidden rounded-[6px] bg-ink text-left ring-1 ring-line"
     >
       <video
         ref={ref}
@@ -82,10 +81,9 @@ export function WearVideosSection({ productId, title = 'Worn by you.' }: { produ
   const [open, setOpen] = useState<number | null>(null)
   if (videos.length === 0) return null
   return (
-    <section aria-labelledby="wear-title" className="relative isolate overflow-hidden bg-[#100e0b] py-12 text-cream lg:py-16">
-      <GoldenDust density={0.8} className="-z-10" />
+    <section aria-labelledby="wear-title" className="relative overflow-hidden bg-cream py-12 lg:py-16">
       <div className="container-x">
-        <p className="text-[12px] tracking-[0.3em] text-cream/65 uppercase sm:text-[14px]">Rfaheya wear reports</p>
+        <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Rfaheya wear reports</p>
         <h2 id="wear-title" className="mt-2 font-serif text-[36px] leading-[1.05] sm:text-[48px]">
           {title}
         </h2>
