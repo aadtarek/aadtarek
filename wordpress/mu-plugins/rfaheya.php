@@ -1368,12 +1368,23 @@ function rfaheya_bootstrap() {
 	if ( get_transient( 'rfaheya_bootstrap_failed' ) ) {
 		return array( 'products' => array() );
 	}
-	// Every product, 100 per page (a store with more than 100 used to show only the first 100).
+	// Every product, however many: 100 per page until the last page.
 	$products = array();
-	for ( $page = 1; $page <= 30; $page++ ) {
-		$batch    = rfaheya_store_data( '/wc/store/v1/products', array( 'per_page' => 100, 'page' => $page, 'orderby' => 'popularity', 'order' => 'desc' ) );
-		$products = array_merge( $products, $batch );
-		if ( count( $batch ) < 100 ) {
+	$seen     = array();
+	for ( $page = 1; ; $page++ ) {
+		$batch = rfaheya_store_data( '/wc/store/v1/products', array( 'per_page' => 100, 'page' => $page, 'orderby' => 'popularity', 'order' => 'desc' ) );
+		$new   = array_filter(
+			$batch,
+			function ( $p ) use ( $seen ) {
+				return ! isset( $seen[ (int) $p['id'] ] );
+			}
+		);
+		foreach ( $new as $p ) {
+			$seen[ (int) $p['id'] ] = true;
+		}
+		$products = array_merge( $products, array_values( $new ) );
+		// The last page has fewer than 100 (a page that repeats earlier ones also ends it).
+		if ( count( $batch ) < 100 || count( $new ) < count( $batch ) ) {
 			break;
 		}
 	}

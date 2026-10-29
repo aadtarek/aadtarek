@@ -256,12 +256,17 @@ export function buildCatalog(
 /** Products in both orders and all their variations, requested at the same time. */
 export async function fetchWooRaw(): Promise<{ byPopularity: RawProduct[]; dateOrder: number[]; variations: RawProduct[] }> {
   const variationPage = (page: number) => storeApi<RawProduct[]>(`products?type=variation&per_page=100&page=${page}`).catch(() => [] as RawProduct[])
-  // Products come 100 per page: the first pages load together, more only for stores with over 100 products.
+  // Products come 100 per page: page after page until the last one, however many there are.
   const all = async (path: string, first: RawProduct[]) => {
     const list = [...first]
-    for (let page = 2, last = first; last.length === 100 && page <= 30; page++) {
+    const seen = new Set(first.map((p) => p.id))
+    for (let page = 2, last = first; last.length === 100; page++) {
       last = await storeApi<RawProduct[]>(`${path}&page=${page}`)
-      list.push(...last)
+      const fresh = last.filter((p) => !seen.has(p.id))
+      fresh.forEach((p) => seen.add(p.id))
+      list.push(...fresh)
+      // A page that repeats earlier ones means the end.
+      if (fresh.length < last.length) break
     }
     return list
   }
@@ -270,9 +275,13 @@ export async function fetchWooRaw(): Promise<{ byPopularity: RawProduct[]; dateO
   const [popular1, oldest1, p1, p2, p3] = await Promise.all([storeApi<RawProduct[]>(popular), storeApi<RawProduct[]>(oldest), variationPage(1), variationPage(2), variationPage(3)])
   const [byPopularity, byDate] = await Promise.all([all(popular, popular1), all(oldest, oldest1)])
   const variations = [...p1, ...p2, ...p3]
-  for (let page = 4, last = p3; last.length === 100 && page <= 30; page++) {
+  const seenVariation = new Set(variations.map((v) => v.id))
+  for (let page = 4, last = p3; last.length === 100; page++) {
     last = await variationPage(page)
-    variations.push(...last)
+    const fresh = last.filter((v) => !seenVariation.has(v.id))
+    fresh.forEach((v) => seenVariation.add(v.id))
+    variations.push(...fresh)
+    if (fresh.length < last.length) break
   }
   return { byPopularity, dateOrder: byDate.map((d) => d.id), variations }
 }
