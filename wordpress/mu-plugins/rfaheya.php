@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
 // Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
-const RFAHEYA_DATA_VERSION = 3;
+const RFAHEYA_DATA_VERSION = 4;
 
 // ==================================================================== settings
 
@@ -1414,7 +1414,12 @@ function rfaheya_store_data( $route, $params ) {
 		$request = new WP_REST_Request( 'GET', $route );
 		$request->set_query_params( $params );
 		$response = rest_do_request( $request );
-		return $response->is_error() ? array() : rest_get_server()->response_to_data( $response, false );
+		if ( $response->is_error() ) {
+			return array();
+		}
+		// Plain arrays all the way down: the Store API returns some parts as objects (stdClass).
+		$data = json_decode( (string) wp_json_encode( rest_get_server()->response_to_data( $response, false ) ), true );
+		return is_array( $data ) ? $data : array();
 	} catch ( Throwable $e ) {
 		// Without it the storefront loads the same data with its own requests.
 		error_log( 'Rfaheya: ' . $route . ' failed: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
