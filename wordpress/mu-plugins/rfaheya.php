@@ -1435,24 +1435,44 @@ function rfaheya_bootstrap() {
 	if ( get_transient( 'rfaheya_bootstrap_failed' ) ) {
 		return array( 'products' => array() );
 	}
-	// Every product, however many: 100 per page until the last page.
-	$products = array();
-	$seen     = array();
-	for ( $page = 1; ; $page++ ) {
-		$batch = rfaheya_store_data( '/wc/store/v1/products', array( 'per_page' => 100, 'page' => $page, 'orderby' => 'popularity', 'order' => 'desc' ) );
-		$new   = array_filter(
-			$batch,
-			function ( $p ) use ( $seen ) {
-				return ! isset( $seen[ (int) $p['id'] ] );
-			}
-		);
-		foreach ( $new as $p ) {
-			$seen[ (int) $p['id'] ] = true;
+	// Every published product, best sellers first (ties by newest), fetched by ID 100 at a time:
+	// paging the Store API by popularity can repeat or skip products whose sales are equal.
+	$order = get_posts(
+		array(
+			'post_type'   => 'product',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'fields'      => 'ids',
+			'meta_key'    => 'total_sales', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'orderby'     => array(
+				'meta_value_num' => 'DESC',
+				'ID'             => 'DESC',
+			),
+		)
+	);
+	// Products that never sold may have no total_sales value at all: add them after the others.
+	$all   = get_posts(
+		array(
+			'post_type'   => 'product',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'fields'      => 'ids',
+			'orderby'     => 'ID',
+			'order'       => 'DESC',
+		)
+	);
+	$order = array_values( array_unique( array_merge( array_map( 'intval', $order ), array_map( 'intval', $all ) ) ) );
+	$found = array();
+	foreach ( array_chunk( $order, 100 ) as $chunk ) {
+		foreach ( rfaheya_store_data( '/wc/store/v1/products', array( 'include' => implode( ',', $chunk ), 'per_page' => 100 ) ) as $p ) {
+			$found[ (int) $p['id'] ] = $p;
 		}
-		$products = array_merge( $products, array_values( $new ) );
-		// The last page has fewer than 100 (a page that repeats earlier ones also ends it).
-		if ( count( $batch ) < 100 || count( $new ) < count( $batch ) ) {
-			break;
+	}
+	// The Store API leaves out what the shop hides (catalog visibility, hidden out-of-stock…).
+	$products = array();
+	foreach ( $order as $id ) {
+		if ( isset( $found[ $id ] ) ) {
+			$products[] = $found[ $id ];
 		}
 	}
 	$ids        = array();
@@ -1508,6 +1528,30 @@ function rfaheya_bootstrap() {
 }
 
 /**
+ * The shop data as fast as possible: the fresh copy; otherwise the last good one (a fresh one
+ * is then built in the background); built right away only when there has never been one.
+ * Returns array( data or null, stale ).
+ */
+function rfaheya_bootstrap_ready() {
+	$data = get_transient( 'rfaheya_bootstrap' );
+	if ( is_array( $data ) && ! empty( $data['products'] ) ) {
+		return array( $data, false );
+	}
+	$last = get_option( 'rfaheya_bootstrap_last' );
+	if ( is_array( $last ) && ! empty( $last['products'] ) ) {
+		if ( ! wp_next_scheduled( 'rfaheya_warm_bootstrap' ) ) {
+			wp_schedule_single_event( time(), 'rfaheya_warm_bootstrap' );
+		}
+		return array( $last, true );
+	}
+	if ( get_transient( 'rfaheya_bootstrap_building' ) ) {
+		return array( null, false );
+	}
+	$built = rfaheya_bootstrap();
+	return array( ! empty( $built['products'] ) ? $built : null, false );
+}
+
+/**
  * Storefront page (every storefront URL is routed here by .htaccess):
  * index.html as is, plus the shop data when it is already built, so the
  * storefront doesn't have to request it. Nothing else is changed.
@@ -1518,28 +1562,18 @@ function rfaheya_storefront_shell() {
 		return;
 	}
 	$html = (string) file_get_contents( $file );
-	$data  = get_transient( 'rfaheya_bootstrap' );
-	$data  = is_array( $data ) && ! empty( $data['products'] ) ? $data : null;
-	$stale = false;
-	if ( ! $data ) {
-		// No fresh copy (it expired, or a product just changed): the last good one, so the shop
-		// shows at once; a fresh one is built after this page has been sent.
-		$last = get_option( 'rfaheya_bootstrap_last' );
-		if ( is_array( $last ) && ! empty( $last['products'] ) ) {
-			$data  = $last;
-			$stale = true;
-		} elseif ( ! get_transient( 'rfaheya_bootstrap_building' ) ) {
-			// The very first visit: build it now, once.
-			$built = rfaheya_bootstrap();
-			$data  = ! empty( $built['products'] ) ? $built : null;
-		}
-	}
+	// The fresh copy, or the last good one so the shop shows at once (a fresh one follows).
+	list( $data, $stale ) = rfaheya_bootstrap_ready();
 	// A new upload: pages cached by LiteSpeed still point at the old files.
 	$build = (string) filemtime( $file );
 	$fresh = get_option( 'rfaheya_index_build' ) !== $build;
 	if ( $fresh ) {
 		update_option( 'rfaheya_index_build', $build, false );
 		rfaheya_purge_page_cache();
+	}
+	// The site icon set in WordPress (Appearance → Customize → Site Identity → Site Icon).
+	if ( has_site_icon() ) {
+		$html = str_replace( '</head>', '<link rel="icon" href="' . esc_url( get_site_icon_url( 32 ) ) . '" sizes="32x32"><link rel="icon" href="' . esc_url( get_site_icon_url( 192 ) ) . '" sizes="192x192"><link rel="apple-touch-icon" href="' . esc_url( get_site_icon_url( 180 ) ) . '"></head>', $html );
 	}
 	// The dashboard logo shows from the first paint (no swap once the settings arrive).
 	$logo = rfaheya_logo_url();
@@ -1723,7 +1757,9 @@ add_action(
 				'methods'             => 'GET',
 				'permission_callback' => $public,
 				'callback'            => function () {
-					$response = rest_ensure_response( rfaheya_bootstrap() );
+					// The storefront asks for this when the page came without the shop data.
+					list( $data ) = rfaheya_bootstrap_ready();
+					$response     = rest_ensure_response( $data ? $data : array( 'products' => array() ) );
 					$response->header( 'Cache-Control', 'no-cache' );
 					return $response;
 				},
@@ -2183,7 +2219,6 @@ add_action(
 <?php if ( ! current_theme_supports( 'title-tag' ) ) : ?>
 <title><?php echo esc_html( wp_get_document_title() ); ?></title>
 <?php endif; ?>
-<link rel="icon" type="image/svg+xml" href="<?php echo esc_url( $home . 'favicon.svg' ); ?>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@0;1&display=swap">

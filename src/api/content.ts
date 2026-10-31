@@ -209,10 +209,12 @@ declare global {
 }
 
 /**
- * The shop data WordPress put in the page (rfaheya.php), when it had it ready.
- * Otherwise the storefront loads it with separate requests in parallel, and the
- * server builds its copy in the background for the next pages.
+ * The shop data WordPress put in the page (rfaheya.php). When the page came without it,
+ * the server's ready copy in one request; null (an older plugin, or none built yet) makes
+ * the storefront load it with separate requests.
  */
 export async function fetchBootstrap(): Promise<Bootstrap | null> {
-  return window.__rfBoot ?? null
+  if (window.__rfBoot) return window.__rfBoot
+  const boot = await wpGet<Bootstrap>('rfaheya/v1/bootstrap')
+  return boot?.products?.length ? boot : null
 }

@@ -260,13 +260,13 @@ export async function fetchWooRaw(): Promise<{ byPopularity: RawProduct[]; dateO
   const all = async (path: string, first: RawProduct[]) => {
     const list = [...first]
     const seen = new Set(first.map((p) => p.id))
-    for (let page = 2, last = first; last.length === 100; page++) {
+    // Pages can repeat products whose sort values are equal, so a repeat doesn't end the list;
+    // only a short page does (capped, in case a server ignores the page number).
+    for (let page = 2, last = first; last.length === 100 && page <= 50; page++) {
       last = await storeApi<RawProduct[]>(`${path}&page=${page}`)
       const fresh = last.filter((p) => !seen.has(p.id))
       fresh.forEach((p) => seen.add(p.id))
       list.push(...fresh)
-      // A page that repeats earlier ones means the end.
-      if (fresh.length < last.length) break
     }
     return list
   }
@@ -276,12 +276,11 @@ export async function fetchWooRaw(): Promise<{ byPopularity: RawProduct[]; dateO
   const [byPopularity, byDate] = await Promise.all([all(popular, popular1), all(oldest, oldest1)])
   const variations = [...p1, ...p2, ...p3]
   const seenVariation = new Set(variations.map((v) => v.id))
-  for (let page = 4, last = p3; last.length === 100; page++) {
+  for (let page = 4, last = p3; last.length === 100 && page <= 200; page++) {
     last = await variationPage(page)
     const fresh = last.filter((v) => !seenVariation.has(v.id))
     fresh.forEach((v) => seenVariation.add(v.id))
     variations.push(...fresh)
-    if (fresh.length < last.length) break
   }
   return { byPopularity, dateOrder: byDate.map((d) => d.id), variations }
 }
