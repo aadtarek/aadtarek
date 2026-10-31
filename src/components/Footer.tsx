@@ -63,7 +63,17 @@ const payments = [
   { src: valu, alt: 'valU', h: 'h-[30px]', w: 180, hh: 90 },
 ]
 
-export function Footer({ showCta = true }: { showCta?: boolean }) {
+export function Footer({ showCta = true, compact = false }: { showCta?: boolean; compact?: boolean }) {
+  if (compact)
+    return (
+      <footer className="bg-footer">
+        <div className="rf-on-black">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[45px]">
+            <BottomBar />
+          </div>
+        </div>
+      </footer>
+    )
   return (
     <>
       {showCta && <CtaBanner />}

@@ -43,6 +43,8 @@ interface RewardsValue {
   redeem: () => Promise<void>
   cancelRedeem: () => Promise<void>
   removeCoupon: (code: string) => Promise<void>
+  /** A promo code the customer typed (a WooCommerce coupon); throws with the reason when it can't be used. */
+  applyPromo: (code: string) => Promise<void>
   /** After checkout: the used discounts are spent. */
   orderPlaced: () => void
   /** WordPress: links a just-placed order to the signed-in customer (for their points). */
@@ -51,6 +53,9 @@ interface RewardsValue {
 
 const RewardsContext = createContext<RewardsValue | null>(null)
 const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
+
+/** The demo store's promo code (10% off), for trying the promo code box without WordPress. */
+const DEMO_PROMO = 'DEMO10'
 
 export function couponLabel(code: string) {
   if (/^welcome-/i.test(code)) return `First order ${LOYALTY.welcomePercent}% off`
@@ -139,6 +144,7 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     return demoCodes.flatMap((code) => {
       let amount = 0
       if (same(code, 'WELCOME-DEMO')) amount = Math.round((merchandise * LOYALTY.welcomePercent) / 100)
+      else if (same(code, DEMO_PROMO)) amount = Math.round(merchandise * 0.1)
       else if (demoRedeem && same(code, demoRedeem.code)) amount = demoRedeem.amount
       else return []
       amount = Math.min(amount, left)
@@ -230,6 +236,18 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     [run, me, dropCoupon, demoRedeem, setDemoPoints, setDemoRedeem],
   )
 
+  const applyPromo = useCallback(
+    async (raw: string) => {
+      const code = raw.trim()
+      if (!code) return
+      if (coupons.some((c) => same(c.code, code))) throw new Error('This code is already applied.')
+      // The demo store (no WordPress) knows one code, for trying it out.
+      if (!isWoo && !same(code, DEMO_PROMO)) throw new Error('This code isn’t valid.')
+      await applyCoupon(code)
+    },
+    [coupons, applyCoupon],
+  )
+
   const removeCoupon = useCallback(
     (code: string) => {
       if (/^points-/i.test(code)) return cancelRedeem()
@@ -280,8 +298,8 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<RewardsValue>(
-    () => ({ me, ready: !isWoo || loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, orderPlaced, claimOrder }),
-    [me, loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, orderPlaced, claimOrder],
+    () => ({ me, ready: !isWoo || loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, applyPromo, orderPlaced, claimOrder }),
+    [me, loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, applyPromo, orderPlaced, claimOrder],
   )
   return <RewardsContext.Provider value={value}>{children}</RewardsContext.Provider>
 }

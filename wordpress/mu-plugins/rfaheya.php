@@ -101,6 +101,8 @@ function rfaheya_fields() {
 			'enabled' => array( 'Charge gift packaging on gift boxes', 'yes', 'yesno' ),
 			'max'     => array( 'Most fragrances in one box', '6', 'text' ),
 			'prices'  => array( 'Packaging price by number of fragrances in the box — one per line, “fragrances = price (EGP)”. A box with more fragrances than the last line pays the last price.', "1 = 60\n2 = 90\n3 = 120\n4 = 150\n5 = 180\n6 = 200", 'textarea' ),
+			'wrap_enabled' => array( 'Gift wrap in the cart (a switch: the order is boxed with a handwritten card)', 'yes', 'yesno' ),
+			'wrap_price'   => array( 'Gift wrap price (EGP)', '50', 'text' ),
 		),
 		'shipping' => array(
 			'free_enabled' => array( 'Free shipping in Cairo & Alexandria (and the bar on the product page, cart and checkout)', 'yes', 'yesno' ),
@@ -321,7 +323,7 @@ function rfaheya_missing_products() {
 		)
 	);
 	foreach ( $ids as $id ) {
-		if ( isset( $shown[ $id ] ) || $id === $gift ) {
+		if ( isset( $shown[ $id ] ) || $id === $gift || 0 === strpos( (string) get_post_field( 'post_name', $id ), 'rfaheya-gift-' ) ) {
 			continue;
 		}
 		$product = wc_get_product( $id );
@@ -3107,7 +3109,53 @@ function rfaheya_gift_box_data() {
 		'prices'     => (object) rfaheya_gift_prices(),
 		'productId'  => isset( $stored['product'] ) ? (int) $stored['product'] : 0,
 		'variations' => (object) ( isset( $stored['variations'] ) ? array_map( 'intval', (array) $stored['variations'] ) : array() ),
+		'wrap'       => rfaheya_gift_wrap_data(),
 	);
+}
+
+/** The gift wrap switch in the cart: on or off, its price, and the hidden product that carries it. */
+function rfaheya_gift_wrap_data() {
+	$o      = rfaheya_options()['gift'];
+	$stored = get_option( 'rfaheya_gift_wrap', array() );
+	return array(
+		'enabled'   => 'no' !== $o['wrap_enabled'] && ! empty( $stored['product'] ),
+		'price'     => max( 0, (float) $o['wrap_price'] ),
+		'productId' => isset( $stored['product'] ) ? (int) $stored['product'] : 0,
+	);
+}
+
+/** Keeps the hidden "Gift wrap" product (simple, no shipping) at the price set in the dashboard. */
+function rfaheya_gift_wrap_sync() {
+	if ( ! class_exists( 'WC_Product_Simple' ) || get_transient( 'rfaheya_gift_wrap_lock' ) ) {
+		return;
+	}
+	set_transient( 'rfaheya_gift_wrap_lock', 1, MINUTE_IN_SECONDS );
+	$price   = max( 0, (float) rfaheya_options()['gift']['wrap_price'] );
+	$stored  = get_option( 'rfaheya_gift_wrap', array() );
+	$product = ! empty( $stored['product'] ) ? wc_get_product( (int) $stored['product'] ) : null;
+	if ( ! $product || 'trash' === $product->get_status() ) {
+		// One already there (made earlier)? Use it rather than making another.
+		$found   = get_posts( array( 'post_type' => 'product', 'name' => 'rfaheya-gift-wrap', 'post_status' => 'any', 'numberposts' => 1, 'fields' => 'ids' ) );
+		$product = $found ? wc_get_product( (int) $found[0] ) : null;
+	}
+	if ( ! $product || ! $product->is_type( 'simple' ) ) {
+		$product = new WC_Product_Simple();
+		$product->set_name( 'Gift wrap' );
+		$product->set_slug( 'rfaheya-gift-wrap' );
+		$product->set_short_description( 'Gift wrapping with a handwritten card (added by the storefront).' );
+		$product->set_reviews_allowed( false );
+	}
+	$product->set_status( 'publish' );
+	$product->set_catalog_visibility( 'hidden' );
+	$product->set_virtual( true );
+	$product->set_sold_individually( true );
+	$product->set_regular_price( wc_format_decimal( $price ) );
+	$product->set_manage_stock( false );
+	$product->set_stock_status( 'instock' );
+	$id = $product->save();
+	update_option( 'rfaheya_gift_wrap', array( 'product' => $id, 'price' => $price ), false );
+	delete_transient( 'rfaheya_bootstrap' );
+	delete_transient( 'rfaheya_gift_wrap_lock' );
 }
 
 /**
@@ -3204,6 +3252,10 @@ add_action(
 		$dedupe = ! get_option( 'rfaheya_gift_box_deduped' );
 		if ( $dedupe ) {
 			update_option( 'rfaheya_gift_box_deduped', 1, false );
+		}
+		$wrap = get_option( 'rfaheya_gift_wrap', array() );
+		if ( 'no' !== rfaheya_options()['gift']['wrap_enabled'] && ( empty( $wrap['product'] ) || ! isset( $wrap['price'] ) || (float) $wrap['price'] !== max( 0, (float) rfaheya_options()['gift']['wrap_price'] ) || ! wc_get_product( (int) $wrap['product'] ) || 'publish' !== get_post_status( (int) $wrap['product'] ) ) ) {
+			rfaheya_gift_wrap_sync();
 		}
 		if ( $dedupe || ! $product || 'publish' !== $product->get_status() || ( isset( $stored['signature'] ) ? $stored['signature'] : '' ) !== $current ) {
 			rfaheya_gift_box_sync();

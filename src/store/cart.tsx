@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { findByVariationId, findProductById, useCatalogVersion } from '../api/catalog'
 import { isWoo, money, storeApi } from '../api/wp'
-import { bundleDiscount, spendDiscount } from '../config'
+import { bundleDiscount, GIFT_WRAP, spendDiscount } from '../config'
 import { usePersistentState } from '../lib/storage'
 import type { CartItem, Product, ProductVariation } from '../types'
 
@@ -65,6 +65,8 @@ interface CartContextValue {
   quickAdd: Product | null
   openQuickAdd: (product: Product) => void
   closeQuickAdd: () => void
+  /** Gift wrap switch: whether it's offered, its price and whether it's on. */
+  giftWrap: { available: boolean; price: number; on: boolean; toggle: () => void }
   /** WooCommerce only: the raw server cart, for checkout totals/shipping. */
   woo?: { cart: WooCart | null; apply: (cart: WooCart) => void; refresh: () => Promise<void> }
 }
@@ -76,6 +78,8 @@ interface Backend {
   remove: (key: string) => Promise<void>
   clear: () => Promise<void>
   busy: boolean
+  wrapOn: boolean
+  setWrap: (on: boolean) => Promise<void>
   /** Server-calculated discounts, when the backend has them */
   discount?: number
   offerDiscount?: number
@@ -117,9 +121,13 @@ function useLocalCart(): Backend {
     [items, catalog],
   )
 
+  const [wrapOn, setWrapOn] = usePersistentState('rfaheya.giftWrap', false)
+
   return {
     lines,
     busy: false,
+    wrapOn: wrapOn && lines.length > 0,
+    setWrap: async (on) => setWrapOn(on),
     add: async (productId, variationId, quantity, giftMessage) => {
       // Gift lines are kept separate so each box keeps its own message.
       const key = giftMessage ? `${productId}:${variationId}:gift:${hash(giftMessage)}` : `${productId}:${variationId}`
@@ -134,7 +142,10 @@ function useLocalCart(): Backend {
         quantity <= 0 ? prev.filter((i) => i.key !== key) : prev.map((i) => (i.key === key ? { ...i, quantity: Math.min(MAX_QTY, quantity) } : i)),
       ),
     remove: async (key) => setItems((prev) => prev.filter((i) => i.key !== key)),
-    clear: async () => setItems([]),
+    clear: async () => {
+      setItems([])
+      setWrapOn(false)
+    },
   }
 }
 
@@ -204,10 +215,23 @@ function useWooCart(): Backend {
     [cart, gifts, catalog],
   )
 
+  // The gift wrap is a hidden product in the WooCommerce cart (not shown as a line).
+  const wrapItem = GIFT_WRAP.productId ? cart?.items.find((i) => i.id === GIFT_WRAP.productId) : undefined
+  // Nothing left to wrap: take the wrap out too.
+  const onlyWrap = Boolean(wrapItem) && cart?.items.length === 1
+  useEffect(() => {
+    if (onlyWrap && wrapItem) run(() => storeApi<WooCart>('cart/remove-item', { method: 'POST', body: { key: wrapItem.key } })).catch(() => undefined)
+  }, [onlyWrap, wrapItem, run])
+
   return {
     lines,
     busy: pending > 0,
     ...wooDiscounts(cart),
+    wrapOn: Boolean(wrapItem),
+    setWrap: async (on) => {
+      if (on && !wrapItem && GIFT_WRAP.productId) await run(() => storeApi<WooCart>('cart/add-item', { method: 'POST', body: { id: GIFT_WRAP.productId, quantity: 1 } }))
+      if (!on && wrapItem) await run(() => storeApi<WooCart>('cart/remove-item', { method: 'POST', body: { key: wrapItem.key } }))
+    },
     add: async (_productId, variationId, quantity, giftMessage) => {
       const next = await run(() => storeApi<WooCart>('cart/add-item', { method: 'POST', body: { id: variationId, quantity } }))
       if (giftMessage) {
@@ -297,6 +321,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       quickAdd,
       openQuickAdd: setQuickAdd,
       closeQuickAdd: () => setQuickAdd(null),
+      giftWrap: {
+        available: GIFT_WRAP.enabled && (!isWoo || GIFT_WRAP.productId > 0),
+        price: GIFT_WRAP.price,
+        on: backend.wrapOn,
+        toggle: () => report(backend.setWrap(!backend.wrapOn)),
+      },
       woo: backend.woo,
     }
   }, [backend, add, addMany, report, error, isOpen, quickAdd])

@@ -2250,3 +2250,39 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
 :root.dark .rf-tint-island {
   background: color-mix(in srgb, var(--tint) 14%, var(--color-card));
 }
+
+/* Cart drawer: slides in from the right (from the bottom on phones). */
+.rf-drawer {
+  animation: rf-drawer-up 0.55s var(--rf-ease-soft) both;
+}
+.rf-drawer.rf-drawer-leave {
+  animation: rf-drawer-down 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes rf-drawer-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes rf-drawer-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+@media (min-width: 640px) {
+  .rf-drawer {
+    animation-name: rf-drawer-in;
+  }
+  .rf-drawer.rf-drawer-leave {
+    animation-name: rf-drawer-out;
+  }
+  @keyframes rf-drawer-in {
+    from {
+      transform: translateX(calc(100% + 24px));
+    }
+  }
+  @keyframes rf-drawer-out {
+    to {
+      transform: translateX(calc(100% + 24px));
+    }
+  }
+}

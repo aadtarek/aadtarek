@@ -1,12 +1,11 @@
-import { CheckCircle2, X } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { Banknote, Check, CheckCircle2, ChevronDown, CreditCard, Lock, ShieldCheck, Smartphone, Truck, X } from 'lucide-react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PAYMENT_LABELS, placeWooOrder, updateCustomer } from '../api/checkout'
 import { isWoo, money } from '../api/wp'
-import { Field, TextInput, inputClass } from '../components/Field'
+import { Field, TextInput } from '../components/Field'
 import { OfferBar } from '../components/OfferBar'
 import { PointsPanel } from '../components/PointsPanel'
-import { PageHeader } from '../components/PageHeader'
 import { CONTACT, GOVERNORATES, SPEND_OFFER, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
 import { confetti, haptic } from '../lib/fx'
@@ -51,6 +50,15 @@ export function Checkout() {
     notes: '',
   })
 
+  // Phones: the order bar takes the tab bar's place on this page.
+  useEffect(() => {
+    const root = document.documentElement
+    root.dataset.stickyBuy = ''
+    return () => {
+      delete root.dataset.stickyBuy
+    }
+  }, [])
+
   const woo = cart.woo
   const wooCart = woo?.cart ?? null
   const apply = woo?.apply
@@ -78,7 +86,11 @@ export function Checkout() {
   const discount = cart.discount
   const offerDiscount = cart.offerDiscount
   const shipping = wooCart ? money(wooCart.totals.total_shipping ?? '0', minor) : shippingCost(cart.subtotal - discount, address.governorate)
-  const total = wooCart ? money(wooCart.totals.total_price, minor) : Math.max(0, subtotal - discount - offerDiscount - rewards.couponTotal) + shipping
+  const wrapOn = cart.giftWrap.available && cart.giftWrap.on
+  // WooCommerce's total already has the gift wrap (it's a hidden product in the cart).
+  const total = wooCart
+    ? money(wooCart.totals.total_price, minor)
+    : Math.max(0, subtotal - discount - offerDiscount - rewards.couponTotal) + shipping + (wrapOn ? cart.giftWrap.price : 0)
 
   // Signed in: fill in the customer's details (orders are linked to the account by email).
   const { me } = rewards
@@ -204,106 +216,182 @@ export function Checkout() {
   }
 
   const err = (k: keyof ShippingAddress) => ({ 'aria-invalid': Boolean(errors[k]) })
+  const wrapAmount = wrapOn ? cart.giftWrap.price : 0
+  // WooCommerce counts the gift wrap among the items; it shows on its own line here.
+  const itemsTotal = wooCart ? subtotal - wrapAmount : subtotal
+  const grandTotal = total
+  const QUICK_GOVERNORATES = ['Cairo', 'Giza', 'Alexandria']
+  const otherGov = !QUICK_GOVERNORATES.includes(address.governorate)
+  const pickGov = (g: string) => set('governorate')({ target: { value: g } })
+  const placeLabel = submitting ? 'Placing order…' : `Place order · ${formatPrice(grandTotal)}`
+  const blocked = submitting || quoting || noDelivery
 
   return (
-    <div className="pb-16">
-      <PageHeader eyebrow="Almost yours" title="Checkout." />
-      <form onSubmit={submit} noValidate className="container-x grid gap-10 lg:grid-cols-[1fr_24rem] lg:gap-14">
-        <div className="space-y-8">
-          <fieldset>
-            <legend className="mb-4 text-[13px] font-semibold tracking-[0.14em] uppercase">Contact & delivery</legend>
-            <div className="grid gap-4 sm:grid-cols-2">
+    <div className="container-x pb-28 lg:pb-20">
+      <div className="pt-6 lg:pt-8">
+        <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Almost yours</p>
+        <h1 className="mt-2.5 font-serif text-[44px] leading-[0.95] sm:text-[64px]">Checkout</h1>
+        <ol className="mt-5 flex flex-wrap gap-2 text-[12px] font-semibold" aria-label="Steps">
+          <li className="flex items-center gap-2 rounded-full bg-chip py-1.5 pr-4 pl-1.5 text-muted">
+            <span className="grid size-[26px] place-items-center rounded-full bg-olive text-white">
+              <Check className="size-3.5" strokeWidth={2.4} />
+            </span>
+            Bag
+          </li>
+          <li aria-current="step" className="flex items-center gap-2 rounded-full bg-[#14110d] py-1.5 pr-4 pl-1.5 text-white">
+            <span className="grid size-[26px] place-items-center rounded-full bg-white text-[#14110d]">2</span>
+            Details
+          </li>
+          <li className="flex items-center gap-2 rounded-full bg-chip py-1.5 pr-4 pl-1.5 text-muted">
+            <span className="grid size-[26px] place-items-center rounded-full bg-white">3</span>
+            Payment
+          </li>
+        </ol>
+      </div>
+
+      <form id="checkout-form" onSubmit={submit} noValidate className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start lg:gap-7">
+        <div className="space-y-3.5">
+          <Box num={1} title="Contact">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Mobile number" error={errors.phone}>
+                <TextInput type="tel" inputMode="tel" placeholder="01X XXXX XXXX" value={address.phone} onChange={set('phone')} autoComplete="tel" {...err('phone')} />
+              </Field>
+              <Field label={isWoo ? 'Email' : 'Email (optional)'} error={errors.email}>
+                <TextInput type="email" placeholder="For your receipt" value={address.email} onChange={set('email')} autoComplete="email" {...err('email')} />
+              </Field>
+            </div>
+          </Box>
+
+          <Box num={2} title="Delivery">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Field label="First name" error={errors.firstName}>
                 <TextInput value={address.firstName} onChange={set('firstName')} autoComplete="given-name" {...err('firstName')} />
               </Field>
               <Field label="Last name" error={errors.lastName}>
                 <TextInput value={address.lastName} onChange={set('lastName')} autoComplete="family-name" {...err('lastName')} />
               </Field>
-              <Field label="Mobile number" error={errors.phone}>
-                <TextInput type="tel" inputMode="tel" placeholder="01X XXXX XXXX" value={address.phone} onChange={set('phone')} autoComplete="tel" {...err('phone')} />
-              </Field>
-              <Field label={isWoo ? 'Email' : 'Email (optional)'} error={errors.email}>
-                <TextInput type="email" value={address.email} onChange={set('email')} autoComplete="email" {...err('email')} />
-              </Field>
-              <Field label="Governorate" error={errors.governorate}>
-                <select value={address.governorate} onChange={set('governorate')} className={inputClass} {...err('governorate')}>
-                  {GOVERNORATES.map((g) => (
-                    <option key={g}>{g}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="City / Area" error={errors.city}>
+            </div>
+            <div className="mt-4" role="radiogroup" aria-label="Governorate">
+              <p className="mb-2 text-[11.5px] font-semibold text-muted">Governorate</p>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_GOVERNORATES.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    role="radio"
+                    aria-checked={address.governorate === g}
+                    onClick={() => pickGov(g)}
+                    className={`h-10 rounded-full px-[18px] text-[13px] font-medium transition ${address.governorate === g ? 'bg-[#14110d] text-white' : 'bg-sand text-ink-soft hover:bg-chip'}`}
+                  >
+                    {g}
+                  </button>
+                ))}
+                <label className={`relative rounded-full transition ${otherGov ? 'bg-[#14110d] text-white' : 'bg-sand text-ink-soft hover:bg-chip'}`}>
+                  <span className="sr-only">Other governorate</span>
+                  <select
+                    value={otherGov ? address.governorate : ''}
+                    onChange={(e) => e.target.value && pickGov(e.target.value)}
+                    className="h-10 cursor-pointer appearance-none rounded-full bg-transparent pr-9 pl-[18px] text-[13px] font-medium outline-none"
+                  >
+                    <option value="" disabled>
+                      Other…
+                    </option>
+                    {GOVERNORATES.filter((g) => !QUICK_GOVERNORATES.includes(g)).map((g) => (
+                      <option key={g} value={g} className="text-ink">
+                        {g}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2" strokeWidth={1.6} />
+                </label>
+              </div>
+              {errors.governorate && <p className="mt-1 text-[12px] text-red-700">{errors.governorate}</p>}
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <Field label="City / area" error={errors.city}>
                 <TextInput value={address.city} onChange={set('city')} autoComplete="address-level2" {...err('city')} />
               </Field>
-              <Field label="Street address" error={errors.address} className="sm:col-span-2">
-                <TextInput
-                  value={address.address}
-                  onChange={set('address')}
-                  placeholder="Building, street, floor, apartment"
-                  autoComplete="street-address"
-                  {...err('address')}
-                />
-              </Field>
-              <Field label="Order notes (optional)" className="sm:col-span-2">
-                <textarea value={address.notes} onChange={set('notes')} rows={3} className={`${inputClass} h-auto py-3`} />
+              <Field label="Street, building, floor" error={errors.address}>
+                <TextInput value={address.address} onChange={set('address')} placeholder="Building, street, floor, apartment" autoComplete="street-address" {...err('address')} />
               </Field>
             </div>
-          </fieldset>
+            <Field label="Notes for the courier (optional)" className="mt-4">
+              <TextInput value={address.notes} onChange={set('notes')} placeholder="Landmark, best time to call…" />
+            </Field>
+          </Box>
 
-          <fieldset>
-            <legend className="mb-4 text-[13px] font-semibold tracking-[0.14em] uppercase">Payment</legend>
-            <div className="space-y-3" role="radiogroup" aria-label="Payment method">
+          <Box num={3} title="Payment">
+            <div className="space-y-2.5" role="radiogroup" aria-label="Payment method">
               {methods.length === 0 && <p className="text-[14px] text-muted">Loading payment options…</p>}
               {methods.map((m) => {
                 const info = PAYMENT_LABELS[m] ?? { title: m, text: '' }
+                const Icon = m === 'cod' ? Banknote : m === 'instapay' || m === 'bacs' ? Smartphone : CreditCard
                 return (
                   <label
                     key={m}
-                    className={`flex cursor-pointer items-center gap-3 rounded-xl border bg-card p-4 transition ${
-                      payment === m ? 'border-olive ring-1 ring-olive' : 'border-line-strong hover:border-ink'
+                    className={`flex cursor-pointer items-center gap-3.5 rounded-[18px] border-[1.5px] p-4 transition ${
+                      payment === m ? 'border-ink bg-sand' : 'border-line-strong hover:border-ink'
                     }`}
                   >
-                    <input type="radio" name="payment" checked={payment === m} onChange={() => setPayment(m)} className="size-4 accent-olive" />
+                    <input type="radio" name="payment" checked={payment === m} onChange={() => setPayment(m)} className="size-[18px] accent-[#e49b2d]" />
+                    <Icon className="size-[22px] shrink-0 text-gold" strokeWidth={1.4} />
                     <span>
-                      <span className="block text-[14px] font-medium">{info.title}</span>
+                      <span className="block text-[14.5px] font-semibold">{info.title}</span>
                       {info.text && <span className="block text-[12.5px] text-muted">{info.text}</span>}
                     </span>
                   </label>
                 )
               })}
-              {!isWoo && <p className="text-[12.5px] text-muted">Card, Meeza and valU payments will be available soon.</p>}
+              {!isWoo && (
+                <div className="flex items-center gap-3.5 rounded-[18px] border-[1.5px] border-line-strong p-4 opacity-45">
+                  <span className="size-[18px] rounded-full border-[1.5px] border-line-strong" />
+                  <CreditCard className="size-[22px] text-gold" strokeWidth={1.4} />
+                  <span>
+                    <span className="block text-[14.5px] font-semibold">Card · Meeza · valU</span>
+                    <span className="block text-[12.5px] text-muted">Coming soon</span>
+                  </span>
+                </div>
+              )}
             </div>
-          </fieldset>
+          </Box>
         </div>
 
-        <aside className="h-fit rounded-lg bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)] lg:sticky lg:top-24">
-          <h2 className="text-[13px] font-semibold tracking-[0.14em] uppercase">Order summary</h2>
-          <OfferBar amount={subtotal - discount} className="mt-4 rounded-xl bg-chip px-3.5 pt-3 [--rf-offer-ring:var(--color-chip)]" />
-          <ul className="mt-4 divide-y divide-line">
+        <aside className="rf-white order-first rounded-[26px] border border-line p-5 sm:p-6 lg:sticky lg:top-24 lg:order-none lg:rounded-[28px]">
+          <h2 className="flex items-baseline justify-between font-serif text-[26px] leading-none">
+            Order summary
+            <span className="font-sans text-[12.5px] text-muted">
+              {cart.count} {cart.count === 1 ? 'item' : 'items'}
+            </span>
+          </h2>
+          <OfferBar amount={itemsTotal - discount} className="mt-4 rounded-2xl bg-sand px-3.5 pt-3 [--rf-offer-ring:var(--color-sand)]" />
+          <ul className="mt-2">
             {cart.lines.map((l) => (
-              <li key={l.key} className="flex items-center gap-3 py-3">
+              <li key={l.key} className="flex items-center gap-3 py-2.5">
                 <div className="relative shrink-0">
-                  <img src={l.product.images[0].src} alt="" className="size-14 rounded object-cover" />
-                  <span className="absolute -top-2 -right-2 grid size-5 place-items-center rounded-full bg-ink text-[10px] text-cream">{l.quantity}</span>
+                  <img src={l.product.images[0].src} alt="" className="size-14 rounded-[14px] object-cover" />
+                  <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-[#14110d] text-[10.5px] font-semibold text-white">{l.quantity}</span>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-serif text-[15px]">{l.product.name}</p>
+                  <p className="truncate font-serif text-[19px] leading-tight">{l.product.name}</p>
                   <p className="text-[12px] text-muted">
-                    {l.variation.size}
+                    {l.variation.size.replace(/\s*ML$/i, ' ml')}
                     {l.giftMessage && ' · Gift'}
                   </p>
                 </div>
-                <p className="text-[14px] font-medium">{formatPrice(l.lineTotal)}</p>
+                <p className="text-[14px] font-semibold">{formatPrice(l.lineTotal)}</p>
               </li>
             ))}
           </ul>
-          <dl className="mt-3 space-y-2 border-t border-line pt-4 text-[14px]">
+
+          <PromoCode />
+
+          <dl className="mt-3 space-y-1.5 text-[14px]">
             <div className="flex justify-between">
-              <dt>Subtotal</dt>
-              <dd>{formatPrice(subtotal)}</dd>
+              <dt className="text-muted">Subtotal</dt>
+              <dd>{formatPrice(itemsTotal)}</dd>
             </div>
             {discount > 0 && (
-              <div className="flex justify-between text-mocha">
+              <div className="flex justify-between text-gold">
                 <dt>Bundle discount</dt>
                 <dd>−{formatPrice(discount)}</dd>
               </div>
@@ -317,7 +405,7 @@ export function Checkout() {
               </div>
             )}
             {rewards.coupons.map((c) => (
-              <div key={c.code} className="flex items-center justify-between gap-2 text-olive">
+              <div key={c.code} className="flex items-center justify-between gap-2 text-[#55662a]">
                 <dt className="flex items-center gap-1.5">
                   {c.label}
                   <button
@@ -332,33 +420,139 @@ export function Checkout() {
                 <dd>−{formatPrice(c.amount)}</dd>
               </div>
             ))}
+            {wrapAmount > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-muted">Gift wrap</dt>
+                <dd>{formatPrice(wrapAmount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between">
-              <dt>Shipping</dt>
-              <dd>{quoting ? 'Calculating…' : noDelivery ? '—' : shipping === 0 ? 'Free' : formatPrice(shipping)}</dd>
+              <dt className="text-muted">Shipping · {address.governorate}</dt>
+              <dd className={shipping === 0 && !quoting && !noDelivery ? 'text-[#55662a]' : ''}>
+                {quoting ? 'Calculating…' : noDelivery ? '—' : shipping === 0 ? 'Free' : formatPrice(shipping)}
+              </dd>
             </div>
-            <div className="flex justify-between border-t border-line pt-3 text-[17px] font-semibold">
-              <dt>Total</dt>
-              <dd>{formatPrice(total)}</dd>
+            <div className="mt-2 flex items-baseline justify-between border-t border-line pt-3">
+              <dt className="text-[17px] font-semibold">Total</dt>
+              <dd key={grandTotal} className="rf-num-pop text-[21px] font-semibold">
+                {formatPrice(grandTotal)}
+              </dd>
             </div>
           </dl>
-          <PointsPanel total={Math.max(0, total - shipping)} className="mt-4" />
-          {noDelivery && (
-            <p className="mt-4 text-[13px] text-red-800">We don’t deliver to {address.governorate} yet. Please contact us.</p>
-          )}
+          <PointsPanel total={Math.max(0, grandTotal - shipping)} className="mt-4" />
+          {noDelivery && <p className="mt-4 text-[13px] text-red-800">We don’t deliver to {address.governorate} yet. Please contact us.</p>}
           {formError && (
-            <p role="alert" className="mt-4 rounded-md bg-red-50 p-3 text-[13px] text-red-800">
+            <p role="alert" className="mt-4 rounded-2xl bg-red-50 p-3 text-[13px] text-red-800">
               {formError}
             </p>
           )}
           <button
             type="submit"
-            disabled={submitting || quoting || noDelivery}
-            className="rf-magnetic mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={blocked}
+            className="rf-magnetic mt-5 hidden h-14 w-full items-center justify-center gap-2 rounded-full bg-olive text-[13px] font-semibold tracking-[0.1em] text-white uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-60 lg:flex"
           >
-            {submitting ? 'Placing order…' : 'Place order'}
+            <Lock className="size-4" strokeWidth={1.6} />
+            {placeLabel}
           </button>
+          <p className="mt-3 hidden justify-center gap-4 text-[11.5px] text-muted lg:flex">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="size-3.5" strokeWidth={1.6} /> Zero-risk returns
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Truck className="size-3.5" strokeWidth={1.6} /> 2–4 days
+            </span>
+          </p>
         </aside>
       </form>
+
+      {/* Phones: the total and the order button stay at the bottom of the screen. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(0.6rem+env(safe-area-inset-bottom))] lg:hidden">
+        <div className="rf-shop-bar flex items-center gap-3 rounded-full border border-line py-2 pr-2 pl-5">
+          <p className="min-w-0 flex-1">
+            <span className="block text-[11px] text-muted">Total</span>
+            <span className="block text-[17px] font-semibold">{formatPrice(grandTotal)}</span>
+          </p>
+          <button
+            type="submit"
+            form="checkout-form"
+            disabled={blocked}
+            className="flex h-12 shrink-0 items-center gap-1.5 rounded-full bg-olive px-[22px] text-[12px] font-semibold tracking-[0.1em] text-white uppercase disabled:opacity-60"
+          >
+            <Lock className="size-[15px]" strokeWidth={1.6} />
+            {submitting ? 'Placing…' : 'Place order'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** A numbered part of the form, on a white card. */
+function Box({ num, title, children }: { num: number; title: string; children: ReactNode }) {
+  return (
+    <fieldset className="rf-white rounded-[24px] border border-line p-[18px] sm:rounded-[28px] sm:p-6">
+      <legend className="sr-only">{title}</legend>
+      <p aria-hidden className="mb-4 flex items-center gap-2.5 font-serif text-[26px] leading-none">
+        <span className="grid size-7 place-items-center rounded-full bg-chip font-sans text-[12px] font-semibold text-gold">{num}</span>
+        {title}
+      </p>
+      {children}
+    </fieldset>
+  )
+}
+
+/** The promo code box: a WooCommerce coupon, applied to the cart. */
+function PromoCode() {
+  const rewards = useRewards()
+  const [code, setCode] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const apply = async () => {
+    if (!code.trim()) return
+    setBusy(true)
+    setError(null)
+    try {
+      await rewards.applyPromo(code)
+      setCode('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message.replace(/<[^>]+>/g, '') : 'This code can’t be used.')
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="mt-3">
+      <div className="flex gap-2">
+        <label className="min-w-0 flex-1">
+          <span className="sr-only">Promo code</span>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                apply()
+              }
+            }}
+            placeholder="Promo code"
+            autoCapitalize="characters"
+            className="h-11 w-full rounded-full border-[1.5px] border-line bg-sand px-4 text-[14px] uppercase outline-none placeholder:normal-case focus:border-olive"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={apply}
+          disabled={busy || !code.trim()}
+          className="h-11 shrink-0 rounded-full bg-chip px-[18px] text-[12px] font-semibold transition hover:bg-[#14110d] hover:text-white disabled:opacity-50"
+        >
+          {busy ? '…' : 'Apply'}
+        </button>
+      </div>
+      {error && (
+        <p role="alert" className="mt-1.5 px-2 text-[12px] text-red-700">
+          {error}
+        </p>
+      )}
     </div>
   )
 }

@@ -35,7 +35,8 @@ export function Layout() {
           </Suspense>
         </div>
       </main>
-      <Footer showCta={!pathname.startsWith('/finder')} />
+      {/* Checkout: no banner and only the footer's last line, so nothing pulls away from the order. */}
+      <Footer showCta={!pathname.startsWith('/finder') && !pathname.startsWith('/checkout')} compact={pathname.startsWith('/checkout')} />
       <CartDrawer />
       <QuickAddModal />
       <RewardsPopup />

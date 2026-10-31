@@ -114,6 +114,13 @@ export const GIFT_BOX = {
   variations: {} as Record<number, number>,
 }
 
+/** Gift wrap switch in the cart (Settings → Rfaheya Store → Gift boxes); a hidden "Gift wrap" product carries the price. */
+export const GIFT_WRAP = {
+  enabled: true,
+  price: 50,
+  productId: 0,
+}
+
 /** Loyalty points and the welcome discount (Settings → Rfaheya Store → Loyalty points). */
 export const LOYALTY = {
   enabled: true,
@@ -187,6 +194,12 @@ export function applyStoreSettings(settings: StoreSettings) {
     }
     if (Number(g.productId) > 0) GIFT_BOX.productId = Number(g.productId)
     if (g.variations && typeof g.variations === 'object') GIFT_BOX.variations = Object.fromEntries(Object.entries(g.variations).map(([n, id]) => [Number(n), Number(id)]))
+    const w = g.wrap
+    if (w) {
+      if (typeof w.enabled === 'boolean') GIFT_WRAP.enabled = w.enabled
+      if (Number(w.price) >= 0) GIFT_WRAP.price = Number(w.price)
+      if (Number(w.productId) > 0) GIFT_WRAP.productId = Number(w.productId)
+    }
   }
   const l = settings.loyalty
   if (l) {

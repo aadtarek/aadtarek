@@ -3,7 +3,7 @@ import { families } from '../data/families'
 import type { FamilySlug, Product, Review, WearVideo } from '../types'
 import { fetchBootstrap, primeCache, fetchNotes, fetchProductCategories, fetchProductDetails, fetchVideos, type RawCategory } from './content'
 import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, setNoteLibrary, type RawProduct } from './woo'
-import { applyStoreSettings, GIFT_BOX, giftBoxPrice } from '../config'
+import { applyStoreSettings, GIFT_BOX, GIFT_WRAP, giftBoxPrice } from '../config'
 import giftImage from '../assets/finder/landing-cta.webp'
 import { fetchStoreSettings, isWoo, storeApi, stripHtml, type StoreSettings } from './wp'
 import { readStorage, writeStorage } from '../lib/storage'
@@ -158,8 +158,12 @@ function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings,
 }
 
 const GIFT_SLUG = 'rfaheya-gift-box'
-/** The packaging product, and any copy of it WordPress made (rfaheya-gift-box-2, -3…). */
-const isGiftBox = (p: Product) => p.slug === GIFT_SLUG || /^rfaheya-gift-box(-\d+)?$/.test(p.slug) || (GIFT_BOX.productId > 0 && p.id === GIFT_BOX.productId)
+/** The packaging products (gift box, gift wrap), and any copy of them WordPress made (rfaheya-gift-box-2…). */
+const isGiftBox = (p: Product) =>
+  p.slug === GIFT_SLUG ||
+  /^rfaheya-gift-(box|wrap)(-\d+)?$/.test(p.slug) ||
+  (GIFT_BOX.productId > 0 && p.id === GIFT_BOX.productId) ||
+  (GIFT_WRAP.productId > 0 && p.id === GIFT_WRAP.productId)
 
 /** The gift box packaging as a product (one variation per number of fragrances). */
 export function giftBoxProduct(): Product {
