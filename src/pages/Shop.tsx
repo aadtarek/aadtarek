@@ -1,13 +1,11 @@
-import { ChevronDown, Columns2, Columns3, LayoutGrid, Rows3, SlidersHorizontal, X } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { ArrowRight, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getAllProducts, getFamilies, priceRange, sortProducts, type ProductSort } from '../api/catalog'
 import { Overlay } from '../components/Overlay'
-import { usePersistentState } from '../lib/storage'
 import { ProductCard } from '../components/ProductCard'
 import { GENDERS, OCCASIONS, SEASONS } from '../lib/profile'
 import type { FamilySlug, Gender, Occasion, Product, Season } from '../types'
-import { Aura } from '../components/Ambient'
 
 const sorts: { value: ProductSort; label: string }[] = [
   { value: 'best-sellers', label: 'Featured' },
@@ -80,9 +78,14 @@ export function Shop() {
   const filtered = applyFilters(all, filters)
   const products = matched && !params.get('sort') ? filtered : sortProducts(filtered, sort)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [columns, setColumns] = useState<1 | 2>(2)
-  // Products per row from the small breakpoint up (the visitor's choice is remembered).
-  const [perRow, setPerRow] = usePersistentState<2 | 3>('rfaheya.shopColumns', 3, (v) => (v === 2 || v === 3 ? v : undefined))
+  // 24 at a time; any change of filters, search or sort starts again from the first 24.
+  const [shown, setShown] = useState(PAGE)
+  const key = params.toString()
+  const [lastKey, setLastKey] = useState(key)
+  if (key !== lastKey) {
+    setLastKey(key)
+    setShown(PAGE)
+  }
 
   const prices = all.flatMap((p) => Object.values(priceRange(p)))
   const bounds = {
@@ -137,179 +140,199 @@ export function Shop() {
 
   const panel = <FilterPanel filters={filters} all={all} bounds={bounds} toggle={toggle} update={update} clearAll={clearAll} activeCount={active.length} />
   const genderCounts = applyFilters(all, filters, 'gender')
+  const familyCounts = applyFilters(all, filters, 'family')
+  const visible = products.slice(0, shown)
+  const onlyFamily = filters.family.length === 1 ? filters.family[0] : ''
 
   return (
-    <div className="pb-16 lg:pb-24">
-      <div className="lg:container-x lg:grid lg:grid-cols-[236px_minmax(0,1fr)] lg:gap-10 lg:pt-4 xl:gap-12">
-        <aside className="hidden lg:block" aria-label="Filters">
-          <div className="no-scrollbar sticky top-[86px] max-h-[calc(100vh-100px)] overflow-y-auto border-r border-line py-6 pr-7">
-            {panel}
-          </div>
+    <div className="container-x pb-16 lg:pb-24">
+      {/* Title, search and the families as round "stories" */}
+      <header className="mt-3 grid gap-6 lg:mt-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-10 lg:rounded-[36px] lg:bg-chip lg:px-12 lg:py-11">
+        <div>
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">The collection</p>
+          <h1 className="mt-2.5 font-serif text-[44px] leading-[0.95] sm:text-[64px]">{filters.q ? `Results for “${filters.q}”` : 'All fragrances'}</h1>
+          <p className="mt-3 text-[14.5px] text-ink-soft sm:text-[16px]">
+            {all.length} {all.length === 1 ? 'scent' : 'scents'}, each inspired by an icon — made to last.
+          </p>
+          <label className="rf-white mt-5 flex h-12 max-w-[420px] items-center gap-2.5 rounded-full px-[18px] text-muted shadow-[0_0_0_1px_var(--color-line)]">
+            <Search className="size-[18px] shrink-0" strokeWidth={1.5} />
+            <span className="sr-only">Search fragrances</span>
+            <input
+              type="search"
+              value={filters.q}
+              onChange={(e) => update({ q: e.target.value })}
+              placeholder="Search fragrances, notes, brands…"
+              className="min-w-0 flex-1 bg-transparent text-[14px] text-ink outline-none placeholder:text-muted"
+            />
+          </label>
+        </div>
+        <ul className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:gap-4 lg:px-0" aria-label="Fragrance families">
+          <li className="shrink-0">
+            <StoryButton label="All" active={filters.family.length === 0} onClick={() => update({ family: '' })}>
+              <span className="grid size-full place-items-center rounded-full bg-[#14110d] font-serif text-[28px] text-white">{familyCounts.length}</span>
+            </StoryButton>
+          </li>
+          {families
+            .filter((f) => all.some((p) => p.families.includes(f.slug)))
+            .map((f) => (
+              <li key={f.slug} className="shrink-0">
+                <StoryButton label={f.name} active={onlyFamily === f.slug} onClick={() => update({ family: onlyFamily === f.slug ? '' : f.slug })}>
+                  <img src={f.image} alt="" loading="lazy" className="size-full rounded-full object-cover" />
+                </StoryButton>
+              </li>
+            ))}
+        </ul>
+      </header>
+
+      {/* Toolbar: stays at the top while scrolling */}
+      <div className="rf-shop-bar sticky top-[76px] z-20 mt-5 flex flex-wrap items-center gap-2 rounded-[24px] border border-line p-2 lg:top-[84px] lg:flex-nowrap lg:rounded-full">
+        <div role="group" aria-label="Who it's for" className="no-scrollbar flex w-full overflow-x-auto rounded-full bg-chip p-1 lg:w-auto">
+          <SegButton active={filters.gender.length === 0} onClick={() => update({ gender: '' })}>
+            All <em>{genderCounts.length}</em>
+          </SegButton>
+          {(Object.keys(GENDERS) as Gender[]).map((g) => (
+            <SegButton
+              key={g}
+              active={filters.gender.length === 1 && filters.gender[0] === g}
+              onClick={() => update({ gender: filters.gender.length === 1 && filters.gender[0] === g ? '' : g })}
+            >
+              {GENDERS[g].label} <em>{genderCounts.filter((p) => p.profile.gender === g).length}</em>
+            </SegButton>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => setSheetOpen(true)}
+          className="inline-flex h-[42px] shrink-0 items-center gap-2 rounded-full bg-[#14110d] px-4 text-[12.5px] font-semibold text-white lg:hidden"
+        >
+          <SlidersHorizontal className="size-[17px]" strokeWidth={1.5} />
+          Filters
+          {active.length > 0 && <span className="grid size-5 place-items-center rounded-full bg-olive text-[11px]">{active.length}</span>}
+        </button>
+        <ul className="hidden min-w-0 flex-1 flex-wrap items-center gap-2 lg:flex" aria-label="Active filters">
+          {active.map((a) => (
+            <li key={a.label}>
+              <button
+                type="button"
+                onClick={a.remove}
+                aria-label={`Remove ${a.label}`}
+                className="inline-flex h-[34px] items-center gap-1.5 rounded-full bg-[#e6ecd2] px-3 text-[12px] font-semibold text-[#55662a] transition hover:bg-[#dbe3c2]"
+              >
+                {a.label}
+                <X className="size-3.5" strokeWidth={2} />
+              </button>
+            </li>
+          ))}
+          {active.length > 0 && (
+            <li>
+              <button type="button" onClick={clearAll} className="px-1 text-[12px] text-muted underline underline-offset-4 hover:text-ink">
+                Clear all
+              </button>
+            </li>
+          )}
+        </ul>
+        <p className="ml-auto hidden shrink-0 pr-1 text-[12.5px] text-muted xl:block" aria-live="polite">
+          {products.length} {products.length === 1 ? 'product' : 'products'}
+        </p>
+        <label className="relative ml-auto shrink-0 lg:ml-0">
+          <span className="sr-only">Sort by</span>
+          <select
+            value={sort}
+            onChange={(e) => update({ sort: e.target.value === 'best-sellers' ? '' : e.target.value })}
+            className="h-[42px] appearance-none rounded-full bg-chip pr-9 pl-4 text-[12.5px] font-semibold text-ink outline-none"
+          >
+            {sorts.map((o) => (
+              <option key={o.value} value={o.value}>
+                Sort: {o.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2" strokeWidth={1.6} />
+        </label>
+      </div>
+
+      <div className="mt-6 lg:grid lg:grid-cols-[270px_minmax(0,1fr)] lg:items-start lg:gap-6">
+        <aside className="rf-white no-scrollbar sticky top-[160px] hidden max-h-[calc(100vh-180px)] overflow-y-auto rounded-[28px] border border-line p-[22px] lg:block" aria-label="Filters">
+          {panel}
         </aside>
 
         <div className="min-w-0">
-          <header className="relative isolate overflow-hidden px-4 pt-7 sm:px-6 lg:px-0 lg:pt-4">
-            <Aura className="[mask-image:linear-gradient(to_bottom,black,transparent)]" />
-            <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">The collection</p>
-            <h1 className="mt-2 font-serif text-[46px] leading-[0.95] sm:text-[64px]">{filters.q ? `Results for “${filters.q}”` : 'All fragrances'}</h1>
-            <p className="mt-3 max-w-md text-[15px] text-ink-soft">Find the fragrance that speaks to you.</p>
-          </header>
-
-          <div className="px-4 sm:px-6 lg:px-0">
-            <div className="lg:mt-6 lg:flex lg:items-center lg:gap-6">
-            {/* Who it's for */}
-            <ul className="no-scrollbar -mx-4 mt-6 flex shrink-0 gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:mt-0 lg:px-0" aria-label="Who it's for">
-              <li className="shrink-0">
-                <PillButton active={filters.gender.length === 0} onClick={() => update({ gender: '' })}>
-                  All <span className="opacity-60">{genderCounts.length}</span>
-                </PillButton>
-              </li>
-              {(Object.keys(GENDERS) as Gender[]).map((g) => (
-                <li key={g} className="shrink-0">
-                  <PillButton
-                    active={filters.gender.length === 1 && filters.gender[0] === g}
-                    onClick={() =>
-                      update({
-                        gender: filters.gender.length === 1 && filters.gender[0] === g ? '' : g,
-                      })
-                    }
-                  >
-                    {GENDERS[g].label} <span className="opacity-60">{genderCounts.filter((p) => p.profile.gender === g).length}</span>
-                  </PillButton>
-                </li>
-              ))}
-            </ul>
-
-            {/* Toolbar */}
-            <div className="mt-4 flex flex-1 items-center gap-3 lg:mt-0">
+          <h2 className="sr-only">Products</h2>
+          {products.length === 0 ? (
+            <div className="rf-white rounded-[28px] border border-line px-6 py-16 text-center">
+              <p className="font-serif text-[32px]">Nothing matches yet.</p>
+              <p className="mx-auto mt-2 max-w-sm text-ink-soft">Try removing a filter — or explore the full collection.</p>
               <button
                 type="button"
-                onClick={() => setSheetOpen(true)}
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line bg-cream px-4 text-[13px] lg:hidden"
+                onClick={clearAll}
+                className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-semibold tracking-[0.12em] text-white uppercase hover:bg-olive-hover"
               >
-                <SlidersHorizontal className="size-[18px]" strokeWidth={1.4} />
-                Filters
-                {active.length > 0 && <span className="grid size-5 place-items-center rounded-full bg-olive text-[11px] text-on-accent">{active.length}</span>}
+                View all fragrances
               </button>
-
-              <ul className="hidden flex-1 flex-wrap items-center gap-2 lg:flex" aria-label="Active filters">
-                {active.map((a) => (
-                  <li key={a.label}>
-                    <span className="inline-flex h-9 items-center gap-2 rounded-full bg-chip pr-1.5 pl-4 text-[13px]">
-                      {a.label}
-                      <button
-                        type="button"
-                        onClick={a.remove}
-                        aria-label={`Remove ${a.label}`}
-                        className="grid size-6 place-items-center rounded-full hover:bg-line"
-                      >
-                        <X className="size-4" strokeWidth={1.5} />
-                      </button>
-                    </span>
-                  </li>
-                ))}
-                {active.length > 0 && (
+            </div>
+          ) : (
+            <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 lg:gap-[18px]">
+              {visible.map((p, i) => (
+                <Fragment key={p.id}>
+                  {i === 2 && (
+                    <li className="col-span-2 lg:col-span-1">
+                      <TryFirstTile />
+                    </li>
+                  )}
                   <li>
-                    <button type="button" onClick={clearAll} className="ml-1 text-[14px] underline underline-offset-4 hover:text-ink-soft">
-                      Clear all
-                    </button>
-                  </li>
-                )}
-              </ul>
-
-              <label className="ml-auto flex min-w-0 items-center gap-2 text-[14px] text-ink-soft lg:ml-0">
-                <span className="hidden whitespace-nowrap sm:inline lg:hidden xl:inline">Sort by:</span>
-                <span className="relative">
-                  <select
-                    value={sort}
-                    aria-label="Sort by"
-                    onChange={(e) =>
-                      update({
-                        sort: e.target.value === 'best-sellers' ? '' : e.target.value,
-                      })
-                    }
-                    className="h-10 w-[150px] appearance-none rounded-full border border-line bg-cream pr-9 pl-4 text-[13px] text-ink outline-none focus:border-ink sm:w-[170px]"
-                  >
-                    {sorts.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2" strokeWidth={1.5} />
-                </span>
-              </label>
-              <p className="hidden shrink-0 text-[14px] text-ink-soft xl:block" aria-live="polite">
-                {products.length} {products.length === 1 ? 'product' : 'products'}
-              </p>
-              <button
-                type="button"
-                onClick={() => setColumns(columns === 2 ? 1 : 2)}
-                aria-label={columns === 2 ? 'Show one per row' : 'Show two per row'}
-                className="grid size-11 shrink-0 place-items-center rounded-lg sm:hidden"
-              >
-                {columns === 2 ? <Rows3 className="size-5" strokeWidth={1.4} /> : <LayoutGrid className="size-5" strokeWidth={1.4} />}
-              </button>
-              <div role="radiogroup" aria-label="Products per row" className="hidden shrink-0 items-center gap-0.5 rounded-full border border-line bg-cream p-0.5 sm:flex">
-                {([2, 3] as const).map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    role="radio"
-                    aria-checked={perRow === n}
-                    aria-label={`${n} per row`}
-                    title={`${n} per row`}
-                    onClick={() => setPerRow(n)}
-                    className={`grid size-8 place-items-center rounded-full transition ${perRow === n ? 'bg-olive text-on-accent' : 'text-ink-soft hover:text-ink'}`}
-                  >
-                    {n === 2 ? <Columns2 className="size-4" strokeWidth={1.5} /> : <Columns3 className="size-4" strokeWidth={1.5} />}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            </div>
-
-            <h2 className="sr-only">Products</h2>
-            {products.length === 0 ? (
-              <div className="mt-6 rounded-xl bg-card px-6 py-16 text-center shadow-[0_0_0_1px_rgba(60,45,20,0.05)]">
-                <p className="font-serif text-[32px]">Nothing matches yet.</p>
-                <p className="mx-auto mt-2 max-w-sm text-ink-soft">Try removing a filter — or explore the full collection.</p>
-                <button
-                  type="button"
-                  onClick={clearAll}
-                  className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
-                >
-                  View all fragrances
-                </button>
-              </div>
-            ) : (
-              <ul className={`mt-6 grid gap-x-3 gap-y-4 sm:gap-x-5 sm:gap-y-6 ${perRow === 3 ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-2'} ${columns === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                {products.map((p) => (
-                  <li key={p.id}>
                     <ProductCard product={p} />
                   </li>
-                ))}
-              </ul>
-            )}
-
-            <TryFirstBanner />
-          </div>
+                </Fragment>
+              ))}
+              {visible.length < 3 && (
+                <li className="col-span-2 lg:col-span-1">
+                  <TryFirstTile />
+                </li>
+              )}
+            </ul>
+          )}
+          {products.length > 0 && (
+            <div className="mt-10 flex flex-col items-center gap-3">
+              <p className="text-[13px] text-muted">
+                Showing {visible.length} of {products.length} {products.length === 1 ? 'fragrance' : 'fragrances'}
+              </p>
+              <span aria-hidden className="h-[3px] w-[220px] overflow-hidden rounded-full bg-line">
+                <span className="block h-full rounded-full bg-ink transition-[width] duration-500" style={{ width: `${(visible.length / products.length) * 100}%` }} />
+              </span>
+              {visible.length < products.length && (
+                <button
+                  type="button"
+                  onClick={() => setShown((n) => n + PAGE)}
+                  className="rf-white mt-2 inline-flex h-12 items-center gap-2 rounded-full border border-line px-6 text-[12px] font-semibold tracking-[0.12em] uppercase transition hover:border-ink"
+                >
+                  Load more
+                  <ChevronDown className="size-4" strokeWidth={1.6} />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {sheetOpen && (
         <Overlay onClose={() => setSheetOpen(false)} label="Filters">
-          <div className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-[22px] bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)]">
-            <span aria-hidden className="mx-auto mt-3 h-1 w-10 rounded-full bg-line-strong" />
-            <div className="flex-1 overflow-y-auto px-6 pt-4 pb-4">{panel}</div>
-            <div className="border-t border-line px-5 py-4">
+          <div className="absolute inset-x-0 bottom-0 flex max-h-[88vh] flex-col rounded-t-[28px] bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)]">
+            <span aria-hidden className="mx-auto mt-3 h-[5px] w-11 rounded-full bg-line-strong" />
+            <div className="flex-1 overflow-y-auto px-5 pt-3 pb-4">{panel}</div>
+            <div className="flex gap-2.5 px-5 pt-2 pb-5">
+              <button
+                type="button"
+                onClick={clearAll}
+                className="h-[52px] flex-[0.6] rounded-full border border-line-strong text-[12px] font-semibold tracking-[0.12em] uppercase"
+              >
+                Clear
+              </button>
               <button
                 type="button"
                 onClick={() => setSheetOpen(false)}
-                className="h-[52px] w-full rounded-lg bg-olive text-[15px] text-on-accent transition hover:bg-olive-hover"
+                className="h-[52px] flex-1 rounded-full bg-[#14110d] text-[12px] font-semibold tracking-[0.12em] text-white uppercase"
               >
-                Show {products.length} {products.length === 1 ? 'product' : 'products'}
+                Show {products.length} {products.length === 1 ? 'result' : 'results'}
               </button>
             </div>
           </div>
@@ -319,13 +342,33 @@ export function Shop() {
   )
 }
 
-function PillButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+const PAGE = 24
+
+/** A family as a round "story": picture in a ring, its name under it. */
+function StoryButton({ label, active, onClick, children }: { label: string; active: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} aria-pressed={active} className="group flex flex-col items-center gap-2">
+      <span
+        className={`block size-[66px] rounded-full bg-white p-[3px] transition lg:size-[84px] ${
+          active ? 'shadow-[0_0_0_2.5px_var(--color-olive)]' : 'shadow-[0_0_0_1.5px_var(--color-line-strong)] group-hover:shadow-[0_0_0_1.5px_var(--color-ink)]'
+        }`}
+      >
+        {children}
+      </span>
+      <span className={`text-[11.5px] font-semibold lg:text-[12.5px] ${active ? 'text-ink' : 'text-ink-soft'}`}>{label}</span>
+    </button>
+  )
+}
+
+function SegButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`h-9 rounded-full border px-4 text-[13px] whitespace-nowrap transition ${active ? 'border-olive bg-olive text-on-accent' : 'border-line bg-cream hover:border-ink'}`}
+      className={`h-[34px] flex-1 shrink-0 rounded-full px-3.5 text-[12px] font-semibold whitespace-nowrap transition lg:flex-none lg:px-4 [&_em]:ml-1 [&_em]:text-[10.5px] [&_em]:text-gold [&_em]:not-italic ${
+        active ? 'rf-white text-ink shadow-[0_4px_12px_-6px_rgba(60,40,10,0.3)]' : 'text-muted hover:text-ink'
+      }`}
     >
       {children}
     </button>
@@ -354,29 +397,23 @@ function FilterPanel({
   const families = getFamilies().filter((f) => all.some((p) => p.families.includes(f.slug)))
   return (
     <div>
-      <div className="flex items-baseline justify-between border-b border-line pb-4">
-        <p className="font-serif text-[26px] leading-none">Filters</p>
+      <div className="flex items-baseline justify-between">
+        <p className="font-serif text-[28px] leading-none">Filters</p>
         {activeCount > 0 && (
-          <button type="button" onClick={clearAll} className="text-[14px] underline underline-offset-4 hover:text-ink-soft">
-            Clear all
+          <button type="button" onClick={clearAll} className="text-[12px] font-semibold text-gold hover:underline">
+            Reset
           </button>
         )}
       </div>
 
       <Group title="Gender">
         {(Object.keys(GENDERS) as Gender[]).map((g) => (
-          <Check
-            key={g}
-            label={GENDERS[g].label}
-            count={count('gender', (p) => p.profile.gender === g)}
-            checked={filters.gender.includes(g)}
-            onChange={() => toggle('gender', g)}
-          />
+          <Chip key={g} label={GENDERS[g].label} count={count('gender', (p) => p.profile.gender === g)} checked={filters.gender.includes(g)} onChange={() => toggle('gender', g)} />
         ))}
       </Group>
-      <Group title="Fragrance Family">
+      <Group title="Family">
         {families.map((f) => (
-          <Check
+          <Chip
             key={f.slug}
             label={f.name}
             count={count('family', (p) => p.families.includes(f.slug as FamilySlug))}
@@ -387,27 +424,15 @@ function FilterPanel({
       </Group>
       <Group title="Occasion">
         {(Object.keys(OCCASIONS) as Occasion[]).map((o) => (
-          <Check
-            key={o}
-            label={OCCASIONS[o].label}
-            count={count('occasion', (p) => p.profile.occasions.includes(o))}
-            checked={filters.occasion.includes(o)}
-            onChange={() => toggle('occasion', o)}
-          />
+          <Chip key={o} label={OCCASIONS[o].label} count={count('occasion', (p) => p.profile.occasions.includes(o))} checked={filters.occasion.includes(o)} onChange={() => toggle('occasion', o)} />
         ))}
       </Group>
       <Group title="Season">
         {(Object.keys(SEASONS) as Season[]).map((s) => (
-          <Check
-            key={s}
-            label={SEASONS[s].label}
-            count={count('season', (p) => p.profile.seasons.includes(s))}
-            checked={filters.season.includes(s)}
-            onChange={() => toggle('season', s)}
-          />
+          <Chip key={s} label={SEASONS[s].label} count={count('season', (p) => p.profile.seasons.includes(s))} checked={filters.season.includes(s)} onChange={() => toggle('season', s)} />
         ))}
       </Group>
-      <Group title="Price Range (EGP)" last>
+      <Group title="Price (EGP)" chips={false}>
         <PriceRange
           bounds={bounds}
           min={filters.min}
@@ -424,41 +449,30 @@ function FilterPanel({
   )
 }
 
-function Group({ title, children, last }: { title: string; children: ReactNode; last?: boolean }) {
-  const [open, setOpen] = useState(true)
+function Group({ title, children, chips = true }: { title: string; children: ReactNode; chips?: boolean }) {
   return (
-    <section className={`py-4 ${last ? '' : 'border-b border-line'}`}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        className="flex w-full items-center justify-between text-left text-[16px] font-medium"
-      >
-        {title}
-        <ChevronDown className={`size-[18px] transition-transform ${open ? 'rotate-180' : ''}`} strokeWidth={1.5} />
-      </button>
-      {open && <div className="mt-3 space-y-0.5">{children}</div>}
+    <section className="mt-5 border-t border-line pt-[18px]">
+      <h3 className="font-sans text-[11px] font-semibold tracking-[0.16em] text-muted uppercase">{title}</h3>
+      <div className={chips ? 'mt-2.5 flex flex-wrap gap-1.5' : 'mt-3'}>{children}</div>
     </section>
   )
 }
 
-function Check({ label, count, checked, onChange }: { label: string; count: number; checked: boolean; onChange: () => void }) {
+/** A filter option as a chip: dark when chosen, with how many fragrances it would show. */
+function Chip({ label, count, checked, onChange }: { label: string; count: number; checked: boolean; onChange: () => void }) {
   return (
-    <label
-      className={`flex cursor-pointer items-center gap-3.5 rounded-md py-1.5 text-[15px] transition hover:text-ink ${count === 0 && !checked ? 'text-muted' : 'text-ink-soft'}`}
+    <button
+      type="button"
+      onClick={onChange}
+      aria-pressed={checked}
+      disabled={count === 0 && !checked}
+      className={`inline-flex h-[34px] items-center gap-1.5 rounded-full px-[13px] text-[12.5px] font-medium transition disabled:opacity-40 ${
+        checked ? 'bg-[#14110d] text-white' : 'bg-sand text-ink-soft hover:bg-chip hover:text-ink'
+      }`}
     >
-      <input type="checkbox" checked={checked} onChange={onChange} className="peer sr-only" />
-      <span
-        aria-hidden
-        className="grid size-[19px] shrink-0 place-items-center rounded-[6px] border border-line-strong bg-cream transition peer-checked:border-olive peer-checked:bg-olive peer-focus-visible:outline-2 peer-focus-visible:outline-olive"
-      >
-        <svg viewBox="0 0 12 12" className={`size-3 text-cream ${checked ? '' : 'invisible'}`}>
-          <path d="M2.5 6.2l2.3 2.3L9.5 3.8" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
-      <span className="flex-1">{label}</span>
-      <span className="text-[13.5px] text-muted tabular-nums">({count})</span>
-    </label>
+      {label}
+      <span className={`text-[10.5px] tabular-nums ${checked ? 'text-olive' : 'text-muted'}`}>{count}</span>
+    </button>
   )
 }
 
@@ -528,21 +542,25 @@ function PriceRange({
   )
 }
 
-function TryFirstBanner() {
+/** The 5 ml sample offer, as a dark tile among the products. */
+function TryFirstTile() {
+  const shots = getAllProducts().slice(0, 3)
   return (
-    <div className="rf-on-amber mt-14 grid items-center gap-6 overflow-hidden rounded-3xl p-8 sm:grid-cols-[1fr_auto] lg:mt-20 lg:p-12">
-      <div>
-        <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">Not sure yet?</p>
-        <p className="mt-2 font-serif text-[32px] leading-[1.05] sm:text-[42px]">
-          Try any scent in 5 ML <span className="italic">for 35 EGP.</span>
-        </p>
-        <p className="mt-2 max-w-lg text-[15px] text-ink-soft">Live with it for a few days — then commit to the full bottle.</p>
+    <div className="relative flex h-full flex-col overflow-hidden rounded-[22px] bg-[#14110d] p-5 text-white sm:rounded-[26px] sm:p-6">
+      <p className="text-[11px] font-semibold tracking-[0.24em] text-olive uppercase">Not sure yet?</p>
+      <p className="mt-2.5 max-w-[62%] font-serif text-[30px] leading-none text-white sm:max-w-none sm:text-[40px]">Try any scent in 5&nbsp;ml</p>
+      <p className="mt-3 max-w-[62%] text-[13.5px] leading-normal text-[#b9ae9c] sm:max-w-none sm:text-[14px]">35 EGP — live with it for a few days, then commit to the full bottle.</p>
+      <div className="absolute top-5 right-4 flex sm:static sm:mt-auto sm:pt-6">
+        {shots.map((p) => (
+          <img key={p.id} src={p.images[0].src} alt="" loading="lazy" className="-mr-3.5 size-[54px] rounded-full border-[3px] border-[#14110d] object-cover sm:size-[78px]" />
+        ))}
       </div>
       <Link
         to="/finder"
-        className="inline-flex h-12 items-center justify-center rounded-full bg-olive px-8 text-[11.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
+        className="mt-5 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-olive text-[12px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover sm:mt-6"
       >
         Find your scent
+        <ArrowRight className="size-4" strokeWidth={1.6} />
       </Link>
     </div>
   )

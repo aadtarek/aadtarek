@@ -2231,3 +2231,22 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
     transition: none !important;
   }
 }
+
+/* Shop toolbar: glass bar that stays at the top while scrolling. */
+.rf-shop-bar {
+  background: rgb(255 255 255 / 0.82);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 30px -26px rgb(60 40 10 / 0.5);
+}
+:root.dark .rf-shop-bar {
+  background: color-mix(in srgb, var(--color-card) 85%, transparent);
+}
+
+/* Product page: the notes island on the fragrance family's colour. */
+.rf-tint-island {
+  background: var(--tint);
+}
+:root.dark .rf-tint-island {
+  background: color-mix(in srgb, var(--tint) 14%, var(--color-card));
+}
