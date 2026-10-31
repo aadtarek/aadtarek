@@ -2,7 +2,6 @@ import { Suspense, type ReactNode } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { isCatalogReady, useCatalogVersion } from './api/catalog'
 import { AnnouncementBar } from './components/AnnouncementBar'
-import { FeatureStrip } from './components/FeatureStrip'
 import { Header } from './components/Header'
 import { Hero } from './components/Hero'
 import { HeroSlider } from './components/HeroSlider'
@@ -30,7 +29,6 @@ function Startup() {
       <Header />
       <main className="flex-1">
         {home && (HERO_SLIDER.enabled ? <HeroSlider /> : <Hero />)}
-        {home && <FeatureStrip />}
         <section className="container-x rf-loading-section" role="status" aria-label="Loading fragrances">
           <p className="rf-loading-label">Loading fragrances…</p>
           <div className="rf-loading-cards" aria-hidden>

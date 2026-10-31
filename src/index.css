@@ -1307,12 +1307,6 @@ section[aria-labelledby="best-sellers-title"] .rf-carousel-dots {
       animation-play-state: paused;
     }
   }
-  .rf-feature svg {
-    transition: transform 0.6s var(--rf-spring);
-  }
-  .rf-feature:hover svg {
-    transform: translateY(-3px) rotate(-8deg) scale(1.12);
-  }
   /* Notes drift a little on hover. */
   .rf-note {
     transition: transform 0.5s var(--rf-spring);
