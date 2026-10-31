@@ -1769,101 +1769,6 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
     0 0 0 1px rgb(255 255 255 / 0.08);
 }
 
-/* Home hero slider (HeroSpotlight.tsx): each fragrance on its family's colour */
-.rf-spot {
-  background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--tint) 55%, #fff), var(--tint) 72%);
-  transition: background-color 0.9s ease;
-}
-.rf-spot-ink {
-  color: var(--tint-ink);
-}
-.rf-spot-word {
-  font-size: clamp(120px, 26vw, 330px);
-  line-height: 1;
-  letter-spacing: -0.02em;
-  color: rgb(255 255 255 / 0.55);
-  transform: translateY(-50%);
-}
-.rf-spot-circle {
-  box-shadow:
-    0 0 0 10px rgb(255 255 255 / 0.45),
-    0 40px 70px -30px rgb(60 40 10 / 0.5);
-}
-.rf-spot-img {
-  opacity: 0;
-  transform: scale(1.12) rotate(-3deg);
-  transition:
-    opacity 0.9s ease,
-    transform 1.3s var(--rf-ease-soft);
-}
-.rf-spot-img.is-on {
-  opacity: 1;
-  transform: none;
-}
-.rf-spot-progress {
-  background: var(--tint-ink);
-  transform-origin: left;
-  animation: rf-spot-fill var(--rf-slide, 6s) linear both;
-}
-@keyframes rf-spot-fill {
-  from {
-    transform: scaleX(0);
-  }
-}
-@keyframes rf-spot-word-in {
-  from {
-    opacity: 0;
-    translate: 60px 0;
-  }
-}
-@keyframes rf-spot-up {
-  from {
-    opacity: 0;
-    translate: 0 22px;
-  }
-}
-@media (prefers-reduced-motion: no-preference) {
-  .rf-spot-word {
-    animation: rf-spot-word-in 1.1s var(--rf-ease-soft) backwards;
-  }
-  .rf-spot-copy > *,
-  .rf-spot-notes > * {
-    animation: rf-spot-up 0.9s var(--rf-ease-soft) backwards;
-  }
-  .rf-spot-copy > :nth-child(2),
-  .rf-spot-notes > :nth-child(2) {
-    animation-delay: 80ms;
-  }
-  .rf-spot-copy > :nth-child(3),
-  .rf-spot-notes > :nth-child(3) {
-    animation-delay: 160ms;
-  }
-  .rf-spot-copy > :nth-child(4) {
-    animation-delay: 240ms;
-  }
-}
-:root.dark .rf-spot {
-  background: radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--tint) 26%, var(--color-card)), color-mix(in srgb, var(--tint) 12%, var(--color-sand)) 72%);
-}
-:root.dark .rf-spot-word {
-  color: rgb(255 255 255 / 0.06);
-}
-:root.dark .rf-spot-ink {
-  color: var(--tint);
-}
-:root.dark .rf-spot-circle {
-  box-shadow:
-    0 0 0 10px rgb(255 255 255 / 0.06),
-    0 40px 70px -30px rgb(0 0 0 / 0.7);
-}
-:root.dark .rf-spot-tab:not(.is-on) {
-  background: rgb(255 255 255 / 0.08);
-}
-:root.dark .rf-spot-ghost {
-  background: rgb(255 255 255 / 0.1);
-  color: var(--color-ink);
-}
-
 /* Every card: two-tone — the whole card in the fragrance's colour, the
    notes as chips, round size buttons, the price on its own line and a gold Add to cart. */
 @container (min-width: 0px) {
@@ -2086,5 +1991,249 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
 @media (min-width: 768px) {
   .rf-cta-wash {
     background: linear-gradient(90deg, color-mix(in srgb, var(--color-cream) 95%, transparent) 30%, transparent 65%);
+  }
+}
+
+/* Home hero slider (HeroSlider.tsx): picture panels that open like an accordion. */
+.rf-acc-list {
+  display: flex;
+  gap: 12px;
+  height: clamp(540px, calc(100svh - 110px), 780px);
+}
+.rf-acc-panel {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #1c1a17;
+  transition: flex-grow 1.1s var(--rf-ease-soft, cubic-bezier(0.16, 1, 0.3, 1));
+}
+.rf-acc-panel[data-on] {
+  flex-grow: 6;
+}
+.rf-acc-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+  transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rf-acc-panel[data-on] .rf-acc-img {
+  transform: none;
+}
+.rf-acc-shade {
+  position: absolute;
+  inset: 0;
+  background: rgb(10 8 5 / 0.45);
+  transition: background 0.8s;
+}
+.rf-acc-panel[data-on] .rf-acc-shade {
+  background: linear-gradient(90deg, rgb(10 8 5 / 0.72), rgb(10 8 5 / 0.2) 55%, transparent 75%), linear-gradient(0deg, rgb(10 8 5 / 0.35), transparent 40%);
+}
+.rf-acc-no {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  color: #f0c27a;
+  transition: left 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rf-acc-panel[data-on] .rf-acc-no {
+  left: 40px;
+  transform: none;
+}
+.rf-acc-open {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+.rf-acc-vt {
+  position: absolute;
+  left: 50%;
+  bottom: 34px;
+  transform: translateX(-50%) rotate(180deg);
+  writing-mode: vertical-rl;
+  white-space: nowrap;
+  font-family: var(--font-serif);
+  font-size: 26px;
+  color: #fff;
+  animation: rf-acc-in 0.6s 0.3s both;
+}
+@keyframes rf-acc-in {
+  from {
+    opacity: 0;
+  }
+}
+.rf-acc-copy {
+  position: absolute;
+  left: 40px;
+  bottom: 44px;
+  width: min(600px, calc(100% - 80px));
+  color: #fff;
+  visibility: hidden;
+}
+.rf-acc-panel[data-on] .rf-acc-copy {
+  visibility: visible;
+}
+.rf-acc-copy > * {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+.rf-acc-panel[data-on] .rf-acc-copy > * {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rf-acc-panel[data-on] .rf-acc-copy > :nth-child(1) { transition-delay: 0.35s; }
+.rf-acc-panel[data-on] .rf-acc-copy > :nth-child(2) { transition-delay: 0.45s; }
+.rf-acc-panel[data-on] .rf-acc-copy > :nth-child(3) { transition-delay: 0.58s; }
+.rf-acc-panel[data-on] .rf-acc-copy > :nth-child(4) { transition-delay: 0.7s; }
+.rf-acc-eb {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #f0c27a;
+}
+.rf-acc-title {
+  margin-top: 12px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(54px, 6vw, 84px);
+  line-height: 0.95;
+  color: #fff;
+}
+.rf-acc-text {
+  margin-top: 14px;
+  max-width: 34rem;
+  font-size: 16px;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.86);
+}
+.rf-acc-cta {
+  margin-top: 24px;
+}
+.rf-acc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: var(--color-olive);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: background-color 0.3s;
+}
+.rf-acc-btn:hover {
+  background: var(--color-olive-hover);
+}
+.rf-acc-progress {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  bottom: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.25);
+  overflow: hidden;
+}
+.rf-acc-progress::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform-origin: left;
+  animation: rf-acc-bar var(--rf-slide, 6s) linear both;
+}
+@keyframes rf-acc-bar {
+  from {
+    transform: scaleX(0);
+  }
+}
+@media (max-width: 767px) {
+  .rf-acc-list {
+    flex-direction: column;
+    gap: 8px;
+    height: clamp(560px, calc(100svh - 150px), 720px);
+  }
+  .rf-acc-panel {
+    flex: 0 0 64px;
+    border-radius: 24px;
+    transition: flex 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .rf-acc-panel[data-on] {
+    flex: 1 1 0;
+  }
+  .rf-acc-vt {
+    writing-mode: horizontal-tb;
+    transform: translateY(-50%);
+    left: 20px;
+    right: 60px;
+    top: 50%;
+    bottom: auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    font-size: 22px;
+  }
+  .rf-acc-no {
+    left: auto;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .rf-acc-panel[data-on] .rf-acc-no {
+    top: 20px;
+    left: 20px;
+    right: auto;
+    transform: none;
+  }
+  .rf-acc-panel[data-on] .rf-acc-shade {
+    background: linear-gradient(0deg, rgb(10 8 5 / 0.82), rgb(10 8 5 / 0.25) 60%, rgb(10 8 5 / 0.15));
+  }
+  .rf-acc-copy {
+    left: 20px;
+    right: 20px;
+    bottom: 30px;
+    width: auto;
+  }
+  .rf-acc-title {
+    font-size: clamp(38px, 11vw, 48px);
+  }
+  .rf-acc-text {
+    font-size: 14.5px;
+    margin-top: 10px;
+  }
+  .rf-acc-cta {
+    margin-top: 18px;
+  }
+  .rf-acc-btn {
+    height: 46px;
+    padding: 0 22px;
+    font-size: 11px;
+  }
+  .rf-acc-progress {
+    left: 20px;
+    right: 20px;
+    bottom: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-acc-panel,
+  .rf-acc-img,
+  .rf-acc-copy > * {
+    transition: none !important;
   }
 }

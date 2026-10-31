@@ -5,7 +5,7 @@ import { AnnouncementBar } from './components/AnnouncementBar'
 import { FeatureStrip } from './components/FeatureStrip'
 import { Header } from './components/Header'
 import { Hero } from './components/Hero'
-import { HeroSpotlight } from './components/HeroSpotlight'
+import { HeroSlider } from './components/HeroSlider'
 import { HERO_SLIDER } from './config'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Layout } from './components/Layout'
@@ -29,7 +29,7 @@ function Startup() {
       <AnnouncementBar />
       <Header />
       <main className="flex-1">
-        {home && (HERO_SLIDER.enabled ? <HeroSpotlight /> : <Hero />)}
+        {home && (HERO_SLIDER.enabled ? <HeroSlider /> : <Hero />)}
         {home && <FeatureStrip />}
         <section className="container-x rf-loading-section" role="status" aria-label="Loading fragrances">
           <p className="rf-loading-label">Loading fragrances…</p>

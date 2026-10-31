@@ -44,15 +44,34 @@ function rfaheya_fields() {
 		'slider'  => array(
 			'enabled'         => array( 'Show the hero slider on the home page (otherwise the single hero above)', 'yes', 'yesno' ),
 			'interval'        => array( 'Seconds per slide', '6', 'text' ),
-			'slide_1_product' => array( 'Slide 1 — fragrance (empty: best seller no. 1)', '', 'product' ),
-			'slide_1_image'   => array( 'Slide 1 — image in the circle (empty: the product photo)', '', 'image' ),
-			'slide_1_text'    => array( 'Slide 1 — short line (empty: the product’s short description)', '', 'text' ),
-			'slide_2_product' => array( 'Slide 2 — fragrance (empty: best seller no. 2)', '', 'product' ),
-			'slide_2_image'   => array( 'Slide 2 — image in the circle', '', 'image' ),
-			'slide_2_text'    => array( 'Slide 2 — short line', '', 'text' ),
-			'slide_3_product' => array( 'Slide 3 — fragrance (empty: best seller no. 3)', '', 'product' ),
-			'slide_3_image'   => array( 'Slide 3 — image in the circle', '', 'image' ),
-			'slide_3_text'    => array( 'Slide 3 — short line', '', 'text' ),
+			'slide_1_image'   => array( 'Slide 1 — image (wide, about 2000 × 1100)', '', 'image' ),
+			'slide_1_mobile'  => array( 'Slide 1 — image for phones (optional, upright about 1000 × 1300)', '', 'image' ),
+			'slide_1_eyebrow' => array( 'Slide 1 — small line above the title', '', 'text' ),
+			'slide_1_title'   => array( 'Slide 1 — title', '', 'text' ),
+			'slide_1_text'    => array( 'Slide 1 — text under the title', '', 'textarea' ),
+			'slide_1_button'  => array( 'Slide 1 — button text', '', 'text' ),
+			'slide_1_link'    => array( 'Slide 1 — button link (e.g. /shop or /collections/oud)', '', 'text' ),
+			'slide_2_image'   => array( 'Slide 2 — image (wide, about 2000 × 1100)', '', 'image' ),
+			'slide_2_mobile'  => array( 'Slide 2 — image for phones (optional, upright about 1000 × 1300)', '', 'image' ),
+			'slide_2_eyebrow' => array( 'Slide 2 — small line above the title', '', 'text' ),
+			'slide_2_title'   => array( 'Slide 2 — title', '', 'text' ),
+			'slide_2_text'    => array( 'Slide 2 — text under the title', '', 'textarea' ),
+			'slide_2_button'  => array( 'Slide 2 — button text', '', 'text' ),
+			'slide_2_link'    => array( 'Slide 2 — button link (e.g. /shop or /collections/oud)', '', 'text' ),
+			'slide_3_image'   => array( 'Slide 3 — image (wide, about 2000 × 1100)', '', 'image' ),
+			'slide_3_mobile'  => array( 'Slide 3 — image for phones (optional, upright about 1000 × 1300)', '', 'image' ),
+			'slide_3_eyebrow' => array( 'Slide 3 — small line above the title', '', 'text' ),
+			'slide_3_title'   => array( 'Slide 3 — title', '', 'text' ),
+			'slide_3_text'    => array( 'Slide 3 — text under the title', '', 'textarea' ),
+			'slide_3_button'  => array( 'Slide 3 — button text', '', 'text' ),
+			'slide_3_link'    => array( 'Slide 3 — button link (e.g. /shop or /collections/oud)', '', 'text' ),
+			'slide_4_image'   => array( 'Slide 4 — image (wide, about 2000 × 1100)', '', 'image' ),
+			'slide_4_mobile'  => array( 'Slide 4 — image for phones (optional, upright about 1000 × 1300)', '', 'image' ),
+			'slide_4_eyebrow' => array( 'Slide 4 — small line above the title', '', 'text' ),
+			'slide_4_title'   => array( 'Slide 4 — title', '', 'text' ),
+			'slide_4_text'    => array( 'Slide 4 — text under the title', '', 'textarea' ),
+			'slide_4_button'  => array( 'Slide 4 — button text', '', 'text' ),
+			'slide_4_link'    => array( 'Slide 4 — button link (e.g. /shop or /collections/oud)', '', 'text' ),
 		),
 		'login'   => array(
 			'google_client_id'     => array( 'Google — Client ID', '', 'text' ),
@@ -97,7 +116,7 @@ function rfaheya_group_title( $group ) {
 		'social'  => 'Social links',
 		'home'    => 'Home page (empty fields keep the storefront’s built-in text)',
 		'bundle'  => 'Bundle (home page “Build your trio”; the discount is applied in the cart)',
-		'slider'  => 'Home hero slider (three fragrances, each on its fragrance family’s colour)',
+		'slider'  => 'Home hero slider (up to four slides, each with your own image and text; they open like an accordion. A slide shows when it has an image or a title; with none filled in, three built-in slides show)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
 		'shipping' => 'Free shipping & spend-more offer (the bar on the product page, cart and checkout; applied in the WooCommerce cart and shipping rates)',
 		'gift'     => 'Gift boxes (customers fill a box with any fragrances; a hidden “Gift box” product carries the packaging price)',
@@ -354,13 +373,18 @@ add_action(
 
 function rfaheya_hero_slider_data( $s ) {
 	$slides = array();
-	for ( $i = 1; $i <= 3; $i++ ) {
+	for ( $i = 1; $i <= 4; $i++ ) {
 		$image    = (int) $s[ "slide_{$i}_image" ];
+		$mobile   = (int) $s[ "slide_{$i}_mobile" ];
 		$slides[] = array(
-			'productId' => (int) $s[ "slide_{$i}_product" ],
-			'image'     => $image ? (string) wp_get_attachment_image_url( $image, 'large' ) : '',
-			'srcset'    => $image ? (string) wp_get_attachment_image_srcset( $image, 'large' ) : '',
-			'text'      => (string) $s[ "slide_{$i}_text" ],
+			'image'   => $image ? (string) wp_get_attachment_image_url( $image, 'full' ) : '',
+			'srcset'  => $image ? (string) wp_get_attachment_image_srcset( $image, 'full' ) : '',
+			'mobile'  => $mobile ? (string) wp_get_attachment_image_url( $mobile, 'large' ) : '',
+			'eyebrow' => (string) $s[ "slide_{$i}_eyebrow" ],
+			'title'   => (string) $s[ "slide_{$i}_title" ],
+			'text'    => (string) $s[ "slide_{$i}_text" ],
+			'button'  => (string) $s[ "slide_{$i}_button" ],
+			'link'    => (string) $s[ "slide_{$i}_link" ],
 		);
 	}
 	return array(
@@ -1468,6 +1492,8 @@ function rfaheya_bootstrap() {
 	// Rebuilt whenever products, stock, settings or content change (hooks below), so it can be kept a while.
 	if ( ! empty( $data['products'] ) ) {
 		set_transient( 'rfaheya_bootstrap', $data, HOUR_IN_SECONDS );
+		// The last good copy never expires: pages always carry shop data (rfaheya_storefront_shell).
+		update_option( 'rfaheya_bootstrap_last', $data, false );
 	} else {
 		// The storefront loads its data with separate requests then; don't rebuild on every visit.
 		set_transient( 'rfaheya_bootstrap_failed', 1, 10 * MINUTE_IN_SECONDS );
@@ -1492,8 +1518,22 @@ function rfaheya_storefront_shell() {
 		return;
 	}
 	$html = (string) file_get_contents( $file );
-	$data = get_transient( 'rfaheya_bootstrap' );
-	$data = is_array( $data ) && ! empty( $data['products'] ) ? $data : null;
+	$data  = get_transient( 'rfaheya_bootstrap' );
+	$data  = is_array( $data ) && ! empty( $data['products'] ) ? $data : null;
+	$stale = false;
+	if ( ! $data ) {
+		// No fresh copy (it expired, or a product just changed): the last good one, so the shop
+		// shows at once; a fresh one is built after this page has been sent.
+		$last = get_option( 'rfaheya_bootstrap_last' );
+		if ( is_array( $last ) && ! empty( $last['products'] ) ) {
+			$data  = $last;
+			$stale = true;
+		} elseif ( ! get_transient( 'rfaheya_bootstrap_building' ) ) {
+			// The very first visit: build it now, once.
+			$built = rfaheya_bootstrap();
+			$data  = ! empty( $built['products'] ) ? $built : null;
+		}
+	}
 	// A new upload: pages cached by LiteSpeed still point at the old files.
 	$build = (string) filemtime( $file );
 	$fresh = get_option( 'rfaheya_index_build' ) !== $build;
@@ -1511,9 +1551,9 @@ function rfaheya_storefront_shell() {
 	}
 	// Start the LCP image before the storefront module has parsed the catalogue.
 	$path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH );
-	$slider = isset( $data['settings']['heroSlider'] ) ? $data['settings']['heroSlider'] : rfaheya_hero_slider_data( rfaheya_options()['slider'] );
+	$slider = rfaheya_hero_slider_data( rfaheya_options()['slider'] );
 	if ( '/' === $path && ! empty( $slider['enabled'] ) ) {
-		// The slider's first picture (a chosen one; otherwise it comes with the product data).
+		// The slider's first picture, when one is chosen in the dashboard.
 		if ( ! empty( $slider['slides'][0]['image'] ) ) {
 			$html = str_replace( '</head>', '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $slider['slides'][0]['image'] ) . '"></head>', $html );
 		}
@@ -1541,7 +1581,7 @@ function rfaheya_storefront_shell() {
 	}
 	nocache_headers();
 	header( 'Content-Type: text/html; charset=utf-8' );
-	if ( $data && ! $fresh ) {
+	if ( $data && ! $fresh && ! $stale ) {
 		// The same page for every visitor; LiteSpeed keeps it until products, stock,
 		// settings or content change (rfaheya_purge_page_cache).
 		header( 'Cache-Control: public, max-age=0, s-maxage=3600' );
@@ -1552,8 +1592,8 @@ function rfaheya_storefront_shell() {
 		header( 'X-LiteSpeed-Cache-Control: no-cache' );
 	}
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the storefront's own index.html plus escaped data
-	// No shop data in the page yet: build it after the page has been sent, for the next visitors.
-	if ( ! $data && ( function_exists( 'litespeed_finish_request' ) || function_exists( 'fastcgi_finish_request' ) ) && ! get_transient( 'rfaheya_bootstrap_building' ) ) {
+	// No shop data in the page, or the last good copy: build a fresh one after the page has been sent.
+	if ( ( ! $data || $stale ) && ( function_exists( 'litespeed_finish_request' ) || function_exists( 'fastcgi_finish_request' ) ) && ! get_transient( 'rfaheya_bootstrap_building' ) ) {
 		set_transient( 'rfaheya_bootstrap_building', 1, MINUTE_IN_SECONDS );
 		function_exists( 'litespeed_finish_request' ) ? litespeed_finish_request() : fastcgi_finish_request();
 		try {

@@ -67,15 +67,27 @@ export const HOME = { announcements: [...DEFAULT_HOME.announcements], hero: { ..
  * "Build your bundle": any `count` bottles of `size` for `price`.
  * With WordPress: Settings → Rfaheya Store → Bundle (WooCommerce applies the same discount in the cart).
  */
+export interface HeroSlide {
+  image: string
+  srcset: string
+  /** Optional upright picture for phones */
+  mobile: string
+  eyebrow: string
+  title: string
+  text: string
+  button: string
+  link: string
+}
+
 /**
- * Home hero slider: up to three fragrances, each on its family's colour.
- * With WordPress: Settings → Rfaheya Store → Hero slider (empty slides use the best sellers).
+ * Home hero slider: up to four slides, each with its own picture and text, opening like an accordion.
+ * With WordPress: Settings → Rfaheya Store → Hero slider (empty slides 1–3 keep the built-in ones).
  */
 export const HERO_SLIDER = {
   enabled: true,
   /** Seconds per slide */
   interval: 6,
-  slides: [] as { productId: number; image: string; srcset: string; text: string }[],
+  slides: [] as HeroSlide[],
 }
 
 export const BUNDLE = {
@@ -190,7 +202,16 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (typeof hs.enabled === 'boolean') HERO_SLIDER.enabled = hs.enabled
     if (Number(hs.interval) >= 2) HERO_SLIDER.interval = Number(hs.interval)
     if (Array.isArray(hs.slides))
-      HERO_SLIDER.slides = hs.slides.map((x) => ({ productId: Number(x.productId) || 0, image: x.image ?? '', srcset: x.srcset ?? '', text: x.text ?? '' }))
+      HERO_SLIDER.slides = hs.slides.map((x) => ({
+        image: x.image ?? '',
+        srcset: x.srcset ?? '',
+        mobile: x.mobile ?? '',
+        eyebrow: x.eyebrow ?? '',
+        title: x.title ?? '',
+        text: x.text ?? '',
+        button: x.button ?? '',
+        link: x.link ?? '',
+      }))
   }
   const f = settings.shipping
   if (f) {
