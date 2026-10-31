@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
 // Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
-const RFAHEYA_DATA_VERSION = 2;
+const RFAHEYA_DATA_VERSION = 3;
 
 // ==================================================================== settings
 
@@ -1423,6 +1423,95 @@ function rfaheya_store_data( $route, $params ) {
 	}
 }
 
+/** A Store API product or variation with only the fields the storefront reads (RawProduct in src/api/woo.ts). */
+function rfaheya_slim_product( $p ) {
+	$pick = function ( $a, $keys ) {
+		return array_intersect_key( (array) $a, array_flip( $keys ) );
+	};
+	$p = (array) $p;
+	return array(
+		'id'                => isset( $p['id'] ) ? (int) $p['id'] : 0,
+		'name'              => isset( $p['name'] ) ? $p['name'] : '',
+		'slug'              => isset( $p['slug'] ) ? $p['slug'] : '',
+		'type'              => isset( $p['type'] ) ? $p['type'] : '',
+		'parent'            => isset( $p['parent'] ) ? (int) $p['parent'] : 0,
+		'short_description' => isset( $p['short_description'] ) ? $p['short_description'] : '',
+		'description'       => isset( $p['description'] ) ? $p['description'] : '',
+		'prices'            => $pick( isset( $p['prices'] ) ? $p['prices'] : array(), array( 'price', 'regular_price', 'sale_price', 'price_range', 'currency_minor_unit' ) ),
+		'images'            => array_map(
+			function ( $i ) use ( $pick ) {
+				return $pick( $i, array( 'id', 'src', 'alt', 'name', 'srcset' ) );
+			},
+			isset( $p['images'] ) ? (array) $p['images'] : array()
+		),
+		'categories'        => array_map(
+			function ( $c ) use ( $pick ) {
+				return $pick( $c, array( 'id', 'name', 'slug' ) );
+			},
+			isset( $p['categories'] ) ? (array) $p['categories'] : array()
+		),
+		'attributes'        => array_map(
+			function ( $a ) use ( $pick ) {
+				$a          = (array) $a;
+				$out        = $pick( $a, array( 'id', 'name', 'taxonomy', 'has_variations' ) );
+				$out['terms'] = array_map(
+					function ( $t ) use ( $pick ) {
+						return $pick( $t, array( 'id', 'name', 'slug' ) );
+					},
+					isset( $a['terms'] ) ? (array) $a['terms'] : array()
+				);
+				return $out;
+			},
+			isset( $p['attributes'] ) ? (array) $p['attributes'] : array()
+		),
+		'variations'        => isset( $p['variations'] ) ? $p['variations'] : array(),
+		'variation'         => isset( $p['variation'] ) ? $p['variation'] : '',
+		'is_in_stock'       => ! empty( $p['is_in_stock'] ),
+		'is_purchasable'    => ! empty( $p['is_purchasable'] ),
+	);
+}
+
+/** A Store API review with only the fields the storefront reads. */
+function rfaheya_slim_review( $r ) {
+	return array_intersect_key( (array) $r, array_flip( array( 'id', 'date_created', 'product_id', 'reviewer', 'review', 'rating', 'verified' ) ) );
+}
+
+/**
+ * Builds the shop data once this request's answer has been sent (the visitor doesn't wait);
+ * WP-Cron is a second chance on hosts that can't finish a request early.
+ */
+function rfaheya_build_after_response() {
+	static $queued = false;
+	if ( $queued || get_transient( 'rfaheya_bootstrap_building' ) ) {
+		return;
+	}
+	$queued = true;
+	if ( ! wp_next_scheduled( 'rfaheya_warm_bootstrap' ) ) {
+		wp_schedule_single_event( time(), 'rfaheya_warm_bootstrap' );
+	}
+	if ( ! function_exists( 'litespeed_finish_request' ) && ! function_exists( 'fastcgi_finish_request' ) ) {
+		return;
+	}
+	add_action(
+		'shutdown',
+		function () {
+			if ( get_transient( 'rfaheya_bootstrap_building' ) ) {
+				return;
+			}
+			set_transient( 'rfaheya_bootstrap_building', 1, 5 * MINUTE_IN_SECONDS );
+			ignore_user_abort( true );
+			function_exists( 'litespeed_finish_request' ) ? litespeed_finish_request() : fastcgi_finish_request();
+			try {
+				rfaheya_bootstrap();
+			} catch ( Throwable $e ) {
+				update_option( 'rfaheya_last_error', gmdate( 'Y-m-d H:i' ) . ' build: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine(), false );
+			}
+			delete_transient( 'rfaheya_bootstrap_building' );
+		},
+		0
+	);
+}
+
 /**
  * Everything the storefront loads at start-up in ONE request: settings,
  * product details, notes, videos, categories, products with their
@@ -1437,6 +1526,11 @@ function rfaheya_bootstrap() {
 	if ( get_transient( 'rfaheya_bootstrap_failed' ) ) {
 		return array( 'products' => array() );
 	}
+	// Gathering everything takes a while on a busy shared server: no PHP time limit for it.
+	if ( function_exists( 'set_time_limit' ) ) {
+		@set_time_limit( 300 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+	}
+	$started = microtime( true );
 	// Every published product, best sellers first (ties by newest), fetched by ID 100 at a time:
 	// paging the Store API by popularity can repeat or skip products whose sales are equal.
 	$order = get_posts(
@@ -1487,6 +1581,9 @@ function rfaheya_bootstrap() {
 	foreach ( array_chunk( $ids, 100 ) as $chunk ) {
 		$variations = array_merge( $variations, rfaheya_store_data( '/wc/store/v1/products', array( 'type' => 'variation', 'per_page' => 100, 'include' => implode( ',', $chunk ) ) ) );
 	}
+	// Only the fields the storefront reads (src/api/woo.ts): about a third of the size.
+	$products   = array_map( 'rfaheya_slim_product', $products );
+	$variations = array_map( 'rfaheya_slim_product', $variations );
 	$data = array(
 		'v'          => RFAHEYA_DATA_VERSION,
 		'settings'   => rfaheya_settings_data(),
@@ -1509,10 +1606,20 @@ function rfaheya_bootstrap() {
 			)
 		),
 		'variations' => $variations,
-		'reviews'    => rfaheya_store_data( '/wc/store/v1/products/reviews', array( 'per_page' => 50, 'orderby' => 'date_gmt', 'order' => 'desc' ) ),
+		'reviews'    => array_map( 'rfaheya_slim_review', rfaheya_store_data( '/wc/store/v1/products/reviews', array( 'per_page' => 50, 'orderby' => 'date_gmt', 'order' => 'desc' ) ) ),
 		'faqs'       => rfaheya_faqs_data(),
 	);
 	// Rebuilt whenever products, stock, settings or content change (hooks below), so it can be kept a while.
+	update_option(
+		'rfaheya_bootstrap_status',
+		array(
+			'at'       => gmdate( 'Y-m-d H:i:s' ),
+			'seconds'  => round( microtime( true ) - $started, 1 ),
+			'products' => count( $data['products'] ),
+			'bytes'    => strlen( (string) wp_json_encode( $data ) ),
+		),
+		false
+	);
 	if ( ! empty( $data['products'] ) ) {
 		set_transient( 'rfaheya_bootstrap', $data, HOUR_IN_SECONDS );
 		// The last good copy never expires: pages always carry shop data (rfaheya_storefront_shell).
@@ -1536,8 +1643,8 @@ function rfaheya_bootstrap_current( $data ) {
 }
 
 /**
- * The shop data as fast as possible: the fresh copy; otherwise the last good one (a fresh one
- * is then built in the background); built right away only when there has never been one.
+ * The shop data as fast as possible: the fresh copy; otherwise the last good one. Either way a
+ * missing or old copy is rebuilt after the answer has been sent, never while a visitor waits.
  * Returns array( data or null, stale ).
  */
 function rfaheya_bootstrap_ready() {
@@ -1547,16 +1654,12 @@ function rfaheya_bootstrap_ready() {
 	}
 	$last = get_option( 'rfaheya_bootstrap_last' );
 	if ( rfaheya_bootstrap_current( $last ) && ! empty( $last['products'] ) ) {
-		if ( ! wp_next_scheduled( 'rfaheya_warm_bootstrap' ) ) {
-			wp_schedule_single_event( time(), 'rfaheya_warm_bootstrap' );
-		}
+		rfaheya_build_after_response();
 		return array( $last, true );
 	}
-	if ( get_transient( 'rfaheya_bootstrap_building' ) ) {
-		return array( null, false );
-	}
-	$built = rfaheya_bootstrap();
-	return array( ! empty( $built['products'] ) ? $built : null, false );
+	// None yet: this visitor's storefront loads the products itself; the copy is built meanwhile.
+	rfaheya_build_after_response();
+	return array( null, false );
 }
 
 /**
@@ -1634,17 +1737,6 @@ function rfaheya_storefront_shell() {
 		header( 'X-LiteSpeed-Cache-Control: no-cache' );
 	}
 	echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- the storefront's own index.html plus escaped data
-	// No shop data in the page, or the last good copy: build a fresh one after the page has been sent.
-	if ( ( ! $data || $stale ) && ( function_exists( 'litespeed_finish_request' ) || function_exists( 'fastcgi_finish_request' ) ) && ! get_transient( 'rfaheya_bootstrap_building' ) ) {
-		set_transient( 'rfaheya_bootstrap_building', 1, MINUTE_IN_SECONDS );
-		function_exists( 'litespeed_finish_request' ) ? litespeed_finish_request() : fastcgi_finish_request();
-		try {
-			rfaheya_bootstrap();
-		} catch ( Throwable $e ) {
-			update_option( 'rfaheya_last_error', gmdate( 'Y-m-d H:i' ) . ' build: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine(), false );
-		}
-		delete_transient( 'rfaheya_bootstrap_building' );
-	}
 	exit;
 }
 
@@ -1755,6 +1847,37 @@ add_action(
 				'methods'             => 'GET',
 				'permission_callback' => $public,
 				'callback'            => fn() => rest_ensure_response( rfaheya_products_details() ),
+			)
+		);
+
+		// Whether the shop data copy is built (no shop data or settings in it): for checking a slow start.
+		register_rest_route(
+			'rfaheya/v1',
+			'/status',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => $public,
+				'callback'            => function () {
+					$fresh    = get_transient( 'rfaheya_bootstrap' );
+					$last     = get_option( 'rfaheya_bootstrap_last' );
+					$response = rest_ensure_response(
+						array(
+							'version'     => RFAHEYA_DATA_VERSION,
+							'fresh'       => rfaheya_bootstrap_current( $fresh ) ? count( $fresh['products'] ) : 0,
+							'lastCopy'    => rfaheya_bootstrap_current( $last ) ? count( $last['products'] ) : 0,
+							'building'    => (bool) get_transient( 'rfaheya_bootstrap_building' ),
+							'failedPause' => (bool) get_transient( 'rfaheya_bootstrap_failed' ),
+							'lastBuild'   => get_option( 'rfaheya_bootstrap_status', null ),
+							'lastError'   => (string) get_option( 'rfaheya_last_error', '' ),
+							'cron'        => ! ( defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON ),
+							'finishEarly' => function_exists( 'litespeed_finish_request' ) || function_exists( 'fastcgi_finish_request' ),
+							'timeLimit'   => (int) ini_get( 'max_execution_time' ),
+							'memory'      => (string) ini_get( 'memory_limit' ),
+						)
+					);
+					$response->header( 'Cache-Control', 'no-cache' );
+					return $response;
+				},
 			)
 		);
 
@@ -2991,9 +3114,25 @@ function rfaheya_gift_box_sync() {
 	if ( ! class_exists( 'WC_Product_Variable' ) ) {
 		return;
 	}
+	// Two dashboard pages loading at once must not both create one.
+	if ( get_transient( 'rfaheya_gift_box_lock' ) ) {
+		return;
+	}
+	set_transient( 'rfaheya_gift_box_lock', 1, MINUTE_IN_SECONDS );
 	$prices  = rfaheya_gift_prices();
 	$stored  = get_option( 'rfaheya_gift_box', array() );
 	$product = ! empty( $stored['product'] ) ? wc_get_product( (int) $stored['product'] ) : null;
+	// Every "Gift box" product there is (rfaheya-gift-box, -2, -3…): keep one, trash the copies.
+	global $wpdb;
+	$boxes = array_map( 'intval', $wpdb->get_col( $wpdb->prepare( "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'product' AND post_status <> 'trash' AND post_name LIKE %s ORDER BY ID ASC", $wpdb->esc_like( 'rfaheya-gift-box' ) . '%' ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	if ( ( ! $product || 'trash' === $product->get_status() ) && $boxes ) {
+		$product = wc_get_product( $boxes[0] );
+	}
+	foreach ( $boxes as $box ) {
+		if ( ! $product || $box !== $product->get_id() ) {
+			wp_trash_post( $box );
+		}
+	}
 	if ( ! $product || ! $product->is_type( 'variable' ) || 'trash' === $product->get_status() ) {
 		$product = new WC_Product_Variable();
 		$product->set_name( 'Gift box' );
@@ -3044,6 +3183,7 @@ function rfaheya_gift_box_sync() {
 		false
 	);
 	delete_transient( 'rfaheya_bootstrap' );
+	delete_transient( 'rfaheya_gift_box_lock' );
 }
 
 add_action(
@@ -3055,7 +3195,12 @@ add_action(
 		$stored  = get_option( 'rfaheya_gift_box', array() );
 		$product = ! empty( $stored['product'] ) ? wc_get_product( (int) $stored['product'] ) : null;
 		$current = md5( wp_json_encode( rfaheya_gift_prices() ) );
-		if ( ! $product || 'publish' !== $product->get_status() || ( isset( $stored['signature'] ) ? $stored['signature'] : '' ) !== $current ) {
+		// Once: earlier versions could leave several copies of it (rfaheya-gift-box-2, -3…).
+		$dedupe = ! get_option( 'rfaheya_gift_box_deduped' );
+		if ( $dedupe ) {
+			update_option( 'rfaheya_gift_box_deduped', 1, false );
+		}
+		if ( $dedupe || ! $product || 'publish' !== $product->get_status() || ( isset( $stored['signature'] ) ? $stored['signature'] : '' ) !== $current ) {
 			rfaheya_gift_box_sync();
 		}
 	}

@@ -158,7 +158,8 @@ function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings,
 }
 
 const GIFT_SLUG = 'rfaheya-gift-box'
-const isGiftBox = (p: Product) => p.slug === GIFT_SLUG || (GIFT_BOX.productId > 0 && p.id === GIFT_BOX.productId)
+/** The packaging product, and any copy of it WordPress made (rfaheya-gift-box-2, -3…). */
+const isGiftBox = (p: Product) => p.slug === GIFT_SLUG || /^rfaheya-gift-box(-\d+)?$/.test(p.slug) || (GIFT_BOX.productId > 0 && p.id === GIFT_BOX.productId)
 
 /** The gift box packaging as a product (one variation per number of fragrances). */
 export function giftBoxProduct(): Product {
