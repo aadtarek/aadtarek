@@ -6,6 +6,7 @@ import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, setNoteLibrary 
 import { applyStoreSettings, GIFT_BOX, giftBoxPrice } from '../config'
 import giftImage from '../assets/finder/landing-cta.webp'
 import { fetchStoreSettings, isWoo, stripHtml, type StoreSettings } from './wp'
+import { readStorage, writeStorage } from '../lib/storage'
 
 /**
  * The catalogue is loaded once at start-up (see main.tsx) and then read
@@ -58,6 +59,7 @@ export async function loadCatalog(): Promise<void> {
     if (boot.faqs) primeCache('faqs', boot.faqs.map((f) => ({ q: stripHtml(f.q), html: f.a })))
     products = buildCatalog(boot.products, boot.dateOrder ?? [], boot.variations ?? [], boot.details ?? {})
     applyLoaded(mapReviews(boot.reviews ?? []), boot.videos ?? [], boot.settings ?? {}, boot.categories ?? [])
+    saveSnapshot(boot.settings ?? {})
     return
   }
   // …otherwise the individual WooCommerce / WordPress requests.
@@ -75,10 +77,67 @@ export async function loadCatalog(): Promise<void> {
   setNoteLibrary(notes)
   products = buildCatalog(raw.byPopularity, raw.dateOrder, raw.variations, details)
   applyLoaded([], [], settings, categories)
+  saveSnapshot(settings)
   later.then(([vids, revs]) => {
     applyLoaded(revs, vids, settings, categories)
+    saveSnapshot(settings)
     notify()
   })
+}
+
+/**
+ * The last catalogue, kept in the visitor's browser: on the next visit the shop shows from it
+ * at once (no loading screen) while the fresh one downloads (main.tsx).
+ * Bump CACHE_VERSION when the shape of Product, Review, WearVideo or the settings changes.
+ */
+const CACHE_KEY = 'rfaheya.catalog'
+const CACHE_VERSION = 1
+const CACHE_MAX_AGE = 14 * 24 * 3600 * 1000
+
+interface Snapshot {
+  v: number
+  at: number
+  products: Product[]
+  reviews: Review[]
+  videos: WearVideo[]
+  settings: StoreSettings
+  families: Pick<(typeof families)[number], 'slug' | 'name' | 'tagline' | 'image'>[]
+}
+
+function saveSnapshot(settings: StoreSettings) {
+  if (products.length === 0) return
+  const snapshot: Snapshot = {
+    v: CACHE_VERSION,
+    at: Date.now(),
+    products,
+    reviews,
+    videos,
+    settings,
+    families: families.map(({ slug, name, tagline, image }) => ({ slug, name, tagline, image })),
+  }
+  writeStorage(CACHE_KEY, snapshot)
+}
+
+/** Fills the catalogue from the browser's copy; false when there is none (or it is too old). */
+export function restoreCatalog(): boolean {
+  const s = readStorage<Snapshot | null>(CACHE_KEY, null)
+  if (!s || s.v !== CACHE_VERSION || !Array.isArray(s.products) || s.products.length === 0 || !(Date.now() - s.at < CACHE_MAX_AGE)) return false
+  try {
+    products = s.products
+    reviews = Array.isArray(s.reviews) ? s.reviews : []
+    videos = Array.isArray(s.videos) ? s.videos : []
+    applyStoreSettings(s.settings ?? {})
+    for (const f of Array.isArray(s.families) ? s.families : []) {
+      const family = families.find((x) => x.slug === f.slug)
+      if (family) Object.assign(family, f)
+    }
+    return true
+  } catch {
+    products = []
+    reviews = []
+    videos = []
+    return false
+  }
 }
 
 function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings, categories: RawCategory[]) {

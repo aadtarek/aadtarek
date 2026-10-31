@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { loadCatalog, markCatalogReady } from './api/catalog'
+import { loadCatalog, markCatalogReady, restoreCatalog } from './api/catalog'
 import { fetchPosts } from './api/content'
 import { isWoo } from './api/wp'
 import App from './App.tsx'
@@ -44,6 +44,17 @@ if (isWoo && /^\/journal\/?$/.test(path)) fetchPosts().catch(() => undefined)
 // The storefront shows straight away (with a short placeholder, App.tsx); the pages follow once the products are in.
 container.setAttribute('data-app', '')
 root.render(<App />)
-Promise.all([loadCatalog(), preloadRoute(path).catch(() => undefined)])
-  .then(markCatalogReady)
-  .catch(fail)
+if (isWoo && !window.__rfBoot && restoreCatalog()) {
+  // A returning visitor: the shop shows from the browser's copy right away; the fresh catalogue
+  // replaces it once downloaded (a failed download keeps the copy).
+  preloadRoute(path)
+    .catch(() => undefined)
+    .then(markCatalogReady)
+  loadCatalog()
+    .then(markCatalogReady)
+    .catch(() => undefined)
+} else {
+  Promise.all([loadCatalog(), preloadRoute(path).catch(() => undefined)])
+    .then(markCatalogReady)
+    .catch(fail)
+}
