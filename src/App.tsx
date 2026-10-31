@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from 'react'
-import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { isCatalogReady, useCatalogVersion } from './api/catalog'
 import { AnnouncementBar } from './components/AnnouncementBar'
 import { Header } from './components/Header'
@@ -49,6 +49,13 @@ function RouteGate({ children }: { children: ReactNode }) {
   return isCatalogReady() ? children : <Startup />
 }
 
+/** /shop/<product> (WooCommerce's product link) → the storefront's product page. */
+function ProductAlias() {
+  const { slug = '' } = useParams()
+  const { search } = useLocation()
+  return <Navigate to={`/product/${slug}${search}`} replace />
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -64,6 +71,8 @@ export default function App() {
                 <Route index element={<Home />} />
                 <Route path="shop" element={<Shop />} />
                 <Route path="product/:slug" element={<ProductPage />} />
+                {/* WooCommerce's own product links (product base "shop" or "product") */}
+                <Route path="shop/:slug" element={<ProductAlias />} />
                 <Route path="wishlist" element={<Wishlist />} />
                 <Route path="account" element={<Account />} />
                 <Route path="checkout" element={<Checkout />} />

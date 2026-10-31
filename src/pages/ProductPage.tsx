@@ -26,6 +26,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   composition,
   familyName,
+  fetchMissingProduct,
   fullSizeVariations,
   getAllProducts,
   getReviews,
@@ -35,6 +36,7 @@ import {
   ratingSummary,
   relatedProducts,
   sampleVariation,
+  useCatalogVersion,
 } from '../api/catalog'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { Carousel } from '../components/Carousel'
@@ -58,11 +60,35 @@ import type { Product, Review, StandardKey } from '../types'
 import { NotFound } from './NotFound'
 
 export function ProductPage() {
-  const { slug = '' } = useParams()
-  // The catalogue is loaded before the app renders, so the product is found straight away.
-  const product = getAllProducts().find((p) => p.slug === slug)
-  if (!product) return <NotFound />
-  return <ProductDetails key={product.id} product={product} />
+  const { slug: raw = '' } = useParams()
+  const slug = safeDecode(raw).toLowerCase()
+  useCatalogVersion()
+  // The catalogue is loaded before the app renders, so the product is usually found straight away.
+  const product = getAllProducts().find((p) => p.slug === slug || safeDecode(p.slug).toLowerCase() === slug)
+  // Not in it (e.g. just added): asked from WooCommerce before saying "not found".
+  const [lookup, setLookup] = useState<{ slug: string; done: boolean }>({ slug: '', done: false })
+  useEffect(() => {
+    if (product) return
+    let live = true
+    setLookup({ slug, done: false })
+    fetchMissingProduct(raw)
+      .catch(() => undefined)
+      .then(() => live && setLookup({ slug, done: true }))
+    return () => {
+      live = false
+    }
+  }, [product, raw, slug])
+  if (product) return <ProductDetails key={product.id} product={product} />
+  if (!(lookup.slug === slug && lookup.done)) return <div className="min-h-[70vh]" aria-busy="true" />
+  return <NotFound />
+}
+
+function safeDecode(s: string) {
+  try {
+    return decodeURIComponent(s)
+  } catch {
+    return s
+  }
 }
 
 const STANDARD_ICONS: Record<StandardKey, LucideIcon> = {

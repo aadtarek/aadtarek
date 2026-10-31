@@ -11,6 +11,8 @@
 defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
+// Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
+const RFAHEYA_DATA_VERSION = 2;
 
 // ==================================================================== settings
 
@@ -1429,7 +1431,7 @@ function rfaheya_store_data( $route, $params ) {
 function rfaheya_bootstrap() {
 	try {
 	$cached = get_transient( 'rfaheya_bootstrap' );
-	if ( is_array( $cached ) ) {
+	if ( rfaheya_bootstrap_current( $cached ) ) {
 		return $cached;
 	}
 	if ( get_transient( 'rfaheya_bootstrap_failed' ) ) {
@@ -1486,6 +1488,7 @@ function rfaheya_bootstrap() {
 		$variations = array_merge( $variations, rfaheya_store_data( '/wc/store/v1/products', array( 'type' => 'variation', 'per_page' => 100, 'include' => implode( ',', $chunk ) ) ) );
 	}
 	$data = array(
+		'v'          => RFAHEYA_DATA_VERSION,
 		'settings'   => rfaheya_settings_data(),
 		'details'    => rfaheya_products_details(),
 		'notes'      => rfaheya_note_library(),
@@ -1527,6 +1530,11 @@ function rfaheya_bootstrap() {
 	}
 }
 
+/** A saved copy of the shop data made by this version of the plugin. */
+function rfaheya_bootstrap_current( $data ) {
+	return is_array( $data ) && isset( $data['v'] ) && RFAHEYA_DATA_VERSION === (int) $data['v'];
+}
+
 /**
  * The shop data as fast as possible: the fresh copy; otherwise the last good one (a fresh one
  * is then built in the background); built right away only when there has never been one.
@@ -1534,11 +1542,11 @@ function rfaheya_bootstrap() {
  */
 function rfaheya_bootstrap_ready() {
 	$data = get_transient( 'rfaheya_bootstrap' );
-	if ( is_array( $data ) && ! empty( $data['products'] ) ) {
+	if ( rfaheya_bootstrap_current( $data ) && ! empty( $data['products'] ) ) {
 		return array( $data, false );
 	}
 	$last = get_option( 'rfaheya_bootstrap_last' );
-	if ( is_array( $last ) && ! empty( $last['products'] ) ) {
+	if ( rfaheya_bootstrap_current( $last ) && ! empty( $last['products'] ) ) {
 		if ( ! wp_next_scheduled( 'rfaheya_warm_bootstrap' ) ) {
 			wp_schedule_single_event( time(), 'rfaheya_warm_bootstrap' );
 		}

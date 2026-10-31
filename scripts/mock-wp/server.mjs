@@ -269,6 +269,8 @@ createServer(async (req, res) => {
       const orderby = url.searchParams.get('orderby')
       const order = url.searchParams.get('order')
       let list = [...products]
+      const slugs = (url.searchParams.get('slug') || '').split(',').filter(Boolean)
+      if (slugs.length) list = list.filter((p) => slugs.includes(p.slug))
       if (orderby === 'popularity') list.sort((a, b) => a.position - b.position)
       if (orderby === 'date') list.sort((a, b) => a.created - b.created)
       if (order === 'asc' && orderby === 'popularity') list.reverse()

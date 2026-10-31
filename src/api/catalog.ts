@@ -2,10 +2,10 @@ import { useSyncExternalStore } from 'react'
 import { families } from '../data/families'
 import type { FamilySlug, Product, Review, WearVideo } from '../types'
 import { fetchBootstrap, primeCache, fetchNotes, fetchProductCategories, fetchProductDetails, fetchVideos, type RawCategory } from './content'
-import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, setNoteLibrary } from './woo'
+import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, setNoteLibrary, type RawProduct } from './woo'
 import { applyStoreSettings, GIFT_BOX, giftBoxPrice } from '../config'
 import giftImage from '../assets/finder/landing-cta.webp'
-import { fetchStoreSettings, isWoo, stripHtml, type StoreSettings } from './wp'
+import { fetchStoreSettings, isWoo, storeApi, stripHtml, type StoreSettings } from './wp'
 import { readStorage, writeStorage } from '../lib/storage'
 
 /**
@@ -262,6 +262,37 @@ export async function getProducts(query: ProductQuery = {}): Promise<Product[]> 
   if (accords?.length) list = list.filter((p) => p.accords.some((a) => accords.includes(a)))
   if (fams?.length) list = list.filter((p) => p.families.some((f) => fams.includes(f)))
   return delay(sortProducts(list, query.sort))
+}
+
+/**
+ * A product the loaded catalogue doesn't have (added a moment ago, or left out of the
+ * shop data): asked from WooCommerce by its slug, then kept in the catalogue.
+ */
+export async function fetchMissingProduct(slug: string): Promise<Product | undefined> {
+  if (!isWoo || !slug) return undefined
+  const known = products.find((p) => p.slug === slug)
+  if (known) return known
+  const found = await storeApi<RawProduct[]>(`products?slug=${encodeURIComponent(slug)}`)
+  const raw = found.find((p) => p.slug === slug || safeDecode(p.slug) === safeDecode(slug))
+  if (!raw) return undefined
+  const ids = (raw.variations ?? []).map((v) => v.id)
+  const [variations, details] = await Promise.all([
+    ids.length ? storeApi<RawProduct[]>(`products?type=variation&per_page=100&include=${ids.join(',')}`).catch(() => [] as RawProduct[]) : Promise.resolve([] as RawProduct[]),
+    fetchProductDetails().catch(() => ({})),
+  ])
+  const [product] = buildCatalog([raw], [raw.id], variations, details)
+  if (!product || isGiftBox(product)) return undefined
+  if (!products.some((p) => p.id === product.id)) products = [...products, product]
+  notify()
+  return product
+}
+
+function safeDecode(s: string) {
+  try {
+    return decodeURIComponent(s)
+  } catch {
+    return s
+  }
 }
 
 export async function getProduct(slug: string): Promise<Product | undefined> {
