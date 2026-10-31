@@ -517,7 +517,7 @@ export function OurStandard() {
   }
 
   return (
-    <div className="bg-[#e6e3df] [font-variant-numeric:lining-nums]">
+    <div className="rf-islands [font-variant-numeric:lining-nums]">
       <Hero onPick={pick} />
       <Why />
       <Overview onPick={pick} />

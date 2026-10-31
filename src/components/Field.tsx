@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from 'react'
 
 export const inputClass =
-  'h-12 w-full rounded-full border border-line-strong bg-cream px-3.5 text-[14px] outline-none transition placeholder:text-muted focus:border-olive aria-invalid:border-red-700'
+  'h-[50px] w-full rounded-[16px] border-[1.5px] border-line bg-sand px-4 text-[15px] outline-none transition placeholder:text-muted focus:border-olive aria-invalid:border-red-700'
 
 export function Field({
   label,
@@ -16,7 +16,7 @@ export function Field({
 }) {
   return (
     <label className={`block ${className}`}>
-      <span className="mb-1.5 block text-[12px] font-medium tracking-[0.06em] uppercase">{label}</span>
+      <span className="mb-1.5 block text-[11.5px] font-semibold text-muted">{label}</span>
       {children}
       {error && <span className="mt-1 block text-[12px] text-red-700">{error}</span>}
     </label>

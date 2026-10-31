@@ -16,7 +16,7 @@ export function Account() {
 
   return (
     <div className="pb-16">
-      <PageHeader eyebrow="My account" title={`Hello, ${account.customer.firstName}.`}>
+      <PageHeader eyebrow="My account" title={`Hello, ${account.customer.firstName}`}>
         <button
           type="button"
           onClick={account.logout}
@@ -25,14 +25,15 @@ export function Account() {
           Sign out
         </button>
       </PageHeader>
-      <div className="container-x">
-        <h2 className="border-b border-line pb-3 text-[13px] font-semibold tracking-[0.14em] uppercase">Orders</h2>
+      <div className="container-x mt-6 lg:mt-8">
+        <div className="rf-white rounded-[28px] border border-line p-5 sm:p-7">
+        <h2 className="font-serif text-[28px] leading-none">Orders</h2>
         {account.orders.length === 0 ? (
           <p className="py-8 text-muted">You haven’t placed any orders yet.</p>
         ) : (
-          <ul className="divide-y divide-line">
+          <ul>
             {account.orders.map((o) => (
-              <li key={o.id} className="flex flex-wrap items-center justify-between gap-3 py-4 text-[14px]">
+              <li key={o.id} className="flex flex-wrap items-center justify-between gap-3 border-t border-line py-4 text-[14px] first:mt-3">
                 <div>
                   <p className="font-semibold">{o.number}</p>
                   <p className="text-[12px] text-muted">{new Date(o.createdAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })}</p>
@@ -44,6 +45,7 @@ export function Account() {
             ))}
           </ul>
         )}
+        </div>
       </div>
     </div>
   )
@@ -90,19 +92,19 @@ function AuthForms() {
     setError(register({ firstName, lastName: rest.join(' '), email: form.email, password: form.password }))
   }
 
-  const input = 'h-[50px] w-full rounded-md border border-line-strong bg-white px-3.5 text-[15px] outline-none focus:border-olive focus:ring-3 focus:ring-olive/10'
-  const label = 'grid gap-1.5 text-[13px] font-medium text-ink-soft'
+  const input = 'h-[50px] w-full rounded-full border-[1.5px] border-line bg-sand px-4 text-[15px] outline-none focus:border-olive'
+  const label = 'grid gap-1.5 text-[11.5px] font-semibold text-muted'
 
   return (
     <div className="container-x py-8 lg:py-12">
       <div className="mx-auto grid max-w-[1040px] gap-8 md:grid-cols-[1fr_460px]">
-        <div className="relative hidden min-h-[560px] overflow-hidden rounded-[14px] md:block">
+        <div className="relative hidden min-h-[560px] overflow-hidden rounded-[32px] md:block">
           <img src={heroImage} alt="" className="absolute inset-0 size-full object-cover object-[70%_center]" />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-ink/55" />
           <p className="absolute bottom-7 left-8 font-serif text-[38px] leading-[1.05] text-cream">Speak your scent.</p>
         </div>
-        <div className="rounded-[14px] border border-line bg-card px-5 pt-7 pb-8 shadow-[0_20px_50px_-30px_rgba(40,30,20,0.35)] sm:px-10">
-          <div role="tablist" className="grid grid-cols-2 rounded-full bg-chip p-1">
+        <div className="rf-white rounded-[28px] border border-line px-5 pt-6 pb-8 sm:rounded-[32px] sm:px-10">
+          <div role="tablist" className="grid grid-cols-2 rounded-full bg-chip p-[5px]">
             {(['login', 'register'] as const).map((m) => (
               <button
                 key={m}
@@ -110,13 +112,13 @@ function AuthForms() {
                 role="tab"
                 aria-selected={mode === m}
                 onClick={() => switchTo(m)}
-                className={`rounded-full py-2.5 text-[13px] font-medium tracking-[0.08em] uppercase transition ${mode === m ? 'bg-olive text-on-accent' : 'text-ink-soft'}`}
+                className={`rounded-full py-2.5 text-[12px] font-semibold tracking-[0.06em] transition ${mode === m ? 'rf-white text-ink shadow-[0_4px_12px_-6px_rgba(60,40,10,0.3)]' : 'text-muted hover:text-ink'}`}
               >
                 {m === 'login' ? 'Sign in' : 'Create account'}
               </button>
             ))}
           </div>
-          <h1 className="mt-6 font-serif text-[34px] leading-[1.1]">{mode === 'login' ? 'Welcome back.' : 'Create your account.'}</h1>
+          <h1 className="mt-6 font-serif text-[38px] leading-none">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
           <p className="mt-1.5 text-[15px] text-muted">
             {mode === 'login' ? 'Sign in to see your orders and saved details.' : 'Track orders, save your favourites and check out faster.'}
           </p>
@@ -130,7 +132,7 @@ function AuthForms() {
                 key={name}
                 type="button"
                 onClick={() => setNote(`${name} sign-in works on the live store once its keys are added in WordPress.`)}
-                className="flex h-[50px] items-center justify-center gap-3 rounded-md border border-line-strong bg-white text-[15px] font-medium transition hover:border-ink hover:shadow-[0_4px_14px_-8px_rgba(0,0,0,0.3)]"
+                className="rf-white flex h-[50px] items-center justify-center gap-3 rounded-full border-[1.5px] border-line text-[14.5px] font-medium transition hover:border-ink"
               >
                 <Icon />
                 Continue with {name}
@@ -176,7 +178,7 @@ function AuthForms() {
             )}
             <button
               type="submit"
-              className="mt-1 h-[54px] w-full rounded-md bg-olive text-[13px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
+              className="mt-1 h-14 w-full rounded-full bg-olive text-[12.5px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover"
             >
               {mode === 'login' ? 'Sign in' : 'Create account'}
             </button>

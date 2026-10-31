@@ -16,7 +16,7 @@ export function FinderLanding() {
   )
 
   return (
-    <div className="bg-[#e8e6e3]">
+    <div className="rf-islands">
       {/* ---------- Hero ---------- */}
       <section className="relative overflow-hidden bg-[#1c120b] text-cream">
         <img

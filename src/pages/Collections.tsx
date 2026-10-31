@@ -2,7 +2,7 @@ import { ArrowRight, Check, Gift, Minus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { fullSizeVariations, getAllProducts, giftBoxProduct, sampleVariation } from '../api/catalog'
-import { Breadcrumbs } from '../components/Breadcrumbs'
+import { PageHeader } from '../components/PageHeader'
 import { ProductCard } from '../components/ProductCard'
 import { SizePicker } from '../components/SizePicker'
 import { GIFT_BOX } from '../config'
@@ -16,31 +16,29 @@ import { NotFound } from './NotFound'
 export function CollectionsIndex() {
   return (
     <div className="pb-16 lg:pb-24">
-      <div className="container-x pt-6 lg:pt-8">
-        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Collections' }]} />
-        <p className="mt-8 text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Collections</p>
-        <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[60px]">Curated for every you.</h1>
-        <p className="mt-4 max-w-xl text-[17px] leading-[1.7] text-ink-soft">
+      <PageHeader eyebrow="Collections" title="Curated for every you">
+        <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-soft sm:text-[16px]">
           From our inspired Perfume Lab to discovery sets and gifts — find the way into Rfaheya that suits you.
         </p>
-      </div>
-      <ul className="container-x mt-10 grid gap-[13px] md:grid-cols-2 lg:grid-cols-6">
+      </PageHeader>
+      <ul className="container-x mt-6 grid grid-cols-2 gap-2.5 lg:mt-8 lg:grid-cols-6 lg:gap-4">
         {collections.map((c, i) => (
-          <li key={c.slug} className={i < 2 ? 'lg:col-span-3' : 'lg:col-span-2'}>
-            <Link to={`/collections/${c.slug}`} className="group relative block overflow-hidden rounded-lg bg-[#1c120b]">
+          <li key={c.slug} className={i < 2 ? 'col-span-2 lg:col-span-3' : i === 2 ? 'col-span-2 lg:col-span-2' : 'lg:col-span-2'}>
+            <Link to={`/collections/${c.slug}`} className="group relative block overflow-hidden rounded-[22px] bg-[#1c120b] lg:rounded-[28px]">
               <img
                 src={c.image}
                 alt=""
                 loading={i === 0 ? undefined : 'lazy'}
                 decoding="async"
-                className={`w-full object-cover transition-transform duration-700 group-hover:scale-105 ${i < 2 ? 'aspect-[16/10]' : 'aspect-[4/5]'}`}
+                className={`w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 ${i < 3 ? 'aspect-[16/10]' : 'aspect-[4/5] lg:aspect-[16/10]'}`}
               />
-              <span className="absolute inset-0 bg-gradient-to-t from-[#140c07]/85 via-[#140c07]/20 to-transparent" />
-              <span className="absolute inset-x-0 bottom-0 p-6 text-cream">
-                <span className="block font-serif text-[30px] leading-none">{c.name}</span>
-                <span className="mt-2 block text-[15px] text-cream/85">{c.tagline}</span>
-                <span className="mt-4 inline-flex items-center gap-2 text-[12px] tracking-[0.14em] uppercase">
-                  Explore <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.5} />
+              <span className="absolute inset-x-2 bottom-2 flex items-center gap-2.5 rounded-2xl bg-white/85 py-2.5 pr-2 pl-3.5 text-[#14110d] backdrop-blur-xl lg:inset-x-3 lg:bottom-3 lg:rounded-[20px] lg:py-3 lg:pr-3 lg:pl-[18px]">
+                <span className="min-w-0 flex-1">
+                  <span className="block font-serif text-[20px] leading-none lg:text-[28px]">{c.name}</span>
+                  <span className={`mt-1 truncate text-[12px] text-[#7b6e5b] ${i < 3 ? 'block' : 'hidden lg:block'}`}>{c.tagline}</span>
+                </span>
+                <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-[#14110d] text-white transition group-hover:translate-x-0.5 lg:size-[38px]">
+                  <ArrowRight className="size-4" strokeWidth={1.6} />
                 </span>
               </span>
             </Link>
@@ -58,21 +56,29 @@ export function CollectionPage() {
 
   return (
     <div className="pb-16 lg:pb-24">
-      <section className="relative overflow-hidden bg-[#1c120b] text-cream">
-        <img src={c.image} alt="" className="absolute inset-0 size-full object-cover opacity-80" />
-        <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#140c07]/90 via-[#140c07]/55 to-[#140c07]/10" />
-        <div className="container-x relative py-14 lg:py-20">
-          <nav aria-label="Breadcrumb" className="text-[12px] tracking-[0.08em] text-cream/70 uppercase">
-            <Link to="/" className="hover:text-cream">Home</Link> <span className="mx-1.5">›</span>
-            <Link to="/collections" className="hover:text-cream">Collections</Link> <span className="mx-1.5">›</span>
-            <span className="text-cream">{c.name}</span>
-          </nav>
-          <p className="mt-8 text-[12px] tracking-[0.3em] text-cream/80 uppercase sm:text-[14px]">{c.tagline}</p>
-          <h1 className="mt-2 font-serif text-[48px] leading-[1] sm:text-[68px]">{c.label}</h1>
-          <p className="mt-4 max-w-xl text-[17px] leading-[1.7] text-cream/85">{c.description}</p>
-        </div>
-      </section>
-      <div className="container-x mt-10">
+      <div className="container-x pt-3 lg:pt-4">
+        <section className="relative overflow-hidden rounded-[28px] bg-[#1c120b] text-white lg:rounded-[36px]">
+          <img src={c.image} alt="" className="absolute inset-0 size-full object-cover opacity-80" />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#140c07]/90 via-[#140c07]/55 to-[#140c07]/10" />
+          <div className="relative px-6 py-10 lg:px-12 lg:py-16">
+            <nav aria-label="Breadcrumb" className="text-[11px] tracking-[0.12em] text-white/70 uppercase">
+              <Link to="/" className="hover:text-white">
+                Home
+              </Link>{' '}
+              <span className="mx-1.5">›</span>
+              <Link to="/collections" className="hover:text-white">
+                Collections
+              </Link>{' '}
+              <span className="mx-1.5">›</span>
+              <span className="text-white">{c.name}</span>
+            </nav>
+            <p className="mt-8 text-[11px] font-semibold tracking-[0.24em] text-[#f0c27a] uppercase">{c.tagline}</p>
+            <h1 className="mt-2.5 font-serif text-[46px] leading-none text-white sm:text-[68px]">{c.label}</h1>
+            <p className="mt-4 max-w-xl text-[15px] leading-[1.6] text-white/85 sm:text-[17px]">{c.description}</p>
+          </div>
+        </section>
+      </div>
+      <div className="container-x mt-6 lg:mt-8">
         {c.kind === 'list' && <ProductList collection={c} />}
         {c.kind === 'discovery' && <DiscoveryBuilder />}
         {c.kind === 'gift' && <GiftBuilder />}
@@ -129,7 +135,7 @@ function DiscoveryBuilder() {
                   type="button"
                   onClick={() => toggle(p.id)}
                   aria-pressed={on}
-                  className={`flex w-full items-center gap-4 overflow-hidden rounded-lg border bg-card text-left transition ${
+                  className={`rf-white flex w-full items-center gap-4 overflow-hidden rounded-[22px] border text-left transition ${
                     on ? 'border-olive ring-1 ring-olive' : 'border-line hover:border-line-strong'
                   }`}
                 >
@@ -153,7 +159,7 @@ function DiscoveryBuilder() {
           })}
         </ul>
       </div>
-      <aside className="h-fit rounded-lg bg-card p-6 shadow-[0_0_0_1px_rgba(60,45,20,0.06)] lg:sticky lg:top-24">
+      <aside className="h-fit rf-white rounded-[28px] border border-line p-6 lg:sticky lg:top-24">
         <p className="text-[13px] font-semibold tracking-[0.14em] uppercase">Your discovery set</p>
         {selected.length === 0 ? (
           <p className="mt-4 text-[14.5px] text-muted">Select at least one fragrance to start your set.</p>
@@ -278,7 +284,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
         </ul>
       </div>
 
-      <aside className="h-fit rounded-2xl bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)] sm:p-6 lg:sticky lg:top-24">
+      <aside className="h-fit rf-white rounded-[28px] border border-line p-5 sm:p-6 lg:sticky lg:top-24">
         <p className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.14em] uppercase">
           <Gift className="size-4" strokeWidth={1.5} />
           Your gift box
@@ -292,7 +298,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
           <ul className="mt-4 divide-y divide-line">
             {items.map((i) => (
               <li key={i.product.id} className="flex items-center gap-3 py-2.5 text-[14px]">
-                <img src={i.product.images[0].src} alt="" className="size-10 rounded-lg object-cover" />
+                <img src={i.product.images[0].src} alt="" className="size-10 rounded-xl object-cover" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{i.product.name}</span>
                   <span className="block text-[12px] text-muted">{i.variation.size}</span>
@@ -313,7 +319,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
             onChange={(e) => setMessage(e.target.value.slice(0, MAX_MESSAGE))}
             rows={3}
             placeholder="A few words for the card inside the box (optional)…"
-            className="mt-2 w-full rounded-xl border border-line-strong bg-cream px-4 py-3 text-[14.5px] outline-none focus:border-olive"
+            className="mt-2 w-full rounded-[18px] border-[1.5px] border-line bg-sand px-4 py-3 text-[14.5px] outline-none focus:border-olive"
           />
           <span className="block text-right text-[11.5px] text-muted">
             {message.length}/{MAX_MESSAGE}

@@ -2,7 +2,7 @@ import { CheckCircle2, Clock, Mail, MapPin, MessageCircle, Phone, type LucideIco
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { AccordionItem } from '../components/Accordion'
-import { Breadcrumbs } from '../components/Breadcrumbs'
+import { PageHeader } from '../components/PageHeader'
 import { Field, TextInput, inputClass } from '../components/Field'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from '../components/SocialIcons'
 import { CONTACT, SOCIAL_LINKS } from '../config'
@@ -69,19 +69,13 @@ export function Contact() {
 
   return (
     <div className="pb-16 lg:pb-24">
-      <section className="container-x pt-6 lg:pt-8">
-        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Contact Us' }]} />
-        <div className="mt-8 max-w-3xl lg:mt-10">
-          <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Contact us</p>
-          <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[64px]">We’d love to hear from you.</h1>
-          <p className="mt-5 max-w-xl text-[17px] leading-[1.7] text-ink-soft">
-            Need help choosing a scent, have a question about an order, or just want to talk fragrance? Our team replies within
-            one working day.
-          </p>
-        </div>
-      </section>
+      <PageHeader eyebrow="Contact us" title="We’d love to hear from you">
+        <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-soft sm:text-[16px]">
+          Need help choosing a scent, have a question about an order, or just want to talk fragrance? Our team replies within one working day.
+        </p>
+      </PageHeader>
 
-      <section className="container-x mt-10 grid gap-10 lg:mt-14 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-14">
+      <section className="container-x mt-6 grid gap-4 lg:mt-8 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-5">
         {/* Methods */}
         <aside className="space-y-[13px]">
           {methods.map(({ Icon, label, value, href }) => {
@@ -96,7 +90,7 @@ export function Contact() {
                 </span>
               </>
             )
-            const cls = 'flex items-center gap-4 rounded-lg border border-line bg-card p-4'
+            const cls = 'rf-white flex items-center gap-4 rounded-[22px] border border-line p-4'
             return href ? (
               <a
                 key={label}
@@ -113,8 +107,8 @@ export function Contact() {
               </div>
             )
           })}
-          <div className="rounded-lg bg-olive p-6 text-on-accent">
-            <p className="text-[12px] font-semibold tracking-[0.14em] uppercase">Follow the scent</p>
+          <div className="rounded-[24px] bg-[#14110d] p-6 text-white">
+            <p className="text-[11px] font-semibold tracking-[0.24em] text-olive uppercase">Follow the scent</p>
             <ul className="mt-4 flex gap-3">
               {[
                 { label: 'Instagram', href: SOCIAL_LINKS.instagram, Icon: InstagramIcon },
@@ -128,16 +122,16 @@ export function Contact() {
                     target="_blank"
                     rel="noreferrer"
                     aria-label={`Rfaheya on ${label}`}
-                    className="grid size-11 place-items-center rounded-full border border-cream/40 transition hover:bg-cream hover:text-olive"
+                    className="grid size-11 place-items-center rounded-full bg-white/10 text-white transition hover:bg-olive"
                   >
                     <Icon className="size-5" />
                   </a>
                 </li>
               ))}
             </ul>
-            <p className="mt-5 text-[14px] text-cream/75">
+            <p className="mt-5 text-[14px] text-[#b9ae9c]">
               Looking for an order?{' '}
-              <Link to="/track-order" className="text-cream underline underline-offset-4">
+              <Link to="/track-order" className="text-white underline underline-offset-4">
                 Track it here
               </Link>
               .
@@ -146,7 +140,7 @@ export function Contact() {
         </aside>
 
         {/* Form */}
-        <div className="rounded-lg bg-card p-6 shadow-[0_0_0_1px_rgba(60,45,20,0.06)] sm:p-8 lg:p-10">
+        <div className="rf-white rounded-[28px] border border-line p-6 sm:p-8 lg:p-10">
           {sentTo ? (
             <div className="flex min-h-[420px] flex-col items-center justify-center text-center" role="status">
               <CheckCircle2 className="size-12 text-olive" strokeWidth={1.2} />

@@ -1,17 +1,18 @@
+import { Compass } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { EmptyState, ghostButton, primaryButton } from '../components/PageHeader'
 
 export function NotFound() {
   return (
-    <div className="container-x flex min-h-[55vh] flex-col items-center justify-center py-16 text-center">
-      <p className="text-[12px] tracking-[0.3em] text-gold uppercase">404</p>
-      <h1 className="mt-2 font-serif text-[44px]">Page not found.</h1>
-      <p className="mt-2 text-muted">The page you’re looking for doesn’t exist or has moved.</p>
-      <Link
-        to="/"
-        className="mt-6 inline-flex h-12 items-center rounded-full bg-olive px-8 text-[12px] font-medium tracking-[0.12em] text-on-accent uppercase hover:bg-olive-hover"
-      >
-        Back to home
-      </Link>
+    <div className="container-x py-8 lg:py-12">
+      <EmptyState icon={<Compass className="size-9" strokeWidth={1.2} />} title="Page not found" text="The page you’re looking for doesn’t exist or has moved.">
+        <Link to="/shop" className={primaryButton}>
+          Shop fragrances
+        </Link>
+        <Link to="/" className={ghostButton}>
+          Back to home
+        </Link>
+      </EmptyState>
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { useEffect, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { fetchPage, fetchPageIndex, useWp } from '../api/content'
 import { isWoo } from '../api/wp'
-import { Breadcrumbs } from '../components/Breadcrumbs'
+import { PageHeader } from '../components/PageHeader'
 import { PageLoading, WpHtml } from '../components/WpHtml'
 import { contentPages, findContentPage, splitLabel, type ContentPage } from '../data/content'
 import { NotFound } from './NotFound'
@@ -118,15 +118,12 @@ function InfoLayout({
   }, [title])
   return (
     <div className="pb-16 lg:pb-24">
-      <div className="container-x pt-6 lg:pt-8">
-        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: title }]} />
-      </div>
-      <div className="container-x mt-8 grid gap-12 lg:mt-10 lg:grid-cols-[1fr_17rem] lg:gap-20">
-        <div className="max-w-[46rem]">
-          {eyebrow && <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">{eyebrow}</p>}
-          <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[58px]">{title}</h1>
-          {intro && <p className="mt-5 text-[18px] leading-[1.7] text-ink-soft">{intro}</p>}
-          <div className="mt-10">{children}</div>
+      <PageHeader eyebrow={eyebrow || 'Help'} title={title}>
+        {intro && <p className="mt-3 max-w-2xl text-[15px] leading-[1.6] text-ink-soft sm:text-[16px]">{intro}</p>}
+      </PageHeader>
+      <div className="container-x mt-6 grid gap-5 lg:mt-8 lg:grid-cols-[1fr_17rem] lg:gap-8">
+        <div className="rf-white rounded-[28px] border border-line px-5 py-7 sm:px-10 sm:py-10">
+          <div className="max-w-[46rem]">{children}</div>
         </div>
         <aside className="h-fit lg:sticky lg:top-24">
           {related.length > 0 && <p className="text-[12.5px] font-semibold tracking-[0.14em] uppercase">Related</p>}
@@ -144,7 +141,7 @@ function InfoLayout({
               </li>
             ))}
           </ul>
-          <div className="mt-6 rounded-lg bg-card p-5 shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
+          <div className="mt-6 rf-white rounded-[24px] border border-line p-5">
             <p className="font-serif text-[20px]">Still have questions?</p>
             <Link to="/contact" className="mt-3 inline-flex items-center gap-2 text-[12.5px] tracking-[0.12em] uppercase underline-offset-4 hover:underline">
               Contact us <ArrowRight className="size-4" strokeWidth={1.5} />

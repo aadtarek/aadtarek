@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { fetchPost, fetchPosts, useWp, type WpArticle } from '../api/content'
 import { isWoo } from '../api/wp'
 import { Breadcrumbs } from '../components/Breadcrumbs'
+import { PageHeader } from '../components/PageHeader'
 import { PageLoading, WpHtml } from '../components/WpHtml'
 import { articles as demoArticles, findArticle, type Article as ArticleData } from '../data/journal'
 import { NotFound } from './NotFound'
@@ -22,22 +23,20 @@ function JournalView({ articles }: { articles: ArticleData[] }) {
   const [lead, ...rest] = articles
   if (!lead)
     return (
-      <div className="container-x pt-6 pb-24 lg:pt-8">
-        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Journal' }]} />
-        <h1 className="mt-8 font-serif text-[44px] leading-[1] sm:text-[60px]">Notes on fragrance.</h1>
-        <p className="mt-4 text-ink-soft">New articles are on their way.</p>
+      <div className="pb-24">
+        <PageHeader eyebrow="The Rfaheya Journal" title="Notes on fragrance">
+          <p className="mt-3 text-ink-soft">New articles are on their way.</p>
+        </PageHeader>
       </div>
     )
   return (
     <div className="pb-16 lg:pb-24">
-      <div className="container-x pt-6 lg:pt-8">
-        <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Journal' }]} />
-        <p className="mt-8 text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">The Rfaheya Journal</p>
-        <h1 className="mt-2 font-serif text-[44px] leading-[1] sm:text-[60px]">Notes on fragrance.</h1>
-      </div>
+      <PageHeader eyebrow="The Rfaheya Journal" title="Notes on fragrance">
+        <p className="mt-3 max-w-xl text-[15px] text-ink-soft sm:text-[16px]">Guides, stories and small rituals for wearing fragrance well.</p>
+      </PageHeader>
 
-      <div className="container-x mt-10">
-        <Link to={`/journal/${lead.slug}`} className="group grid overflow-hidden rounded-lg bg-card shadow-[0_0_0_1px_rgba(60,45,20,0.06)] lg:grid-cols-2">
+      <div className="container-x mt-6 lg:mt-8">
+        <Link to={`/journal/${lead.slug}`} className="group grid rf-white overflow-hidden rounded-[28px] border border-line lg:grid-cols-2">
           <img src={lead.image || undefined} srcSet={(lead as Partial<WpArticle>).srcset} sizes="(max-width: 1023px) 100vw, 50vw" fetchPriority="high" alt="" className="aspect-[16/10] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] lg:aspect-auto lg:h-full" />
           <div className="flex flex-col justify-center p-6 sm:p-10">
             <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
@@ -54,7 +53,7 @@ function JournalView({ articles }: { articles: ArticleData[] }) {
         <ul className="mt-[13px] grid gap-[13px] md:grid-cols-2">
           {rest.map((a) => (
             <li key={a.slug}>
-              <Link to={`/journal/${a.slug}`} className="group block h-full overflow-hidden rounded-lg bg-card shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
+              <Link to={`/journal/${a.slug}`} className="group block h-full rf-white overflow-hidden rounded-[28px] border border-line">
                 {a.image && <img src={a.image} srcSet={(a as Partial<WpArticle>).srcset} sizes="(max-width: 767px) 100vw, 33vw" alt="" loading="lazy" className="aspect-[16/9] w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />}
                 <div className="p-6">
                   <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
@@ -99,7 +98,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
         <Breadcrumbs items={[{ label: 'Home', to: '/' }, { label: 'Journal', to: '/journal' }, { label: a.category }]} />
       </div>
       <header className="container-x mt-8 max-w-4xl text-center">
-        <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-gold uppercase">
           {a.category} · {a.readMinutes} min read · {date(a.date)}
         </p>
         <h1 className="mt-4 font-serif text-[40px] leading-[1.05] sm:text-[58px]">{a.title}</h1>
@@ -107,7 +106,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
       </header>
       {a.image && (
         <div className="container-x mt-10">
-          <img src={a.image} srcSet={(a as Partial<WpArticle>).srcset} sizes="100vw" fetchPriority="high" alt="" className="aspect-[21/9] w-full rounded-lg object-cover" />
+          <img src={a.image} srcSet={(a as Partial<WpArticle>).srcset} sizes="100vw" fetchPriority="high" alt="" className="aspect-[4/3] w-full rounded-[28px] object-cover sm:aspect-[21/9] lg:rounded-[36px]" />
         </div>
       )}
       <div className="container-x mt-12 max-w-[44rem] text-[17.5px] leading-[1.8] text-ink-soft">
@@ -122,12 +121,13 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
             ))}
           </section>
         ))}
-        <div className="mt-12 rounded-lg bg-olive p-8 text-on-accent">
-          <p className="font-serif text-[28px] leading-tight">Not sure where to start?</p>
-          <p className="mt-2 text-cream/80">Answer 7 quick questions and we’ll match you with your scent.</p>
+        <div className="mt-12 rounded-[28px] bg-[#14110d] p-7 text-white sm:p-9">
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-olive uppercase">Rfaheya Finder</p>
+          <p className="mt-2.5 font-serif text-[32px] leading-tight text-white">Not sure where to start?</p>
+          <p className="mt-2 text-[15px] text-[#b9ae9c]">Answer 7 quick questions and we’ll match you with your scent.</p>
           <Link
             to="/finder"
-            className="mt-5 inline-flex h-12 items-center gap-3 rounded-full border border-cream/70 px-7 text-[12px] font-medium tracking-[0.12em] uppercase transition hover:bg-cream hover:text-olive"
+            className="mt-6 inline-flex h-12 items-center gap-2.5 rounded-full bg-olive px-7 text-[12px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover"
           >
             Try the Rfaheya Finder <ArrowRight className="size-4" strokeWidth={1.5} />
           </Link>
@@ -144,7 +144,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
         <ul className="mt-6 grid gap-[13px] sm:grid-cols-2">
           {others.map((o) => (
             <li key={o.slug}>
-              <Link to={`/journal/${o.slug}`} className="group flex items-center gap-4 overflow-hidden rounded-lg bg-card p-3 shadow-[0_0_0_1px_rgba(60,45,20,0.06)]">
+              <Link to={`/journal/${o.slug}`} className="group flex items-center gap-4 rf-white overflow-hidden rounded-[22px] border border-line p-3">
                 {o.image && <img src={o.image} alt="" loading="lazy" className="size-24 shrink-0 rounded object-cover" />}
                 <span className="font-serif text-[20px] leading-tight group-hover:underline">{o.title}</span>
               </Link>
