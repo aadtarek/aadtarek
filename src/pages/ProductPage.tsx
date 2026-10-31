@@ -165,7 +165,7 @@ function ProductDetails({ product }: { product: Product }) {
             aria-label="Size"
             className={`relative mt-2.5 grid gap-2 ${sizes.length >= 4 ? 'grid-cols-4' : sizes.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}
           >
-            <SlidingPill box={sizeBox} className="rounded-[18px] shadow-[inset_0_0_0_2px_var(--color-ink)]" />
+            <SlidingPill box={sizeBox} className="rounded-[18px] bg-olive shadow-[0_10px_24px_-12px_rgba(120,80,20,0.6)]" />
             {sizes.map((v) => {
               const on = v.id === variationId
               return (
@@ -176,12 +176,12 @@ function ProductDetails({ product }: { product: Product }) {
                   aria-checked={on}
                   disabled={!v.inStock}
                   onClick={() => pickSize(v.id)}
-                  className={`rf-white relative rounded-[18px] px-2 py-3 text-center transition disabled:cursor-not-allowed disabled:opacity-40 sm:py-3.5 ${
-                    on ? '' : 'shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]'
+                  className={`relative z-[1] rounded-[18px] px-2 py-3 text-center transition-[color,box-shadow,transform] duration-300 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 sm:py-3.5 ${
+                    on ? 'text-on-accent' : 'rf-white shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]'
                   }`}
                 >
                   <span className="relative z-[1] block text-[15px] font-semibold sm:text-[16px]">{v.size.replace(/\s*ML$/i, ' ml')}</span>
-                  <span className="relative z-[1] block text-[12px] text-muted sm:text-[12.5px]">{formatPrice(v.price)}</span>
+                  <span className={`relative z-[1] block text-[12px] transition-colors duration-300 sm:text-[12.5px] ${on ? 'text-on-accent/80' : 'text-muted'}`}>{formatPrice(v.price)}</span>
                 </button>
               )
             })}
