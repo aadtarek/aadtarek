@@ -3,6 +3,7 @@ import { wp } from '../api/wp'
 import heroImage from '../assets/hero.webp'
 import { PageHeader } from '../components/PageHeader'
 import { formatPrice } from '../lib/format'
+import accountImage from '../assets/about/value-2.webp'
 import { useAccount } from '../store/account'
 
 export function Account() {
@@ -16,7 +17,7 @@ export function Account() {
 
   return (
     <div className="pb-16">
-      <PageHeader eyebrow="My account" title={`Hello, ${account.customer.firstName}`}>
+      <PageHeader eyebrow="My account" title={`Hello, ${account.customer.firstName}`} image={accountImage}>
         <button
           type="button"
           onClick={account.logout}

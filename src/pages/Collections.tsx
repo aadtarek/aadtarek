@@ -11,12 +11,13 @@ import { formatPrice } from '../lib/format'
 import { flyToCart } from '../lib/fx'
 import { useCart } from '../store/cart'
 import type { Product } from '../types'
+import collectionsImage from '../assets/categories/oriental.webp'
 import { NotFound } from './NotFound'
 
 export function CollectionsIndex() {
   return (
     <div className="pb-16 lg:pb-24">
-      <PageHeader eyebrow="Collections" title="Curated for every you">
+      <PageHeader eyebrow="Collections" title="Curated for every you" image={collectionsImage}>
         <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-soft sm:text-[16px]">
           From our inspired Perfume Lab to discovery sets and gifts — find the way into Rfaheya that suits you.
         </p>

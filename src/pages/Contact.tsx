@@ -1,13 +1,14 @@
-import { CheckCircle2, Clock, Mail, MapPin, MessageCircle, Phone, type LucideIcon } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Clock, Mail, MapPin, MessageCircle, Phone, Plus, type LucideIcon } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { AccordionItem } from '../components/Accordion'
 import { PageHeader } from '../components/PageHeader'
 import { Field, TextInput, inputClass } from '../components/Field'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from '../components/SocialIcons'
 import { CONTACT, SOCIAL_LINKS } from '../config'
 import { WpHtml } from '../components/WpHtml'
 import { useFaqs } from '../lib/useFaqs'
+import contactImage from '../assets/standard-page/why.webp'
+import faqImage from '../assets/about/value-1.webp'
 import { usePersistentState } from '../lib/storage'
 
 const topics = ['Question about a fragrance', 'My order', 'Returns & exchanges', 'Wholesale & gifting', 'Something else']
@@ -69,7 +70,7 @@ export function Contact() {
 
   return (
     <div className="pb-16 lg:pb-24">
-      <PageHeader eyebrow="Contact us" title="We’d love to hear from you">
+      <PageHeader eyebrow="Contact us" title="We’d love to hear from you" image={contactImage}>
         <p className="mt-3 max-w-xl text-[15px] leading-[1.6] text-ink-soft sm:text-[16px]">
           Need help choosing a scent, have a question about an order, or just want to talk fragrance? Our team replies within one working day.
         </p>
@@ -207,29 +208,65 @@ export function Contact() {
 
 export function FaqSection({ asPage = false }: { asPage?: boolean }) {
   const faqs = useFaqs()
-  const Heading = asPage ? 'h1' : 'h2'
+  const [open, setOpen] = useState(0)
   return (
-    <section className="container-x mt-16 grid gap-8 lg:mt-24 lg:grid-cols-[minmax(0,380px)_1fr] lg:gap-14" aria-labelledby="faq-title">
-      <div>
-        <p className="text-[12px] tracking-[0.3em] text-gold uppercase sm:text-[14px]">Frequently asked questions</p>
-        <Heading id="faq-title" className="mt-2 font-serif text-[38px] leading-[1.05] sm:text-[48px]">
-          Good to know.
-        </Heading>
-        <p className="mt-3 text-[15.5px] leading-[1.65] text-ink-soft">
-          Can’t find your answer?{' '}
-          <Link to="/contact" className="text-ink underline underline-offset-4">
-            Get in touch
-          </Link>
-          .
-        </p>
-      </div>
-      <div className="border-t border-line">
-        {faqs.map((f, i) => (
-          <AccordionItem key={f.q} title={`${String(i + 1).padStart(2, '0')} — ${f.q}`} open={i === 0}>
-            {f.html !== undefined ? <WpHtml html={f.html} /> : <p>{f.text}</p>}
-          </AccordionItem>
-        ))}
-      </div>
-    </section>
+    <>
+      {asPage && <PageHeader eyebrow="Help" title="Questions, answered" image={faqImage} />}
+      <section className={`container-x ${asPage ? 'mt-4 lg:mt-5' : 'mt-4 lg:mt-5'}`} aria-labelledby="faq-title">
+        <div className="grid gap-8 rounded-[28px] bg-chip px-4 py-8 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-12 lg:rounded-[36px] lg:p-12">
+          <div className="px-1 lg:sticky lg:top-24 lg:self-start lg:px-0">
+            <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Frequently asked questions</p>
+            <h2 id="faq-title" className="mt-3 font-serif text-[40px] leading-[0.98] sm:text-[52px]">
+              Good to <span className="text-gold italic">know.</span>
+            </h2>
+            <p className="mt-3 text-[15px] leading-[1.6] text-ink-soft">Everything about our fragrances, orders and returns — in one place.</p>
+            <div className="mt-6 rounded-[24px] bg-[#14110d] p-5 text-white">
+              <p className="font-serif text-[24px] leading-tight">Still have a question?</p>
+              <p className="mt-1.5 text-[13.5px] text-white/70">Our team replies within one working day.</p>
+              <Link
+                to="/contact"
+                className="mt-4 inline-flex h-11 items-center gap-2 rounded-full bg-olive px-5 text-[11.5px] font-semibold tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
+              >
+                Get in touch
+                <ArrowRight className="size-4" strokeWidth={1.6} />
+              </Link>
+            </div>
+          </div>
+
+          <ul className="space-y-2">
+            {faqs.map((f, i) => {
+              const on = open === i
+              return (
+                <li key={f.q} className={`rf-white overflow-hidden rounded-[22px] transition-shadow duration-300 ${on ? 'shadow-[0_18px_40px_-28px_rgba(60,40,10,0.45)]' : ''}`}>
+                  <h3>
+                    <button
+                      type="button"
+                      aria-expanded={on}
+                      onClick={() => setOpen(on ? -1 : i)}
+                      className="flex w-full items-center gap-3.5 px-4 py-4 text-left sm:gap-4 sm:px-5 sm:py-5"
+                    >
+                      <span className={`grid size-9 shrink-0 place-items-center rounded-full text-[12px] font-semibold tabular-nums transition ${on ? 'bg-olive text-on-accent' : 'bg-chip text-gold'}`}>
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="flex-1 font-serif text-[19px] leading-tight sm:text-[22px]">{f.q}</span>
+                      <span className={`grid size-8 shrink-0 place-items-center rounded-full transition duration-300 ${on ? 'rotate-45 bg-[#14110d] text-white' : 'bg-chip'}`}>
+                        <Plus className="size-4" strokeWidth={1.8} />
+                      </span>
+                    </button>
+                  </h3>
+                  <div className={`grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${on ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                    <div className="overflow-hidden">
+                      <div className="px-4 pb-5 text-[14.5px] leading-[1.7] text-ink-soft sm:pr-16 sm:pl-[4.25rem]">
+                        {f.html !== undefined ? <WpHtml html={f.html} /> : <p>{f.text}</p>}
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      </section>
+    </>
   )
 }

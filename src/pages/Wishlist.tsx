@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { findProductById } from '../api/catalog'
 import { EmptyState, PageHeader, ghostButton, primaryButton } from '../components/PageHeader'
 import { ProductCard } from '../components/ProductCard'
+import wishImage from '../assets/categories/floral.webp'
 import { useWishlist } from '../store/wishlist'
 
 export function Wishlist() {
@@ -11,7 +12,7 @@ export function Wishlist() {
 
   return (
     <div className="pb-16">
-      <PageHeader eyebrow="Saved for later" title="Your wishlist">
+      <PageHeader eyebrow="Saved for later" title="Your wishlist" image={wishImage}>
         {items.length > 0 && (
           <p className="mt-3 text-[15px] text-ink-soft">
             {items.length} {items.length === 1 ? 'fragrance' : 'fragrances'} you love, kept here for later.

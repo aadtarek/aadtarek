@@ -82,7 +82,7 @@ export default function App() {
                 <Route path="track-order" element={<TrackOrder />} />
                 <Route path="about" element={<About />} />
                 <Route path="contact" element={<Contact />} />
-                <Route path="faqs" element={<div className="pt-2 pb-24"><FaqSection asPage /></div>} />
+                <Route path="faqs" element={<div className="pb-16 lg:pb-20"><FaqSection asPage /></div>} />
                 <Route path="finder" element={<FinderLanding />} />
                 <Route path="finder/result" element={<FinderResult />} />
                 <Route path="discover" element={<Navigate to="/finder" replace />} />

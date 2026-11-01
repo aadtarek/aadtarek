@@ -1,8 +1,10 @@
+import { ClipboardCheck, Home, PackageOpen, Truck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Field, TextInput } from '../components/Field'
 import { PageHeader } from '../components/PageHeader'
 import { formatPrice } from '../lib/format'
 import { useAccount } from '../store/account'
+import trackImage from '../assets/about/value-3.webp'
 import type { Order } from '../types'
 
 const digits = (s: string) => s.replace(/\D/g, '').slice(-10)
@@ -23,7 +25,7 @@ export function TrackOrder() {
 
   return (
     <div className="pb-16">
-      <PageHeader eyebrow="Help" title="Track your order">
+      <PageHeader eyebrow="Help" title="Track your order" image={trackImage}>
         <p className="mt-3 max-w-md text-[15px] text-ink-soft">Enter the order number from your confirmation and the mobile number you ordered with.</p>
       </PageHeader>
       <div className="container-x mt-6 grid gap-4 lg:mt-8 lg:grid-cols-[28rem_1fr] lg:gap-5">
@@ -36,7 +38,7 @@ export function TrackOrder() {
           </Field>
           <button
             type="submit"
-            className="h-14 w-full rounded-full bg-olive text-[12.5px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover"
+            className="h-14 w-full rounded-full bg-olive text-[12.5px] font-semibold tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
           >
             Track order
           </button>
@@ -44,11 +46,30 @@ export function TrackOrder() {
 
         <div aria-live="polite">
           {result === undefined && (
-            <div className="hidden h-full min-h-[240px] place-items-center rounded-[28px] bg-chip p-8 text-center text-[15px] text-ink-soft lg:grid">
-              <p>
-                <span className="block font-serif text-[30px] text-ink">Where’s my scent?</span>
-                Your order’s journey will show here.
+            <div className="h-full rounded-[28px] bg-[#14110d] p-6 text-white sm:p-8">
+              <p className="text-[11px] font-semibold tracking-[0.24em] text-[#f0c27a] uppercase">Your order’s journey</p>
+              <p className="mt-2 font-serif text-[32px] leading-none sm:text-[40px]">
+                Where’s my <span className="text-[#f0c27a] italic">scent?</span>
               </p>
+              <ol className="mt-7 grid gap-2 sm:grid-cols-4">
+                {[
+                  { Icon: ClipboardCheck, title: 'Received', text: 'We have your order.' },
+                  { Icon: PackageOpen, title: 'Prepared', text: 'Packed by hand.' },
+                  { Icon: Truck, title: 'On its way', text: '2–4 working days.' },
+                  { Icon: Home, title: 'Delivered', text: 'Rest it 2 days, then wear.' },
+                ].map(({ Icon, title, text }, i) => (
+                  <li key={title} className="flex items-center gap-3 rounded-[20px] bg-white/[0.07] p-3.5 sm:flex-col sm:items-start sm:p-4">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-olive text-on-accent">
+                      <Icon className="size-[18px]" strokeWidth={1.6} />
+                    </span>
+                    <span>
+                      <span className="block text-[11px] font-semibold text-[#f0c27a]">0{i + 1}</span>
+                      <span className="block font-serif text-[20px] leading-tight">{title}</span>
+                      <span className="block text-[12.5px] text-white/60">{text}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
             </div>
           )}
           {result === null && (

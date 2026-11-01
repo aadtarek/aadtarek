@@ -1,16 +1,49 @@
 import type { ReactNode } from 'react'
+import fallback from '../assets/about/hero.webp'
 
-/** A page title on a soft island (as on the shop): eyebrow, large serif title, anything below it. */
-export function PageHeader({ eyebrow, title, children, aside }: { eyebrow: string; title: string; children?: ReactNode; aside?: ReactNode }) {
+/** The title with its last word in gold italic, as on the story pages. */
+function GoldTail({ text }: { text: string }) {
+  const clean = text.replace(/\.$/, '')
+  const cut = clean.lastIndexOf(' ')
+  if (cut < 0) return <>{clean}</>
+  return (
+    <>
+      {clean.slice(0, cut)} <span className="text-gold italic">{clean.slice(cut + 1)}</span>
+    </>
+  )
+}
+
+/**
+ * A page title island: eyebrow, large serif title (last word in gold) and
+ * anything below it on one side, a photo on the other (on top on phones).
+ */
+export function PageHeader({
+  eyebrow,
+  title,
+  children,
+  aside,
+  image = fallback,
+}: {
+  eyebrow: string
+  title: string
+  children?: ReactNode
+  aside?: ReactNode
+  image?: string
+}) {
   return (
     <div className="container-x pt-3 lg:pt-4">
-      <header className="grid gap-5 pt-4 pb-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:gap-10 lg:rounded-[36px] lg:bg-chip lg:px-12 lg:py-11">
-        <div>
+      <header className="grid overflow-hidden rounded-[28px] bg-chip lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:rounded-[36px]">
+        <div className="order-2 flex flex-col justify-end px-5 pt-6 pb-7 lg:order-1 lg:px-12 lg:py-12">
           <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">{eyebrow}</p>
-          <h1 className="mt-2.5 font-serif text-[42px] leading-[0.98] tracking-[-0.01em] sm:text-[60px]">{title.replace(/\.$/, '')}</h1>
+          <h1 className="mt-2.5 font-serif text-[42px] leading-[0.98] tracking-[-0.01em] sm:text-[58px] lg:text-[64px]">
+            <GoldTail text={title} />
+          </h1>
           {children}
+          {aside && <div className="mt-6">{aside}</div>}
         </div>
-        {aside}
+        <div className="order-1 p-2 lg:order-2 lg:p-3">
+          <img src={image} alt="" fetchPriority="high" className="h-40 w-full rounded-[22px] object-cover sm:h-52 lg:h-full lg:min-h-[300px] lg:rounded-[28px]" />
+        </div>
       </header>
     </div>
   )

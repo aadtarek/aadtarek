@@ -1249,12 +1249,6 @@ section[aria-labelledby="best-sellers-title"] .rf-carousel-dots {
     transform: translateY(-3px) rotate(-6deg);
   }
 }
-@keyframes rf-acc-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-}
 
 /* Cart: opens in the middle of the page with a soft spring, lines follow one another. */
 .rf-cart-panel {
@@ -1313,20 +1307,6 @@ section[aria-labelledby="best-sellers-title"] .rf-carousel-dots {
   }
   :hover > .rf-note {
     animation: rf-note-float 1.6s ease-in-out infinite;
-  }
-  /* Accordions open smoothly. */
-  .rf-acc::details-content {
-    block-size: 0;
-    overflow: clip;
-    transition:
-      block-size 0.55s var(--rf-ease-soft),
-      content-visibility 0.55s allow-discrete;
-  }
-  .rf-acc[open]::details-content {
-    block-size: auto;
-  }
-  .rf-acc[open] .rf-acc-body {
-    animation: rf-acc-in 0.55s var(--rf-ease-soft) backwards;
   }
   /* Amber buttons: a light sweep across on hover, and a press. */
   :is(a, button).bg-olive.rounded-full:not(.absolute, .fixed, .sticky) {

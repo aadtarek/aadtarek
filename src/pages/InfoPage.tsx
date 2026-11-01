@@ -6,6 +6,7 @@ import { isWoo } from '../api/wp'
 import { PageHeader } from '../components/PageHeader'
 import { PageLoading, WpHtml } from '../components/WpHtml'
 import { contentPages, findContentPage, splitLabel, type ContentPage } from '../data/content'
+import infoImage from '../assets/standard/background.webp'
 import { NotFound } from './NotFound'
 
 const helpLinks = [
@@ -118,7 +119,7 @@ function InfoLayout({
   }, [title])
   return (
     <div className="pb-16 lg:pb-24">
-      <PageHeader eyebrow={eyebrow || 'Help'} title={title}>
+      <PageHeader eyebrow={eyebrow || 'Help'} title={title} image={infoImage}>
         {intro && <p className="mt-3 max-w-2xl text-[15px] leading-[1.6] text-ink-soft sm:text-[16px]">{intro}</p>}
       </PageHeader>
       <div className="container-x mt-6 grid gap-5 lg:mt-8 lg:grid-cols-[1fr_17rem] lg:gap-8">
