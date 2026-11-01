@@ -5,7 +5,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-01 · v5.5 cache refresh');
+define('CHEOPS_BUILD', '2026-11-01 · v6 section motion');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);
@@ -2536,8 +2536,10 @@ function cheops_render_marquee() {
 add_action('wp_head', static function () {
     if (is_admin() || (defined('CHEOPS_NO_MOTION') && CHEOPS_NO_MOTION)) return;
     echo '<link rel="stylesheet" id="cheops-motion-css" href="' . esc_url(get_template_directory_uri() . '/assets/css/motion.css?ver=' . cheops_asset_ver('assets/css/motion.css')) . '">' . "\n";
+    echo '<link rel="stylesheet" id="cheops-wow-css" href="' . esc_url(get_template_directory_uri() . '/assets/css/wow.css?ver=' . cheops_asset_ver('assets/css/wow.css')) . '">' . "\n";
 }, 30);
 add_action('wp_footer', static function () {
     if (is_admin() || (defined('CHEOPS_NO_MOTION') && CHEOPS_NO_MOTION)) return;
     echo '<script id="cheops-motion-js" src="' . esc_url(get_template_directory_uri() . '/assets/js/motion.js?ver=' . cheops_asset_ver('assets/js/motion.js')) . '" defer></script>' . "\n";
+    echo '<script id="cheops-wow-js" src="' . esc_url(get_template_directory_uri() . '/assets/js/wow.js?ver=' . cheops_asset_ver('assets/js/wow.js')) . '" defer></script>' . "\n";
 }, 50);
