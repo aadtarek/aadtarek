@@ -59,6 +59,9 @@ export interface RawReview {
   review: string
   rating: number
   verified: boolean
+  /** From the rfaheya.php bootstrap: photos and size added in the dashboard */
+  images?: string[]
+  size?: string
 }
 
 // ---------- note icons (bundled artwork, matched by name) ----------
@@ -291,15 +294,16 @@ export function mapReviews(raw: RawReview[]): Review[] {
   return raw.map((r) => ({
     id: r.id,
     productId: r.product_id,
-    size: '',
+    size: r.size ?? '',
     author: stripHtml(r.reviewer),
     rating: r.rating,
     text: stripHtml(r.review),
     verified: r.verified,
     date: r.date_created.slice(0, 10),
+    images: r.images ?? [],
   }))
 }
 
 export async function fetchWooReviews(): Promise<Review[]> {
-  return mapReviews(await storeApi<RawReview[]>('products/reviews?per_page=50&orderby=date_gmt&order=desc'))
+  return mapReviews(await storeApi<RawReview[]>('products/reviews?per_page=100&orderby=date_gmt&order=desc'))
 }

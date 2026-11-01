@@ -20,7 +20,7 @@ import { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage
 /** `npm run build:preview` uses #/ URLs so the site works from a single static file host (shareable preview link). */
 const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter
 
-/** Shown until the products have loaded: header, the home hero and a few placeholder cards. */
+/** Shown until the products have loaded (usually a blink): the header and, on the home page, the hero — no loader. */
 function Startup() {
   const home = useLocation().pathname === '/'
   return (
@@ -29,16 +29,6 @@ function Startup() {
       <Header />
       <main className="flex-1">
         {home && (HERO_SLIDER.enabled ? <HeroSlider /> : <Hero />)}
-        <section className="container-x rf-loading-section" role="status" aria-label="Loading fragrances">
-          <p className="rf-loading-label">Loading fragrances…</p>
-          <div className="rf-loading-cards" aria-hidden>
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="rf-loading-card">
-                <div className="rf-loading-image" />
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
     </div>
   )

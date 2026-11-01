@@ -1,4 +1,5 @@
 import type { Review } from '../types'
+import reviewPhoto from '../assets/reviews/vanilla-oud.webp'
 
 /**
  * PLACEHOLDER reviews copied from the design mock-up. Replace with real,
@@ -15,6 +16,7 @@ export const reviews: Review[] = [
     text: 'The fragrance feels much more expensive than I expected. The scent develops beautifully and I keep getting asked what I’m wearing.',
     verified: true,
     date: '2026-09-18',
+    images: [reviewPhoto],
   },
   {
     id: 2,

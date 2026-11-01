@@ -123,6 +123,8 @@ export interface Review {
   text: string
   verified: boolean
   date: string
+  /** Photos added to the review in the dashboard (e.g. a customer's WhatsApp screenshots) */
+  images?: string[]
 }
 
 export interface CartItem {

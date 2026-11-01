@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
 // Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
-const RFAHEYA_DATA_VERSION = 5;
+const RFAHEYA_DATA_VERSION = 6;
 
 // ==================================================================== settings
 
@@ -1486,7 +1486,46 @@ function rfaheya_slim_product( $p ) {
 
 /** A Store API review with only the fields the storefront reads. */
 function rfaheya_slim_review( $r ) {
-	return array_intersect_key( (array) $r, array_flip( array( 'id', 'date_created', 'product_id', 'reviewer', 'review', 'rating', 'verified' ) ) );
+	$r   = (array) $r;
+	$out = array_intersect_key( $r, array_flip( array( 'id', 'date_created', 'product_id', 'reviewer', 'review', 'rating', 'verified' ) ) );
+	$id  = isset( $r['id'] ) ? (int) $r['id'] : 0;
+	// Photos and size added in the dashboard (Products → Add review, or a review's edit screen).
+	$out['images'] = $id ? rfaheya_review_image_urls( $id ) : array();
+	$out['size']   = $id ? (string) get_comment_meta( $id, 'rfaheya_size', true ) : '';
+	return $out;
+}
+
+/** A review's photos (attachment IDs saved as comment meta) as image URLs. */
+function rfaheya_review_image_urls( $comment_id ) {
+	$urls = array();
+	foreach ( (array) get_comment_meta( $comment_id, 'rfaheya_images', true ) as $attachment ) {
+		$src = wp_get_attachment_image_url( (int) $attachment, 'large' );
+		if ( $src ) {
+			$urls[] = $src;
+		}
+	}
+	return $urls;
+}
+
+/** Every published review (newest first), a hundred at a time, up to 500. */
+function rfaheya_all_reviews() {
+	$all = array();
+	for ( $page = 1; $page <= 5; $page++ ) {
+		$chunk = rfaheya_store_data(
+			'/wc/store/v1/products/reviews',
+			array(
+				'per_page' => 100,
+				'page'     => $page,
+				'orderby'  => 'date_gmt',
+				'order'    => 'desc',
+			)
+		);
+		$all = array_merge( $all, $chunk );
+		if ( count( $chunk ) < 100 ) {
+			break;
+		}
+	}
+	return $all;
 }
 
 /**
@@ -1619,7 +1658,7 @@ function rfaheya_bootstrap() {
 			)
 		),
 		'variations' => $variations,
-		'reviews'    => array_map( 'rfaheya_slim_review', rfaheya_store_data( '/wc/store/v1/products/reviews', array( 'per_page' => 50, 'orderby' => 'date_gmt', 'order' => 'desc' ) ) ),
+		'reviews'    => array_map( 'rfaheya_slim_review', rfaheya_all_reviews() ),
 		'faqs'       => rfaheya_faqs_data(),
 	);
 	// Rebuilt whenever products, stock, settings or content change (hooks below), so it can be kept a while.
@@ -1786,7 +1825,7 @@ add_action(
 );
 
 /** Content changes show up right away. */
-foreach ( array( 'save_post', 'deleted_post', 'edited_term', 'created_term', 'delete_term', 'update_option_' . RFAHEYA_OPTION, 'woocommerce_product_set_stock', 'woocommerce_variation_set_stock', 'comment_post' ) as $rfaheya_hook ) {
+foreach ( array( 'save_post', 'deleted_post', 'edited_term', 'created_term', 'delete_term', 'update_option_' . RFAHEYA_OPTION, 'woocommerce_product_set_stock', 'woocommerce_variation_set_stock', 'comment_post', 'wp_insert_comment', 'edit_comment', 'wp_set_comment_status', 'deleted_comment' ) as $rfaheya_hook ) {
 	add_action(
 		$rfaheya_hook,
 		function () {
@@ -3819,5 +3858,299 @@ add_filter(
 	},
 	10,
 	2
+);
+
+
+/* -------------------------------------------------------------------------
+ * Reviews from the dashboard, with photos
+ * Products → Add review: post a customer's review (e.g. one sent on WhatsApp)
+ * with screenshots or photos. Any review's edit screen can add photos too.
+ * ---------------------------------------------------------------------- */
+
+add_action(
+	'admin_menu',
+	function () {
+		add_submenu_page( 'edit.php?post_type=product', 'Add review', 'Add review', 'moderate_comments', 'rfaheya-add-review', 'rfaheya_add_review_page' );
+	},
+	60
+);
+
+/** The media picker for review photos (the Add review page and a review's edit screen). */
+add_action(
+	'admin_enqueue_scripts',
+	function ( $hook ) {
+		if ( 'product_page_rfaheya-add-review' !== $hook && 'comment.php' !== $hook ) {
+			return;
+		}
+		wp_enqueue_media();
+		wp_register_script( 'rfaheya-review-photos', false, array( 'jquery' ), '1.0.0', true );
+		wp_enqueue_script( 'rfaheya-review-photos' );
+		wp_add_inline_script(
+			'rfaheya-review-photos',
+			"jQuery(function ($) {
+				function draw(box) {
+					var ids = box.find('input.rf-ids').val().split(',').filter(Boolean);
+					var list = box.find('.rf-thumbs').empty();
+					ids.forEach(function (id) {
+						var url = box.data('urls')[id] || '';
+						$('<li>').attr('data-id', id)
+							.append($('<img>').attr('src', url))
+							.append($('<button type=\"button\" class=\"rf-x\" aria-label=\"Remove photo\">×</button>'))
+							.appendTo(list);
+					});
+				}
+				$('.rf-review-photos').each(function () {
+					var box = $(this);
+					box.data('urls', box.data('initial') || {});
+					draw(box);
+					box.on('click', '.rf-add', function (e) {
+						e.preventDefault();
+						var frame = wp.media({ title: 'Review photos', multiple: true, library: { type: 'image' }, button: { text: 'Add photos' } });
+						frame.on('select', function () {
+							var ids = box.find('input.rf-ids').val().split(',').filter(Boolean);
+							frame.state().get('selection').each(function (a) {
+								a = a.toJSON();
+								if (ids.indexOf(String(a.id)) < 0) ids.push(String(a.id));
+								box.data('urls')[a.id] = (a.sizes && (a.sizes.thumbnail || a.sizes.medium) || a).url;
+							});
+							box.find('input.rf-ids').val(ids.join(','));
+							draw(box);
+						});
+						frame.open();
+					});
+					box.on('click', '.rf-x', function () {
+						var id = String($(this).parent().data('id'));
+						var ids = box.find('input.rf-ids').val().split(',').filter(function (x) { return x && x !== id; });
+						box.find('input.rf-ids').val(ids.join(','));
+						draw(box);
+					});
+				});
+			});"
+		);
+		wp_register_style( 'rfaheya-review-photos', false, array(), '1.0.0' );
+		wp_enqueue_style( 'rfaheya-review-photos' );
+		wp_add_inline_style(
+			'rfaheya-review-photos',
+			'.rf-thumbs{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 10px;padding:0;list-style:none}.rf-thumbs li{position:relative;margin:0}.rf-thumbs img{width:96px;height:96px;object-fit:cover;border-radius:12px;display:block;border:1px solid #ddd}.rf-x{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;border:0;background:#1d2327;color:#fff;cursor:pointer;line-height:24px;padding:0}.rf-review-form .rf-stars label{margin-right:12px}.rf-review-form td{padding-top:12px}.rf-recent img{width:40px;height:40px;object-fit:cover;border-radius:8px;margin-right:4px;vertical-align:middle}'
+		);
+	}
+);
+
+/** The photo picker: thumbnails, remove buttons and an "Add photos" button; IDs travel in a hidden field. */
+function rfaheya_review_photos_field( $ids ) {
+	$ids  = array_values( array_filter( array_map( 'absint', (array) $ids ) ) );
+	$urls = array();
+	foreach ( $ids as $id ) {
+		$urls[ $id ] = (string) wp_get_attachment_image_url( $id, 'thumbnail' );
+	}
+	echo '<div class="rf-review-photos" data-initial="' . esc_attr( wp_json_encode( (object) $urls ) ) . '">';
+	echo '<ul class="rf-thumbs"></ul>';
+	echo '<input type="hidden" class="rf-ids" name="rfaheya_review_images" value="' . esc_attr( implode( ',', $ids ) ) . '">';
+	echo '<button type="button" class="button rf-add">Add photos</button>';
+	echo '<p class="description">Screenshots or photos from the customer — they show on the review in the store.</p>';
+	echo '</div>';
+}
+
+function rfaheya_review_ids_from_post() {
+	$raw = isset( $_POST['rfaheya_review_images'] ) ? sanitize_text_field( wp_unslash( $_POST['rfaheya_review_images'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- checked by the callers
+	return array_values( array_filter( array_map( 'absint', explode( ',', $raw ) ) ) );
+}
+
+function rfaheya_add_review_page() {
+	if ( ! current_user_can( 'moderate_comments' ) ) {
+		return;
+	}
+	$products = get_posts(
+		array(
+			'post_type'   => 'product',
+			'post_status' => 'publish',
+			'numberposts' => -1,
+			'orderby'     => 'title',
+			'order'       => 'ASC',
+		)
+	);
+	$notice = isset( $_GET['rfaheya-review'] ) ? sanitize_text_field( wp_unslash( $_GET['rfaheya-review'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	?>
+	<div class="wrap rf-review-form">
+		<h1>Add review</h1>
+		<p>Post a customer's review — for example one they sent on WhatsApp — with their photos or screenshots. It shows on the product page and in the store's reviews.</p>
+		<?php if ( 'added' === $notice ) : ?>
+			<div class="notice notice-success is-dismissible"><p>Review added. It shows in the store within a minute.</p></div>
+		<?php elseif ( $notice ) : ?>
+			<div class="notice notice-error"><p><?php echo esc_html( $notice ); ?></p></div>
+		<?php endif; ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="rfaheya_add_review">
+			<?php wp_nonce_field( 'rfaheya_add_review' ); ?>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><label for="rf-product">Fragrance</label></th>
+					<td>
+						<select id="rf-product" name="product_id" required>
+							<option value="">Choose a fragrance…</option>
+							<?php foreach ( $products as $p ) : ?>
+								<option value="<?php echo esc_attr( $p->ID ); ?>"><?php echo esc_html( $p->post_title ); ?></option>
+							<?php endforeach; ?>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="rf-name">Customer name</label></th>
+					<td><input id="rf-name" name="author" type="text" class="regular-text" required placeholder="e.g. Sara K."></td>
+				</tr>
+				<tr>
+					<th scope="row">Rating</th>
+					<td class="rf-stars">
+						<?php for ( $i = 5; $i >= 1; $i-- ) : ?>
+							<label><input type="radio" name="rating" value="<?php echo esc_attr( $i ); ?>" <?php checked( 5, $i ); ?>> <?php echo esc_html( str_repeat( '★', $i ) ); ?></label>
+						<?php endfor; ?>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="rf-text">Review</label></th>
+					<td><textarea id="rf-text" name="review" rows="5" class="large-text" required placeholder="What the customer said…"></textarea></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="rf-size">Size bought</label></th>
+					<td><input id="rf-size" name="size" type="text" class="regular-text" placeholder="e.g. 50 ML (optional)"></td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="rf-date">Date</label></th>
+					<td><input id="rf-date" name="date" type="date" value="<?php echo esc_attr( current_time( 'Y-m-d' ) ); ?>"></td>
+				</tr>
+				<tr>
+					<th scope="row">Verified purchase</th>
+					<td><label><input type="checkbox" name="verified" value="1" checked> Show “Verified purchase” on this review</label></td>
+				</tr>
+				<tr>
+					<th scope="row">Photos</th>
+					<td><?php rfaheya_review_photos_field( array() ); ?></td>
+				</tr>
+			</table>
+			<?php submit_button( 'Add review' ); ?>
+		</form>
+
+		<h2>Recent reviews</h2>
+		<table class="widefat striped rf-recent">
+			<thead><tr><th>Fragrance</th><th>Customer</th><th>Rating</th><th>Review</th><th>Photos</th><th></th></tr></thead>
+			<tbody>
+			<?php
+			$recent = get_comments(
+				array(
+					'post_type' => 'product',
+					'type'      => 'review',
+					'number'    => 20,
+					'status'    => 'approve',
+				)
+			);
+			if ( ! $recent ) {
+				echo '<tr><td colspan="6">No reviews yet.</td></tr>';
+			}
+			foreach ( $recent as $c ) {
+				$thumbs = '';
+				foreach ( (array) get_comment_meta( $c->comment_ID, 'rfaheya_images', true ) as $a ) {
+					$src = wp_get_attachment_image_url( (int) $a, 'thumbnail' );
+					if ( $src ) {
+						$thumbs .= '<img src="' . esc_url( $src ) . '" alt="">';
+					}
+				}
+				echo '<tr><td>' . esc_html( get_the_title( $c->comment_post_ID ) ) . '</td><td>' . esc_html( $c->comment_author ) . '</td><td>' . esc_html( str_repeat( '★', (int) get_comment_meta( $c->comment_ID, 'rating', true ) ) ) . '</td><td>' . esc_html( wp_trim_words( $c->comment_content, 14 ) ) . '</td><td>' . $thumbs . '</td><td><a href="' . esc_url( admin_url( 'comment.php?action=editcomment&c=' . $c->comment_ID ) ) . '">Edit / photos</a></td></tr>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from escaped parts
+			}
+			?>
+			</tbody>
+		</table>
+	</div>
+	<?php
+}
+
+add_action(
+	'admin_post_rfaheya_add_review',
+	function () {
+		if ( ! current_user_can( 'moderate_comments' ) ) {
+			wp_die( 'Not allowed.' );
+		}
+		check_admin_referer( 'rfaheya_add_review' );
+		$back       = admin_url( 'edit.php?post_type=product&page=rfaheya-add-review' );
+		$product_id = isset( $_POST['product_id'] ) ? absint( $_POST['product_id'] ) : 0;
+		$author     = isset( $_POST['author'] ) ? sanitize_text_field( wp_unslash( $_POST['author'] ) ) : '';
+		$text       = isset( $_POST['review'] ) ? sanitize_textarea_field( wp_unslash( $_POST['review'] ) ) : '';
+		$rating     = isset( $_POST['rating'] ) ? max( 1, min( 5, absint( $_POST['rating'] ) ) ) : 5;
+		$size       = isset( $_POST['size'] ) ? sanitize_text_field( wp_unslash( $_POST['size'] ) ) : '';
+		$date       = isset( $_POST['date'] ) ? sanitize_text_field( wp_unslash( $_POST['date'] ) ) : '';
+		if ( ! $product_id || 'product' !== get_post_type( $product_id ) || '' === $author || '' === $text ) {
+			wp_safe_redirect( add_query_arg( 'rfaheya-review', rawurlencode( 'Please choose a fragrance and fill in the name and the review.' ), $back ) );
+			exit;
+		}
+		$when = preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ? $date . ' ' . current_time( 'H:i:s' ) : current_time( 'mysql' );
+		$id   = wp_insert_comment(
+			array(
+				'comment_post_ID'  => $product_id,
+				'comment_author'   => $author,
+				'comment_content'  => $text,
+				'comment_type'     => 'review',
+				'comment_approved' => 1,
+				'comment_date'     => $when,
+				'comment_date_gmt' => get_gmt_from_date( $when ),
+				'user_id'          => 0,
+			)
+		);
+		if ( ! $id ) {
+			wp_safe_redirect( add_query_arg( 'rfaheya-review', rawurlencode( 'The review could not be saved. Please try again.' ), $back ) );
+			exit;
+		}
+		update_comment_meta( $id, 'rating', $rating );
+		update_comment_meta( $id, 'verified', empty( $_POST['verified'] ) ? 0 : 1 );
+		if ( '' !== $size ) {
+			update_comment_meta( $id, 'rfaheya_size', $size );
+		}
+		update_comment_meta( $id, 'rfaheya_images', rfaheya_review_ids_from_post() );
+		// The product's average rating and review count.
+		if ( class_exists( 'WC_Comments' ) ) {
+			WC_Comments::clear_transients( $product_id );
+		}
+		wp_safe_redirect( add_query_arg( 'rfaheya-review', 'added', $back ) );
+		exit;
+	}
+);
+
+/** Photos (and size) on any product review's edit screen. */
+add_action(
+	'add_meta_boxes_comment',
+	function ( $comment ) {
+		if ( 'product' !== get_post_type( $comment->comment_post_ID ) ) {
+			return;
+		}
+		add_meta_box(
+			'rfaheya-review-photos',
+			'Review photos (Rfaheya)',
+			function ( $comment ) {
+				wp_nonce_field( 'rfaheya_review_photos', 'rfaheya_review_photos_nonce' );
+				rfaheya_review_photos_field( get_comment_meta( $comment->comment_ID, 'rfaheya_images', true ) );
+				echo '<p><label>Size bought <input type="text" name="rfaheya_review_size" value="' . esc_attr( (string) get_comment_meta( $comment->comment_ID, 'rfaheya_size', true ) ) . '" placeholder="e.g. 50 ML"></label></p>';
+			},
+			'comment',
+			'normal'
+		);
+	}
+);
+
+add_action(
+	'edit_comment',
+	function ( $comment_id ) {
+		if ( ! isset( $_POST['rfaheya_review_photos_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['rfaheya_review_photos_nonce'] ) ), 'rfaheya_review_photos' ) ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_comment', $comment_id ) ) {
+			return;
+		}
+		update_comment_meta( $comment_id, 'rfaheya_images', rfaheya_review_ids_from_post() );
+		$size = isset( $_POST['rfaheya_review_size'] ) ? sanitize_text_field( wp_unslash( $_POST['rfaheya_review_size'] ) ) : '';
+		if ( '' === $size ) {
+			delete_comment_meta( $comment_id, 'rfaheya_size' );
+		} else {
+			update_comment_meta( $comment_id, 'rfaheya_size', $size );
+		}
+	},
+	5
 );
 

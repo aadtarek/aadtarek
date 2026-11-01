@@ -24,7 +24,6 @@ import { addWithFlight } from '../lib/addToCart'
 import { haptic } from '../lib/fx'
 import { Stars } from '../components/Stars'
 import { VideoModal } from '../components/WearVideos'
-import { WpHtml } from '../components/WpHtml'
 import { LOYALTY, pointsFor } from '../config'
 import { dimensions } from '../data/standard'
 import { formatPrice } from '../lib/format'
@@ -32,7 +31,8 @@ import { profileChips } from '../lib/profile'
 import { tintFor } from '../lib/tints'
 import { useWishlist } from '../store/wishlist'
 import { useCart } from '../store/cart'
-import { useFaqs } from '../lib/useFaqs'
+import { FaqList } from '../components/FaqList'
+import { ReviewCard } from '../components/ReviewCard'
 import type { Product, Review, StandardKey } from '../types'
 import { NotFound } from './NotFound'
 
@@ -76,7 +76,6 @@ function ProductDetails({ product }: { product: Product }) {
   const [variationId, setVariationId] = useState((sizes.filter((v) => v.inStock).at(-1) ?? sizes.at(-1)!).id)
   const [qty, setQty] = useState(1)
   const [reviews, setReviews] = useState<Review[]>([])
-  const [allReviews, setAllReviews] = useState<Review[]>([])
   const [videoOpen, setVideoOpen] = useState<number | null>(null)
   const buyBox = useRef<HTMLDivElement>(null)
   const [showSticky, setShowSticky] = useState(false)
@@ -89,7 +88,6 @@ function ProductDetails({ product }: { product: Product }) {
 
   useEffect(() => {
     getReviews(product.id).then(setReviews)
-    getReviews().then(setAllReviews)
     document.title = `${product.name} — Rfaheya`
     return () => {
       document.title = 'Rfaheya — Speak Your Scent'
@@ -257,7 +255,8 @@ function ProductDetails({ product }: { product: Product }) {
       <NotesIsland product={product} />
       <Story product={product} />
       <StandardBars product={product} />
-      <ReviewsFaq product={product} reviews={reviews.length ? reviews : allReviews} own={reviews.length > 0} />
+      <ProductReviews product={product} reviews={reviews} />
+      <ProductFaq />
       {related.length > 0 && <Related products={related} />}
 
       {videoOpen != null && <VideoModal videos={videos} index={videoOpen} onIndex={setVideoOpen} onClose={() => setVideoOpen(null)} />}
@@ -568,84 +567,128 @@ function StandardBars({ product }: { product: Product }) {
 }
 
 /** Reviews on one side; questions, delivery and care on the other. */
-function ReviewsFaq({ product, reviews, own }: { product: Product; reviews: Review[]; own: boolean }) {
-  const faqs = useFaqs()
-  const [open, setOpen] = useState<number | null>(null)
+/** Every review of this fragrance: the rating with a breakdown, customers' photos, then the cards (six, then all). */
+function ProductReviews({ product, reviews }: { product: Product; reviews: Review[] }) {
+  const [all, setAll] = useState(false)
   const { average, count } = ratingSummary(reviews)
+  const photos = reviews.flatMap((r) => r.images ?? [])
+  const shown = all ? reviews : reviews.slice(0, 6)
   return (
-    <section id="reviews" className="container-x mt-12 grid scroll-mt-24 gap-4 lg:mt-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-5" aria-label="Reviews and questions">
-      <div className="rf-white rounded-[26px] border border-line px-[18px] py-6 lg:rounded-[32px] lg:p-9">
-        <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Reviews</p>
-        {count === 0 ? (
-          <p className="mt-4 text-[15px] text-ink-soft">
-            Be the first to share your experience with {product.name} — reviews are collected from verified purchases after delivery.
-          </p>
-        ) : (
-          <>
-            <p className="mt-1.5 font-serif text-[72px] leading-none lg:text-[96px]">{average.toFixed(1)}</p>
-            <Stars rating={average} className="size-[15px]" />
-            <p className="mt-2 text-[13px] text-muted">
-              {count} verified {count === 1 ? 'review' : 'reviews'}
-              {!own && ' across our fragrances'}
-            </p>
-            <ul className="mt-5 space-y-2.5">
-              {reviews.slice(0, 2).map((r) => (
-                <li key={r.id} className="rounded-[20px] bg-sand p-5">
-                  <blockquote className="font-serif text-[19px] leading-[1.3] lg:text-[21px]">“{r.text}”</blockquote>
-                  <p className="mt-3 text-[12.5px] text-muted">
-                    <strong className="font-semibold text-ink">{r.author}</strong>
-                    {r.size && ` · ${r.size.replace(/\s*ML$/i, ' ml')}`}
-                    {r.verified && ' · Verified'}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-        <Link to="/reviews" className="rf-white mt-5 inline-flex h-[42px] items-center gap-2 rounded-full border border-line px-[18px] text-[11px] font-semibold tracking-[0.12em] uppercase transition hover:border-ink">
-          All reviews <ArrowRight className="size-4" strokeWidth={1.5} />
-        </Link>
-      </div>
+    <section id="reviews" className="container-x mt-12 scroll-mt-24 lg:mt-16" aria-labelledby="reviews-title">
+      <div className="rounded-[28px] bg-chip px-4 py-8 lg:rounded-[36px] lg:p-12">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10">
+          <div className="px-1 lg:px-0">
+            <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Reviews</p>
+            <h2 id="reviews-title" className="mt-2.5 font-serif text-[38px] leading-none sm:text-[48px]">
+              What people <span className="text-gold italic">say.</span>
+            </h2>
+            {count > 0 ? (
+              <div className="rf-white mt-6 rounded-[24px] p-5">
+                <div className="flex items-center gap-4">
+                  <p className="font-serif text-[64px] leading-none">{average.toFixed(1)}</p>
+                  <div>
+                    <Stars rating={average} className="size-4" />
+                    <p className="mt-1 text-[13px] text-muted">
+                      {count} {count === 1 ? 'review' : 'reviews'} of {product.name}
+                    </p>
+                  </div>
+                </div>
+                <ul className="mt-4 space-y-1.5" aria-label="Ratings">
+                  {[5, 4, 3, 2, 1].map((star) => {
+                    const n = reviews.filter((r) => Math.round(r.rating) === star).length
+                    return (
+                      <li key={star} className="flex items-center gap-2.5 text-[12.5px] text-ink-soft">
+                        <span className="w-3 font-semibold tabular-nums">{star}</span>
+                        <span className="relative h-[6px] flex-1 overflow-hidden rounded-full bg-chip">
+                          <span className="absolute inset-y-0 left-0 rounded-full bg-olive" style={{ width: `${(n / count) * 100}%` }} />
+                        </span>
+                        <span className="w-6 text-right text-muted tabular-nums">{n}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <p className="mt-4 text-[15px] text-ink-soft">No reviews of {product.name} yet — reviews are collected from customers after delivery.</p>
+            )}
+            {photos.length > 0 && (
+              <div className="mt-4">
+                <p className="text-[11px] font-semibold tracking-[0.2em] text-muted uppercase">Customer photos</p>
+                <ul className="mt-2 grid grid-cols-4 gap-1.5">
+                  {photos.slice(0, 8).map((src) => (
+                    <li key={src}>
+                      <img src={src} alt="" loading="lazy" className="aspect-square w-full rounded-[12px] object-cover" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <Link to="/reviews" className="mt-5 inline-flex items-center gap-2 text-[11.5px] font-semibold tracking-[0.12em] uppercase hover:text-gold">
+              Reviews of every fragrance <ArrowRight className="size-4" strokeWidth={1.6} />
+            </Link>
+          </div>
 
-      <div className="rf-white rounded-[26px] border border-line px-[18px] py-6 lg:rounded-[32px] lg:p-9">
-        <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Questions</p>
-        {faqs.length > 0 && (
-          <ol className="mt-2">
-            {faqs.slice(0, 6).map((f, i) => (
-              <li key={f.q} className="border-b border-line">
-                <button type="button" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i} className="flex w-full items-center gap-4 py-4 text-left">
-                  <span className="flex-1 font-serif text-[18px] leading-snug lg:text-[21px]">{f.q}</span>
-                  <Plus className={`size-5 shrink-0 text-gold transition-transform ${open === i ? 'rotate-45' : ''}`} strokeWidth={1.5} />
+          {count > 0 && (
+            <div>
+              <ul className="grid gap-2.5 md:grid-cols-2 lg:gap-3">
+                {shown.map((r) => (
+                  <li key={r.id}>
+                    <ReviewCard review={r} />
+                  </li>
+                ))}
+              </ul>
+              {reviews.length > shown.length && (
+                <button
+                  type="button"
+                  onClick={() => setAll(true)}
+                  className="rf-white mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full text-[12px] font-semibold tracking-[0.12em] uppercase transition hover:bg-olive hover:text-on-accent sm:w-auto sm:px-8"
+                >
+                  Show all {reviews.length} reviews
                 </button>
-                {open === i && <div className="pb-4 text-[14.5px] leading-relaxed text-ink-soft">{f.html !== undefined ? <WpHtml html={f.html} /> : <p>{f.text}</p>}</div>}
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** All the store's questions, beside delivery, returns and care. */
+function ProductFaq() {
+  return (
+    <section className="container-x mt-4 lg:mt-5" aria-labelledby="product-faq-title">
+      <div className="grid gap-6 rounded-[28px] bg-chip px-4 py-8 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10 lg:rounded-[36px] lg:p-12">
+        <div className="px-1 lg:sticky lg:top-24 lg:self-start lg:px-0">
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Questions</p>
+          <h2 id="product-faq-title" className="mt-2.5 font-serif text-[38px] leading-none sm:text-[48px]">
+            Good to <span className="text-gold italic">know.</span>
+          </h2>
+          <ul className="mt-6 grid gap-2 text-[13.5px] text-ink-soft">
+            {[
+              { Icon: Truck, title: 'Delivery', text: 'within 2–4 business days after your order is confirmed.' },
+              { Icon: ShieldCheck, title: 'Returns', text: 'exchange or return easily — see our policy.', to: '/returns' },
+              { Icon: BottleIcon, title: 'Care', text: 'let it rest 2 days after delivery; keep it upright, cool and out of the sun.' },
+            ].map(({ Icon, title, text, to }) => (
+              <li key={title} className="rf-white flex items-start gap-3 rounded-[18px] p-3.5">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#f3e3c9] text-gold">
+                  <Icon className="size-4" strokeWidth={1.6} />
+                </span>
+                <span>
+                  <strong className="block font-semibold text-ink">{title}</strong>
+                  {to ? (
+                    <Link to={to} className="underline-offset-2 hover:underline">
+                      {text}
+                    </Link>
+                  ) : (
+                    text
+                  )}
+                </span>
               </li>
             ))}
-          </ol>
-        )}
-        <ul className="mt-5 grid gap-2.5 text-[13.5px] text-ink-soft">
-          <li className="flex items-start gap-2.5">
-            <Truck className="mt-0.5 size-4 shrink-0 text-gold" strokeWidth={1.5} />
-            <span>
-              <strong className="font-semibold text-ink">Delivery</strong> within 2–4 business days after your order is confirmed.
-            </span>
-          </li>
-          <li className="flex items-start gap-2.5">
-            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-gold" strokeWidth={1.5} />
-            <span>
-              <strong className="font-semibold text-ink">Returns</strong> exchange or return easily —{' '}
-              <Link to="/returns" className="underline underline-offset-2">
-                our policy
-              </Link>
-              .
-            </span>
-          </li>
-          <li className="flex items-start gap-2.5">
-            <BottleIcon className="mt-0.5 size-4 shrink-0 text-gold" />
-            <span>
-              <strong className="font-semibold text-ink">Care</strong> let it rest 2 days after delivery; keep it upright, cool and out of the sun.
-            </span>
-          </li>
-        </ul>
+          </ul>
+        </div>
+        <FaqList first={-1} />
       </div>
     </section>
   )

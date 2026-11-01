@@ -276,8 +276,14 @@ export function Shop() {
             <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 lg:gap-[18px]">
               {visible.map((p, i) => (
                 <Fragment key={p.id}>
+                  {/* “Try any scent”: first on the left on desktop, a full row after two cards on phones */}
+                  {i === 0 && (
+                    <li className="hidden lg:block">
+                      <TryFirstTile />
+                    </li>
+                  )}
                   {i === 2 && (
-                    <li className="col-span-2 lg:col-span-1">
+                    <li className="col-span-2 lg:hidden">
                       <TryFirstTile />
                     </li>
                   )}
@@ -287,7 +293,7 @@ export function Shop() {
                 </Fragment>
               ))}
               {visible.length < 3 && (
-                <li className="col-span-2 lg:col-span-1">
+                <li className="col-span-2 lg:hidden">
                   <TryFirstTile />
                 </li>
               )}
