@@ -1,0 +1,726 @@
+[
+ {
+  "name": "African Orange",
+  "icon": "note-african-orange.webp"
+ },
+ {
+  "name": "Agarwood (Oud)",
+  "icon": "note-agarwood-oud.webp"
+ },
+ {
+  "name": "Agarwood",
+  "icon": "note-agarwood.webp"
+ },
+ {
+  "name": "Almond Milk",
+  "icon": "note-almond-milk.webp"
+ },
+ {
+  "name": "Amalfi Lemon",
+  "icon": "note-amalfi-lemon.webp"
+ },
+ {
+  "name": "Amber Tonality",
+  "icon": "note-amber-tonality.webp"
+ },
+ {
+  "name": "Amber",
+  "icon": "note-amber.webp"
+ },
+ {
+  "name": "Ambergris",
+  "icon": "note-ambergris.webp"
+ },
+ {
+  "name": "Ambermax",
+  "icon": "note-ambermax.webp"
+ },
+ {
+  "name": "Amberwood",
+  "icon": "note-amberwood.webp"
+ },
+ {
+  "name": "Ambrette",
+  "icon": "note-ambrette.webp"
+ },
+ {
+  "name": "Ambroxan",
+  "icon": "note-ambroxan.webp"
+ },
+ {
+  "name": "Animal Notes",
+  "icon": "note-animal-notes.webp"
+ },
+ {
+  "name": "Anise",
+  "icon": "note-anise.webp"
+ },
+ {
+  "name": "Apple",
+  "icon": "note-apple.webp"
+ },
+ {
+  "name": "Aromatic Nuances",
+  "icon": "note-aromatic-nuances.webp"
+ },
+ {
+  "name": "Aromatic Pepper",
+  "icon": "note-aromatic-pepper.webp"
+ },
+ {
+  "name": "Aromatic Spices",
+  "icon": "note-aromatic-spices.webp"
+ },
+ {
+  "name": "Atlas Cedar",
+  "icon": "note-atlas-cedar.webp"
+ },
+ {
+  "name": "Balsamic Accords",
+  "icon": "note-balsamic-accords.webp"
+ },
+ {
+  "name": "Balsam Fir",
+  "icon": "note-balsam-fir.webp"
+ },
+ {
+  "name": "Bay Leaf",
+  "icon": "note-bay-leaf.webp"
+ },
+ {
+  "name": "Benzoin",
+  "icon": "note-benzoin.webp"
+ },
+ {
+  "name": "Bergamot",
+  "icon": "note-bergamot.webp"
+ },
+ {
+  "name": "Bitter Almond",
+  "icon": "note-bitter-almond.webp"
+ },
+ {
+  "name": "Bitter Orange",
+  "icon": "note-bitter-orange.webp"
+ },
+ {
+  "name": "Black Cherry",
+  "icon": "note-black-cherry.webp"
+ },
+ {
+  "name": "Black Pepper",
+  "icon": "note-black-pepper.webp"
+ },
+ {
+  "name": "Black Tea",
+  "icon": "note-black-tea.webp"
+ },
+ {
+  "name": "Blackcurrant",
+  "icon": "note-blackcurrant.webp"
+ },
+ {
+  "name": "Bourbon Vanilla",
+  "icon": "note-bourbon-vanilla.webp"
+ },
+ {
+  "name": "Birch Leaf",
+  "icon": "note-birch-leaf.webp"
+ },
+ {
+  "name": "Brown Sugar",
+  "icon": "note-brown-sugar.webp"
+ },
+ {
+  "name": "Bulgarian Rose",
+  "icon": "note-bulgarian-rose.webp"
+ },
+ {
+  "name": "Cacao",
+  "icon": "note-cacao.webp"
+ },
+ {
+  "name": "Calabrian Bergamot",
+  "icon": "note-calabrian-bergamot.webp"
+ },
+ {
+  "name": "Cannabis",
+  "icon": "note-cannabis.webp"
+ },
+ {
+  "name": "Caramel Sugar",
+  "icon": "note-caramel-sugar.webp"
+ },
+ {
+  "name": "Caramel",
+  "icon": "note-caramel.webp"
+ },
+ {
+  "name": "Cardamom",
+  "icon": "note-cardamom.webp"
+ },
+ {
+  "name": "Cashmeran",
+  "icon": "note-cashmeran.webp"
+ },
+ {
+  "name": "Cashmere Wood",
+  "icon": "note-cashmere-wood.webp"
+ },
+ {
+  "name": "Cedar",
+  "icon": "note-cedar.webp"
+ },
+ {
+  "name": "Cedarwood",
+  "icon": "note-cedarwood.webp"
+ },
+ {
+  "name": "Cherry Liqueur",
+  "icon": "note-cherry-liqueur.webp"
+ },
+ {
+  "name": "Chestnut",
+  "icon": "note-chestnut.webp"
+ },
+ {
+  "name": "Cinnamon",
+  "icon": "note-cinnamon.webp"
+ },
+ {
+  "name": "Citrus Zest",
+  "icon": "note-citrus-zest.webp"
+ },
+ {
+  "name": "Citrus",
+  "icon": "note-citrus.webp"
+ },
+ {
+  "name": "Clary Sage",
+  "icon": "note-clary-sage.webp"
+ },
+ {
+  "name": "Clove",
+  "icon": "note-clove.webp"
+ },
+ {
+  "name": "Coconut",
+  "icon": "note-coconut.webp"
+ },
+ {
+  "name": "Coffee",
+  "icon": "note-coffee.webp"
+ },
+ {
+  "name": "Coconut Nectar",
+  "icon": "note-coconut-nectar.webp"
+ },
+ {
+  "name": "Copaiba Balm",
+  "icon": "note-copaiba-balm.webp"
+ },
+ {
+  "name": "Coriander",
+  "icon": "note-coriander.webp"
+ },
+ {
+  "name": "Coumarin",
+  "icon": "note-coumarin.webp"
+ },
+ {
+  "name": "Creamy Vanilla",
+  "icon": "note-creamy-vanilla.webp"
+ },
+ {
+  "name": "Cypriol Oil",
+  "icon": "note-cypriol-oil.webp"
+ },
+ {
+  "name": "Dark Spices",
+  "icon": "note-dark-spices.webp"
+ },
+ {
+  "name": "Dark Vanilla",
+  "icon": "note-dark-vanilla.webp"
+ },
+ {
+  "name": "Dark Wood",
+  "icon": "note-dark-wood.webp"
+ },
+ {
+  "name": "Dates",
+  "icon": "note-dates.webp"
+ },
+ {
+  "name": "Davana",
+  "icon": "note-davana.webp"
+ },
+ {
+  "name": "Dried Fruits",
+  "icon": "note-dried-fruits.webp"
+ },
+ {
+  "name": "Dry Amber",
+  "icon": "note-dry-amber.webp"
+ },
+ {
+  "name": "Earthy Musk",
+  "icon": "note-earthy-musk.webp"
+ },
+ {
+  "name": "Floral Notes",
+  "icon": "note-floral-notes.webp"
+ },
+ {
+  "name": "Frankincense",
+  "icon": "note-frankincense.webp"
+ },
+ {
+  "name": "Freesia",
+  "icon": "note-freesia.webp"
+ },
+ {
+  "name": "Fruity",
+  "icon": "note-fruity.webp"
+ },
+ {
+  "name": "Galbanum",
+  "icon": "note-galbanum.webp"
+ },
+ {
+  "name": "Gardenia",
+  "icon": "note-gardenia.webp"
+ },
+ {
+  "name": "Gentle Spices",
+  "icon": "note-gentle-spices.webp"
+ },
+ {
+  "name": "Geranium",
+  "icon": "note-geranium.webp"
+ },
+ {
+  "name": "Ginger",
+  "icon": "note-ginger.webp"
+ },
+ {
+  "name": "Golden Mandarin",
+  "icon": "note-golden-mandarin.webp"
+ },
+ {
+  "name": "Golden Sugar",
+  "icon": "note-golden-sugar.webp"
+ },
+ {
+  "name": "Grapefruit",
+  "icon": "note-grapefruit.webp"
+ },
+ {
+  "name": "Green Apple",
+  "icon": "note-green-apple.webp"
+ },
+ {
+  "name": "Green Mandarin",
+  "icon": "note-green-mandarin.webp"
+ },
+ {
+  "name": "Green Notes",
+  "icon": "note-green-notes.webp"
+ },
+ {
+  "name": "Green Tea",
+  "icon": "note-green-tea.webp"
+ },
+ {
+  "name": "Guaiac Wood",
+  "icon": "note-guaiac-wood.webp"
+ },
+ {
+  "name": "Gurjan Balsam",
+  "icon": "note-gurjan-balsam.webp"
+ },
+ {
+  "name": "Haitian Vetiver",
+  "icon": "note-haitian-vetiver.webp"
+ },
+ {
+  "name": "Heliotrope",
+  "icon": "note-heliotrope.webp"
+ },
+ {
+  "name": "Herbal Touch",
+  "icon": "note-herbal-touch.webp"
+ },
+ {
+  "name": "Honey",
+  "icon": "note-honey.webp"
+ },
+ {
+  "name": "Incense",
+  "icon": "note-incense.webp"
+ },
+ {
+  "name": "Indian Tuberose",
+  "icon": "note-indian-tuberose.webp"
+ },
+ {
+  "name": "Iris Pallida",
+  "icon": "note-iris-pallida.webp"
+ },
+ {
+  "name": "Iris",
+  "icon": "note-iris.webp"
+ },
+ {
+  "name": "Italian Lemon",
+  "icon": "note-italian-lemon.webp"
+ },
+ {
+  "name": "Jasmine Sambac",
+  "icon": "note-jasmine-sambac.webp"
+ },
+ {
+  "name": "Jasmine",
+  "icon": "note-jasmine.webp"
+ },
+ {
+  "name": "Juniper Berry",
+  "icon": "note-juniper-berry.webp"
+ },
+ {
+  "name": "Labdanum",
+  "icon": "note-labdanum.webp"
+ },
+ {
+  "name": "Lavender",
+  "icon": "note-lavender.webp"
+ },
+ {
+  "name": "Leather",
+  "icon": "note-leather.webp"
+ },
+ {
+  "name": "Lemon",
+  "icon": "note-lemon.webp"
+ },
+ {
+  "name": "Light Citrus",
+  "icon": "note-light-citrus.webp"
+ },
+ {
+  "name": "Notes",
+  "icon": "note-notes.webp"
+ },
+ {
+  "name": "Nutmeg",
+  "icon": "note-nutmeg.webp"
+ },
+ {
+  "name": "Oakmoss",
+  "icon": "note-oakmoss.webp"
+ },
+ {
+  "name": "Oakwood",
+  "icon": "note-oakwood.webp"
+ },
+ {
+  "name": "Olive Wood",
+  "icon": "note-olive-wood.webp"
+ },
+ {
+  "name": "Orange Blossom",
+  "icon": "note-orange-blossom.webp"
+ },
+ {
+  "name": "Orange Peel",
+  "icon": "note-orange-peel.webp"
+ },
+ {
+  "name": "Orange",
+  "icon": "note-orange.webp"
+ },
+ {
+  "name": "Oud",
+  "icon": "note-oud.webp"
+ },
+ {
+  "name": "Palisander Rosewood",
+  "icon": "note-palisander-rosewood.webp"
+ },
+ {
+  "name": "Patchouli",
+  "icon": "note-patchouli.webp"
+ },
+ {
+  "name": "Pear",
+  "icon": "note-pear.webp"
+ },
+ {
+  "name": "Peony",
+  "icon": "note-peony.webp"
+ },
+ {
+  "name": "Pepper",
+  "icon": "note-pepper.webp"
+ },
+ {
+  "name": "Peru Balsam",
+  "icon": "note-peru-balsam.webp"
+ },
+ {
+  "name": "Pineapple",
+  "icon": "note-pineapple.webp"
+ },
+ {
+  "name": "Pink Lotus",
+  "icon": "note-pink-lotus.webp"
+ },
+ {
+  "name": "Pink Pepper",
+  "icon": "note-pink-pepper.webp"
+ },
+ {
+  "name": "Plum",
+  "icon": "note-plum.webp"
+ },
+ {
+  "name": "Praline",
+  "icon": "note-praline.webp"
+ },
+ {
+  "name": "Raspberry Bloom",
+  "icon": "note-raspberry-bloom.webp"
+ },
+ {
+  "name": "Raspberry",
+  "icon": "note-raspberry.webp"
+ },
+ {
+  "name": "Red Apple",
+  "icon": "note-red-apple.webp"
+ },
+ {
+  "name": "Red Cherry",
+  "icon": "note-red-cherry.webp"
+ },
+ {
+  "name": "Red Currant",
+  "icon": "note-red-currant.webp"
+ },
+ {
+  "name": "Resins",
+  "icon": "note-resins.webp"
+ },
+ {
+  "name": "Rhubarb",
+  "icon": "note-rhubarb.webp"
+ },
+ {
+  "name": "Rose",
+  "icon": "note-rose.webp"
+ },
+ {
+  "name": "Rosemary",
+  "icon": "note-rosemary.webp"
+ },
+ {
+  "name": "Saffron",
+  "icon": "note-saffron.webp"
+ },
+ {
+  "name": "Sage",
+  "icon": "note-sage.webp"
+ },
+ {
+  "name": "Salty Vanilla",
+  "icon": "note-salty-vanilla.webp"
+ },
+ {
+  "name": "Sand",
+  "icon": "note-sand.webp"
+ },
+ {
+  "name": "Sandalwood",
+  "icon": "note-sandalwood.webp"
+ },
+ {
+  "name": "Sichuan Pepper",
+  "icon": "note-sichuan-pepper.webp"
+ },
+ {
+  "name": "Sicilian Lemon",
+  "icon": "note-sicilian-lemon.webp"
+ },
+ {
+  "name": "Sicilian Orange",
+  "icon": "note-sicilian-orange.webp"
+ },
+ {
+  "name": "Smoked Honey",
+  "icon": "note-smoked-honey.webp"
+ },
+ {
+  "name": "Soft Leather Nuances",
+  "icon": "note-soft-leather-nuances.webp"
+ },
+ {
+  "name": "Soft Smoke",
+  "icon": "note-soft-smoke.webp"
+ },
+ {
+  "name": "Soft Spices",
+  "icon": "note-soft-spices.webp"
+ },
+ {
+  "name": "Soft Woods",
+  "icon": "note-soft-woods.webp"
+ },
+ {
+  "name": "Solar Notes",
+  "icon": "note-solar-notes.webp"
+ },
+ {
+  "name": "Sour Cherry",
+  "icon": "note-sour-cherry.webp"
+ },
+ {
+  "name": "Spicy Notes",
+  "icon": "note-spicy-notes.webp"
+ },
+ {
+  "name": "Strawberry",
+  "icon": "note-strawberry.webp"
+ },
+ {
+  "name": "Sugar",
+  "icon": "note-sugar.webp"
+ },
+ {
+  "name": "Sweet Accord",
+  "icon": "note-sweet-accord.webp"
+ },
+ {
+  "name": "Sweet Orange",
+  "icon": "note-sweet-orange.webp"
+ },
+ {
+  "name": "Taif Rose",
+  "icon": "note-taif-rose.webp"
+ },
+ {
+  "name": "Tarragon",
+  "icon": "note-tarragon.webp"
+ },
+ {
+  "name": "Tea Leaves",
+  "icon": "note-tea-leaves.webp"
+ },
+ {
+  "name": "Thyme",
+  "icon": "note-thyme.webp"
+ },
+ {
+  "name": "Tiare Flower",
+  "icon": "note-tiare-flower.webp"
+ },
+ {
+  "name": "Tobacco Leaf",
+  "icon": "note-tobacco-leaf.webp"
+ },
+ {
+  "name": "Tobacco",
+  "icon": "note-tobacco.webp"
+ },
+ {
+  "name": "Toffee",
+  "icon": "note-toffee.webp"
+ },
+ {
+  "name": "Tonka Beans",
+  "icon": "note-tonka-beans.webp"
+ },
+ {
+  "name": "Tonka",
+  "icon": "note-tonka.webp"
+ },
+ {
+  "name": "Truffle",
+  "icon": "note-truffle.webp"
+ },
+ {
+  "name": "Turkish Rose",
+  "icon": "note-turkish-rose.webp"
+ },
+ {
+  "name": "Vanilla Flower",
+  "icon": "note-vanilla-flower.webp"
+ },
+ {
+  "name": "Vanilla",
+  "icon": "note-vanilla.webp"
+ },
+ {
+  "name": "Vetiver",
+  "icon": "note-vetiver.webp"
+ },
+ {
+  "name": "Violet Leaves",
+  "icon": "note-violet-leaves.webp"
+ },
+ {
+  "name": "Violet",
+  "icon": "note-violet.webp"
+ },
+ {
+  "name": "Warm Spices",
+  "icon": "note-warm-spices.webp"
+ },
+ {
+  "name": "Warm Woods",
+  "icon": "note-warm-woods.webp"
+ },
+ {
+  "name": "Whipped Cream",
+  "icon": "note-whipped-cream.webp"
+ },
+ {
+  "name": "White Flowers",
+  "icon": "note-white-flowers.webp"
+ },
+ {
+  "name": "White Musk",
+  "icon": "note-white-musk.webp"
+ },
+ {
+  "name": "White Pear",
+  "icon": "note-white-pear.webp"
+ },
+ {
+  "name": "White Suede",
+  "icon": "note-white-suede.webp"
+ },
+ {
+  "name": "White Woods",
+  "icon": "note-white-woods.webp"
+ },
+ {
+  "name": "Wild Berries",
+  "icon": "note-wild-berries.webp"
+ },
+ {
+  "name": "Woodsy Notes",
+  "icon": "note-woodsy-notes.webp"
+ },
+ {
+  "name": "Woody Notes",
+  "icon": "note-woody-notes.webp"
+ },
+ {
+  "name": "Ylang Ylang",
+  "icon": "note-ylang-ylang.webp"
+ },
+ {
+  "name": "Smoky Accords",
+  "icon": "note-smoky-accords.webp"
+ }
+]

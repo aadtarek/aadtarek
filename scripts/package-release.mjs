@@ -6,7 +6,7 @@
  *   .htaccess                               routes the storefront and WordPress
  *   wp-content/mu-plugins/rfaheya.php       store settings, FAQs, product details box, content import
  *   wp-content/mu-plugins/rfaheya-admin/    styles and scripts for the product / notes / videos screens
- *   wp-content/mu-plugins/rfaheya/          starter content for the import (npm run export:content)
+ *   wp-content/mu-plugins/rfaheya/          starter content for the import (npm run export:content) and the notes pack
  *   rfaheya-setup/rfaheya-products.csv      WooCommerce product import
  *   rfaheya-setup/README.txt                the steps
  *
@@ -63,6 +63,12 @@ for (const f of readdirSync(starter)) {
 }
 for (const f of readdirSync(join(starter, 'media'))) {
   files[`wp-content/mu-plugins/rfaheya/media/${f}`] = new Uint8Array(readFileSync(join(starter, 'media', f)))
+}
+// The notes pack (wordpress/notes-pack): note pictures with their names, added to the notes library from the dashboard.
+const notesPack = join(root, 'wordpress/notes-pack')
+files['wp-content/mu-plugins/rfaheya/notes-pack.json'] = new Uint8Array(readFileSync(join(notesPack, 'notes-pack.json')))
+for (const f of readdirSync(join(notesPack, 'media'))) {
+  files[`wp-content/mu-plugins/rfaheya/media/${f}`] = new Uint8Array(readFileSync(join(notesPack, 'media', f)))
 }
 files['rfaheya-setup/rfaheya-products.csv'] = new Uint8Array(execFileSync('node', [join(root, 'scripts/products-csv.mjs'), site]))
 files['rfaheya-setup/README.txt'] = new Uint8Array(readFileSync(join(root, 'wordpress/README.txt')))

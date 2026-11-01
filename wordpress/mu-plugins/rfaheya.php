@@ -4154,3 +4154,137 @@ add_action(
 	5
 );
 
+
+/* -------------------------------------------------------------------------
+ * Notes pack: 181 note pictures with their names (rfaheya/notes-pack.json,
+ * pictures in rfaheya/media/note-*.webp). They go into Products → Fragrance
+ * notes a few at a time from the dashboard (a progress bar shows at the top),
+ * so the host never times out. A note that already has a picture is kept.
+ * ---------------------------------------------------------------------- */
+
+/** The pack's notes, and a fingerprint so a newer pack runs again. */
+function rfaheya_notes_pack() {
+	$file = __DIR__ . '/rfaheya/notes-pack.json';
+	$raw  = is_readable( $file ) ? (string) file_get_contents( $file ) : '';
+	$list = $raw ? json_decode( $raw, true ) : null;
+	return array( is_array( $list ) ? $list : array(), md5( $raw ) );
+}
+
+/** Adds the next few notes of the pack; returns [done, total]. */
+function rfaheya_notes_pack_step( $batch = 12 ) {
+	list( $list, $hash ) = rfaheya_notes_pack();
+	$state               = get_option( 'rfaheya_notes_pack', array() );
+	$done                = ( is_array( $state ) && isset( $state['hash'], $state['done'] ) && $state['hash'] === $hash ) ? (int) $state['done'] : 0;
+	$total               = count( $list );
+	if ( function_exists( 'set_time_limit' ) ) {
+		@set_time_limit( 120 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+	}
+	$end = min( $total, $done + $batch );
+	for ( $i = $done; $i < $end; $i++ ) {
+		$n = $list[ $i ];
+		if ( empty( $n['name'] ) ) {
+			continue;
+		}
+		$term    = term_exists( $n['name'], 'rfaheya_note' );
+		$term_id = $term ? (int) ( is_array( $term ) ? $term['term_id'] : $term ) : 0;
+		if ( $term_id && get_term_meta( $term_id, 'rfaheya_icon', true ) ) {
+			continue; // already has a picture: keep it
+		}
+		if ( ! $term_id ) {
+			$made = wp_insert_term( $n['name'], 'rfaheya_note' );
+			if ( is_wp_error( $made ) ) {
+				continue;
+			}
+			$term_id = (int) $made['term_id'];
+		}
+		$icon = empty( $n['icon'] ) ? 0 : rfaheya_import_media( $n['icon'], $n['name'] );
+		if ( $icon ) {
+			update_term_meta( $term_id, 'rfaheya_icon', $icon );
+		}
+	}
+	update_option(
+		'rfaheya_notes_pack',
+		array(
+			'hash' => $hash,
+			'done' => $end,
+		),
+		false
+	);
+	if ( $end >= $total ) {
+		// The storefront picks the new pictures up on its next data rebuild.
+		delete_transient( 'rfaheya_bootstrap' );
+		if ( ! wp_next_scheduled( 'rfaheya_warm_bootstrap' ) ) {
+			wp_schedule_single_event( time() + 2, 'rfaheya_warm_bootstrap' );
+		}
+	}
+	return array( $end, $total );
+}
+
+/** How far the pack is: [done, total]. */
+function rfaheya_notes_pack_progress() {
+	list( $list, $hash ) = rfaheya_notes_pack();
+	$state               = get_option( 'rfaheya_notes_pack', array() );
+	$done                = ( is_array( $state ) && isset( $state['hash'], $state['done'] ) && $state['hash'] === $hash ) ? (int) $state['done'] : 0;
+	return array( min( $done, count( $list ) ), count( $list ) );
+}
+
+add_action(
+	'wp_ajax_rfaheya_notes_pack',
+	function () {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( 'Not allowed', 403 );
+		}
+		check_ajax_referer( 'rfaheya_notes_pack' );
+		list( $done, $total ) = rfaheya_notes_pack_step();
+		wp_send_json_success(
+			array(
+				'done'  => $done,
+				'total' => $total,
+			)
+		);
+	}
+);
+
+/** While the pack isn't in yet: a notice with a progress bar that fills it in, a batch at a time. */
+add_action(
+	'admin_notices',
+	function () {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		list( $done, $total ) = rfaheya_notes_pack_progress();
+		if ( ! $total || $done >= $total ) {
+			return;
+		}
+		$nonce = wp_create_nonce( 'rfaheya_notes_pack' );
+		?>
+		<div class="notice notice-info" id="rfaheya-notes-pack">
+			<p><strong>Rfaheya:</strong> adding <?php echo esc_html( $total ); ?> fragrance note pictures to <em>Products → Fragrance notes</em>… <span class="rf-np-count"><?php echo esc_html( $done . ' / ' . $total ); ?></span> — keep this page open for a minute.</p>
+			<p style="max-width:420px;height:8px;background:#f0e6d6;border-radius:99px;overflow:hidden"><span class="rf-np-bar" style="display:block;height:100%;width:<?php echo esc_attr( (string) round( $done / $total * 100 ) ); ?>%;background:#e49b2d;transition:width .3s"></span></p>
+		</div>
+		<script>
+		(function () {
+			var box = document.getElementById('rfaheya-notes-pack');
+			var tries = 0;
+			function step() {
+				var body = new FormData();
+				body.append('action', 'rfaheya_notes_pack');
+				body.append('_ajax_nonce', <?php echo wp_json_encode( $nonce ); ?>);
+				fetch(<?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>, { method: 'POST', body: body, credentials: 'same-origin' })
+					.then(function (r) { return r.json(); })
+					.then(function (r) {
+						if (!r || !r.success) throw new Error('failed');
+						tries = 0;
+						box.querySelector('.rf-np-count').textContent = r.data.done + ' / ' + r.data.total;
+						box.querySelector('.rf-np-bar').style.width = Math.round(r.data.done / r.data.total * 100) + '%';
+						if (r.data.done < r.data.total) step();
+						else box.innerHTML = '<p><strong>Rfaheya:</strong> all ' + r.data.total + ' note pictures are in <a href="<?php echo esc_url( admin_url( 'edit-tags.php?taxonomy=rfaheya_note&post_type=product' ) ); ?>">Products → Fragrance notes</a>. ✓</p>';
+					})
+					.catch(function () { if (++tries < 4) setTimeout(step, 2000); });
+			}
+			step();
+		})();
+		</script>
+		<?php
+	}
+);

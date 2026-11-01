@@ -103,13 +103,15 @@ const FALLBACK_NOTE =
 const libraryIcons = new Map<string, string>()
 
 export function setNoteLibrary(notes: { name: string; icon: string }[]) {
-  for (const n of notes) if (n.name && n.icon) libraryIcons.set(n.name.trim().toLowerCase(), n.icon)
+  for (const n of notes) if (n.name && n.icon) libraryIcons.set(n.name.trim().toLowerCase().replace(/\s+/g, ' '), n.icon)
 }
 
 export function noteImage(name: string): string {
-  const key = name.trim().toLowerCase()
+  const key = name.trim().toLowerCase().replace(/\s+/g, ' ')
+  // "Tonka Bean" also finds "Tonka Beans" (and the other way round).
+  const library = libraryIcons.get(key) || libraryIcons.get(key.endsWith('s') ? key.slice(0, -1) : `${key}s`)
   const file = noteFile[key]
-  return libraryIcons.get(key) || (file && noteImages[`../assets/notes/${file}.png`]) || FALLBACK_NOTE
+  return library || (file && noteImages[`../assets/notes/${file}.png`]) || FALLBACK_NOTE
 }
 
 // ---------- helpers ----------
