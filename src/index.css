@@ -1556,7 +1556,7 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
   }
 }
 .rf-header[data-floating] .rf-header-bar a[aria-label='Rfaheya — home'] {
-  height: 32px;
+  height: 38px;
   transition: height 0.6s var(--rf-ease-soft);
 }
 :root.dark .rf-header[data-floating] .rf-header-bar {
