@@ -32,8 +32,9 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   const [main] = product.images
 
   return (
-    <article className="rf-card group/card @container flex h-full flex-col">
-      <div className="motion-product-card relative overflow-hidden rounded-[18px] bg-chip sm:rounded-[20px]">
+    <article className="rf-card group/card @container h-full">
+      <div className="rf-white flex h-full flex-col rounded-[22px] p-1.5 shadow-[0_1px_0_rgba(60,40,10,0.04),0_18px_40px_-30px_rgba(60,40,10,0.45)] transition duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:-translate-y-1 group-hover/card:shadow-[0_1px_0_rgba(60,40,10,0.04),0_30px_56px_-30px_rgba(60,40,10,0.55)] sm:rounded-[26px] sm:p-2">
+      <div className="relative overflow-hidden rounded-[17px] bg-chip sm:rounded-[20px]">
         <Link to={href} tabIndex={-1} aria-hidden className="block aspect-[5/4]">
           <img
             src={main.src}
@@ -75,14 +76,14 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col pt-3">
+      <div className="flex flex-1 flex-col px-1.5 pt-3 pb-1 sm:px-2">
         <div className="flex items-baseline justify-between gap-2">
           <h3 className="min-w-0 truncate font-serif text-[19px] leading-tight sm:text-[22px]">
             <Link to={href} className="hover:underline hover:decoration-1 hover:underline-offset-4">
               {product.name}
             </Link>
           </h3>
-          <p key={selected.price} className="rf-num-pop shrink-0 text-[12.5px] font-medium tabular-nums sm:text-[14px]" aria-live="polite">
+          <p key={selected.price} className="rf-num-pop shrink-0 text-[12.5px] font-semibold text-gold tabular-nums sm:text-[14px]" aria-live="polite">
             {formatPrice(selected.price)}
           </p>
         </div>
@@ -114,7 +115,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
 
         {sizes.length > 1 && (
           <div ref={pillRef} role="radiogroup" aria-label={`Size for ${product.name}`} className="relative mt-3 flex flex-wrap gap-1.5">
-            <SlidingPill box={pillBox} className="rounded-full bg-[#14110d]" />
+            <SlidingPill box={pillBox} className="rounded-full bg-olive" />
             {sizes.map((v) => {
               const on = v.id === selected.id
               return (
@@ -129,7 +130,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                     setVariationId(v.id)
                   }}
                   className={`relative z-[1] h-8 rounded-full border px-3 text-[11.5px] font-medium transition-colors duration-300 sm:h-9 sm:px-3.5 sm:text-[12.5px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
-                    on ? 'border-[#14110d] text-white' : 'border-line-strong text-ink-soft hover:border-ink'
+                    on ? 'border-olive text-on-accent' : 'border-line-strong text-ink-soft hover:border-ink'
                   }`}
                 >
                   {v.size.replace(/\s*ML$/i, ' ml')}
@@ -144,7 +145,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
             type="button"
             onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id)}
             disabled={!selected.inStock}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#14110d] px-3 text-[11.5px] font-medium tracking-[0.1em] whitespace-nowrap text-white uppercase transition hover:bg-[#2e2820] disabled:opacity-50 sm:h-12 sm:text-[12.5px]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-olive px-3 text-[11.5px] font-semibold tracking-[0.1em] whitespace-nowrap text-on-accent uppercase shadow-[0_10px_22px_-14px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover active:scale-[0.98] disabled:opacity-50 sm:h-12 sm:text-[12.5px]"
           >
             <BagIcon className="hidden size-4 shrink-0 sm:block" strokeWidth={1.6} />
             Add to cart
@@ -155,13 +156,14 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
               onClick={(e) => addWithFlight(cart, e.currentTarget, product, sample.id)}
               disabled={!sample.inStock}
               aria-label={`Try ${sample.size} of ${product.name} · ${formatPrice(sample.price)}`}
-              className="inline-flex items-center justify-center gap-1 py-1 text-[11px] font-medium text-gold underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-40 sm:text-[12px]"
+              className="inline-flex items-center justify-center gap-1 py-1 text-[11px] font-semibold text-gold underline-offset-4 hover:underline disabled:pointer-events-none disabled:opacity-40 sm:text-[12px]"
             >
               <BottleIcon className="size-3.5 shrink-0" />
               Try {sample.size.replace(/\s*ML$/i, ' ml')} · {formatPrice(sample.price)}
             </button>
           )}
         </div>
+      </div>
       </div>
     </article>
   )
