@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
 // Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
-const RFAHEYA_DATA_VERSION = 4;
+const RFAHEYA_DATA_VERSION = 5;
 
 // ==================================================================== settings
 
@@ -1456,6 +1456,12 @@ function rfaheya_slim_product( $p ) {
 				return $pick( $c, array( 'id', 'name', 'slug' ) );
 			},
 			isset( $p['categories'] ) ? (array) $p['categories'] : array()
+		),
+		'tags'              => array_map(
+			function ( $t ) use ( $pick ) {
+				return $pick( $t, array( 'id', 'name', 'slug' ) );
+			},
+			isset( $p['tags'] ) ? (array) $p['tags'] : array()
 		),
 		'attributes'        => array_map(
 			function ( $a ) use ( $pick ) {

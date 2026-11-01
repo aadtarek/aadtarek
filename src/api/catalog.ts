@@ -176,6 +176,7 @@ export function giftBoxProduct(): Product {
     description: '',
     story: [],
     badge: '',
+    tags: [],
     accords: [],
     notes: [],
     composition: { opening: [], heart: [], drydown: [] },

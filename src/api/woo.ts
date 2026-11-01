@@ -44,6 +44,7 @@ export interface RawProduct {
   prices: RawPrices
   images: { id: number; src: string; alt: string; name?: string; srcset?: string }[]
   categories: { id: number; name: string; slug: string }[]
+  tags?: { id: number; name: string; slug: string }[]
   attributes: RawAttribute[]
   variations: { id: number; attributes: { name: string; value: string }[] }[]
   variation?: string
@@ -213,6 +214,7 @@ function mapProduct(
     description: stripHtml(p.description),
     story: paragraphs(p.description),
     badge: d.badge?.trim() ?? '',
+    tags: (p.tags ?? []).map((t) => stripHtml(t.name)).filter(Boolean),
     accords: filled(d.accords) ?? attr(p, 'Accords', 'Main Accords'),
     notes: notes.map((n) => ({ name: n, image: noteImage(n) })),
     composition: { opening: d.opening ?? [], heart: d.heart ?? [], drydown: d.drydown ?? [] },

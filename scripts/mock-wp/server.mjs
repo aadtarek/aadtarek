@@ -93,6 +93,7 @@ for (const r of rows.filter((x) => x.Type === 'variable')) {
       name: '',
     })),
     categories: r.Categories.split(',').map((c) => c.trim()).filter(Boolean).map((c) => ({ id: termId(`cat:${c}`), name: c, slug: slug(c), link: `${site}/product-category/${slug(c)}/` })),
+    tags: (r.Tags || '').split(',').map((t) => t.trim()).filter(Boolean).map((t) => ({ id: termId(`tag:${t}`), name: t, slug: slug(t) })),
     attributes,
     variations: [],
     is_in_stock: true,

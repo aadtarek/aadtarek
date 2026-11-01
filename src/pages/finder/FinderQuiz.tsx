@@ -40,6 +40,7 @@ import {
   type Option,
 } from '../../finder/data'
 import { usePersistentState } from '../../lib/storage'
+import { useSwipeClose } from '../../lib/useSwipeClose'
 
 const stepIcons: LucideIcon[] = [UserRound, MapPin, Waves, Flower2, Sun, Waves, Clock]
 
@@ -114,43 +115,51 @@ export function FinderQuiz() {
   )
 
   return (
-    <div className="min-h-screen bg-[#ebe9e6] text-ink lg:grid lg:grid-cols-[minmax(0,36.5%)_1fr]">
-      {/* ---------- Left still life ---------- */}
+    <div className="min-h-screen bg-sand text-ink lg:grid lg:grid-cols-[minmax(0,36%)_1fr]">
+      {/* ---------- Left: a photo island for the question ---------- */}
       <aside className="relative hidden lg:block">
-        <div className="sticky top-0 h-screen overflow-hidden">
-          <img key={step} src={panels[step]} alt="" className="size-full animate-fade-in object-cover object-[30%_center]" />
-          <div aria-hidden className="absolute inset-y-0 right-0 w-24 bg-gradient-to-r from-transparent to-[#ebe9e6]" />
-          <Link to="/" aria-label="Rfaheya — home" className="absolute top-9 left-[16%] block h-[50px]">
-            <img src={logo} alt="Rfaheya — Speak your scent" className="h-full w-auto invert" />
-          </Link>
+        <div className="sticky top-0 h-screen p-4">
+          <div className="relative size-full overflow-hidden rounded-[36px] bg-[#1c120b]">
+            <img key={step} src={panels[step]} alt="" className="size-full animate-fade-in object-cover" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[#140c07]/55 via-transparent to-[#140c07]/70" />
+            <Link to="/" aria-label="Rfaheya — home" className="absolute top-8 left-8 block h-[44px]">
+              <img src={logo} alt="Rfaheya — Speak your scent" className="h-full w-auto invert" />
+            </Link>
+            <div className="absolute inset-x-6 bottom-6 rounded-[24px] bg-white/15 p-5 text-white backdrop-blur-xl">
+              <p className="text-[11px] font-semibold tracking-[0.24em] text-[#f0c27a] uppercase">
+                Step {step + 1} of {TOTAL_STEPS}
+              </p>
+              <p className="mt-1.5 font-serif text-[30px] leading-none">{STEPS[step]}</p>
+            </div>
+          </div>
         </div>
       </aside>
 
       {/* ---------- Right: question ---------- */}
-      <main className="flex min-h-screen flex-col px-4 pt-5 pb-8 sm:px-8 lg:px-[4.5%] lg:pt-9 xl:pr-[4%]">
+      <main className="flex min-h-screen flex-col px-4 pt-4 pb-8 sm:px-8 lg:px-[4.5%] lg:pt-9 xl:pr-[4%]">
         <div className="mb-5 flex items-center justify-between lg:hidden">
           <Link to="/" aria-label="Rfaheya — home" className="block h-9">
             <img src={logo} alt="Rfaheya" className="h-full w-auto" />
           </Link>
-          <Link to="/finder" aria-label="Exit the finder" className="grid size-10 place-items-center rounded-full hover:bg-latte">
+          <Link to="/finder" aria-label="Exit the finder" className="rf-white grid size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)]">
             <X className="size-5" strokeWidth={1.5} />
           </Link>
         </div>
 
         <div className="flex items-center justify-between">
-          <p className="text-[12.5px] tracking-[0.2em] uppercase sm:text-[14px]">Rfaheya Finder</p>
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase sm:text-[12px]">Rfaheya Finder</p>
           <div className="flex items-center gap-4">
-            <p className="text-[13px] tracking-[0.12em] text-muted uppercase sm:text-[15px]" aria-live="polite">
-              {step + 1} of {TOTAL_STEPS}
+            <p className="rf-white rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold tabular-nums shadow-[inset_0_0_0_1px_var(--color-line)]" aria-live="polite">
+              {step + 1} <span className="text-muted">/ {TOTAL_STEPS}</span>
             </p>
-            <Link to="/finder" aria-label="Exit the finder" className="hidden size-10 place-items-center rounded-full hover:bg-latte lg:grid">
+            <Link to="/finder" aria-label="Exit the finder" className="rf-white hidden size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)] lg:grid">
               <X className="size-5" strokeWidth={1.5} />
             </Link>
           </div>
         </div>
 
         {/* progress */}
-        <ol className="mt-4 grid grid-cols-7 gap-2 sm:gap-[10px]" aria-label="Progress">
+        <ol className="mt-4 grid grid-cols-7 gap-1.5 sm:gap-2" aria-label="Progress">
           {STEPS.map((name, i) => {
             const reachable = i <= open
             return (
@@ -164,12 +173,8 @@ export function FinderQuiz() {
                   className="block w-full py-2 disabled:cursor-default"
                 >
                   <span
-                    className={`block h-[5px] rounded-full transition-colors ${
-                      i < step || (i <= open && i !== step && i < open)
-                        ? 'bg-espresso'
-                        : i === step
-                          ? 'bg-gradient-to-r from-espresso to-mocha'
-                          : 'bg-[#d6d2ce]'
+                    className={`block h-[6px] rounded-full transition-colors duration-500 ${
+                      i === step ? 'bg-olive shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-olive)_25%,transparent)]' : i < open ? 'bg-olive/60' : 'bg-line-strong/60'
                     }`}
                   />
                 </button>
@@ -186,9 +191,11 @@ export function FinderQuiz() {
                 <button
                   type="button"
                   onClick={() => edit(i)}
-                  className="inline-flex h-10 items-center gap-2.5 rounded-full bg-latte/80 px-4 text-[12.5px] tracking-[0.08em] uppercase transition hover:bg-latte"
+                  className="rf-white inline-flex h-10 items-center gap-2 rounded-full pr-3.5 pl-1.5 text-[12.5px] font-semibold shadow-[inset_0_0_0_1px_var(--color-line)] transition hover:shadow-[inset_0_0_0_1px_var(--color-olive)]"
                 >
-                  <Icon className="size-4" strokeWidth={1.5} />
+                  <span className="grid size-7 place-items-center rounded-full bg-[#f3e3c9] text-gold">
+                    <Icon className="size-3.5" strokeWidth={1.8} />
+                  </span>
                   {text}
                   <Pencil className="size-3.5 text-muted" strokeWidth={1.5} />
                   <span className="sr-only">Edit {STEPS[i]}</span>
@@ -238,7 +245,7 @@ export function FinderQuiz() {
                 <button
                   type="button"
                   onClick={() => setNotesOpen(true)}
-                  className="inline-flex h-[54px] flex-1 items-center justify-center gap-3 rounded-full border border-line-strong text-[13px] tracking-[0.14em] uppercase transition hover:bg-latte"
+                  className="rf-white inline-flex h-[54px] flex-1 items-center justify-center gap-3 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] transition hover:shadow-[inset_0_0_0_1.5px_var(--color-olive)]"
                 >
                   Explore more notes
                   <ArrowRight className="size-4" strokeWidth={1.5} />
@@ -247,7 +254,7 @@ export function FinderQuiz() {
                   type="button"
                   disabled={answers.notes.length === 0}
                   onClick={() => next(answers)}
-                  className="inline-flex h-[54px] flex-1 items-center justify-center gap-3 rounded-full bg-espresso text-[13px] tracking-[0.14em] text-cream uppercase transition hover:bg-espresso-hover disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-[54px] flex-1 items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[12.5px] font-semibold tracking-[0.12em] uppercase disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Continue
                   <ArrowRight className="size-4" strokeWidth={1.5} />
@@ -309,7 +316,7 @@ export function FinderQuiz() {
             <button
               type="button"
               onClick={() => goTo(step - 1)}
-              className="inline-flex h-12 items-center justify-center gap-2 px-2 text-[13px] tracking-[0.14em] text-ink-soft uppercase hover:text-ink sm:mr-auto"
+              className="rf-white inline-flex h-12 items-center justify-center gap-2 rounded-full px-5 text-[12px] font-semibold tracking-[0.12em] text-ink-soft uppercase shadow-[inset_0_0_0_1px_var(--color-line)] hover:text-ink sm:mr-auto"
             >
               <ArrowLeft className="size-4" strokeWidth={1.5} />
               Back
@@ -321,7 +328,7 @@ export function FinderQuiz() {
                 type="button"
                 onClick={() => setReviewOpen(true)}
                 disabled={!complete}
-                className="inline-flex h-[64px] flex-1 items-center justify-center gap-4 rounded-full border border-line-strong text-[14px] tracking-[0.14em] uppercase transition hover:bg-latte disabled:opacity-40 sm:max-w-[22rem]"
+                className="rf-white inline-flex h-[58px] flex-1 items-center justify-center gap-3 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] transition hover:shadow-[inset_0_0_0_1.5px_var(--color-olive)] disabled:opacity-40 sm:max-w-[22rem]"
               >
                 <SlidersHorizontal className="size-5" strokeWidth={1.4} />
                 Review your choices
@@ -330,7 +337,7 @@ export function FinderQuiz() {
                 type="button"
                 onClick={finish}
                 disabled={!complete}
-                className="inline-flex h-[64px] flex-1 items-center justify-center gap-4 rounded-full bg-espresso text-[14px] tracking-[0.14em] text-cream uppercase transition hover:bg-espresso-hover disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-[58px] flex-1 items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[12.5px] font-semibold tracking-[0.12em] uppercase disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Find my perfect scent
                 <ArrowRight className="size-5" strokeWidth={1.4} />
@@ -349,11 +356,11 @@ export function FinderQuiz() {
 function StepHead({ step, title, subtitle, children }: { step: number; title: string; subtitle: string; children: ReactNode }) {
   return (
     <>
-      <p className="text-[13px] tracking-[0.18em] uppercase">Step {step + 1}</p>
-      <h1 id="step-title" className="mt-2 max-w-[32rem] font-serif text-[36px] leading-[1.02] sm:text-[52px] xl:max-w-[36rem] xl:text-[66px]">
+      <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Question {String(step + 1).padStart(2, '0')}</p>
+      <h1 id="step-title" className="mt-2.5 max-w-[34rem] font-serif text-[38px] leading-[0.98] sm:text-[54px] xl:max-w-[38rem] xl:text-[64px]">
         {title}
       </h1>
-      <p className="mt-3 text-[15.5px] text-muted sm:text-[18px]">{subtitle}</p>
+      <p className="mt-3 text-[15px] text-ink-soft sm:text-[17px]">{subtitle}</p>
       <div className="mt-6 lg:mt-7">{children}</div>
     </>
   )
@@ -364,7 +371,7 @@ function Radio({ checked, dark = false }: { checked: boolean; dark?: boolean }) 
     <span
       aria-hidden
       className={`grid size-[30px] shrink-0 place-items-center rounded-full border-2 transition ${
-        checked ? 'border-espresso bg-espresso text-cream' : dark ? 'border-white/90' : 'border-white/90 bg-black/10'
+        checked ? 'border-olive bg-olive text-on-accent' : dark ? 'border-white/90' : 'border-white/90 bg-black/10'
       }`}
     >
       {checked && <Check className="size-4" strokeWidth={2.5} />}
@@ -378,21 +385,17 @@ function TallCard<V extends string>({ option, selected, onSelect }: { option: Op
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`group relative aspect-[287/452] overflow-hidden rounded-lg text-left ring-offset-2 ring-offset-[#ebe9e6] transition ${
-        selected ? 'ring-3 ring-espresso' : 'hover:-translate-y-0.5 hover:shadow-xl'
+      className={`group relative aspect-[287/452] overflow-hidden rounded-[22px] text-left ring-offset-[3px] ring-offset-sand transition duration-300 sm:rounded-[28px] ${
+        selected ? 'ring-[2.5px] ring-olive' : 'hover:-translate-y-1 hover:shadow-[0_24px_40px_-24px_rgba(60,40,10,0.6)]'
       }`}
     >
       <img src={option.image} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
-      <span className="absolute inset-0 bg-gradient-to-t from-[#140c07]/90 via-[#140c07]/10 to-transparent" />
-      <span className="absolute inset-x-0 bottom-[8%] flex flex-col items-center text-cream">
-        <span className="font-serif text-[20px] sm:text-[30px]">{option.label}</span>
-        <span className="mt-3 block h-px w-8 bg-cream/60" />
-      </span>
-      {selected && (
-        <span className="absolute top-3 right-3">
-          <Radio checked />
+      <span className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-between gap-1 rounded-[16px] bg-white/85 py-2 pr-1.5 pl-3 text-[#14110d] backdrop-blur-xl sm:inset-x-3 sm:bottom-3 sm:rounded-[20px] sm:py-3 sm:pr-2.5 sm:pl-5">
+        <span className="font-serif text-[18px] leading-none sm:text-[28px]">{option.label}</span>
+        <span className={`grid size-7 shrink-0 place-items-center rounded-full transition sm:size-9 ${selected ? 'bg-olive text-on-accent' : 'bg-[#14110d] text-white group-hover:bg-olive'}`}>
+          {selected ? <Check className="size-4" strokeWidth={2.4} /> : <ArrowRight className="size-4" strokeWidth={1.6} />}
         </span>
-      )}
+      </span>
     </button>
   )
 }
@@ -408,17 +411,18 @@ function OverlayGrid<V extends string>({ options, selected, onSelect }: { option
             type="button"
             onClick={() => onSelect(o.value)}
             aria-pressed={isSel}
-            className={`group relative overflow-hidden rounded-lg text-center ring-offset-2 ring-offset-[#ebe9e6] transition ${
+            className={`group relative overflow-hidden rounded-[22px] text-left ring-offset-[3px] ring-offset-sand transition duration-300 sm:rounded-[26px] ${
               i < 3 ? 'aspect-[290/275] sm:col-span-2' : 'sm:col-span-3 sm:aspect-[440/252]'
-            } ${i === 3 ? 'aspect-[290/275]' : ''} ${i === 4 ? 'col-span-2 aspect-[440/220]' : ''} ${isSel ? 'ring-3 ring-espresso' : 'hover:shadow-xl'}`}
+            } ${i === 3 ? 'aspect-[290/275]' : ''} ${i === 4 ? 'col-span-2 aspect-[440/220]' : ''} ${isSel ? 'ring-[2.5px] ring-olive' : 'hover:-translate-y-1 hover:shadow-[0_24px_40px_-24px_rgba(60,40,10,0.6)]'}`}
           >
             <img src={o.image} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
-            <span className="absolute inset-0 bg-gradient-to-t from-[#140c07]/90 via-[#140c07]/25 to-transparent" />
-            <span className="absolute inset-x-0 bottom-[9%] flex flex-col items-center px-2 text-cream">
-              <span className="font-serif text-[17px] leading-tight sm:text-[24px]">{o.label}</span>
-              {o.description && <span className="mt-1 hidden text-[13px] text-cream/85 sm:block sm:text-[15px]">{o.description}</span>}
-              <span className="mt-3 grid size-9 place-items-center rounded-full border border-cream/80 transition group-hover:bg-cream group-hover:text-ink">
-                {isSel ? <Check className="size-4" strokeWidth={2} /> : <ArrowRight className="size-4" strokeWidth={1.5} />}
+            <span className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-between gap-2 rounded-[16px] bg-white/85 py-2 pr-1.5 pl-3 text-[#14110d] backdrop-blur-xl sm:inset-x-2.5 sm:bottom-2.5 sm:rounded-[20px] sm:py-2.5 sm:pr-2 sm:pl-4">
+              <span className="min-w-0">
+                <span className="block font-serif text-[17px] leading-tight sm:text-[23px]">{o.label}</span>
+                {o.description && <span className="mt-0.5 hidden truncate text-[12.5px] text-[#5b5145] sm:block">{o.description}</span>}
+              </span>
+              <span className={`grid size-7 shrink-0 place-items-center rounded-full transition sm:size-9 ${isSel ? 'bg-olive text-on-accent' : 'bg-[#14110d] text-white group-hover:bg-olive'}`}>
+                {isSel ? <Check className="size-4" strokeWidth={2.4} /> : <ArrowRight className="size-4" strokeWidth={1.6} />}
               </span>
             </span>
           </button>
@@ -446,19 +450,19 @@ function TopCard<V extends string>({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`group flex flex-col overflow-hidden rounded-lg border bg-[#eeebe8] text-left transition ${className} ${
-        selected ? 'border-espresso ring-2 ring-espresso' : 'border-[#d9d5d1] hover:shadow-lg'
+      className={`rf-white group flex flex-col overflow-hidden rounded-[22px] p-1.5 text-left transition duration-300 sm:rounded-[26px] ${className} ${
+        selected ? 'shadow-[inset_0_0_0_2.5px_var(--color-olive)]' : 'shadow-[inset_0_0_0_1px_var(--color-line)] hover:-translate-y-1 hover:shadow-[0_24px_40px_-26px_rgba(60,40,10,0.55)]'
       }`}
     >
-      <span className="relative block aspect-[290/178] w-full overflow-hidden">
+      <span className="relative block aspect-[290/178] w-full overflow-hidden rounded-[17px] sm:rounded-[20px]">
         <img src={option.image} alt="" className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-105" />
         <span className="absolute top-3 right-3">
           <Radio checked={selected} />
         </span>
       </span>
-      <span className="flex-1 px-4 pt-3.5 pb-4 sm:px-5">
-        <span className="block font-serif text-[18px] sm:text-[22px]">{option.label}</span>
-        {kicker && <span className="mt-1 block text-[16px] text-mocha sm:text-[18px]">{kicker}</span>}
+      <span className="flex-1 px-3 pt-3 pb-3 sm:px-4 sm:pb-4">
+        <span className="block font-serif text-[19px] leading-tight sm:text-[24px]">{option.label}</span>
+        {kicker && <span className="mt-1 inline-block rounded-full bg-[#f3e3c9] px-2.5 py-0.5 text-[12.5px] font-semibold text-gold">{kicker}</span>}
         {option.description && <span className="mt-1.5 block text-[13.5px] leading-snug text-muted sm:text-[15px]">{option.description}</span>}
       </span>
     </button>
@@ -472,14 +476,14 @@ function NotesCounter({ count }: { count: number }) {
       {Array.from({ length: MAX_NOTES }, (_, i) => (
         <span
           key={i}
-          className={`grid size-[34px] place-items-center rounded-full border-2 ${
-            i < count ? 'border-espresso bg-espresso text-cream' : 'border-[#d3cfcb]'
+          className={`grid size-[32px] place-items-center rounded-full transition duration-300 ${
+            i < count ? 'scale-100 bg-olive text-on-accent' : 'rf-white shadow-[inset_0_0_0_1.5px_var(--color-line-strong)]'
           }`}
         >
           {i < count && <Check className="size-4" strokeWidth={2.5} />}
         </span>
       ))}
-      <span className="ml-3 text-[16px] text-muted">
+      <span className="ml-2 text-[14.5px] font-medium text-ink-soft">
         {left === 0 ? 'All set' : `${left} ${left === 1 ? 'choice' : 'choices'} remaining`}
       </span>
     </div>
@@ -510,18 +514,18 @@ function NoteCard({
       onClick={() => setAnswers(toggleNote(answers, option.value))}
       aria-pressed={checked}
       disabled={full}
-      className={`group overflow-hidden rounded-md border text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
-        checked ? 'border-espresso ring-1 ring-espresso' : 'border-[#d9d5d1] hover:shadow-md'
+      className={`rf-white group overflow-hidden rounded-[20px] p-1.5 text-left transition duration-300 disabled:cursor-not-allowed disabled:opacity-45 ${
+        checked ? 'shadow-[inset_0_0_0_2.5px_var(--color-olive)]' : 'shadow-[inset_0_0_0_1px_var(--color-line)] hover:shadow-[inset_0_0_0_1px_var(--color-olive)]'
       }`}
     >
-      <span className="block aspect-[265/107] overflow-hidden">
+      <span className="block aspect-[265/107] overflow-hidden rounded-[15px]">
         <img src={option.image} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
       </span>
-      <span className="flex items-center justify-between bg-[#f0eeec] px-4 py-3.5">
-        <span className="text-[14.5px] tracking-[0.1em] uppercase">{option.label}</span>
+      <span className="flex items-center justify-between px-2.5 pt-2.5 pb-1.5">
+        <span className="font-serif text-[18px] leading-none sm:text-[20px]">{option.label}</span>
         <span
           aria-hidden
-          className={`grid size-[24px] place-items-center rounded-full border-2 ${checked ? 'border-espresso bg-espresso text-cream' : 'border-ink-soft/70'}`}
+          className={`grid size-[26px] place-items-center rounded-full transition ${checked ? 'bg-olive text-on-accent' : 'shadow-[inset_0_0_0_1.5px_var(--color-line-strong)]'}`}
         >
           {checked && <Check className="size-3.5" strokeWidth={2.5} />}
         </span>
@@ -539,25 +543,27 @@ function MoreNotesModal({
   setAnswers: (a: FinderAnswers) => void
   onClose: () => void
 }) {
+  const swipe = useSwipeClose<HTMLDivElement>(onClose)
   return (
     <Overlay onClose={onClose} label="Discover more scent notes">
-      <div className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-2xl bg-[#f0eeeb] p-5 shadow-2xl [animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(58rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[22px] sm:p-12">
+      <div ref={swipe} className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-[28px] bg-sand p-5 shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(58rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] sm:p-10 sm:[animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)]">
+        <span aria-hidden className="mx-auto -mt-2 mb-3 block h-[5px] w-11 rounded-full bg-line-strong sm:hidden" />
         <img
           src={moreNotes[0].image}
           alt=""
           aria-hidden
-          className="pointer-events-none absolute top-0 right-0 hidden h-[270px] w-[52%] rounded-tr-[22px] object-cover [mask-image:linear-gradient(to_left,black_40%,transparent),linear-gradient(to_top,transparent,black_40%)] [mask-composite:intersect] sm:block"
+          className="pointer-events-none absolute top-0 right-0 hidden h-[270px] w-[52%] rounded-tr-[32px] object-cover [mask-image:linear-gradient(to_left,black_40%,transparent),linear-gradient(to_top,transparent,black_40%)] [mask-composite:intersect] sm:block"
         />
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 z-10 grid size-12 place-items-center rounded-full bg-[#f0eeeb] shadow-sm hover:bg-white sm:top-5 sm:right-5 sm:size-[60px]"
+          className="rf-white absolute top-4 right-4 z-10 grid size-11 place-items-center rounded-full shadow-sm sm:top-5 sm:right-5 sm:size-12"
         >
           <X className="size-6" strokeWidth={1.3} />
         </button>
         <div className="relative">
-          <p className="text-[12px] tracking-[0.28em] text-gold uppercase sm:text-[14px]">Explore more notes</p>
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Explore more notes</p>
           <h2 className="mt-3 font-serif text-[36px] leading-[1.02] sm:text-[52px]">
             Discover more
             <br />
@@ -568,7 +574,7 @@ function MoreNotesModal({
             <NotesCounter count={answers.notes.length} />
           </div>
         </div>
-        <div className="mt-5 border-t border-[#d6d2ce] pt-5">
+        <div className="mt-5 border-t border-line pt-5">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
             {moreNotes.map((n) => (
               <NoteCard key={n.value} option={n} answers={answers} setAnswers={setAnswers} />
@@ -578,7 +584,7 @@ function MoreNotesModal({
         <button
           type="button"
           onClick={onClose}
-          className="mt-7 inline-flex h-[64px] w-full items-center justify-center gap-4 rounded-full bg-latte text-[14px] tracking-[0.2em] uppercase transition hover:bg-[#d7d2cc]"
+          className="mt-7 inline-flex h-[58px] w-full items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[12.5px] font-semibold tracking-[0.14em] uppercase"
         >
           Done
           <ArrowRight className="size-5" strokeWidth={1.3} />
@@ -599,6 +605,7 @@ function ReviewModal({
   onClose: () => void
   onFinish: () => void
 }) {
+  const swipe = useSwipeClose<HTMLDivElement>(onClose)
   const noteNames = answers.notes.map((n) => allNotes.find((o) => o.value === n)?.label).filter(Boolean)
   const firstNote = allNotes.find((o) => o.value === answers.notes[0])
   const longevity = longevityOptions.find((o) => o.value === answers.longevity)
@@ -613,14 +620,17 @@ function ReviewModal({
   ]
   return (
     <Overlay onClose={onClose} label="Review your choices">
-      <div className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-2xl bg-[#f0eeeb] px-4 pt-6 pb-5 shadow-2xl [animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(49rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[18px] sm:px-8 sm:pt-10 sm:pb-8">
-        <button type="button" onClick={onClose} aria-label="Close" className="absolute top-4 right-4 grid size-11 place-items-center rounded-full hover:bg-latte sm:top-6 sm:right-6">
+      <div ref={swipe} className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-[28px] bg-sand px-4 pt-5 pb-5 shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(49rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] sm:px-8 sm:pt-10 sm:pb-8 sm:[animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)]">
+        <span aria-hidden className="mx-auto -mt-1 mb-3 block h-[5px] w-11 rounded-full bg-line-strong sm:hidden" />
+        <button type="button" onClick={onClose} aria-label="Close" className="rf-white absolute top-4 right-4 grid size-11 place-items-center rounded-full shadow-sm sm:top-6 sm:right-6">
           <X className="size-6" strokeWidth={1.3} />
         </button>
         <div className="px-2 sm:px-3">
-          <p className="text-[12px] tracking-[0.2em] uppercase sm:text-[14px]">Rfaheya Finder</p>
-          <h2 className="mt-2 font-serif text-[36px] leading-[1.05] sm:text-[52px]">Review Your Choices</h2>
-          <p className="mt-2 max-w-xl text-[15px] text-muted sm:text-[17.5px]">
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Rfaheya Finder</p>
+          <h2 className="mt-2 font-serif text-[36px] leading-[1.02] sm:text-[50px]">
+            Review your <span className="text-gold italic">choices.</span>
+          </h2>
+          <p className="mt-2 max-w-xl text-[14.5px] text-ink-soft sm:text-[16px]">
             Here’s what you selected. You can edit any preference before finding your perfect scent.
           </p>
         </div>
@@ -628,19 +638,21 @@ function ReviewModal({
           {rows.map((r, i) => {
             const Icon = stepIcons[i]
             return (
-              <li key={r.k} className="flex items-center overflow-hidden rounded-md bg-[#f5f4f2] shadow-[0_0_0_1px_rgba(74,42,23,0.05)]">
-                {r.img && <img src={r.img} alt="" className="h-[64px] w-[90px] shrink-0 object-cover sm:w-[165px]" />}
-                <Icon className="mx-3 size-5 shrink-0 sm:mx-6" strokeWidth={1.4} />
+              <li key={r.k} className="rf-white flex items-center gap-3 overflow-hidden rounded-[20px] p-1.5 shadow-[inset_0_0_0_1px_var(--color-line)]">
+                {r.img && <img src={r.img} alt="" className="h-[56px] w-[72px] shrink-0 rounded-[15px] object-cover sm:w-[120px]" />}
+                <span className="hidden size-9 shrink-0 place-items-center rounded-full bg-[#f3e3c9] text-gold sm:grid">
+                  <Icon className="size-4" strokeWidth={1.8} />
+                </span>
                 <div className="min-w-0 flex-1 py-2">
-                  <p className="text-[11px] tracking-[0.16em] text-muted uppercase sm:text-[12.5px]">{r.k}</p>
-                  <p className="truncate font-serif text-[17px] sm:text-[22px]">{r.v}</p>
+                  <p className="text-[10.5px] font-semibold tracking-[0.16em] text-muted uppercase sm:text-[11.5px]">{r.k}</p>
+                  <p className="truncate font-serif text-[18px] leading-tight sm:text-[22px]">{r.v}</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onEdit(i)}
-                  className="flex shrink-0 items-center gap-2 px-3 py-3 text-[14px] hover:text-mocha sm:px-5 sm:text-[15.5px]"
+                  className="mr-1 flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-chip px-3.5 text-[12.5px] font-semibold transition hover:bg-olive hover:text-on-accent"
                 >
-                  Edit <ArrowRight className="size-4" strokeWidth={1.4} />
+                  Edit <ArrowRight className="size-3.5" strokeWidth={1.6} />
                   <span className="sr-only">{r.k}</span>
                 </button>
               </li>
@@ -650,7 +662,7 @@ function ReviewModal({
         <button
           type="button"
           onClick={onFinish}
-          className="mt-5 inline-flex h-[64px] w-full items-center justify-center gap-4 rounded-full bg-espresso text-[14px] tracking-[0.18em] text-cream uppercase transition hover:bg-espresso-hover sm:h-[74px] sm:text-[16px]"
+          className="mt-5 inline-flex h-[60px] w-full items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[13px] font-semibold tracking-[0.14em] uppercase sm:h-[64px]"
         >
           Find my perfect scent
           <ArrowRight className="size-5" strokeWidth={1.3} />

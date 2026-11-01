@@ -238,7 +238,7 @@ export function Checkout() {
             </span>
             Bag
           </li>
-          <li aria-current="step" className="flex items-center gap-2 rounded-full bg-[#14110d] py-1.5 pr-4 pl-1.5 text-white">
+          <li aria-current="step" className="flex items-center gap-2 rounded-full bg-olive py-1.5 pr-4 pl-1.5 text-on-accent">
             <span className="grid size-[26px] place-items-center rounded-full bg-white text-[#14110d]">2</span>
             Details
           </li>
@@ -281,12 +281,12 @@ export function Checkout() {
                     role="radio"
                     aria-checked={address.governorate === g}
                     onClick={() => pickGov(g)}
-                    className={`h-10 rounded-full px-[18px] text-[13px] font-medium transition ${address.governorate === g ? 'bg-[#14110d] text-white' : 'bg-sand text-ink-soft hover:bg-chip'}`}
+                    className={`h-10 rounded-full px-[18px] text-[13px] font-medium transition ${address.governorate === g ? 'bg-olive text-on-accent' : 'bg-sand text-ink-soft hover:bg-chip'}`}
                   >
                     {g}
                   </button>
                 ))}
-                <label className={`relative rounded-full transition ${otherGov ? 'bg-[#14110d] text-white' : 'bg-sand text-ink-soft hover:bg-chip'}`}>
+                <label className={`relative rounded-full transition ${otherGov ? 'bg-olive text-on-accent' : 'bg-sand text-ink-soft hover:bg-chip'}`}>
                   <span className="sr-only">Other governorate</span>
                   <select
                     value={otherGov ? address.governorate : ''}
@@ -543,7 +543,7 @@ function PromoCode() {
           type="button"
           onClick={apply}
           disabled={busy || !code.trim()}
-          className="h-11 shrink-0 rounded-full bg-chip px-[18px] text-[12px] font-semibold transition hover:bg-[#14110d] hover:text-white disabled:opacity-50"
+          className="h-11 shrink-0 rounded-full bg-chip px-[18px] text-[12px] font-semibold transition hover:bg-olive hover:text-on-accent disabled:opacity-50"
         >
           {busy ? '…' : 'Apply'}
         </button>

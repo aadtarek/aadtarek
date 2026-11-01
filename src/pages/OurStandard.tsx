@@ -158,7 +158,7 @@ export function OurStandard() {
               <button type="button" onClick={() => go(-1)} aria-label="Previous dimension" className="grid size-12 place-items-center rounded-full border border-line transition hover:border-ink">
                 <ArrowLeft className="size-5" strokeWidth={1.5} />
               </button>
-              <button type="button" onClick={() => go(1)} aria-label="Next dimension" className="grid size-12 place-items-center rounded-full bg-[#14110d] text-white transition hover:bg-[#2e2820]">
+              <button type="button" onClick={() => go(1)} aria-label="Next dimension" className="grid size-12 place-items-center rounded-full bg-olive text-on-accent hover:bg-olive-hover transition">
                 <ArrowRight className="size-5" strokeWidth={1.5} />
               </button>
               <span className="ml-1 text-[13px] text-muted tabular-nums">

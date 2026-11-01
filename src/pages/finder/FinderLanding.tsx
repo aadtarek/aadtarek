@@ -80,7 +80,7 @@ export function FinderLanding() {
                 <img src={c.image} alt="" loading="lazy" className="size-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105" />
                 <span className="absolute inset-x-2 bottom-2 flex items-center justify-between gap-2 rounded-2xl bg-white/85 py-2 pr-2 pl-3.5 text-[#14110d] backdrop-blur-xl lg:inset-x-3 lg:bottom-3 lg:rounded-[20px] lg:py-3 lg:pl-5">
                   <span className="font-serif text-[20px] leading-none lg:text-[28px]">{c.label}</span>
-                  <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-[#14110d] text-white transition group-hover:translate-x-0.5 lg:size-[38px]">
+                  <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-olive text-on-accent transition group-hover:translate-x-0.5 lg:size-[38px]">
                     <ArrowRight className="size-4" strokeWidth={1.6} />
                   </span>
                 </span>

@@ -106,7 +106,7 @@ export function ReviewsSection() {
               </span>
               <span aria-hidden className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-line-strong/60">
                 <span
-                  className="absolute inset-y-0 left-0 rounded-full bg-ink transition-[width] duration-300"
+                  className="absolute inset-y-0 left-0 rounded-full bg-olive transition-[width] duration-300"
                   style={{ width: `${Math.max(shown / total, state.progress) * 100}%` }}
                 />
               </span>
@@ -114,7 +114,7 @@ export function ReviewsSection() {
                 <button type="button" onClick={() => go(-1)} disabled={state.atStart} aria-label="Previous reviews" className={`${arrow} rf-white text-ink shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]`}>
                   <ArrowLeft className="size-5" strokeWidth={1.5} />
                 </button>
-                <button type="button" onClick={() => go(1)} disabled={state.atEnd} aria-label="Next reviews" className={`${arrow} bg-[#14110d] text-white hover:bg-[#2e2820]`}>
+                <button type="button" onClick={() => go(1)} disabled={state.atEnd} aria-label="Next reviews" className={`${arrow} bg-olive text-on-accent hover:bg-olive-hover`}>
                   <ArrowRight className="size-5" strokeWidth={1.5} />
                 </button>
               </span>

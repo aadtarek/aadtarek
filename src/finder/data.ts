@@ -96,7 +96,8 @@ export const longevityOptions: (Option<Longevity> & { hours: string })[] = [
   { value: 'eternal', label: 'Eternal', hours: 'More Than 12 Hours', description: 'For those who want their fragrance to stay with them for as long as possible.', image: pic('long-eternal') },
 ]
 
-export const panels = [pic('panel-1'), pic('panel-2'), pic('panel-3'), pic('panel-2'), pic('panel-5'), pic('panel-3'), pic('panel-7')]
+/** The big photo beside each question (desktop). */
+export const panels = [pic('landing-hero'), pic('occ-date'), pic('style-oriental'), pic('note-rose'), pic('season-autumn'), pic('more-style'), pic('long-eternal')]
 
 export const landing = {
   hero: pic('landing-hero'),

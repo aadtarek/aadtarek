@@ -37,7 +37,7 @@ export function CollectionsIndex() {
                   <span className="block font-serif text-[20px] leading-none lg:text-[28px]">{c.name}</span>
                   <span className={`mt-1 truncate text-[12px] text-[#7b6e5b] ${i < 3 ? 'block' : 'hidden lg:block'}`}>{c.tagline}</span>
                 </span>
-                <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-[#14110d] text-white transition group-hover:translate-x-0.5 lg:size-[38px]">
+                <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-olive text-on-accent transition group-hover:translate-x-0.5 lg:size-[38px]">
                   <ArrowRight className="size-4" strokeWidth={1.6} />
                 </span>
               </span>

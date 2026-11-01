@@ -11,6 +11,7 @@ import { BottleIcon } from './Icons'
 import { Overlay } from './Overlay'
 import { QuantityInput } from './QuantityInput'
 import { SizePicker } from './SizePicker'
+import { useSwipeClose } from '../lib/useSwipeClose'
 
 /**
  * Quick view: the product's photo, tags, notes and sizes in a window over the
@@ -24,6 +25,7 @@ export function QuickAddModal() {
 }
 
 function QuickView({ product, onClose }: { product: Product; onClose: () => void }) {
+  const swipe = useSwipeClose<HTMLDivElement>(onClose)
   const cart = useCart()
   const navigate = useNavigate()
   const sizes = fullSizeVariations(product)
@@ -36,7 +38,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
 
   return (
     <Overlay onClose={onClose} label={`Quick view: ${product.name}`}>
-      <div className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl sm:pb-0 [animation:slide-up_.6s_cubic-bezier(.2,1.15,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:rf-spring-in_.6s_cubic-bezier(.2,1.25,.3,1)]">
+      <div ref={swipe} className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-cream pb-[env(safe-area-inset-bottom)] shadow-2xl sm:pb-0 [animation:slide-up_.6s_cubic-bezier(.2,1.15,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:max-h-[86vh] sm:w-[min(52rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:[animation:rf-spring-in_.6s_cubic-bezier(.2,1.25,.3,1)]">
         <button
           type="button"
           onClick={onClose}

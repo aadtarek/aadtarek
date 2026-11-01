@@ -22,6 +22,7 @@ export const products: Product[] = seed.map((p) => ({
   description: p.description,
   story: p.story,
   badge: p.badge,
+  tags: [],
   accords: p.accords,
   notes: p.notes.map((n) => ({ name: n.name, image: noteImages[`../assets/notes/${n.icon}.png`] })),
   composition: p.composition,

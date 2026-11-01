@@ -213,7 +213,7 @@ function ProductDetails({ product }: { product: Product }) {
             type="button"
             onClick={buyNow}
             disabled={!variation.inStock}
-            className="mt-2.5 h-14 w-full rounded-full bg-[#14110d] text-[12px] font-semibold tracking-[0.1em] text-white uppercase transition hover:bg-[#2e2820] disabled:opacity-50 sm:text-[13px]"
+            className="mt-2.5 h-14 w-full rounded-full text-[12px] font-semibold tracking-[0.1em] text-gold uppercase shadow-[inset_0_0_0_1.5px_var(--color-olive)] transition hover:bg-olive hover:text-on-accent disabled:opacity-50 sm:text-[13px]"
           >
             Buy now
           </button>
@@ -289,7 +289,7 @@ function ProductDetails({ product }: { product: Product }) {
             type="button"
             onClick={buyNow}
             disabled={!variation.inStock}
-            className="hidden h-12 shrink-0 rounded-full bg-[#14110d] px-7 text-[12px] font-semibold tracking-[0.1em] text-white uppercase disabled:opacity-50 sm:block"
+            className="hidden h-12 shrink-0 rounded-full px-7 text-[12px] font-semibold tracking-[0.1em] text-gold uppercase shadow-[inset_0_0_0_1.5px_var(--color-olive)] transition hover:bg-olive hover:text-on-accent disabled:opacity-50 sm:block"
           >
             Buy now
           </button>

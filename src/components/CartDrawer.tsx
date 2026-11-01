@@ -9,6 +9,7 @@ import { useCart } from '../store/cart'
 import { useRewards } from '../store/rewards'
 import { OfferBar } from './OfferBar'
 import { Overlay } from './Overlay'
+import { useSwipeClose } from '../lib/useSwipeClose'
 
 /** The cart: a panel from the right (from the bottom on phones). */
 export function CartDrawer() {
@@ -17,6 +18,7 @@ export function CartDrawer() {
   const navigate = useNavigate()
   // Stays on screen while it animates away after closing.
   const [shown, setShown] = useState(cart.isOpen)
+  const swipe = useSwipeClose<HTMLElement>(cart.close, { own: true })
   if (cart.isOpen && !shown) setShown(true)
   if (!shown) return null
   const leaving = !cart.isOpen
@@ -35,11 +37,13 @@ export function CartDrawer() {
   return (
     <Overlay onClose={cart.close} label="Shopping cart" leaving={leaving}>
       <aside
+        ref={swipe}
         className={`rf-drawer absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[28px] bg-cream shadow-[0_40px_120px_-30px_rgba(16,14,11,0.6)] sm:inset-x-auto sm:top-3 sm:right-3 sm:bottom-3 sm:max-h-none sm:w-[440px] sm:rounded-[28px] ${leaving ? 'rf-drawer-leave' : ''}`}
         onAnimationEnd={(e) => {
           if (leaving && e.target === e.currentTarget) setShown(false)
         }}
       >
+<span aria-hidden className="mx-auto mt-2.5 -mb-1 block h-[5px] w-11 rounded-full bg-line-strong sm:hidden" />
         <header className="flex items-center justify-between px-[18px] pt-4 pb-3 sm:px-6 sm:pt-[22px]">
           <h2 className="flex items-center gap-2 font-serif text-[28px] leading-none sm:text-[32px]">
             Your bag

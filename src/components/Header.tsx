@@ -7,6 +7,7 @@ import { useTheme } from '../lib/theme'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
 import { Logo } from './Logo'
+import { useSwipeClose } from '../lib/useSwipeClose'
 
 const SearchOverlay = lazy(() => import('./SearchOverlay').then((m) => ({ default: m.SearchOverlay })))
 
@@ -23,6 +24,7 @@ export function Header() {
   const { count, open } = useCart()
   const wishlist = useWishlist()
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useSwipeClose<HTMLDivElement>(() => setMenuOpen(false), { direction: 'left' })
   const [searchOpen, setSearchOpen] = useState(false)
   const [theme, toggleTheme] = useTheme()
   const location = useLocation()
@@ -161,7 +163,7 @@ export function Header() {
       {menuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="absolute inset-0 animate-fade-in bg-ink/40" onClick={() => setMenuOpen(false)} />
-          <div className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-cream shadow-2xl [animation:slide-in-left_.5s_cubic-bezier(.16,1,.3,1)]">
+          <div ref={menuRef} className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-cream shadow-2xl [animation:slide-in-left_.5s_cubic-bezier(.16,1,.3,1)]">
             <div className="flex h-16 items-center justify-between border-b border-line px-4">
               <Logo className="h-9" />
               <button type="button" aria-label="Close menu" className={iconBtn} onClick={() => setMenuOpen(false)}>
@@ -211,7 +213,7 @@ export function Header() {
 
 function CountBadge({ count }: { count: number }) {
   return (
-    <span aria-hidden data-cart-count className="absolute -top-0.5 -right-0.5 grid h-[21px] min-w-[21px] place-items-center rounded-full bg-ink px-1 text-[10px] leading-none font-semibold text-cream">
+    <span aria-hidden data-cart-count className="absolute -top-0.5 -right-0.5 grid h-[21px] min-w-[21px] place-items-center rounded-full bg-olive px-1 text-[10px] leading-none font-semibold text-on-accent">
       {count > 99 ? '99+' : count}
     </span>
   )

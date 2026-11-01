@@ -53,7 +53,7 @@ export function ExploreFamilies() {
                       {count} {count === 1 ? 'scent' : 'scents'}
                     </span>
                   )}
-                  <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-[#14110d] text-white transition group-hover:translate-x-0.5 lg:size-[38px]">
+                  <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-olive text-on-accent transition group-hover:translate-x-0.5 lg:size-[38px]">
                     <ArrowRight className="size-4" strokeWidth={1.6} />
                   </span>
                 </span>

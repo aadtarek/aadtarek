@@ -43,6 +43,8 @@ export interface Product {
   story: string[]
   /** Small label on the image, e.g. "Best Seller" or "New" */
   badge: string
+  /** WooCommerce product tags — shown on the product card */
+  tags: string[]
   /** Main accords shown as chips */
   accords: string[]
   /** Key notes (cards and "Key notes") */
