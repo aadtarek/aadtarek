@@ -348,7 +348,7 @@ function Discover({ recent, onPick, onClearRecent, onGo }: { recent: string[]; o
 function Categories({ onGo }: { onGo: (to: string) => void }) {
   const tiles = [
     ...getFamilies().map((f) => ({ key: f.slug, name: f.name, tagline: f.tagline, image: f.image, to: `/shop?family=${f.slug}` })),
-    ...collections.filter((c) => c.slug === 'discovery-sets').map((c) => ({ key: c.slug, name: c.name, tagline: '5 ML samples', image: c.image, to: `/collections/${c.slug}` })),
+    ...collections.filter((c) => c.slug === 'discovery-sets').map((c) => ({ key: c.slug, name: c.name, tagline: 'Sets of 10 or 20 samples', image: c.image, to: `/collections/${c.slug}` })),
   ].slice(0, 6)
   return (
     <ul className="mt-4 grid grid-cols-2 gap-3">

@@ -1,0 +1,87 @@
+/* Rfaheya sign-in page for the dashboard. */
+body.login {
+  background: radial-gradient(circle at 0% 0%, rgba(228, 155, 45, 0.28), transparent 45%), #1a120c;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+.login h1 a {
+  width: 260px;
+  height: 110px;
+  margin-bottom: 18px;
+  background-image: var(--rf-login-logo, none);
+  background-position: center;
+  background-size: contain;
+}
+.login form {
+  padding: 30px 28px 32px;
+  border: 0;
+  border-radius: 26px;
+  background: #faf6f0;
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+}
+.login label {
+  color: #4a443b;
+  font-weight: 600;
+}
+.login input[type='text'],
+.login input[type='password'] {
+  min-height: 48px;
+  padding: 6px 16px;
+  border: 1.5px solid #e7dfd2;
+  border-radius: 14px;
+  background: #fff;
+  font-size: 16px;
+  box-shadow: none;
+}
+.login input[type='text']:focus,
+.login input[type='password']:focus {
+  border-color: #e49b2d;
+  box-shadow: 0 0 0 4px rgba(228, 155, 45, 0.18);
+}
+.login .button.wp-hide-pw {
+  height: 46px;
+  color: #b8741a;
+}
+.wp-core-ui.login .button-primary {
+  float: none;
+  width: 100%;
+  height: 48px;
+  margin-top: 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #e49b2d;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 26px -14px rgba(160, 100, 20, 0.9);
+}
+.wp-core-ui.login .button-primary:hover {
+  background: #b8741a;
+}
+.login .forgetmenot {
+  float: none;
+}
+.login #nav,
+.login #backtoblog {
+  text-align: center;
+}
+.login #nav a,
+.login #backtoblog a,
+.login .privacy-policy-page-link a {
+  color: rgba(246, 239, 228, 0.75);
+}
+.login #nav a:hover,
+.login #backtoblog a:hover {
+  color: #f0c27a;
+}
+.login .message,
+.login .notice,
+.login #login_error {
+  border-radius: 14px;
+}
+.login input[type='checkbox']:checked::before {
+  filter: hue-rotate(180deg) saturate(2);
+}
+.language-switcher {
+  display: none;
+}

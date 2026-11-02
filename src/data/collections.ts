@@ -54,7 +54,7 @@ export const collections: Collection[] = [
     slug: 'discovery-sets',
     name: 'Discovery Sets',
     label: 'Discovery Sets',
-    tagline: 'Build your own set of 5 ML samples.',
+    tagline: 'Build your own set of 10 or 20 samples.',
     description: 'Choose the scents you’re curious about, live with them for a few days, then commit to your favorite full bottle.',
     image: discovery,
     kind: 'discovery',

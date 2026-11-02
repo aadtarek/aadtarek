@@ -154,34 +154,7 @@ add_action(
 			RFAHEYA_OPTION,
 			array(
 				'type'              => 'array',
-				'sanitize_callback' => function ( $input ) {
-					$input = is_array( $input ) ? $input : array();
-					$clean = array();
-					foreach ( rfaheya_fields() as $group => $fields ) {
-						foreach ( $fields as $key => $field ) {
-							$value = isset( $input[ $group ][ $key ] ) ? trim( (string) $input[ $group ][ $key ] ) : '';
-							switch ( $field[2] ) {
-								case 'url':
-									$value = esc_url_raw( $value );
-									break;
-								case 'textarea':
-									$value = str_replace( "\r\n", "\n", sanitize_textarea_field( $value ) );
-									break;
-								case 'image':
-								case 'product':
-									$value = $value ? (string) absint( $value ) : '';
-									break;
-								case 'yesno':
-									$value = 'no' === $value ? 'no' : 'yes';
-									break;
-								default:
-									$value = sanitize_text_field( $value );
-							}
-							$clean[ $group ][ $key ] = $value;
-						}
-					}
-					return $clean;
-				},
+				'sanitize_callback' => 'rfaheya_clean_settings',
 			)
 		);
 	}
@@ -194,6 +167,103 @@ add_action(
 	}
 );
 
+/** Tabs of the Rfaheya Store page: title, dashicon, one line about it, and the field groups in it. */
+function rfaheya_settings_tabs() {
+	return array(
+		'store'    => array( 'Store', 'dashicons-store', 'How customers reach you, and your social pages.', array( 'contact', 'social' ) ),
+		'home'     => array( 'Home & logo', 'dashicons-admin-home', 'The announcement bar, the hero, the slider and your logo.', array( 'home', 'slider' ) ),
+		'offers'   => array( 'Orders & offers', 'dashicons-tag', 'Minimum order, free shipping, the spend-more offer and the bundle.', array( 'shipping', 'bundle' ) ),
+		'gifts'    => array( 'Gift boxes', 'dashicons-heart', 'Packaging prices for the gift boxes customers build.', array( 'gift' ) ),
+		'loyalty'  => array( 'Loyalty', 'dashicons-awards', 'Points and the first-order welcome discount.', array( 'loyalty' ) ),
+		'signin'   => array( 'Sign in', 'dashicons-admin-users', 'Google and Facebook sign-in buttons.', array( 'login' ) ),
+		'tools'    => array( 'Tools', 'dashicons-admin-tools', 'Starter content and store health.', array() ),
+	);
+}
+
+/** Smaller headings inside a group, by field name. */
+function rfaheya_settings_section( $group, $key ) {
+	if ( 'home' === $group ) {
+		if ( 0 === strpos( $key, 'announcement' ) ) {
+			return 'Announcement bar';
+		}
+		if ( 0 === strpos( $key, 'hero' ) ) {
+			return 'Hero (when the slider is off)';
+		}
+		return 'Logo';
+	}
+	if ( 'slider' === $group ) {
+		return preg_match( '/^slide_(\d)_/', $key, $m ) ? 'Slide ' . $m[1] : 'Hero slider';
+	}
+	$titles = array(
+		'contact'  => 'Contact details',
+		'social'   => 'Social links',
+		'shipping' => 'Minimum order, free shipping & spend more',
+		'bundle'   => 'Bundle — “Build your trio”',
+		'gift'     => 'Gift boxes & gift wrap',
+		'loyalty'  => 'Points & welcome discount',
+		'login'    => 'Sign in with Google / Facebook',
+	);
+	return isset( $titles[ $group ] ) ? $titles[ $group ] : $group;
+}
+
+/** The submitted settings, cleaned field by field. */
+function rfaheya_clean_settings( $input ) {
+	$input = is_array( $input ) ? $input : array();
+	$clean = array();
+	foreach ( rfaheya_fields() as $group => $fields ) {
+		foreach ( $fields as $key => $field ) {
+			$value = isset( $input[ $group ][ $key ] ) ? trim( (string) $input[ $group ][ $key ] ) : '';
+			switch ( $field[2] ) {
+				case 'url':
+					$value = esc_url_raw( $value );
+					break;
+				case 'textarea':
+					$value = str_replace( "\r\n", "\n", sanitize_textarea_field( $value ) );
+					break;
+				case 'image':
+				case 'product':
+					$value = $value ? (string) absint( $value ) : '';
+					break;
+				case 'yesno':
+					$value = 'no' === $value ? 'no' : 'yes';
+					break;
+				default:
+					$value = sanitize_text_field( $value );
+			}
+			$clean[ $group ][ $key ] = $value;
+		}
+	}
+	return $clean;
+}
+
+// The page saves through its own handler (no options.php), then comes back to the same tab.
+add_action(
+	'admin_post_rfaheya_save_settings',
+	function () {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Sorry, you are not allowed to change these settings.' );
+		}
+		check_admin_referer( 'rfaheya_save_settings' );
+		$input = isset( $_POST[ RFAHEYA_OPTION ] ) ? wp_unslash( $_POST[ RFAHEYA_OPTION ] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned field by field below
+		$saved = get_option( RFAHEYA_OPTION, array() );
+		$saved = is_array( $saved ) ? $saved : array();
+		// Groups not on the form keep what they had.
+		foreach ( rfaheya_fields() as $group => $fields ) {
+			if ( ! isset( $input[ $group ] ) && isset( $saved[ $group ] ) ) {
+				$input[ $group ] = $saved[ $group ];
+			}
+		}
+		$clean = rfaheya_clean_settings( $input );
+		update_option( RFAHEYA_OPTION, $clean );
+		// Content changes show up right away (same as update_option_ hooks; runs even when nothing changed).
+		delete_transient( 'rfaheya_bootstrap' );
+		rfaheya_purge_page_cache();
+		$tab = isset( $_POST['rfaheya_tab'] ) ? sanitize_key( wp_unslash( $_POST['rfaheya_tab'] ) ) : 'store';
+		wp_safe_redirect( add_query_arg( array( 'page' => 'rfaheya-store', 'tab' => $tab, 'saved' => '1' ), admin_url( 'options-general.php' ) ) );
+		exit;
+	}
+);
+
 add_action(
 	'admin_enqueue_scripts',
 	function ( $hook ) {
@@ -201,98 +271,200 @@ add_action(
 			return;
 		}
 		wp_enqueue_media();
-		wp_register_script( 'rfaheya-admin', false, array( 'jquery' ), '2.0.0', true );
-		wp_enqueue_script( 'rfaheya-admin' );
-		wp_add_inline_script(
-			'rfaheya-admin',
-			"jQuery(function ($) {
-				$('.rfaheya-media').on('click', function (e) {
-					e.preventDefault();
-					var id = $(this).data('target');
-					var frame = wp.media({ title: 'Choose image', multiple: false, library: { type: 'image' } });
-					frame.on('select', function () {
-						var a = frame.state().get('selection').first().toJSON();
-						$('#' + id).val(a.id);
-						$('#' + id + '-preview').html('<img src=\"' + (a.sizes && a.sizes.medium ? a.sizes.medium.url : a.url) + '\" style=\"max-width:260px;height:auto;border-radius:4px\">');
-					});
-					frame.open();
-				});
-				$('.rfaheya-media-clear').on('click', function (e) {
-					e.preventDefault();
-					var id = $(this).data('target');
-					$('#' + id).val('');
-					$('#' + id + '-preview').empty();
-				});
-			});"
-		);
+		$base = WPMU_PLUGIN_URL . '/rfaheya-admin/';
+		$ver  = file_exists( __DIR__ . '/rfaheya-admin/settings.css' ) ? (string) filemtime( __DIR__ . '/rfaheya-admin/settings.css' ) : '1';
+		wp_enqueue_style( 'rfaheya-settings', $base . 'settings.css', array(), $ver );
+		wp_enqueue_script( 'rfaheya-settings', $base . 'settings.js', array( 'jquery' ), $ver, true );
 	}
 );
 
+/** One field, in the page's own style. */
+function rfaheya_settings_field( $group, $key, $field, $value ) {
+	$id    = "rfaheya-$group-$key";
+	$input = RFAHEYA_OPTION . "[$group][$key]";
+	$label = $field[0];
+	$help  = '';
+	// "Title (explanation)" or "Title — explanation": the explanation shows smaller underneath.
+	if ( preg_match( '/^(.+?)\s+\((.+)\)$/u', $label, $m ) ) {
+		$label = $m[1];
+		$help  = $m[2];
+	}
+	$range = array(
+		'logo_height'        => array( 30, 90 ),
+		'logo_height_mobile' => array( 28, 70 ),
+		'logo_footer'        => array( 120, 360 ),
+	);
+	$wide = in_array( $field[2], array( 'textarea', 'image' ), true ) || 'yesno' === $field[2];
+	echo '<div class="rfs-field' . ( $wide ? ' rfs-wide' : '' ) . ' rfs-type-' . esc_attr( $field[2] ) . '">';
+	if ( 'yesno' === $field[2] ) {
+		printf(
+			'<label class="rfs-switch"><input type="hidden" name="%1$s" value="no"><input type="checkbox" id="%2$s" name="%1$s" value="yes" %3$s><span class="rfs-track" aria-hidden="true"></span><span class="rfs-switch-text"><strong>%4$s</strong>%5$s</span></label>',
+			esc_attr( $input ),
+			esc_attr( $id ),
+			checked( $value, 'yes', false ),
+			esc_html( $label ),
+			$help ? '<small>' . esc_html( $help ) . '</small>' : ''
+		);
+		echo '</div>';
+		return;
+	}
+	printf( '<label class="rfs-label" for="%s">%s</label>', esc_attr( $id ), esc_html( $label ) );
+	if ( 'home' === $group && isset( $range[ $key ] ) ) {
+		printf(
+			'<div class="rfs-range"><input type="range" min="%1$d" max="%2$d" value="%3$d" data-for="%4$s" aria-label="%5$s"><span class="rfs-num"><input id="%4$s" type="number" min="%1$d" max="%2$d" name="%6$s" value="%3$d" data-logo="%7$s"> px</span></div>',
+			(int) $range[ $key ][0],
+			(int) $range[ $key ][1],
+			(int) $value,
+			esc_attr( $id ),
+			esc_attr( $label ),
+			esc_attr( $input ),
+			esc_attr( $key )
+		);
+	} elseif ( 'textarea' === $field[2] ) {
+		printf( '<textarea id="%s" rows="3" name="%s">%s</textarea>', esc_attr( $id ), esc_attr( $input ), esc_textarea( $value ) );
+	} elseif ( 'product' === $field[2] ) {
+		printf( '<select id="%s" name="%s"><option value="">— Best seller —</option>', esc_attr( $id ), esc_attr( $input ) );
+		foreach ( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) as $p ) {
+			printf( '<option value="%d" %s>%s</option>', (int) $p->ID, selected( (int) $value, $p->ID, false ), esc_html( get_the_title( $p ) ) );
+		}
+		echo '</select>';
+	} elseif ( 'image' === $field[2] ) {
+		$url = $value ? wp_get_attachment_image_url( (int) $value, 'medium' ) : '';
+		printf(
+			'<div class="rfs-image%5$s"><input id="%1$s" type="hidden" name="%2$s" value="%3$s"><button type="button" class="rfs-image-pick" data-target="%1$s" data-logo="%6$s"><span class="rfs-image-preview" id="%1$s-preview">%4$s</span><span class="rfs-image-empty"><span class="dashicons dashicons-format-image"></span>Choose image</span></button><button type="button" class="rfs-image-clear" data-target="%1$s">Remove</button></div>',
+			esc_attr( $id ),
+			esc_attr( $input ),
+			esc_attr( $value ),
+			$url ? '<img src="' . esc_url( $url ) . '" alt="">' : '',
+			$url ? ' has-image' : '',
+			'logo' === $key && 'home' === $group ? '1' : ''
+		);
+	} else {
+		$type = 'url' === $field[2] ? 'url' : ( 'secret' === $field[2] ? 'password' : 'text' );
+		printf( '<input id="%s" type="%s" name="%s" value="%s" autocomplete="off">', esc_attr( $id ), esc_attr( $type ), esc_attr( $input ), esc_attr( $value ) );
+	}
+	if ( $help ) {
+		printf( '<small class="rfs-help">%s</small>', esc_html( $help ) );
+	}
+	echo '</div>';
+}
+
 function rfaheya_settings_page() {
 	$options = rfaheya_options();
-	$name    = RFAHEYA_OPTION;
+	$tabs    = rfaheya_settings_tabs();
+	$fields  = rfaheya_fields();
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- which tab to show, and notices
+	$tab   = isset( $_GET['tab'] ) && isset( $tabs[ sanitize_key( $_GET['tab'] ) ] ) ? sanitize_key( $_GET['tab'] ) : 'store';
+	$saved = isset( $_GET['saved'] );
+	$note  = isset( $_GET['rfaheya-imported'] ) ? sanitize_text_field( wp_unslash( $_GET['rfaheya-imported'] ) ) : '';
+	// phpcs:enable
+	$logo  = rfaheya_logo_url();
 	?>
-	<div class="wrap">
-		<h1>Rfaheya Store</h1>
-		<?php if ( isset( $_GET['rfaheya-imported'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
-			<div class="notice notice-success"><p><?php echo esc_html( sanitize_text_field( wp_unslash( $_GET['rfaheya-imported'] ) ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?></p></div>
+	<div class="wrap rfs">
+		<header class="rfs-hero">
+			<div>
+				<p class="rfs-eyebrow">Rfaheya · Speak your scent</p>
+				<h1>Store settings</h1>
+				<p>Everything the storefront shows — change it here and it’s live on the site in a moment.</p>
+			</div>
+			<a class="rfs-btn rfs-btn-light" href="<?php echo esc_url( home_url( '/' ) ); ?>" target="_blank" rel="noopener">View store <span class="dashicons dashicons-external"></span></a>
+		</header>
+		<?php if ( $saved ) : ?>
+			<div class="rfs-toast" role="status"><span class="dashicons dashicons-yes-alt"></span> Saved — it’s live on the store.</div>
 		<?php endif; ?>
-		<form method="post" action="options.php">
-			<?php settings_fields( 'rfaheya_store' ); ?>
-			<?php foreach ( rfaheya_fields() as $group => $fields ) : ?>
-				<h2><?php echo esc_html( rfaheya_group_title( $group ) ); ?></h2>
-				<?php if ( 'login' === $group ) : ?>
-					<p>Google: <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud → Credentials</a> → OAuth client ID (Web application). Authorized redirect URI:<br><code><?php echo esc_html( rfaheya_oauth_redirect_uri( 'google' ) ); ?></code></p>
-					<p>Facebook: <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> → your app → Facebook Login → Valid OAuth Redirect URIs:<br><code><?php echo esc_html( rfaheya_oauth_redirect_uri( 'facebook' ) ); ?></code></p>
-				<?php endif; ?>
-				<table class="form-table" role="presentation">
-					<?php
-					foreach ( $fields as $key => $field ) :
-						$id    = "rfaheya-$group-$key";
-						$input = "{$name}[$group][$key]";
-						$value = $options[ $group ][ $key ];
-						?>
-						<tr>
-							<th scope="row"><label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $field[0] ); ?></label></th>
-							<td>
-								<?php if ( 'textarea' === $field[2] ) : ?>
-									<textarea id="<?php echo esc_attr( $id ); ?>" class="large-text" rows="3" name="<?php echo esc_attr( $input ); ?>"><?php echo esc_textarea( $value ); ?></textarea>
-								<?php elseif ( 'yesno' === $field[2] ) : ?>
-									<select id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $input ); ?>">
-										<option value="yes" <?php selected( $value, 'yes' ); ?>>Yes</option>
-										<option value="no" <?php selected( $value, 'no' ); ?>>No</option>
-									</select>
-								<?php elseif ( 'product' === $field[2] ) : ?>
-									<select id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $input ); ?>">
-										<option value="">— Best seller —</option>
-										<?php foreach ( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) as $rfaheya_p ) : ?>
-											<option value="<?php echo esc_attr( $rfaheya_p->ID ); ?>" <?php selected( (int) $value, $rfaheya_p->ID ); ?>><?php echo esc_html( get_the_title( $rfaheya_p ) ); ?></option>
-										<?php endforeach; ?>
-									</select>
-								<?php elseif ( 'image' === $field[2] ) : ?>
-									<input id="<?php echo esc_attr( $id ); ?>" type="hidden" name="<?php echo esc_attr( $input ); ?>" value="<?php echo esc_attr( $value ); ?>">
-									<div id="<?php echo esc_attr( $id ); ?>-preview" style="margin-bottom:8px"><?php echo $value ? wp_get_attachment_image( (int) $value, 'medium', false, array( 'style' => 'max-width:260px;height:auto;border-radius:4px' ) ) : ''; ?></div>
-									<button type="button" class="button rfaheya-media" data-target="<?php echo esc_attr( $id ); ?>">Choose image</button>
-									<button type="button" class="button-link rfaheya-media-clear" data-target="<?php echo esc_attr( $id ); ?>" style="margin-left:8px">Remove</button>
-								<?php else : ?>
-									<input id="<?php echo esc_attr( $id ); ?>" class="regular-text" autocomplete="off" type="<?php echo 'url' === $field[2] ? 'url' : ( 'secret' === $field[2] ? 'password' : 'text' ); ?>" name="<?php echo esc_attr( $input ); ?>" value="<?php echo esc_attr( $value ); ?>">
-								<?php endif; ?>
-							</td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			<?php endforeach; ?>
-			<?php submit_button(); ?>
-		</form>
+		<?php if ( $note ) : ?>
+			<div class="rfs-toast" role="status"><span class="dashicons dashicons-yes-alt"></span> <?php echo esc_html( $note ); ?></div>
+		<?php endif; ?>
 
-		<hr>
-		<h2>Starter content</h2>
-		<p>Copies the storefront’s built-in content into WordPress so you can edit it here: journal articles (Posts), information pages (Pages), FAQs, home page texts and images (Media), and fragrance family images (Products → Categories). It also fills the “Rfaheya details” box of each product from its attributes.<br>Anything that already exists is left untouched, so it is safe to run again. The default “Hello world!” post and “Sample Page” are moved to the trash.</p>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="rfaheya_import">
-			<?php wp_nonce_field( 'rfaheya_import' ); ?>
-			<?php submit_button( 'Import starter content', 'secondary', 'submit', false ); ?>
-		</form>
+		<div class="rfs-layout">
+			<nav class="rfs-nav" aria-label="Settings">
+				<?php foreach ( $tabs as $slug => $t ) : ?>
+					<a href="<?php echo esc_url( add_query_arg( array( 'page' => 'rfaheya-store', 'tab' => $slug ), admin_url( 'options-general.php' ) ) ); ?>" class="<?php echo $slug === $tab ? 'is-active' : ''; ?>" data-tab="<?php echo esc_attr( $slug ); ?>">
+						<span class="dashicons <?php echo esc_attr( $t[1] ); ?>"></span>
+						<span><strong><?php echo esc_html( $t[0] ); ?></strong><small><?php echo esc_html( $t[2] ); ?></small></span>
+					</a>
+				<?php endforeach; ?>
+			</nav>
+
+			<div class="rfs-main">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rfs-form">
+					<input type="hidden" name="action" value="rfaheya_save_settings">
+					<input type="hidden" name="rfaheya_tab" value="<?php echo esc_attr( $tab ); ?>">
+					<?php wp_nonce_field( 'rfaheya_save_settings' ); ?>
+					<?php foreach ( $tabs as $slug => $t ) : ?>
+						<section class="rfs-panel" data-panel="<?php echo esc_attr( $slug ); ?>" <?php echo $slug === $tab ? '' : 'hidden'; ?>>
+							<?php
+							if ( 'tools' === $slug ) {
+								echo '</section>';
+								continue;
+							}
+							foreach ( $t[3] as $group ) {
+								if ( 'login' === $group ) {
+									echo '<div class="rfs-card rfs-info"><p><strong>Google:</strong> <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud → Credentials</a> → OAuth client ID (Web application). Authorized redirect URI:<br><code>' . esc_html( rfaheya_oauth_redirect_uri( 'google' ) ) . '</code></p><p><strong>Facebook:</strong> <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">Meta for Developers</a> → your app → Facebook Login → Valid OAuth Redirect URIs:<br><code>' . esc_html( rfaheya_oauth_redirect_uri( 'facebook' ) ) . '</code></p></div>';
+								}
+								$sections = array();
+								foreach ( $fields[ $group ] as $key => $field ) {
+									$sections[ rfaheya_settings_section( $group, $key ) ][ $key ] = $field;
+								}
+								foreach ( $sections as $title => $list ) {
+									$is_slide = 'slider' === $group && 0 === strpos( $title, 'Slide ' );
+									echo $is_slide ? '<details class="rfs-card rfs-collapsible"><summary>' : '<div class="rfs-card">';
+									echo '<h2>' . esc_html( $title ) . '</h2>';
+									echo $is_slide ? '</summary>' : '';
+									if ( 'home' === $group && 'Logo' === $title ) {
+										?>
+										<div class="rfs-logo-preview" data-logo-src="<?php echo esc_url( $logo ); ?>">
+											<div class="rfs-lp-desktop"><span class="rfs-lp-label">Computer</span><div class="rfs-lp-bar"><img alt="" data-size="desktop"><i></i><i></i><i></i><b></b></div></div>
+											<div class="rfs-lp-row">
+												<div class="rfs-lp-phone"><span class="rfs-lp-label">Phone</span><div class="rfs-lp-bar"><b class="rfs-lp-menu"></b><img alt="" data-size="mobile"><b></b></div></div>
+												<div class="rfs-lp-footer"><span class="rfs-lp-label">Footer</span><div class="rfs-lp-dark"><img alt="" data-size="footer"></div></div>
+											</div>
+										</div>
+										<?php
+									}
+									echo '<div class="rfs-grid">';
+									foreach ( $list as $key => $field ) {
+										rfaheya_settings_field( $group, $key, $field, $options[ $group ][ $key ] );
+									}
+									echo '</div>';
+									echo $is_slide ? '</details>' : '</div>';
+								}
+							}
+							?>
+						</section>
+					<?php endforeach; ?>
+					<div class="rfs-savebar" <?php echo 'tools' === $tab ? 'hidden' : ''; ?>>
+						<span>Changes go live on the store as soon as you save.</span>
+						<button type="submit" class="rfs-btn">Save changes</button>
+					</div>
+				</form>
+
+				<section class="rfs-panel" data-panel="tools-extra" <?php echo 'tools' === $tab ? '' : 'hidden'; ?>>
+					<div class="rfs-card">
+						<h2>Starter content</h2>
+						<p class="rfs-text">Copies the storefront’s built-in content into WordPress so you can edit it here: journal articles (Posts), information pages (Pages), FAQs, home page texts and images (Media), and fragrance family images (Products → Categories). It also fills the “Rfaheya details” box of each product from its attributes. Anything that already exists is left untouched, so it is safe to run again.</p>
+						<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+							<input type="hidden" name="action" value="rfaheya_import">
+							<?php wp_nonce_field( 'rfaheya_import' ); ?>
+							<button type="submit" class="rfs-btn rfs-btn-ghost">Import starter content</button>
+						</form>
+					</div>
+					<div class="rfs-card">
+						<h2>Store health</h2>
+						<?php
+						$fresh   = get_transient( 'rfaheya_bootstrap' );
+						$count   = is_array( $fresh ) && isset( $fresh['products'] ) ? count( $fresh['products'] ) : 0;
+						$missing = rfaheya_missing_products();
+						?>
+						<ul class="rfs-stats">
+							<li><strong><?php echo esc_html( number_format_i18n( $count ) ); ?></strong><span>products on the storefront</span></li>
+							<li><strong><?php echo esc_html( number_format_i18n( count( $missing ) ) ); ?></strong><span>products not showing</span></li>
+							<li><strong><?php echo esc_html( RFAHEYA_DATA_VERSION ); ?></strong><span>data version</span></li>
+						</ul>
+					</div>
+				</section>
+			</div>
+		</div>
 	</div>
 	<?php
 }
@@ -362,7 +534,7 @@ add_action(
 	'admin_notices',
 	function () {
 		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-		if ( ! $screen || ! current_user_can( 'edit_products' ) || ! in_array( $screen->id, array( 'edit-product', 'settings_page_rfaheya-store' ), true ) ) {
+		if ( ! $screen || ! current_user_can( 'edit_products' ) || ! in_array( $screen->id, array( 'edit-product' ), true ) ) {
 			return;
 		}
 		$missing = rfaheya_missing_products();
@@ -4692,6 +4864,42 @@ add_action(
 	},
 	5
 );
+
+/* -------------------------------------------------------------------------
+ * The dashboard's look (every admin page) and the sign-in page.
+ * ------------------------------------------------------------------------- */
+
+function rfaheya_admin_asset_version( $file ) {
+	$path = __DIR__ . '/rfaheya-admin/' . $file;
+	return file_exists( $path ) ? (string) filemtime( $path ) : '1';
+}
+
+add_action(
+	'admin_enqueue_scripts',
+	function () {
+		wp_enqueue_style( 'rfaheya-font', 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		wp_enqueue_style( 'rfaheya-theme', WPMU_PLUGIN_URL . '/rfaheya-admin/theme.css', array(), rfaheya_admin_asset_version( 'theme.css' ) );
+	}
+);
+
+add_action(
+	'login_enqueue_scripts',
+	function () {
+		wp_enqueue_style( 'rfaheya-font', 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		wp_enqueue_style( 'rfaheya-login', WPMU_PLUGIN_URL . '/rfaheya-admin/login.css', array( 'login' ), rfaheya_admin_asset_version( 'login.css' ) );
+		$logo = rfaheya_logo_url();
+		if ( ! $logo && file_exists( __DIR__ . '/rfaheya/logo.svg' ) ) {
+			$logo = WPMU_PLUGIN_URL . '/rfaheya/logo.svg';
+		}
+		if ( $logo ) {
+			// The built-in logo is dark: shown light on the dark page.
+			$own = (bool) rfaheya_options()['home']['logo'];
+			wp_add_inline_style( 'rfaheya-login', '.login h1 a{--rf-login-logo:url("' . esc_url( $logo ) . '")' . ( $own ? '' : ';filter:invert(1) brightness(.95)' ) . '}' );
+		}
+	}
+);
+add_filter( 'login_headerurl', fn() => home_url( '/' ) );
+add_filter( 'login_headertext', fn() => get_bloginfo( 'name' ) );
 
 /* -------------------------------------------------------------------------
  * Minimum order, and a first order's welcome discount with an account made from it.

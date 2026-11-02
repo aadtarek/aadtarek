@@ -106,69 +106,138 @@ function ProductList({ collection }: { collection: Collection }) {
   )
 }
 
-/** The 5 ML discovery bottle of a product, if it sells one. */
-const fiveMl = (p: Product) => {
-  const v = sampleVariation(p)
-  return v && parseFloat(v.size) === 5 ? v : undefined
-}
+/** The small discovery bottle of a product (its sample size), if it sells one. */
+const fiveMl = (p: Product) => sampleVariation(p)
+
+/** A discovery set holds exactly one of these numbers of samples. */
+const SET_SIZES = [10, 20]
 
 function DiscoveryBuilder() {
   const cart = useCart()
-  // Only fragrances that come in the 5 ML discovery size.
+  // Only fragrances that come in a discovery (sample) size.
   const products = getAllProducts().filter((p) => fiveMl(p)?.inStock)
   const [picked, setPicked] = useState<number[]>([])
-  const toggle = (id: number) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : [...p, id]))
-  const selected = products.filter((p) => picked.includes(p.id))
+  const [query, setQuery] = useState('')
+  const [limit, setLimit] = useState(12)
+  const max = SET_SIZES[SET_SIZES.length - 1]
+  const full = picked.length >= max
+  const toggle = (id: number) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= max ? p : [...p, id]))
+  const selected = picked.flatMap((id) => products.filter((p) => p.id === id))
   const total = selected.reduce((n, p) => n + (fiveMl(p)?.price ?? 0), 0)
+  const ready = SET_SIZES.includes(selected.length)
+  const next = SET_SIZES.find((n) => n > selected.length) ?? max
+  const q = query.trim().toLowerCase()
+  const matching = products.filter((p) => !q || p.name.toLowerCase().includes(q) || (p.inspiredBy ?? '').toLowerCase().includes(q))
+  const size = selected[0] ? fiveMl(selected[0])?.size.replace(/\s*ML$/i, ' ml') : products[0] ? fiveMl(products[0])?.size.replace(/\s*ML$/i, ' ml') : ''
+  const hint = ready
+    ? selected.length < max
+      ? `Your set of ${selected.length} is ready — or keep going to ${max}.`
+      : `Your set of ${max} is ready.`
+    : `Pick ${next - selected.length} more for a set of ${next}.`
+
+  const add = (e: React.MouseEvent<HTMLElement>) => {
+    if (!ready) return
+    flyToCart(e.currentTarget, selected[0]?.images[0]?.src)
+    cart.addMany(selected.map((p) => ({ productId: p.id, variationId: fiveMl(p)!.id })))
+    setPicked([])
+  }
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[1fr_22rem]">
+    <div className="grid gap-8 lg:grid-cols-[1fr_24rem] lg:gap-12">
       <div>
         <h2 className="font-serif text-[30px] sm:text-[38px]">Choose your samples</h2>
-        <p className="mt-1 text-ink-soft">Every fragrance here in its 5 ML discovery size. Pick as many as you like.</p>
-        {products.length === 0 && <p className="mt-6 text-muted">No 5 ML discovery sizes are available right now.</p>}
-        <ul className="mt-6 grid gap-[13px] sm:grid-cols-2">
-          {products.map((p) => {
+        <p className="mt-1 text-ink-soft">
+          A discovery set is <strong className="font-semibold text-ink">10 or 20</strong> fragrances{size ? ` in ${size}` : ''}. Pick the ones you want to live with.
+        </p>
+        <SetProgress count={selected.length} className="mt-5" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setLimit(12)
+          }}
+          placeholder="Search a fragrance or what it's inspired by…"
+          aria-label="Search fragrances"
+          className="mt-4 h-12 w-full rounded-full border-[1.5px] border-line bg-sand px-5 text-[14.5px] outline-none focus:border-olive"
+        />
+        {products.length === 0 && <p className="mt-6 text-muted">No discovery sizes are available right now.</p>}
+        <ul className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
+          {matching.slice(0, limit).map((p) => {
             const on = picked.includes(p.id)
+            const v = fiveMl(p)!
             return (
               <li key={p.id}>
                 <button
                   type="button"
                   onClick={() => toggle(p.id)}
                   aria-pressed={on}
-                  className={`rf-white flex w-full items-center gap-4 overflow-hidden rounded-[22px] border text-left transition ${
+                  disabled={!on && full}
+                  className={`rf-white group block w-full overflow-hidden rounded-[20px] border text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
                     on ? 'border-olive ring-1 ring-olive' : 'border-line hover:border-line-strong'
                   }`}
                 >
-                  <img src={p.images[0].src} alt="" className="h-24 w-32 shrink-0 object-cover" />
-                  <span className="min-w-0 flex-1 py-3">
-                    <span className="block font-serif text-[19px]">{p.name}</span>
-                    <span className="block truncate text-[13px] text-muted">{p.tagline}</span>
-                    <span className="mt-1 block text-[12.5px] font-medium text-ink-soft">
-                      {fiveMl(p)!.size} · {formatPrice(fiveMl(p)!.price)}
+                  <span className="relative block aspect-square overflow-hidden bg-chip sm:aspect-[5/4]">
+                    <img src={p.images[0].src} alt="" loading="lazy" className="size-full object-cover transition duration-700 group-hover:scale-[1.04]" />
+                    <span
+                      aria-hidden
+                      className={`absolute top-2 right-2 grid size-8 place-items-center rounded-full transition ${on ? 'bg-olive text-on-accent' : 'bg-cream/90 text-ink'}`}
+                    >
+                      {on ? <Check className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2} />}
                     </span>
                   </span>
-                  <span
-                    aria-hidden
-                    className={`mr-4 grid size-7 shrink-0 place-items-center rounded-full border-2 ${on ? 'border-olive bg-olive text-on-accent' : 'border-line-strong'}`}
-                  >
-                    {on ? <Check className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2} />}
+                  <span className="block px-2.5 pt-2 pb-2.5 sm:px-3.5">
+                    <span className="block truncate font-serif text-[16px] leading-tight sm:text-[19px]">{p.name}</span>
+                    <span className="mt-0.5 block text-[11.5px] font-medium text-ink-soft sm:text-[12.5px]">
+                      {v.size.replace(/\s*ML$/i, ' ml')} · {formatPrice(v.price)}
+                    </span>
                   </span>
                 </button>
               </li>
             )
           })}
         </ul>
+        {matching.length === 0 && products.length > 0 && <p className="mt-6 text-center text-[14px] text-muted">No fragrance matches “{query}”.</p>}
+        {matching.length > limit && (
+          <button
+            type="button"
+            onClick={() => setLimit((n) => n + 12)}
+            className="mx-auto mt-5 flex h-12 items-center rounded-full px-7 text-[12px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]"
+          >
+            Show more ({matching.length - limit})
+          </button>
+        )}
       </div>
+
+      {/* Phone: the set's progress follows along at the bottom. */}
+      {selected.length > 0 && (
+        <div className="fixed inset-x-3 bottom-[calc(84px+env(safe-area-inset-bottom))] z-30 rounded-[26px] bg-[#14110d] px-4 pt-3 pb-3 text-white shadow-[0_18px_40px_-16px_rgba(0,0,0,0.6)] lg:hidden">
+          <SetProgress count={selected.length} dark />
+          <div className="mt-2.5 flex items-center gap-3">
+            <p className="flex-1 text-[12.5px] text-white/80">{hint}</p>
+            <button
+              type="button"
+              onClick={add}
+              disabled={!ready}
+              className="h-11 shrink-0 rounded-full bg-olive px-5 text-[11.5px] font-semibold tracking-[0.1em] text-on-accent uppercase disabled:opacity-40"
+            >
+              Add · {formatPrice(total)}
+            </button>
+          </div>
+        </div>
+      )}
+
       <aside className="h-fit rf-white rounded-[28px] border border-line p-6 lg:sticky lg:top-24">
         <p className="text-[13px] font-semibold tracking-[0.14em] uppercase">Your discovery set</p>
-        {selected.length === 0 ? (
-          <p className="mt-4 text-[14.5px] text-muted">Select at least one fragrance to start your set.</p>
-        ) : (
-          <ul className="mt-4 divide-y divide-line">
+        <SetProgress count={selected.length} className="mt-4" />
+        <p className={`mt-3 text-[13.5px] ${ready ? 'font-medium text-[#55662a]' : 'text-ink-soft'}`}>{hint}</p>
+        {selected.length > 0 && (
+          <ul className="mt-3 max-h-[300px] divide-y divide-line overflow-y-auto">
             {selected.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-3 py-2.5 text-[14px]">
-                <span>{p.name} · {fiveMl(p)?.size}</span>
+              <li key={p.id} className="flex items-center justify-between gap-3 py-2 text-[14px]">
+                <span className="truncate">
+                  {p.name} · {fiveMl(p)?.size.replace(/\s*ML$/i, ' ml')}
+                </span>
                 <button type="button" onClick={() => toggle(p.id)} aria-label={`Remove ${p.name}`} className="text-muted hover:text-ink">
                   <Minus className="size-4" />
                 </button>
@@ -182,17 +251,47 @@ function DiscoveryBuilder() {
         </p>
         <button
           type="button"
-          disabled={selected.length === 0}
-          onClick={(e) => {
-            flyToCart(e.currentTarget, selected[0]?.images[0]?.src)
-            cart.addMany(selected.map((p) => ({ productId: p.id, variationId: fiveMl(p)!.id })))
-            setPicked([])
-          }}
-          className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-medium tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={!ready}
+          onClick={add}
+          className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-semibold tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Add set to cart
+          {ready ? `Add set of ${selected.length} to cart` : `Pick ${next - selected.length} more`}
         </button>
       </aside>
+    </div>
+  )
+}
+
+/** A bar from 0 to 20 with the 10 and 20 stops marked; it turns green on a stop. */
+function SetProgress({ count, dark = false, className = '' }: { count: number; dark?: boolean; className?: string }) {
+  const max = SET_SIZES[SET_SIZES.length - 1]
+  const ready = SET_SIZES.includes(count)
+  return (
+    <div className={className} role="progressbar" aria-valuemin={0} aria-valuemax={max} aria-valuenow={count} aria-label="Samples in your set">
+      <div className="flex items-baseline justify-between text-[12px] font-semibold tabular-nums">
+        <span className={dark ? 'text-white' : 'text-ink'}>
+          {count} <span className={dark ? 'text-white/50' : 'text-muted'}>/ {count <= SET_SIZES[0] ? SET_SIZES[0] : max} samples</span>
+        </span>
+        <span className={dark ? 'text-white/50' : 'text-muted'}>10 or 20</span>
+      </div>
+      <div className={`relative mt-2 h-2.5 rounded-full ${dark ? 'bg-white/15' : 'bg-chip'}`}>
+        <span
+          className={`absolute inset-y-0 left-0 rounded-full transition-[width,background-color] duration-500 ${ready ? 'bg-[#6f8a3a]' : 'bg-olive'}`}
+          style={{ width: `${(Math.min(count, max) / max) * 100}%` }}
+        />
+        {SET_SIZES.map((n) => (
+          <span
+            key={n}
+            aria-hidden
+            className={`absolute top-1/2 grid size-[22px] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full text-[9.5px] font-bold transition ${
+              count >= n ? 'bg-[#6f8a3a] text-white' : dark ? 'bg-[#2a221b] text-white/60 ring-2 ring-white/20' : 'bg-white text-muted ring-2 ring-line-strong'
+            }`}
+            style={{ left: `${Math.min(100, (n / max) * 100)}%`, ...(n === max ? { left: 'calc(100% - 11px)' } : {}) }}
+          >
+            {n}
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
