@@ -1,4 +1,4 @@
-import { Banknote, Check, CheckCircle2, ChevronDown, CreditCard, Lock, ShieldCheck, Smartphone, Truck, X } from 'lucide-react'
+import { Banknote, Check, CheckCircle2, ChevronDown, CreditCard, Lock, ShieldCheck, Smartphone, Truck, X, Sparkles } from 'lucide-react'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { PAYMENT_LABELS, placeWooOrder, updateCustomer } from '../api/checkout'
@@ -6,7 +6,7 @@ import { isWoo, money } from '../api/wp'
 import { Field, TextInput } from '../components/Field'
 import { OfferBar } from '../components/OfferBar'
 import { PointsPanel } from '../components/PointsPanel'
-import { CONTACT, GOVERNORATES, SPEND_OFFER, shippingCost } from '../config'
+import { CONTACT, GOVERNORATES, LOYALTY, ORDER_MIN, SPEND_OFFER, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
 import { confetti, haptic } from '../lib/fx'
 import { useAccount } from '../store/account'
@@ -63,6 +63,9 @@ export function Checkout() {
   const wooCart = woo?.cart ?? null
   const apply = woo?.apply
 
+  // The email and number count too: a first order's welcome discount is worked out from them.
+  const emailKey = /^\S+@\S+\.\S+$/.test(address.email.trim()) ? address.email.trim().toLowerCase() : ''
+  const phoneKey = address.phone.replace(/\D/g, '').length >= 10 ? address.phone.replace(/\D/g, '') : ''
   // WooCommerce calculates shipping from the address: send it whenever the governorate/city changes.
   useEffect(() => {
     if (!isWoo || !apply || cart.lines.length === 0) return
@@ -79,7 +82,7 @@ export function Checkout() {
       window.clearTimeout(t)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address.governorate, address.city, apply, cart.lines.length])
+  }, [address.governorate, address.city, emailKey, phoneKey, apply, cart.lines.length])
 
   const minor = wooCart?.totals.currency_minor_unit ?? 2
   const subtotal = wooCart ? money(wooCart.totals.total_items, minor) : cart.subtotal
@@ -229,7 +232,10 @@ export function Checkout() {
   const otherGov = !QUICK_GOVERNORATES.includes(address.governorate)
   const pickGov = (g: string) => set('governorate')({ target: { value: g } })
   const placeLabel = submitting ? 'Placing order…' : `Place order · ${formatPrice(grandTotal)}`
-  const blocked = submitting || quoting || noDelivery
+  // The basket's value for the minimum order (items after the bundle discount).
+  const short = ORDER_MIN.min > 0 ? Math.max(0, Math.ceil(ORDER_MIN.min - (cart.subtotal - discount))) : 0
+  const firstOrder = (wooCart?.fees ?? []).filter((f) => /^first order/i.test(f.name))
+  const blocked = submitting || quoting || noDelivery || short > 0
 
   return (
     <div className="container-x pb-28 lg:pb-20">
@@ -265,6 +271,15 @@ export function Checkout() {
                 <TextInput type="email" placeholder="For your receipt" value={address.email} onChange={set('email')} autoComplete="email" {...err('email')} />
               </Field>
             </div>
+            {isWoo && !me.loggedIn && LOYALTY.welcome && (
+              <p className="mt-3 flex items-start gap-2 rounded-2xl bg-[#f3e3c9]/60 px-3.5 py-2.5 text-[12.5px] text-ink-soft">
+                <Sparkles className="mt-0.5 size-4 shrink-0 text-gold" strokeWidth={1.5} />
+                <span>
+                  First order? You get <strong className="font-semibold text-ink">{LOYALTY.welcomePercent}% off</strong>, and we make your account from these details so you can follow
+                  your order — we’ll email you a link to choose a password.
+                </span>
+              </p>
+            )}
           </Box>
 
           <Box num={2} title="Delivery">
@@ -425,6 +440,12 @@ export function Checkout() {
                 <dd>−{formatPrice(c.amount)}</dd>
               </div>
             ))}
+            {firstOrder.map((f) => (
+              <div key={f.id} className="flex justify-between font-medium text-[#55662a]">
+                <dt>{f.name}</dt>
+                <dd>−{formatPrice(Math.abs(money(f.totals.total, f.totals.currency_minor_unit)))}</dd>
+              </div>
+            ))}
             {wrapAmount > 0 && (
               <div className="flex justify-between">
                 <dt className="text-muted">Gift wrap</dt>
@@ -445,6 +466,11 @@ export function Checkout() {
             </div>
           </dl>
           <PointsPanel total={Math.max(0, grandTotal - shipping)} className="mt-4" />
+          {short > 0 && (
+            <p role="status" className="mt-4 rounded-2xl bg-[#f3e3c9]/70 p-3 text-[13px] text-ink">
+              The minimum order is <strong className="font-semibold">{formatPrice(ORDER_MIN.min)}</strong> — add {formatPrice(short)} more to order.
+            </p>
+          )}
           {noDelivery && <p className="mt-4 text-[13px] text-red-800">We don’t deliver to {address.governorate} yet. Please contact us.</p>}
           {formError && (
             <p role="alert" className="mt-4 rounded-2xl bg-red-50 p-3 text-[13px] text-red-800">

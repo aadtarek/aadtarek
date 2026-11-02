@@ -1497,11 +1497,11 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
   transition: height 0.6s var(--rf-ease-soft);
 }
 .rf-header[data-floating] .rf-header-bar a[aria-label='Rfaheya — home'][data-own-logo] {
-  height: 50px;
+  height: var(--rf-logo-hm, 48px);
 }
 @media (min-width: 64rem) {
   .rf-header[data-floating] .rf-header-bar a[aria-label='Rfaheya — home'][data-own-logo] {
-    height: 56px;
+    height: var(--rf-logo-h, 56px);
   }
 }
 :root.dark .rf-header[data-floating] .rf-header-bar {

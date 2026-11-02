@@ -215,6 +215,8 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
   // product id → chosen variation id, in the order they were picked
   const [picked, setPicked] = useState<[number, number][]>([])
   const [message, setMessage] = useState('')
+  const [query, setQuery] = useState('')
+  const [limit, setLimit] = useState(12)
   const MAX_MESSAGE = 200
   const max = GIFT_BOX.max
   const full = picked.length >= max
@@ -228,6 +230,9 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
     const variation = product?.variations.find((v) => v.id === variationId)
     return product && variation ? [{ product, variation }] : []
   })
+  const q = query.trim().toLowerCase()
+  const matching = products.filter((p) => !q || p.name.toLowerCase().includes(q) || (p.inspiredBy ?? '').toLowerCase().includes(q))
+  const shownProducts = matching.slice(0, limit)
   const box = giftBoxProduct()
   const boxVariation = GIFT_BOX.enabled && items.length ? box.variations[items.length - 1] : undefined
   const packaging = boxVariation?.price ?? 0
@@ -253,29 +258,40 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
         <p className="mt-1 text-ink-soft">
           Pick any fragrances you like — up to {max} in one box — and choose a size for each.
         </p>
-        <ul className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {products.map((p) => {
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setLimit(12)
+          }}
+          placeholder="Search a fragrance or what it's inspired by…"
+          aria-label="Search fragrances"
+          className="mt-5 h-12 w-full rounded-full border-[1.5px] border-line bg-sand px-5 text-[14.5px] outline-none focus:border-olive"
+        />
+        <ul className="mt-4 grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
+          {shownProducts.map((p) => {
             const choice = picked.find(([id]) => id === p.id)
             const on = Boolean(choice)
             return (
               <li key={p.id} className={`overflow-hidden rounded-2xl border bg-card transition ${on ? 'border-olive ring-1 ring-olive' : 'border-line'}`}>
                 <button type="button" onClick={() => toggle(p)} aria-pressed={on} disabled={!on && full} className="group block w-full text-left disabled:cursor-not-allowed disabled:opacity-50">
-                  <span className="relative block aspect-[5/4] overflow-hidden bg-chip">
+                  <span className="relative block aspect-square overflow-hidden bg-chip sm:aspect-[5/4]">
                     <img src={p.images[0].src} alt="" loading="lazy" className="size-full object-cover transition duration-700 group-hover:scale-[1.04]" />
                     <span
                       aria-hidden
-                      className={`absolute top-3 right-3 grid size-8 place-items-center rounded-full transition ${on ? 'bg-olive text-on-accent' : 'bg-cream/90 text-ink'}`}
+                      className={`absolute top-2 right-2 grid size-8 sm:top-3 sm:right-3 place-items-center rounded-full transition ${on ? 'bg-olive text-on-accent' : 'bg-cream/90 text-ink'}`}
                     >
                       {on ? <Check className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2} />}
                     </span>
                   </span>
-                  <span className="block px-4 pt-3 pb-2">
-                    <span className="block font-serif text-[19px] leading-tight">{p.name}</span>
-                    <span className="block truncate text-[12.5px] text-muted">{p.inspiredBy ? `Inspired by ${p.inspiredBy}` : p.tagline}</span>
+                  <span className="block px-2.5 pt-2 pb-2 sm:px-4 sm:pt-3">
+                    <span className="block truncate font-serif text-[16px] leading-tight sm:text-[19px]">{p.name}</span>
+                    <span className="block truncate text-[11.5px] text-muted sm:text-[12.5px]">{p.inspiredBy ? `Inspired by ${p.inspiredBy}` : p.tagline}</span>
                   </span>
                 </button>
                 {choice && (
-                  <div className="animate-fade-in px-3 pb-3">
+                  <div className="animate-fade-in px-2 pb-2 sm:px-3 sm:pb-3">
                     <SizePicker variations={fullSizeVariations(p)} value={choice[1]} onChange={(v) => setSize(p.id, v)} />
                   </div>
                 )}
@@ -283,9 +299,33 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
             )
           })}
         </ul>
+        {matching.length === 0 && <p className="mt-6 text-center text-[14px] text-muted">No fragrance matches “{query}”.</p>}
+        {matching.length > limit && (
+          <button
+            type="button"
+            onClick={() => setLimit((n) => n + 12)}
+            className="mx-auto mt-5 flex h-12 items-center rounded-full px-7 text-[12px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]"
+          >
+            Show more ({matching.length - limit})
+          </button>
+        )}
       </div>
 
-      <aside className="h-fit rf-white rounded-[28px] border border-line p-5 sm:p-6 lg:sticky lg:top-24">
+      {/* Phone: the box follows along at the bottom, so the choice is never far away. */}
+      {items.length > 0 && (
+        <a
+          href="#gift-summary"
+          className="fixed inset-x-3 bottom-[calc(84px+env(safe-area-inset-bottom))] z-30 flex h-14 items-center gap-3 rounded-full bg-[#14110d] pr-2 pl-5 text-white shadow-[0_18px_40px_-16px_rgba(0,0,0,0.6)] lg:hidden"
+        >
+          <Gift className="size-[18px] text-[#f0c27a]" strokeWidth={1.5} />
+          <span className="flex-1 text-[13px]">
+            <strong className="font-semibold">{items.length}/{max}</strong> in your box · {formatPrice(total)}
+          </span>
+          <span className="rounded-full bg-olive px-4 py-2.5 text-[11.5px] font-semibold tracking-[0.1em] text-on-accent uppercase">Review</span>
+        </a>
+      )}
+
+      <aside id="gift-summary" className="h-fit scroll-mt-24 rf-white rounded-[28px] border border-line p-5 sm:p-6 lg:sticky lg:top-24">
         <p className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.14em] uppercase">
           <Gift className="size-4" strokeWidth={1.5} />
           Your gift box

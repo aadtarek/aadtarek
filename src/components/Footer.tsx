@@ -155,9 +155,9 @@ function BrandColumn() {
   const ownLogo = useOwnLogo()
   return (
     <div className="xl:pr-8 xl:pl-[50px]">
-      <Link to="/" aria-label="Rfaheya — home" className={`block ${HOME.logo ? 'w-[240px]' : 'w-[192px]'}`}>
+      <Link to="/" aria-label="Rfaheya — home" className={`block max-w-full ${HOME.logo ? 'w-[var(--rf-logo-w,240px)]' : 'w-[192px]'}`}>
         {HOME.logo ? (
-          <img src={ownLogo.src} alt="Rfaheya" loading="lazy" className="rf-own-logo h-auto max-h-32 w-auto max-w-full" />
+          <img src={ownLogo.src} alt="Rfaheya" loading="lazy" className="rf-own-logo h-auto w-full max-w-full" />
         ) : (
           <img src={wordmark} alt="Rfaheya" width={1098} height={223} loading="lazy" className="rf-wordmark h-auto w-full" />
         )}

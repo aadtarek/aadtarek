@@ -2,7 +2,7 @@ import { Gift, Handbag, Lock, Minus, Plus, X } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getAllProducts, isGiftBoxProduct, sampleVariation } from '../api/catalog'
-import { SPEND_OFFER } from '../config'
+import { ORDER_MIN, SPEND_OFFER } from '../config'
 import { formatPrice } from '../lib/format'
 import { tintFor } from '../lib/tints'
 import { useCart } from '../store/cart'
@@ -26,6 +26,7 @@ export function CartDrawer() {
   const wrap = cart.giftWrap
   const wrapAmount = wrap.available && wrap.on ? wrap.price : 0
   const total = Math.max(0, cart.subtotal - cart.discount - cart.offerDiscount - rewards.couponTotal) + wrapAmount
+  const short = ORDER_MIN.min > 0 ? Math.max(0, Math.ceil(ORDER_MIN.min - (cart.subtotal - cart.discount))) : 0
   // 5 ml samples of fragrances that aren't in the cart yet.
   const inCart = new Set(cart.lines.map((l) => l.productId))
   const samples = getAllProducts()
@@ -180,19 +181,6 @@ export function CartDrawer() {
                 </div>
               )}
 
-              {wrap.available && (
-                <label className="mx-3 mt-3 mb-4 flex cursor-pointer items-center gap-3 rounded-2xl bg-chip px-3.5 py-3 text-[12.5px] text-ink-soft sm:mx-4">
-                  <input type="checkbox" checked={wrap.on} onChange={wrap.toggle} className="peer sr-only" />
-                  <span
-                    aria-hidden
-                    className="relative h-[22px] w-[38px] shrink-0 rounded-full bg-line-strong transition peer-checked:bg-olive peer-focus-visible:outline-2 peer-focus-visible:outline-olive after:absolute after:top-[3px] after:left-[3px] after:size-4 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-4"
-                  />
-                  <span className="min-w-0 flex-1">
-                    <strong className="font-semibold text-ink">Gift wrap</strong> Boxed with a handwritten card · {formatPrice(wrap.price)}
-                  </span>
-                  <Gift className="size-[18px] shrink-0 text-gold" strokeWidth={1.5} />
-                </label>
-              )}
             </div>
 
             <footer className="rf-white border-t border-line px-[18px] pt-3.5 pb-[calc(1.1rem+env(safe-area-inset-bottom))] sm:px-6">
@@ -234,12 +222,19 @@ export function CartDrawer() {
                   cart.close()
                   navigate('/checkout')
                 }}
-                className="rf-magnetic mt-3 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-olive text-[13px] font-semibold tracking-[0.1em] text-white uppercase transition hover:bg-olive-hover"
+                disabled={short > 0}
+                className="rf-magnetic mt-3 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-olive text-[13px] font-semibold tracking-[0.1em] text-white uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Lock className="size-4" strokeWidth={1.6} />
                 Checkout · <span key={total} className="rf-num-pop">{formatPrice(total)}</span>
               </button>
-              <p className="mt-2.5 text-center text-[11.5px] text-muted">Shipping at checkout · Cash on delivery · InstaPay</p>
+              {short > 0 ? (
+                <p className="mt-2.5 text-center text-[12px] font-medium text-ink">
+                  Minimum order {formatPrice(ORDER_MIN.min)} — add {formatPrice(short)} more.
+                </p>
+              ) : (
+                <p className="mt-2.5 text-center text-[11.5px] text-muted">Shipping at checkout · Cash on delivery · InstaPay</p>
+              )}
             </footer>
           </>
         )}

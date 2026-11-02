@@ -13,6 +13,21 @@ export const FLAT_SHIPPING_RATE = 70
  */
 export const SPEND_OFFER = { enabled: true, min: 2500, percent: 20 }
 
+/** The smallest basket that can be ordered (EGP, 0 for none); with WordPress: Settings → Rfaheya Store. */
+export const ORDER_MIN = { min: 300 }
+
+/** The dashboard logo's size (px): header height on computers and phones, footer width. */
+export const LOGO_SIZE = { desktop: 56, mobile: 48, footer: 240 }
+
+function applyLogoSize() {
+  if (typeof document === 'undefined') return
+  const r = document.documentElement.style
+  r.setProperty('--rf-logo-h', `${LOGO_SIZE.desktop}px`)
+  r.setProperty('--rf-logo-hm', `${LOGO_SIZE.mobile}px`)
+  r.setProperty('--rf-logo-w', `${LOGO_SIZE.footer}px`)
+}
+applyLogoSize()
+
 /** The spend-more discount for an amount (after the bundle discount, before coupons). */
 export function spendDiscount(amount: number) {
   if (!SPEND_OFFER.enabled || SPEND_OFFER.min <= 0 || amount < SPEND_OFFER.min) return 0
@@ -174,6 +189,13 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (lines.length) HOME.announcements = lines
     merge(HOME.hero, home.hero)
     if (typeof home.logo === 'string') HOME.logo = home.logo.trim()
+    const size = home.logoSize
+    if (size) {
+      if (Number(size.desktop) > 0) LOGO_SIZE.desktop = Number(size.desktop)
+      if (Number(size.mobile) > 0) LOGO_SIZE.mobile = Number(size.mobile)
+      if (Number(size.footer) > 0) LOGO_SIZE.footer = Number(size.footer)
+      applyLogoSize()
+    }
   }
   const b = settings.bundle
   if (b) {
@@ -233,6 +255,7 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (typeof f.offer === 'boolean') SPEND_OFFER.enabled = f.offer
     if (Number(f.offerMin) > 0) SPEND_OFFER.min = Number(f.offerMin)
     if (Number(f.offerPercent) > 0) SPEND_OFFER.percent = Math.min(100, Number(f.offerPercent))
+    if (f.orderMin !== undefined && Number(f.orderMin) >= 0) ORDER_MIN.min = Number(f.orderMin)
   }
 }
 

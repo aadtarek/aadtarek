@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
 // Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
-const RFAHEYA_DATA_VERSION = 6;
+const RFAHEYA_DATA_VERSION = 7;
 
 // ==================================================================== settings
 
@@ -42,6 +42,9 @@ function rfaheya_fields() {
 			'hero_text'      => array( 'Hero — text', '', 'textarea' ),
 			'hero_image'     => array( 'Hero — image', '', 'image' ),
 			'logo'           => array( 'Logo (header, footer and My Account) — PNG or SVG; empty uses the built-in logo', '', 'image' ),
+			'logo_height'    => array( 'Logo size — height in the header on computers (px, 30–90; 56 is the default)', '56', 'text' ),
+			'logo_height_mobile' => array( 'Logo size — height in the header on phones (px, 28–70; 48 is the default)', '48', 'text' ),
+			'logo_footer'    => array( 'Logo size — width in the footer (px, 120–360; 240 is the default)', '240', 'text' ),
 		),
 		'slider'  => array(
 			'enabled'         => array( 'Show the hero slider on the home page (otherwise the single hero above)', 'yes', 'yesno' ),
@@ -110,6 +113,7 @@ function rfaheya_fields() {
 			'offer_enabled' => array( 'Spend more, save more: a discount plus free shipping (anywhere) from a higher amount, shown on the same bar', 'yes', 'yesno' ),
 			'offer_min'     => array( 'Discount + free shipping from (EGP)', '2500', 'text' ),
 			'offer_percent' => array( 'Discount (%)', '20', 'text' ),
+			'order_min'     => array( 'Minimum order (EGP) — the smallest basket that can be ordered; 0 for none', '300', 'text' ),
 		),
 	);
 }
@@ -669,7 +673,7 @@ function rfaheya_choices() {
 			'bold'     => 'Bold',
 		),
 		'longevity' => array(
-			'standard' => 'Standard',
+			'standard' => 'Moderate',
 			'extended' => 'Extended',
 			'eternal'  => 'Eternal',
 		),
@@ -1334,6 +1338,11 @@ function rfaheya_settings_data() {
 		'srcset'  => $h['hero_image'] ? (string) wp_get_attachment_image_srcset( (int) $h['hero_image'], 'full' ) : '',
 		),
 		'logo'          => rfaheya_logo_url(),
+		'logoSize'      => array(
+			'desktop' => max( 30, min( 90, (int) ( $h['logo_height'] ?? 56 ) ) ),
+			'mobile'  => max( 28, min( 70, (int) ( $h['logo_height_mobile'] ?? 48 ) ) ),
+			'footer'  => max( 120, min( 360, (int) ( $h['logo_footer'] ?? 240 ) ) ),
+		),
 	);
 	return array(
 			'contact'      => $o['contact'],
@@ -1357,6 +1366,7 @@ function rfaheya_settings_data() {
 				'offer'        => 'no' !== $o['shipping']['offer_enabled'],
 				'offerMin'     => (float) $o['shipping']['offer_min'],
 				'offerPercent' => (float) $o['shipping']['offer_percent'],
+				'orderMin'     => rfaheya_order_min(),
 			),
 			'currency'     => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'EGP',
 		);
@@ -4681,6 +4691,132 @@ add_action(
 		exit;
 	},
 	5
+);
+
+/* -------------------------------------------------------------------------
+ * Minimum order, and a first order's welcome discount with an account made from it.
+ * ------------------------------------------------------------------------- */
+
+/** The smallest basket that can be ordered (Settings → Rfaheya Store → Free shipping & offers), 0 for none. */
+function rfaheya_order_min() {
+	return max( 0, (float) rfaheya_options()['shipping']['order_min'] );
+}
+
+// Below the minimum the order can't be placed (the storefront says so first; this is the guard).
+add_action(
+	'woocommerce_check_cart_items',
+	function () {
+		$min = rfaheya_order_min();
+		if ( $min <= 0 || ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
+			return;
+		}
+		$amount = rfaheya_offer_base( WC()->cart );
+		if ( $amount < $min ) {
+			wc_add_notice( sprintf( 'The minimum order is %s EGP. Add %s EGP more to order.', number_format( $min ), number_format( ceil( $min - $amount ) ) ), 'error' );
+		}
+	}
+);
+
+/** Whether this guest's email and phone have never ordered and have no account: a first order. */
+function rfaheya_is_first_order( $email, $phone = '' ) {
+	$email = sanitize_email( (string) $email );
+	if ( ! is_email( $email ) || email_exists( $email ) || rfaheya_has_ordered( 0, $email ) ) {
+		return false;
+	}
+	$digits = preg_replace( '/\D/', '', (string) $phone );
+	if ( strlen( $digits ) >= 10 ) {
+		$statuses = array( 'wc-processing', 'wc-completed', 'wc-on-hold' );
+		foreach ( array_unique( array( $phone, $digits, '+2' . $digits ) ) as $p ) {
+			if ( wc_get_orders( array( 'billing_phone' => $p, 'status' => $statuses, 'limit' => 1, 'return' => 'ids' ) ) ) {
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+/** The welcome percent for a guest's first order, 0 when it doesn't apply. */
+function rfaheya_guest_welcome_percent() {
+	if ( is_user_logged_in() || ! function_exists( 'WC' ) || ! WC()->customer ) {
+		return 0;
+	}
+	$loyalty = rfaheya_loyalty();
+	if ( empty( $loyalty['welcome'] ) ) {
+		return 0;
+	}
+	$c = WC()->customer;
+	return rfaheya_is_first_order( $c->get_billing_email(), $c->get_billing_phone() ) ? (float) $loyalty['welcomePercent'] : 0;
+}
+
+// A guest's first order: the welcome percent off, worked out from the email and phone typed at checkout.
+add_action(
+	'woocommerce_cart_calculate_fees',
+	function ( $cart ) {
+		$percent = rfaheya_guest_welcome_percent();
+		if ( $percent <= 0 ) {
+			return;
+		}
+		$base = rfaheya_offer_base( $cart ) - rfaheya_offer_discount( rfaheya_offer_base( $cart ) );
+		$off  = round( max( 0, $base ) * $percent / 100 );
+		if ( $off > 0 ) {
+			$cart->add_fee( sprintf( 'First order · %s%% off', rfaheya_number( $percent ) ), -$off, false );
+		}
+	},
+	20
+);
+
+/*
+ * A guest's order makes their account from the details they typed (name, phone, address),
+ * signs them in, and emails a link to choose a password. Next time they just sign in.
+ */
+add_action(
+	'woocommerce_store_api_checkout_order_processed',
+	function ( $order ) {
+		if ( ! $order instanceof WC_Order || $order->get_customer_id() || is_user_logged_in() ) {
+			return;
+		}
+		$email = sanitize_email( $order->get_billing_email() );
+		if ( ! is_email( $email ) || email_exists( $email ) ) {
+			return;
+		}
+		$id = wc_create_new_customer(
+			$email,
+			'',
+			wp_generate_password( 24 ),
+			array(
+				'first_name' => $order->get_billing_first_name(),
+				'last_name'  => $order->get_billing_last_name(),
+			)
+		);
+		if ( is_wp_error( $id ) ) {
+			return;
+		}
+		$customer = new WC_Customer( $id );
+		foreach ( array( 'first_name', 'last_name', 'phone', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country' ) as $field ) {
+			$get = 'get_billing_' . $field;
+			$set = 'set_billing_' . $field;
+			if ( method_exists( $order, $get ) && method_exists( $customer, $set ) ) {
+				$customer->$set( $order->$get() );
+			}
+			$get = 'get_shipping_' . $field;
+			$set = 'set_shipping_' . $field;
+			if ( method_exists( $order, $get ) && method_exists( $customer, $set ) ) {
+				$customer->$set( $order->$get() );
+			}
+		}
+		$customer->set_billing_email( $email );
+		$customer->save();
+		update_user_meta( $id, 'rfaheya_whatsapp', $order->get_billing_phone() );
+		$order->set_customer_id( $id );
+		$order->add_order_note( 'Account made for the customer from this order (first order).' );
+		$order->save();
+		wc_set_customer_auth_cookie( $id );
+		// A link to choose their own password (WooCommerce's "reset password" email).
+		$user = get_user_by( 'id', $id );
+		if ( $user && function_exists( 'retrieve_password' ) ) {
+			retrieve_password( $user->user_login );
+		}
+	}
 );
 
 /* -------------------------------------------------------------------------

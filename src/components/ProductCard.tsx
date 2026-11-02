@@ -30,6 +30,8 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
   const chips = product.tags.length ? product.tags.slice(0, 4).map((label) => ({ label, Icon: Tag })) : profileChips(product, familyName)
   const [pillRef, pillBox] = useSlidingPill<HTMLDivElement>(variationId)
   const [main] = product.images
+  // Sizes as ml buttons only when they are sizes (a gift box's choices open the quick view instead).
+  const mlSizes = sizes.length > 1 && sizes.length <= 4 && sizes.every((v) => /\d\s*ml/i.test(v.size))
 
   return (
     <article className="rf-card group/card @container h-full">
@@ -77,8 +79,8 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
       </div>
 
       <div className="flex flex-1 flex-col px-1.5 pt-3 pb-1 sm:px-2">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="min-w-0 truncate font-serif text-[19px] leading-tight sm:text-[22px]">
+        <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
+          <h3 className="min-w-0 truncate font-serif text-[18px] leading-tight sm:text-[22px]">
             <Link to={href} className="hover:underline hover:decoration-1 hover:underline-offset-4">
               {product.name}
             </Link>
@@ -87,10 +89,10 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
             {formatPrice(selected.price)}
           </p>
         </div>
-        {product.inspiredBy && <p className="mt-0.5 truncate text-[12px] text-muted sm:text-[13px]">Inspired by {product.inspiredBy}</p>}
+        {product.inspiredBy && <p className="mt-0.5 truncate text-[11.5px] text-muted sm:text-[13px]">Inspired by {product.inspiredBy}</p>}
 
         {chips.length > 0 && (
-          <ul className="mt-2.5 flex flex-wrap gap-1" aria-label="Tags">
+          <ul className="mt-2 flex h-[22px] flex-wrap gap-1 overflow-hidden sm:mt-2.5 sm:h-auto" aria-label="Tags">
             {chips.map(({ label, Icon }) => (
               <li key={label} className="inline-flex items-center gap-1 rounded-full bg-chip px-2 py-[3px] text-[10.5px] whitespace-nowrap text-ink-soft sm:px-2.5 sm:text-[11.5px]">
                 <Icon className="size-3 shrink-0" strokeWidth={1.5} aria-hidden />
@@ -101,7 +103,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
         )}
 
         {product.notes.length > 0 && (
-          <ul className="mt-3 flex gap-1.5 sm:gap-2" aria-label="Fragrance notes">
+          <ul className="mt-3 hidden gap-1.5 sm:flex sm:gap-2" aria-label="Fragrance notes">
             {product.notes.slice(0, 4).map((n) => (
               <li key={n.name} className="flex min-w-0 flex-1 flex-col items-center text-center">
                 <span className="grid size-8 place-items-center rounded-full bg-chip sm:size-9">
@@ -113,8 +115,8 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
           </ul>
         )}
 
-        {sizes.length > 1 && (
-          <div ref={pillRef} role="radiogroup" aria-label={`Size for ${product.name}`} className="relative mt-3 flex flex-wrap gap-1.5">
+        {mlSizes && (
+          <div ref={pillRef} role="radiogroup" aria-label={`Size for ${product.name}`} className="relative mt-2.5 flex flex-wrap gap-1 sm:mt-3 sm:gap-1.5">
             <SlidingPill box={pillBox} className="rounded-full bg-olive" />
             {sizes.map((v) => {
               const on = v.id === selected.id
@@ -129,7 +131,7 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
                     haptic(8)
                     setVariationId(v.id)
                   }}
-                  className={`relative z-[1] h-8 rounded-full border px-3 text-[11.5px] font-medium transition-colors duration-300 sm:h-9 sm:px-3.5 sm:text-[12.5px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
+                  className={`relative z-[1] h-7 rounded-full border px-2.5 text-[11px] font-medium transition-colors duration-300 sm:h-9 sm:px-3.5 sm:text-[12.5px] disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${
                     on ? 'border-olive text-on-accent' : 'border-line-strong text-ink-soft hover:border-ink'
                   }`}
                 >
@@ -140,12 +142,12 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
           </div>
         )}
 
-        <div className="mt-auto flex flex-col gap-1.5 pt-3">
+        <div className="mt-auto flex flex-col gap-1 pt-2.5 sm:gap-1.5 sm:pt-3">
           <button
             type="button"
-            onClick={(e) => addWithFlight(cart, e.currentTarget, product, selected.id)}
+            onClick={(e) => (sizes.length > 1 && !mlSizes ? cart.openQuickAdd(product) : addWithFlight(cart, e.currentTarget, product, selected.id))}
             disabled={!selected.inStock}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-olive px-3 text-[11.5px] font-semibold tracking-[0.1em] whitespace-nowrap text-on-accent uppercase shadow-[0_10px_22px_-14px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover active:scale-[0.98] disabled:opacity-50 sm:h-12 sm:text-[12.5px]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-olive px-3 text-[11.5px] font-semibold tracking-[0.1em] whitespace-nowrap text-on-accent uppercase shadow-[0_10px_22px_-14px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover active:scale-[0.98] disabled:opacity-50 sm:h-12 sm:text-[12.5px]"
           >
             <BagIcon className="hidden size-4 shrink-0 sm:block" strokeWidth={1.6} />
             Add to cart

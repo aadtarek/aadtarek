@@ -91,7 +91,7 @@ export const presenceOptions: Option<Presence>[] = [
 ]
 
 export const longevityOptions: (Option<Longevity> & { hours: string })[] = [
-  { value: 'standard', label: 'Standard', hours: 'Up to 6 Hours', description: 'Perfect for everyday wear — from workouts to the office.', image: pic('long-standard') },
+  { value: 'standard', label: 'Moderate', hours: 'Up to 6 Hours', description: 'Perfect for everyday wear — from workouts to the office.', image: pic('long-standard') },
   { value: 'extended', label: 'Extended', hours: 'Up to 8 Hours', description: 'Great for longer days and busy schedules.', image: pic('long-extended') },
   { value: 'eternal', label: 'Eternal', hours: 'More Than 12 Hours', description: 'For those who want their fragrance to stay with them for as long as possible.', image: pic('long-eternal') },
 ]

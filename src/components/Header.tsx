@@ -90,12 +90,12 @@ export function Header() {
         floating ? 'pointer-events-none border-transparent bg-transparent' : clear ? 'border-transparent bg-transparent' : 'border-line/70 bg-cream/95 backdrop-blur'
       }`}
     >
-      <div className="rf-header-bar container-x pointer-events-auto flex h-16 items-center gap-4 lg:h-[66px]">
+      <div className="rf-header-bar container-x pointer-events-auto flex h-[max(4rem,calc(var(--rf-logo-hm,48px)_+_12px))] items-center gap-4 lg:h-[max(66px,calc(var(--rf-logo-h,56px)_+_12px))]">
         <button type="button" aria-label="Open menu" className={`${iconBtn} -ml-2 lg:hidden`} onClick={() => setMenuOpen(true)}>
           <Menu className="size-[22px]" strokeWidth={1.5} />
         </button>
 
-        <Logo className="h-11 lg:h-[41px]" ownClassName="h-[50px] max-w-[48vw] lg:h-[58px] lg:max-w-[260px]" />
+        <Logo className="h-11 lg:h-[41px]" ownClassName="h-[var(--rf-logo-hm,48px)] max-w-[50vw] lg:h-[var(--rf-logo-h,56px)] lg:max-w-[320px]" />
 
         <nav aria-label="Main" className="ml-6 hidden items-center gap-6 lg:flex xl:ml-10 xl:gap-8 2xl:ml-[4.5%] 2xl:gap-10">
           {navLinks.map((l) => (

@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronLeft, ChevronRight, Gift, Heart, Minus, Play, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Heart, Minus, Play, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
@@ -235,20 +235,7 @@ function ProductDetails({ product }: { product: Product }) {
               Earn <strong className="font-semibold text-ink">{pointsFor(variation.price * qty).toLocaleString('en-US')} points</strong> with this purchase.
             </p>
           )}
-          <ul className="mt-4 flex flex-wrap justify-between gap-x-4 gap-y-2 text-[12.5px] text-ink-soft">
-            <li className="flex items-center gap-1.5">
-              <ShieldCheck className="size-[15px] text-gold" strokeWidth={1.5} />
-              Zero-risk returns
-            </li>
-            <li className="flex items-center gap-1.5">
-              <Truck className="size-[15px] text-gold" strokeWidth={1.5} />
-              2–4 day delivery
-            </li>
-            <li className="flex items-center gap-1.5">
-              <Gift className="size-[15px] text-gold" strokeWidth={1.5} />
-              Gift wrap
-            </li>
-          </ul>
+          <GoodToKnow />
         </div>
       </section>
 
@@ -526,13 +513,25 @@ function Story({ product }: { product: Product }) {
   )
 }
 
+/**
+ * How full each level's bar is. Rfaheya's own standard sits at the top: Universal character,
+ * Relaxed comfort and Airy density fill the bar; Moderate longevity sits in the middle.
+ */
+const STANDARD_FILL: Record<string, Record<string, number>> = {
+  character: { universal: 1, selective: 0.66, enthusiast: 0.36 },
+  comfort: { relaxed: 1, balanced: 0.66, intense: 0.36 },
+  density: { airy: 1, balanced: 0.66, dense: 0.36 },
+  longevity: { moderate: 0.5, standard: 0.5, extended: 0.75, 'long-lasting': 1 },
+}
+
 /** Rfaheya Standard™ as six simple bars. */
 function StandardBars({ product }: { product: Product }) {
   const cells = dimensions
     .map((d) => {
       const value = product.standard[d.slug as StandardKey]
       const i = d.levels.findIndex((l) => l.name.toLowerCase() === value?.toLowerCase())
-      return value && i >= 0 ? { key: d.slug, title: d.title, level: d.levels[i].name, fill: (i + 1) / d.levels.length } : null
+      const fill = STANDARD_FILL[d.slug]?.[d.levels[i]?.name.toLowerCase() ?? ''] ?? (i + 1) / d.levels.length
+      return value && i >= 0 ? { key: d.slug, title: d.title, level: d.levels[i].name, fill } : null
     })
     .filter((c) => c !== null)
   if (!cells.length) return null
@@ -655,40 +654,53 @@ function ProductReviews({ product, reviews }: { product: Product; reviews: Revie
 }
 
 /** All the store's questions, beside delivery, returns and care. */
+/** Delivery, returns and care, right under the buy buttons. */
+function GoodToKnow() {
+  return (
+    <div className="mt-5">
+      <p className="text-[11px] font-semibold tracking-[0.18em] text-muted uppercase">Good to know</p>
+      <ul className="mt-2.5 grid gap-2 text-[13px] text-ink-soft">
+        {[
+          { Icon: ShieldCheck, title: 'Zero-risk returns', text: 'exchange or return easily — see our policy.', to: '/returns' },
+          { Icon: Truck, title: 'Delivery in 2–4 days', text: 'after your order is confirmed.' },
+          { Icon: BottleIcon, title: 'Care', text: 'let it rest 2 days after delivery; keep it upright, cool and out of the sun.' },
+        ].map(({ Icon, title, text, to }) => (
+          <li key={title} className="rf-white flex items-start gap-3 rounded-[18px] border border-line p-3">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f3e3c9] text-gold">
+              <Icon className="size-4" strokeWidth={1.6} />
+            </span>
+            <span className="pt-0.5">
+              <strong className="font-semibold text-ink">{title}</strong>{' '}
+              {to ? (
+                <Link to={to} className="underline-offset-2 hover:underline">
+                  {text}
+                </Link>
+              ) : (
+                text
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+/** The store's questions and answers. */
 function ProductFaq() {
   return (
     <section className="container-x mt-4 lg:mt-5" aria-labelledby="product-faq-title">
       <div className="grid gap-6 rounded-[28px] bg-chip px-4 py-8 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10 lg:rounded-[36px] lg:p-12">
         <div className="px-1 lg:sticky lg:top-24 lg:self-start lg:px-0">
-          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Questions</p>
+          <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">FAQs</p>
           <h2 id="product-faq-title" className="mt-2.5 font-serif text-[38px] leading-none sm:text-[48px]">
-            Good to <span className="text-gold italic">know.</span>
+            Your <span className="text-gold italic">questions.</span>
           </h2>
-          <ul className="mt-6 grid gap-2 text-[13.5px] text-ink-soft">
-            {[
-              { Icon: Truck, title: 'Delivery', text: 'within 2–4 business days after your order is confirmed.' },
-              { Icon: ShieldCheck, title: 'Returns', text: 'exchange or return easily — see our policy.', to: '/returns' },
-              { Icon: BottleIcon, title: 'Care', text: 'let it rest 2 days after delivery; keep it upright, cool and out of the sun.' },
-            ].map(({ Icon, title, text, to }) => (
-              <li key={title} className="rf-white flex items-start gap-3 rounded-[18px] p-3.5">
-                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#f3e3c9] text-gold">
-                  <Icon className="size-4" strokeWidth={1.6} />
-                </span>
-                <span>
-                  <strong className="block font-semibold text-ink">{title}</strong>
-                  {to ? (
-                    <Link to={to} className="underline-offset-2 hover:underline">
-                      {text}
-                    </Link>
-                  ) : (
-                    text
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <Link to="/faqs" className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-semibold text-gold hover:underline">
+            All FAQs <ArrowRight className="size-3.5" strokeWidth={1.6} />
+          </Link>
         </div>
-        <FaqList first={-1} />
+        <FaqList first={0} />
       </div>
     </section>
   )

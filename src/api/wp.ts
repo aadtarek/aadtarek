@@ -37,10 +37,11 @@ export interface StoreSettings {
     hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image' | 'srcset', string>>
     /** Logo chosen in the dashboard (URL), empty for the built-in one */
     logo?: string
+    logoSize?: { desktop?: number; mobile?: number; footer?: number }
   }
   heroSlider?: { enabled?: boolean; interval?: number; slides?: Partial<import('../config').HeroSlide>[] }
   bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
-  shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number }
+  shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number; orderMin?: number }
   loyalty?: Partial<{ enabled: boolean; earn: number; value: number; min: number; welcome: boolean; welcomePercent: number }>
   gift?: {
     enabled?: boolean
