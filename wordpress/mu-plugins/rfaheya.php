@@ -2642,6 +2642,11 @@ add_filter( 'pre_option_woocommerce_registration_generate_username', fn() => 'ye
 add_filter(
 	'woocommerce_registration_errors',
 	function ( $errors ) {
+		// Only the register form sends these fields; other ways of creating a customer
+		// (an account made at checkout) carry their own name and phone.
+		if ( ! isset( $_POST['rf_full_name'] ) && ! isset( $_POST['rf_phone'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return $errors;
+		}
 		// WooCommerce verified the register nonce before this filter runs.
 		$name  = isset( $_POST['rf_full_name'] ) ? trim( sanitize_text_field( wp_unslash( $_POST['rf_full_name'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$phone = isset( $_POST['rf_phone'] ) ? preg_replace( '/[^\d+]/', '', sanitize_text_field( wp_unslash( $_POST['rf_phone'] ) ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -4389,6 +4394,9 @@ foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' )
 			if ( email_exists( $email ) ) {
 				rfaheya_account_fail( 'An account with this email already exists. Sign in instead.' );
 			}
+			// The fields the register checks and the new-customer hook read (name and WhatsApp).
+			$_POST['rf_full_name'] = trim( $first . ' ' . $last );
+			$_POST['rf_phone']     = $phone;
 			$id = wc_create_new_customer(
 				$email,
 				'',
