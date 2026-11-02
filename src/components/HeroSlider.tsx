@@ -27,7 +27,7 @@ const BUILT_IN: (HeroSlide & { position?: string })[] = [
 ]
 
 /** The dashboard's slides (those with a picture or a title); a slide without a picture borrows a built-in one. */
-function useSlides(): (HeroSlide & { position?: string })[] {
+export function heroSlides(): (HeroSlide & { position?: string })[] {
   const filled = HERO_SLIDER.slides.filter((s) => s.image || s.title.trim())
   if (filled.length === 0) return BUILT_IN
   return filled.map((s, i) => (s.image ? s : { ...s, image: BUILT_IN[i % BUILT_IN.length].image }))
@@ -39,7 +39,7 @@ function useSlides(): (HeroSlide & { position?: string })[] {
  * (paused while the pointer is over it); a tap opens any of them.
  */
 export function HeroSlider() {
-  const slides = useSlides()
+  const slides = heroSlides()
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const count = slides.length

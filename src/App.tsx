@@ -15,6 +15,7 @@ import { AccountProvider } from './store/account'
 import { CartProvider } from './store/cart'
 import { RewardsProvider } from './store/rewards'
 import { WishlistProvider } from './store/wishlist'
+import { IntroReveal } from './components/IntroReveal'
 import { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage, CollectionsIndex, Article, Journal, OurStandard, FinderLanding, FinderQuiz, FinderResult, OrderReceived, ProductPage, Reviews, Shop, TrackOrder, Wishlist } from './routes'
 
 /** `npm run build:preview` uses #/ URLs so the site works from a single static file host (shareable preview link). */
@@ -54,6 +55,8 @@ export default function App() {
         <WishlistProvider>
           <CartProvider>
             <RewardsProvider>
+            {/* The opening animation plays over the start (and hides any wait for the products). */}
+            <IntroReveal />
             <RouteGate>
             <Routes>
               <Route path="finder/quiz" element={<Suspense fallback={<div className="min-h-screen bg-sand" />}><FinderQuiz /></Suspense>} />
