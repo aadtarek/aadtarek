@@ -1,5 +1,5 @@
 import { ArrowRight } from 'lucide-react'
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getProducts, type ProductSort } from '../api/catalog'
 import type { Product } from '../types'
@@ -8,7 +8,6 @@ import { rankProducts } from '../finder/match'
 import { useWishlist } from '../store/wishlist'
 import { useCart } from '../store/cart'
 import { ProductCard } from './ProductCard'
-import { Carousel } from './Carousel'
 
 type Tab = 'best' | 'new' | 'suggested'
 
@@ -51,18 +50,6 @@ function suggest(list: Product[], liked: Set<number>): Product[] {
   return out
 }
 
-const PHONE = '(max-width: 639px)'
-/** True on phones; follows the window as it resizes. */
-function usePhone() {
-  return useSyncExternalStore(
-    (on) => {
-      const mq = window.matchMedia(PHONE)
-      mq.addEventListener('change', on)
-      return () => mq.removeEventListener('change', on)
-    },
-    () => window.matchMedia(PHONE).matches,
-  )
-}
 
 /** Home: centred title, pill tabs (best sellers / new arrivals / suggested for you) and the product cards. */
 export function BestSellers() {
@@ -84,8 +71,7 @@ export function BestSellers() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab])
 
-  const items = useMemo(() => products.slice(0, 12), [products])
-  const phone = usePhone()
+  const items = useMemo(() => products.slice(0, 8), [products])
 
   return (
     <section className="pt-12 pb-4 lg:pt-16" aria-labelledby="best-sellers-title">
@@ -114,19 +100,16 @@ export function BestSellers() {
         </div>
 
         <div className="mt-7 lg:mt-9" role="tabpanel" aria-labelledby="best-sellers-title">
-          {items.length > 0 &&
-            (phone ? (
-              // Phones: a 2 × 2 grid
-              <ul className="grid grid-cols-2 gap-2.5">
-                {items.slice(0, 4).map((p) => (
-                  <li key={p.id}>
-                    <ProductCard product={p} badge={t.badge} />
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <Carousel label={t.label} items={items} getKey={(p) => p.id} renderItem={(p) => <ProductCard product={p} badge={t.badge} />} gap={20} />
-            ))}
+          {/* A grid, not a slider: 4 a row in two rows on desktop, 2 a row in three rows on phones. */}
+          {items.length > 0 && (
+            <ul className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+              {items.map((p, i) => (
+                <li key={p.id} className={i >= 6 ? 'hidden lg:block' : undefined}>
+                  <ProductCard product={p} badge={t.badge} />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
         <div className="mt-7 flex justify-center">
           <Link
