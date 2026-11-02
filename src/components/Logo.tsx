@@ -19,7 +19,6 @@ export function Logo({ className = '', ownClassName }: { className?: string; own
         width={mine ? undefined : 1098}
         height={mine ? undefined : 327}
         className={`h-full w-auto ${mine ? 'rf-own-logo object-contain object-left transition-opacity duration-300' : ''}`}
-        style={mine && !own.ready ? { opacity: 0 } : undefined}
         draggable={false}
       />
     </Link>

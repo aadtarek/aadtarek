@@ -1,5 +1,5 @@
 import { ArrowRight, BadgeCheck, Star } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { findProductById, getReviews, ratingSummary } from '../api/catalog'
 import type { Review } from '../types'
@@ -31,7 +31,7 @@ export function ReviewsSection() {
   return (
     <section aria-labelledby="reviews-title" className="container-x py-10 lg:py-14">
       <div className="rf-reviews-band relative overflow-hidden rounded-[28px] bg-[#1a120c] text-[#f6efe4] lg:rounded-[36px]">
-        <div aria-hidden className="pointer-events-none absolute -top-40 -left-32 size-[460px] rounded-full bg-[#e49b2d]/20 blur-[120px]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(228,155,45,0.22),transparent_45%)]" />
         <div className="relative grid lg:grid-cols-[340px_1fr] xl:grid-cols-[380px_1fr]">
           {/* ---------- the rating ---------- */}
           <div className="px-6 pt-9 pb-2 sm:px-10 lg:py-12 lg:pr-4 lg:pl-12">
@@ -92,15 +92,25 @@ export function ReviewsSection() {
 
 /** One gliding row. The list is repeated so the loop has no gap, however few reviews there are. */
 function Row({ reviews, reverse }: { reviews: Review[]; reverse: boolean }) {
+  const box = useRef<HTMLDivElement>(null)
+  const [onScreen, setOnScreen] = useState(false)
+  // Moves only while it can be seen: no work for the phone the rest of the time.
+  useEffect(() => {
+    const el = box.current
+    if (!el || typeof IntersectionObserver === 'undefined') return setOnScreen(true)
+    const io = new IntersectionObserver(([e]) => setOnScreen(e.isIntersecting), { rootMargin: '100px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
   const times = Math.max(2, Math.ceil(8 / Math.max(1, reviews.length)))
   const half = Array.from({ length: times }, () => reviews).flat()
   // About 7 s per card keeps every quote readable while it passes.
   const seconds = Math.max(28, half.length * 7)
   return (
-    <div className="rf-marquee relative overflow-hidden">
+    <div ref={box} className="rf-marquee relative overflow-hidden">
       <ul
         className="rf-marquee-track flex w-max gap-4 px-2"
-        style={{ animationDuration: `${seconds}s`, animationDirection: reverse ? 'reverse' : 'normal' }}
+        style={{ animationDuration: `${seconds}s`, animationDirection: reverse ? 'reverse' : 'normal', animationPlayState: onScreen ? undefined : 'paused' }}
       >
         {[...half, ...half].map((r, i) => (
           <li key={`${r.id}-${i}`} aria-hidden={i >= half.length || undefined} className="w-[280px] shrink-0 sm:w-[330px]">
@@ -116,7 +126,7 @@ function Quote({ review }: { review: Review }) {
   const product = findProductById(review.productId)
   const photo = review.images?.[0]
   return (
-    <article className="flex h-full flex-col rounded-[22px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-sm transition hover:border-[#f0c27a]/40 hover:bg-white/[0.09]">
+    <article className="flex h-full flex-col rounded-[22px] border border-white/10 bg-[#2a1f17] p-5 transition-colors hover:border-[#f0c27a]/40">
       <div className="flex items-center justify-between gap-3">
         <GoldStars rating={review.rating} size="size-[14px]" />
         {review.verified && (

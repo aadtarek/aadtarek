@@ -4794,9 +4794,10 @@ add_action(
 		if ( '' === $from ) {
 			return; // Old browsers and privacy tools send neither; the nonces still apply.
 		}
-		$host = strtolower( (string) wp_parse_url( $from, PHP_URL_HOST ) );
-		$ours = array_map( 'strtolower', array_filter( array( wp_parse_url( home_url(), PHP_URL_HOST ), wp_parse_url( site_url(), PHP_URL_HOST ) ) ) );
-		if ( ! in_array( $host, $ours, true ) ) {
+		$bare = fn( $h ) => preg_replace( '/^www\./', '', strtolower( (string) $h ) );
+		$host = $bare( wp_parse_url( $from, PHP_URL_HOST ) );
+		$ours = array_map( $bare, array_filter( array( wp_parse_url( home_url(), PHP_URL_HOST ), wp_parse_url( site_url(), PHP_URL_HOST ), isset( $_SERVER['HTTP_HOST'] ) ? preg_replace( '/:\d+$/', '', sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) ) : '' ) ) );
+		if ( '' !== $host && ! in_array( $host, $ours, true ) ) {
 			status_header( 403 );
 			wp_send_json( array( 'error' => 'This request must come from the store.' ) );
 		}
@@ -4894,17 +4895,19 @@ add_filter(
 add_action(
 	'admin_init',
 	function () {
-		if ( get_option( 'rfaheya_uploads_locked' ) === '2' ) {
+		if ( get_option( 'rfaheya_uploads_locked' ) === '3' ) {
 			return;
 		}
 		$dir  = wp_get_upload_dir();
 		$file = trailingslashit( $dir['basedir'] ) . '.htaccess';
-		$rule = "# BEGIN Rfaheya security\nOptions -Indexes\n<FilesMatch \"\\.(php[0-9]?|phtml|phar|pl|py|cgi|sh)$\">\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n</FilesMatch>\n# END Rfaheya security\n";
+		$rule = "# BEGIN Rfaheya security\n<FilesMatch \"\\.(php[0-9]?|phtml|phar|pl|py|cgi|sh)$\">\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n</FilesMatch>\n# END Rfaheya security\n";
 		$now  = file_exists( $file ) ? (string) file_get_contents( $file ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		if ( false === strpos( $now, '# BEGIN Rfaheya security' ) && is_dir( $dir['basedir'] ) && wp_is_writable( $dir['basedir'] ) ) {
+		// An earlier version also had "Options -Indexes", which some servers refuse (pictures then fail): replaced.
+		$now = (string) preg_replace( '/# BEGIN Rfaheya security.*?# END Rfaheya security\n?/s', '', $now );
+		if ( is_dir( $dir['basedir'] ) && wp_is_writable( $dir['basedir'] ) ) {
 			file_put_contents( $file, $rule . $now ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		}
-		update_option( 'rfaheya_uploads_locked', '2', false );
+		update_option( 'rfaheya_uploads_locked', '3', false );
 	}
 );
 

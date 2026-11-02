@@ -15,9 +15,6 @@
 DirectoryIndex index.php index.html
 
 # BEGIN Rfaheya
-# No folder listings.
-Options -Indexes
-
 # Files that must never be downloaded: the WordPress config, logs, backups,
 # the old .htaccess copy, readme/licence files that show the version, XML-RPC.
 <FilesMatch "^(wp-config.*\.php|xmlrpc\.php|readme\.html|license\.txt|.*\.(log|sql|sqlite|bak|old|orig|swp|ini|env|sh|git.*)|\.htaccess.*|\.user\.ini|error_log|php_errorlog)$">

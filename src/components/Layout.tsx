@@ -20,8 +20,13 @@ export function Layout() {
   useScrollReveal(main, pathname)
   useEffect(installFx, [])
   useEffect(() => {
-    readLogoColor()
-    trimOwnLogo()
+    // After the page has drawn: neither should hold up the first view.
+    const run = () => {
+      readLogoColor()
+      trimOwnLogo()
+    }
+    if ('requestIdleCallback' in window) window.requestIdleCallback(run, { timeout: 700 })
+    else setTimeout(run, 200)
   }, [])
   useEffect(() => {
     // The effect must not return scrollTo's value: some browsers return a Promise.
