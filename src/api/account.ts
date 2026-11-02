@@ -63,7 +63,7 @@ const changed = () => window.dispatchEvent(new Event('rf:account'))
 export const accountApi = {
   me: () => call<AccountMe>('rfaheya_account_me'),
   login: (email: string, password: string) => act('rfaheya_login', { email, password }).then(changed),
-  register: (d: { firstName: string; lastName: string; email: string; phone: string; password: string }) => act('rfaheya_register', d).then(changed),
+  register: (d: { firstName: string; lastName: string; email: string; phone: string; password: string; website?: string }) => act('rfaheya_register', { ...d, website: d.website ?? '', fullName: `${d.firstName} ${d.lastName}`.trim() }).then(changed),
   lostPassword: (email: string) => act<{ message: string }>('rfaheya_lost_password', { email }),
   resetPassword: (d: { key: string; login: string; id: string; password: string }) => act('rfaheya_reset_password', d).then(changed),
   logout: (nonce: string) => act('rfaheya_logout', { _ajax_nonce: nonce }).then(changed),

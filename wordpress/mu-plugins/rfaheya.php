@@ -1912,12 +1912,15 @@ add_action(
 				'callback'            => function () {
 					$fresh    = get_transient( 'rfaheya_bootstrap' );
 					$last     = get_option( 'rfaheya_bootstrap_last' );
-					$response = rest_ensure_response(
-						array(
-							'version'     => RFAHEYA_DATA_VERSION,
-							'fresh'       => rfaheya_bootstrap_current( $fresh ) ? count( $fresh['products'] ) : 0,
-							'lastCopy'    => rfaheya_bootstrap_current( $last ) ? count( $last['products'] ) : 0,
-							'building'    => (bool) get_transient( 'rfaheya_bootstrap_building' ),
+					$status = array(
+						'version'  => RFAHEYA_DATA_VERSION,
+						'fresh'    => rfaheya_bootstrap_current( $fresh ) ? count( $fresh['products'] ) : 0,
+						'lastCopy' => rfaheya_bootstrap_current( $last ) ? count( $last['products'] ) : 0,
+						'building' => (bool) get_transient( 'rfaheya_bootstrap_building' ),
+					);
+					// Server details (errors, limits) only for the store's admins.
+					if ( current_user_can( 'manage_options' ) ) {
+						$status += array(
 							'failedPause' => (bool) get_transient( 'rfaheya_bootstrap_failed' ),
 							'lastBuild'   => get_option( 'rfaheya_bootstrap_status', null ),
 							'lastError'   => (string) get_option( 'rfaheya_last_error', '' ),
@@ -1925,8 +1928,9 @@ add_action(
 							'finishEarly' => function_exists( 'litespeed_finish_request' ) || function_exists( 'fastcgi_finish_request' ),
 							'timeLimit'   => (int) ini_get( 'max_execution_time' ),
 							'memory'      => (string) ini_get( 'memory_limit' ),
-						)
-					);
+						);
+					}
+					$response = rest_ensure_response( $status );
 					$response->header( 'Cache-Control', 'no-cache' );
 					return $response;
 				},
@@ -2644,7 +2648,7 @@ add_filter(
 	function ( $errors ) {
 		// Only the register form sends these fields; other ways of creating a customer
 		// (an account made at checkout) carry their own name and phone.
-		if ( ! isset( $_POST['rf_full_name'] ) && ! isset( $_POST['rf_phone'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( ! empty( $GLOBALS['rfaheya_account_register'] ) || ( ! isset( $_POST['rf_full_name'] ) && ! isset( $_POST['rf_phone'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			return $errors;
 		}
 		// WooCommerce verified the register nonce before this filter runs.
@@ -2746,6 +2750,8 @@ add_action(
 		if ( $start ) {
 			$state = wp_generate_password( 32, false );
 			set_transient( 'rfaheya_oauth_' . $state, $name, 10 * MINUTE_IN_SECONDS );
+			// The state is also kept in this browser, so a sign-in link started elsewhere can't sign it in.
+			setcookie( 'rfaheya_oauth_state', $state, array( 'expires' => time() + 10 * MINUTE_IN_SECONDS, 'path' => COOKIEPATH ? COOKIEPATH : '/', 'secure' => is_ssl(), 'httponly' => true, 'samesite' => 'Lax' ) );
 			$url = 'google' === $name
 				? add_query_arg(
 					array(
@@ -2775,10 +2781,12 @@ add_action(
 		$state = isset( $_GET['state'] ) ? sanitize_text_field( wp_unslash( $_GET['state'] ) ) : '';
 		$code  = isset( $_GET['code'] ) ? sanitize_text_field( wp_unslash( $_GET['code'] ) ) : '';
 		// phpcs:enable
-		if ( ! $state || get_transient( 'rfaheya_oauth_' . $state ) !== $name ) {
+		$mine = isset( $_COOKIE['rfaheya_oauth_state'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['rfaheya_oauth_state'] ) ) : '';
+		if ( ! $state || ! $mine || ! hash_equals( $mine, $state ) || get_transient( 'rfaheya_oauth_' . $state ) !== $name ) {
 			rfaheya_oauth_fail( 'Sign-in expired. Please try again.' );
 		}
 		delete_transient( 'rfaheya_oauth_' . $state );
+		setcookie( 'rfaheya_oauth_state', '', array( 'expires' => time() - 3600, 'path' => COOKIEPATH ? COOKIEPATH : '/', 'secure' => is_ssl(), 'httponly' => true, 'samesite' => 'Lax' ) );
 		if ( ! $code ) {
 			rfaheya_oauth_fail( 'Sign-in was cancelled.' );
 		}
@@ -2849,6 +2857,16 @@ add_action(
 		if ( $user && ( user_can( $user, 'edit_posts' ) || user_can( $user, 'manage_woocommerce' ) ) ) {
 			// Staff accounts sign in with their password only.
 			rfaheya_oauth_fail( 'Please sign in to this account with your password.' );
+		}
+		if ( $user ) {
+			$linked = (string) get_user_meta( $user->ID, 'rfaheya_' . $name . '_id', true );
+			if ( '' !== $linked && ! hash_equals( $linked, (string) $profile['id'] ) ) {
+				rfaheya_oauth_fail( 'This email belongs to another account. Please sign in with your password.' );
+			}
+			// Facebook doesn't promise the email was confirmed: an existing account is joined only once it was linked before.
+			if ( 'facebook' === $name && '' === $linked ) {
+				rfaheya_oauth_fail( 'An account with this email already exists. Please sign in with your email and password.' );
+			}
 		}
 		if ( ! $user ) {
 			$base     = sanitize_user( current( explode( '@', $email ) ), true );
@@ -4351,6 +4369,9 @@ foreach ( array( 'wp_ajax_rfaheya_login', 'wp_ajax_nopriv_rfaheya_login' ) as $r
 			if ( '' === $login || '' === $password ) {
 				rfaheya_account_fail( 'Enter your email and password.' );
 			}
+			if ( strlen( $password ) > 200 ) {
+				rfaheya_account_fail( 'Incorrect email or password.' );
+			}
 			if ( is_email( $login ) ) {
 				$found = get_user_by( 'email', $login );
 				if ( $found ) {
@@ -4366,7 +4387,7 @@ foreach ( array( 'wp_ajax_rfaheya_login', 'wp_ajax_nopriv_rfaheya_login' ) as $r
 				is_ssl()
 			);
 			if ( is_wp_error( $user ) ) {
-				rfaheya_account_fail( 'Incorrect email or password.' );
+				rfaheya_account_fail( 'rfaheya_locked' === $user->get_error_code() ? $user->get_error_message() : 'Incorrect email or password.' );
 			}
 			rfaheya_account_ok();
 		}
@@ -4380,16 +4401,29 @@ foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' )
 			if ( ! function_exists( 'wc_create_new_customer' ) ) {
 				rfaheya_account_fail( 'Accounts are not available right now.' );
 			}
+			// A hidden field people never see: bots fill it in.
+			if ( '' !== rfaheya_post( 'website' ) ) {
+				rfaheya_account_fail( 'Something went wrong. Please try again.' );
+			}
+			rfaheya_rate_limit( 'register', rfaheya_client_ip(), 5, HOUR_IN_SECONDS );
 			$email    = sanitize_email( rfaheya_post( 'email' ) );
 			$password = rfaheya_post( 'password' );
 			$first    = sanitize_text_field( rfaheya_post( 'firstName' ) );
 			$last     = sanitize_text_field( rfaheya_post( 'lastName' ) );
+			if ( '' === $first && '' !== rfaheya_post( 'fullName' ) ) {
+				$parts = preg_split( '/\s+/', sanitize_text_field( rfaheya_post( 'fullName' ) ), 2 );
+				$first = $parts[0];
+				$last  = isset( $parts[1] ) ? $parts[1] : '';
+			}
+			if ( '' === $first ) {
+				rfaheya_account_fail( 'Please write your name.' );
+			}
 			$phone    = sanitize_text_field( rfaheya_post( 'phone' ) );
 			if ( ! is_email( $email ) ) {
 				rfaheya_account_fail( 'Enter a valid email.' );
 			}
-			if ( strlen( $password ) < 6 ) {
-				rfaheya_account_fail( 'Password must be at least 6 characters.' );
+			if ( strlen( $password ) < 8 || strlen( $password ) > 200 ) {
+				rfaheya_account_fail( 'Password must be at least 8 characters.' );
 			}
 			if ( email_exists( $email ) ) {
 				rfaheya_account_fail( 'An account with this email already exists. Sign in instead.' );
@@ -4397,6 +4431,8 @@ foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' )
 			// The fields the register checks and the new-customer hook read (name and WhatsApp).
 			$_POST['rf_full_name'] = trim( $first . ' ' . $last );
 			$_POST['rf_phone']     = $phone;
+			// This page checks the name and number itself; the old form's check stays out of it.
+			$GLOBALS['rfaheya_account_register'] = true;
 			$id = wc_create_new_customer(
 				$email,
 				'',
@@ -4406,6 +4442,7 @@ foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' )
 					'last_name'  => $last,
 				)
 			);
+			unset( $GLOBALS['rfaheya_account_register'] );
 			if ( is_wp_error( $id ) ) {
 				rfaheya_account_fail( wp_strip_all_tags( $id->get_error_message() ) );
 			}
@@ -4433,6 +4470,8 @@ foreach ( array( 'wp_ajax_rfaheya_lost_password', 'wp_ajax_nopriv_rfaheya_lost_p
 			if ( ! is_email( $email ) ) {
 				rfaheya_account_fail( 'Enter a valid email.' );
 			}
+			rfaheya_rate_limit( 'lost', rfaheya_client_ip(), 6, HOUR_IN_SECONDS );
+			rfaheya_rate_limit( 'lost-mail', strtolower( $email ), 3, HOUR_IN_SECONDS );
 			$user = get_user_by( 'email', $email );
 			if ( $user && function_exists( 'retrieve_password' ) ) {
 				retrieve_password( $user->user_login );
@@ -4447,6 +4486,7 @@ foreach ( array( 'wp_ajax_rfaheya_reset_password', 'wp_ajax_nopriv_rfaheya_reset
 	add_action(
 		$rfaheya_hook,
 		function () {
+			rfaheya_rate_limit( 'reset', rfaheya_client_ip(), 10, HOUR_IN_SECONDS );
 			$key      = rfaheya_post( 'key' );
 			$login    = rfaheya_post( 'login' );
 			$password = rfaheya_post( 'password' );
@@ -4454,14 +4494,16 @@ foreach ( array( 'wp_ajax_rfaheya_reset_password', 'wp_ajax_nopriv_rfaheya_reset
 				$by_id = get_user_by( 'id', (int) rfaheya_post( 'id' ) );
 				$login = $by_id ? $by_id->user_login : '';
 			}
-			if ( strlen( $password ) < 6 ) {
-				rfaheya_account_fail( 'Password must be at least 6 characters.' );
+			if ( strlen( $password ) < 8 || strlen( $password ) > 200 ) {
+				rfaheya_account_fail( 'Password must be at least 8 characters.' );
 			}
 			$user = check_password_reset_key( $key, $login );
 			if ( is_wp_error( $user ) ) {
 				rfaheya_account_fail( 'This link has expired. Ask for a new one.' );
 			}
 			reset_password( $user, $password );
+			// Anyone still signed in with the old password is signed out.
+			WP_Session_Tokens::get_instance( $user->ID )->destroy_all();
 			wp_set_auth_cookie( $user->ID, true, is_ssl() );
 			rfaheya_account_ok();
 		}
@@ -4557,13 +4599,16 @@ add_action(
 		if ( $taken && (int) $taken !== (int) $user->ID ) {
 			rfaheya_account_fail( 'Another account already uses this email.' );
 		}
-		$new_password = rfaheya_post( 'newPassword' );
-		if ( '' !== $new_password ) {
-			if ( strlen( $new_password ) < 6 ) {
-				rfaheya_account_fail( 'The new password must be at least 6 characters.' );
-			}
+		$new_password  = rfaheya_post( 'newPassword' );
+		$email_changed = strtolower( $email ) !== strtolower( $user->user_email );
+		if ( '' !== $new_password && ( strlen( $new_password ) < 8 || strlen( $new_password ) > 200 ) ) {
+			rfaheya_account_fail( 'The new password must be at least 8 characters.' );
+		}
+		// A new password or a new email (the key to the account) needs the current password.
+		if ( '' !== $new_password || $email_changed ) {
+			rfaheya_rate_limit( 'confirm', (string) $user->ID, 8, 15 * MINUTE_IN_SECONDS );
 			if ( ! wp_check_password( rfaheya_post( 'currentPassword' ), $user->user_pass, $user->ID ) ) {
-				rfaheya_account_fail( 'Your current password is not right.' );
+				rfaheya_account_fail( $email_changed && '' === $new_password ? 'To change your email, enter your current password.' : 'Your current password is not right.' );
 			}
 		}
 		$customer->set_first_name( $first );
@@ -4637,3 +4682,237 @@ add_action(
 	},
 	5
 );
+
+/* -------------------------------------------------------------------------
+ * Security: the whole site (dashboard sign-in included), not only the storefront.
+ * ------------------------------------------------------------------------- */
+
+// No theme / plugin file editor in the dashboard: a stolen admin password can't write PHP.
+if ( ! defined( 'DISALLOW_FILE_EDIT' ) ) {
+	define( 'DISALLOW_FILE_EDIT', true );
+}
+
+/** The visitor's IP address (as the web server saw it; headers a browser can fake are ignored). */
+function rfaheya_client_ip() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	return filter_var( $ip, FILTER_VALIDATE_IP ) ? $ip : '0.0.0.0';
+}
+
+/** How many times `$what` happened for `$who` in the current window. */
+function rfaheya_limit_count( $what, $who ) {
+	return (int) get_transient( 'rf_lim_' . md5( $what . '|' . $who ) );
+}
+
+/** Counts one more `$what` for `$who`; the window starts at the first one. */
+function rfaheya_limit_hit( $what, $who, $window ) {
+	$key  = 'rf_lim_' . md5( $what . '|' . $who );
+	$seen = (int) get_transient( $key );
+	set_transient( $key, $seen + 1, $window );
+	return $seen + 1;
+}
+
+function rfaheya_limit_clear( $what, $who ) {
+	delete_transient( 'rf_lim_' . md5( $what . '|' . $who ) );
+}
+
+/** Stops an account request after `$max` tries in `$window` seconds. */
+function rfaheya_rate_limit( $what, $who, $max, $window ) {
+	if ( rfaheya_limit_hit( $what, $who, $window ) > $max ) {
+		rfaheya_account_fail( 'Too many tries. Please wait a little and try again.' );
+	}
+}
+
+/*
+ * Sign-in lockout, for every way in (the storefront, wp-login.php, the dashboard):
+ * 5 wrong passwords for one account, or 20 from one address, lock it for 15 minutes.
+ */
+add_filter(
+	'authenticate',
+	function ( $user, $username ) {
+		$name = strtolower( trim( (string) $username ) );
+		if ( '' === $name ) {
+			return $user;
+		}
+		if ( rfaheya_limit_count( 'login-user', $name ) >= 5 || rfaheya_limit_count( 'login-ip', rfaheya_client_ip() ) >= 20 ) {
+			return new WP_Error( 'rfaheya_locked', 'Too many wrong passwords. For your safety, sign-in is paused for 15 minutes.' );
+		}
+		return $user;
+	},
+	1,
+	2
+);
+
+add_action(
+	'wp_login_failed',
+	function ( $username ) {
+		$name = strtolower( trim( (string) $username ) );
+		rfaheya_limit_hit( 'login-ip', rfaheya_client_ip(), 15 * MINUTE_IN_SECONDS );
+		if ( '' !== $name ) {
+			rfaheya_limit_hit( 'login-user', $name, 15 * MINUTE_IN_SECONDS );
+			// Signing in by email counts against the account as well.
+			$user = is_email( $name ) ? get_user_by( 'email', $name ) : get_user_by( 'login', $name );
+			if ( $user && strtolower( $user->user_login ) !== $name ) {
+				rfaheya_limit_hit( 'login-user', strtolower( $user->user_login ), 15 * MINUTE_IN_SECONDS );
+			}
+		}
+	}
+);
+
+add_action(
+	'wp_login',
+	function ( $login ) {
+		rfaheya_limit_clear( 'login-user', strtolower( (string) $login ) );
+	}
+);
+
+// wp-login.php doesn't say whether the username or the password was wrong.
+add_filter(
+	'login_errors',
+	function ( $message ) {
+		if ( false !== strpos( (string) $message, 'Too many wrong passwords' ) ) {
+			return $message;
+		}
+		return '<strong>Error:</strong> Incorrect username or password.';
+	}
+);
+
+// The storefront's account requests only from this site (another site can't sign a visitor in or out).
+add_action(
+	'admin_init',
+	function () {
+		if ( ! wp_doing_ajax() || 'POST' !== ( isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : '' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+			return;
+		}
+		$action = isset( $_REQUEST['action'] ) ? sanitize_key( wp_unslash( $_REQUEST['action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( 0 !== strpos( $action, 'rfaheya_' ) ) {
+			return;
+		}
+		$from = isset( $_SERVER['HTTP_ORIGIN'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_ORIGIN'] ) ) : '';
+		if ( '' === $from && isset( $_SERVER['HTTP_REFERER'] ) ) {
+			$from = sanitize_text_field( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
+		}
+		if ( '' === $from ) {
+			return; // Old browsers and privacy tools send neither; the nonces still apply.
+		}
+		$host = strtolower( (string) wp_parse_url( $from, PHP_URL_HOST ) );
+		$ours = array_map( 'strtolower', array_filter( array( wp_parse_url( home_url(), PHP_URL_HOST ), wp_parse_url( site_url(), PHP_URL_HOST ) ) ) );
+		if ( ! in_array( $host, $ours, true ) ) {
+			status_header( 403 );
+			wp_send_json( array( 'error' => 'This request must come from the store.' ) );
+		}
+	},
+	1
+);
+
+// XML-RPC (an old remote API, a favourite of password-guessing bots) is off.
+add_filter( 'xmlrpc_enabled', '__return_false' );
+add_filter( 'xmlrpc_methods', fn() => array() );
+add_filter(
+	'wp_headers',
+	function ( $headers ) {
+		unset( $headers['X-Pingback'] );
+		return $headers;
+	}
+);
+
+// Application passwords (sign-in keys for apps) are off: the store doesn't use them.
+add_filter( 'wp_is_application_passwords_available', '__return_false' );
+
+// No WordPress version in the page source or feeds.
+remove_action( 'wp_head', 'wp_generator' );
+add_filter( 'the_generator', '__return_empty_string' );
+
+// Usernames stay private: no user list in the REST API, no ?author= pages, no author sitemap.
+add_filter(
+	'rest_endpoints',
+	function ( $endpoints ) {
+		if ( current_user_can( 'list_users' ) ) {
+			return $endpoints;
+		}
+		foreach ( array_keys( $endpoints ) as $route ) {
+			if ( 0 === strpos( $route, '/wp/v2/users' ) ) {
+				unset( $endpoints[ $route ] );
+			}
+		}
+		return $endpoints;
+	}
+);
+add_filter(
+	'wp_sitemaps_add_provider',
+	fn( $provider, $name ) => 'users' === $name ? false : $provider,
+	10,
+	2
+);
+add_filter(
+	'oembed_response_data',
+	function ( $data ) {
+		unset( $data['author_name'], $data['author_url'] );
+		return $data;
+	}
+);
+add_action(
+	'template_redirect',
+	function () {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only check
+		if ( ( is_author() || isset( $_GET['author'] ) ) && ! current_user_can( 'list_users' ) ) {
+			wp_safe_redirect( home_url( '/' ), 301 );
+			exit;
+		}
+	},
+	1
+);
+
+/** Safety headers on every page WordPress sends (the storefront pages included). */
+function rfaheya_security_headers() {
+	if ( headers_sent() ) {
+		return;
+	}
+	header( 'X-Content-Type-Options: nosniff' );
+	header( 'X-Frame-Options: SAMEORIGIN' );
+	header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+	header( 'Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()' );
+	header( "Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; object-src 'none'" );
+	if ( is_ssl() ) {
+		header( 'Strict-Transport-Security: max-age=31536000' );
+	}
+}
+add_action( 'send_headers', 'rfaheya_security_headers' );
+add_action( 'admin_init', 'rfaheya_security_headers' );
+add_action( 'login_init', 'rfaheya_security_headers' );
+add_filter(
+	'rest_post_dispatch',
+	function ( $response ) {
+		rfaheya_security_headers();
+		return $response;
+	}
+);
+
+/*
+ * No PHP runs from the uploads folder (an uploaded file can never become a program),
+ * and the folder can't be browsed. Written once into wp-content/uploads/.htaccess.
+ */
+add_action(
+	'admin_init',
+	function () {
+		if ( get_option( 'rfaheya_uploads_locked' ) === '2' ) {
+			return;
+		}
+		$dir  = wp_get_upload_dir();
+		$file = trailingslashit( $dir['basedir'] ) . '.htaccess';
+		$rule = "# BEGIN Rfaheya security\nOptions -Indexes\n<FilesMatch \"\\.(php[0-9]?|phtml|phar|pl|py|cgi|sh)$\">\n<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nOrder allow,deny\nDeny from all\n</IfModule>\n</FilesMatch>\n# END Rfaheya security\n";
+		$now  = file_exists( $file ) ? (string) file_get_contents( $file ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( false === strpos( $now, '# BEGIN Rfaheya security' ) && is_dir( $dir['basedir'] ) && wp_is_writable( $dir['basedir'] ) ) {
+			file_put_contents( $file, $rule . $now ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		}
+		update_option( 'rfaheya_uploads_locked', '2', false );
+	}
+);
+
+// Comments on posts and pages are off (bots use them for spam); product reviews stay.
+add_filter(
+	'comments_open',
+	fn( $open, $post_id ) => 'product' === get_post_type( $post_id ) ? $open : false,
+	10,
+	2
+);
+add_filter( 'pings_open', '__return_false' );

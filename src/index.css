@@ -1825,3 +1825,29 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
   }
 }
 
+
+/* Home reviews: rows of cards gliding in a loop; they stop under the pointer. */
+@keyframes rf-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.rf-marquee {
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+.rf-marquee-track {
+  animation: rf-marquee 40s linear infinite;
+}
+.rf-marquee:hover .rf-marquee-track,
+.rf-marquee:focus-within .rf-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-marquee {
+    overflow-x: auto;
+    mask-image: none;
+  }
+  .rf-marquee-track {
+    animation: none;
+  }
+}

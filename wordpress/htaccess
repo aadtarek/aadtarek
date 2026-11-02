@@ -15,6 +15,21 @@
 DirectoryIndex index.php index.html
 
 # BEGIN Rfaheya
+# No folder listings.
+Options -Indexes
+
+# Files that must never be downloaded: the WordPress config, logs, backups,
+# the old .htaccess copy, readme/licence files that show the version, XML-RPC.
+<FilesMatch "^(wp-config.*\.php|xmlrpc\.php|readme\.html|license\.txt|.*\.(log|sql|sqlite|bak|old|orig|swp|ini|env|sh|git.*)|\.htaccess.*|\.user\.ini|error_log|php_errorlog)$">
+<IfModule mod_authz_core.c>
+Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+Order allow,deny
+Deny from all
+</IfModule>
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
@@ -22,13 +37,21 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
 # WordPress admin & files (the dashboard explicitly, some servers pick the
 # wrong folder index otherwise)
+# Hidden folders (.git, .env …), PHP inside uploads, and includes run directly: refused
+RewriteRule (^|/)\.(?!well-known/) - [F,L]
+RewriteRule ^wp-content/uploads/.*\.(php[0-9]?|phtml|phar)$ - [F,L,NC]
+RewriteCond %{SCRIPT_FILENAME} !wp-includes/ms-files\.php$
+RewriteRule ^wp-includes/[^/]+\.php$ - [F,L]
+RewriteRule ^wp-includes/js/tinymce/langs/.+\.php - [F,L]
+RewriteRule ^wp-includes/theme-compat/ - [F,L]
+RewriteRule ^wp-admin/includes/ - [F,L]
+
 RewriteRule ^wp-admin/?$ wp-admin/index.php [L]
 RewriteRule ^wp-admin - [L]
 RewriteRule ^wp-content - [L]
 RewriteRule ^wp-includes - [L]
 RewriteRule ^wp-login\.php - [L]
 RewriteRule ^wp-cron\.php - [L]
-RewriteRule ^xmlrpc\.php - [L]
 
 # REST API -> WordPress (the storefront reads products and the cart from here)
 RewriteRule ^wp-json/(.*)$ index.php?rest_route=/$1 [QSA,L]
@@ -57,6 +80,14 @@ RewriteRule ^ index.php?rfaheya_shell=1 [QSA,L]
 # Storefront files in /assets have the content hash in their name, so they
 # can be cached for a year; images and videos for a month.
 <IfModule mod_headers.c>
+# Safety headers for the storefront files too (WordPress adds them to its own pages).
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+Header always set Content-Security-Policy "frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+Header always unset X-Powered-By
+Header unset X-Powered-By
 <FilesMatch "^index\.html$">
 Header set Cache-Control "no-cache"
 </FilesMatch>

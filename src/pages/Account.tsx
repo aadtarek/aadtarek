@@ -15,7 +15,7 @@ import { useRewards } from '../store/rewards'
 interface Backend {
   me: AccountMe | null
   login: (email: string, password: string) => Promise<void>
-  register: (d: { firstName: string; lastName: string; email: string; phone: string; password: string }) => Promise<void>
+  register: (d: { firstName: string; lastName: string; email: string; phone: string; password: string; website?: string }) => Promise<void>
   lostPassword: (email: string) => Promise<string>
   resetPassword: (d: { key: string; login: string; id: string; password: string }) => Promise<void>
   logout: () => Promise<void>
@@ -282,6 +282,8 @@ function Details({ details, save, onSaved }: { details: AccountDetails; save: Ba
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
+    if (form.newPassword && form.newPassword.length < 8) return setState({ error: 'The new password must be at least 8 characters.' })
+    if (form.email.trim().toLowerCase() !== details.email.trim().toLowerCase() && !form.currentPassword) return setState({ error: 'To change your email, enter your current password.' })
     setState({ busy: true })
     try {
       await save(form)
@@ -313,7 +315,7 @@ function Details({ details, save, onSaved }: { details: AccountDetails; save: Ba
         </Field>
         <p className="mt-3 font-serif text-[22px] leading-none">Change password</p>
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <Field label="Current password">
+          <Field label="Current password (to change your email or password)">
             <input className={input} type="password" value={form.currentPassword} onChange={set('currentPassword')} autoComplete="current-password" />
           </Field>
           <Field label="New password">
@@ -401,26 +403,33 @@ function AuthPanel({ backend }: { backend: Backend }) {
     setNote(null)
   }
 
-  const submit = async (e: FormEvent) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError(null)
     setNote(null)
+    // What the fields hold right now: a browser's autofill or a phone keyboard's suggestion
+    // can fill a field without telling the page, so the state alone may be behind.
+    const typed = new FormData(e.currentTarget)
+    const read = (k: keyof typeof form) => String(typed.get(k) ?? form[k] ?? '')
+    const form2 = { fullName: read('fullName'), phone: read('phone'), email: read('email').trim(), password: read('password') }
+    setForm(form2)
     if (mode === 'register') {
-      if (!form.fullName.trim()) return setError('Please enter your full name.')
-      if (form.phone.replace(/\D/g, '').length < 10) return setError('Please enter your WhatsApp number.')
+      if (!form2.fullName.trim()) return setError('Please write your name.')
+      if (form2.phone.replace(/\D/g, '').length < 10) return setError('Please enter your WhatsApp number.')
     }
-    if (mode !== 'reset' && !/^\S+@\S+\.\S+$/.test(form.email)) return setError('Enter a valid email.')
-    if (mode !== 'forgot' && form.password.length < 6) return setError('Password must be at least 6 characters.')
+    if (mode !== 'reset' && !/^\S+@\S+\.\S+$/.test(form2.email)) return setError('Enter a valid email.')
+    if (mode === 'login' && !form2.password) return setError('Enter your password.')
+    if ((mode === 'register' || mode === 'reset') && form2.password.length < 8) return setError('Password must be at least 8 characters.')
     setBusy(true)
     try {
-      if (mode === 'login') await backend.login(form.email, form.password)
+      if (mode === 'login') await backend.login(form2.email, form2.password)
       if (mode === 'register') {
-        const [firstName, ...rest] = form.fullName.trim().split(/\s+/)
-        await backend.register({ firstName, lastName: rest.join(' '), email: form.email, phone: form.phone, password: form.password })
+        const [firstName, ...rest] = form2.fullName.trim().split(/\s+/)
+        await backend.register({ firstName, lastName: rest.join(' '), email: form2.email, phone: form2.phone, password: form2.password, website: String(typed.get('website') ?? '') })
       }
-      if (mode === 'forgot') setNote(await backend.lostPassword(form.email))
+      if (mode === 'forgot') setNote(await backend.lostPassword(form2.email))
       if (mode === 'reset') {
-        await backend.resetPassword({ key: resetKey, login: params.get('login') ?? '', id: params.get('id') ?? '', password: form.password })
+        await backend.resetPassword({ key: resetKey, login: params.get('login') ?? '', id: params.get('id') ?? '', password: form2.password })
         setParams({}, { replace: true })
       }
     } catch (err) {
@@ -491,25 +500,29 @@ function AuthPanel({ backend }: { backend: Backend }) {
             </>
           )}
 
-          <form onSubmit={submit} noValidate className="mt-6 grid gap-3.5">
+          <form onSubmit={submit} noValidate className="relative mt-6 grid gap-3.5">
             {mode === 'register' && (
               <>
                 <Field label="Full name">
-                  <input className={input} value={form.fullName} onChange={set('fullName')} autoComplete="name" />
+                  <input className={input} name="fullName" value={form.fullName} onChange={set('fullName')} autoComplete="name" />
                 </Field>
                 <Field label="WhatsApp number">
-                  <input className={input} type="tel" inputMode="tel" placeholder="01x xxxx xxxx" value={form.phone} onChange={set('phone')} autoComplete="tel" />
+                  <input className={input} name="phone" type="tel" inputMode="tel" placeholder="01x xxxx xxxx" value={form.phone} onChange={set('phone')} autoComplete="tel" />
                 </Field>
               </>
             )}
+            {mode === 'register' && (
+              // Left empty by people; bots fill every field in.
+              <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden className="absolute -left-[9999px] size-px opacity-0" />
+            )}
             {mode !== 'reset' && (
               <Field label="Email">
-                <input className={input} type="email" value={form.email} onChange={set('email')} autoComplete="email" />
+                <input className={input} name="email" type="email" value={form.email} onChange={set('email')} autoComplete="email" />
               </Field>
             )}
             {mode !== 'forgot' && (
               <Field label={mode === 'reset' ? 'New password' : 'Password'}>
-                <input className={input} type="password" value={form.password} onChange={set('password')} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
+                <input className={input} name="password" type="password" value={form.password} onChange={set('password')} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
               </Field>
             )}
             {mode === 'login' && (

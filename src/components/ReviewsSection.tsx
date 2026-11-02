@@ -1,143 +1,172 @@
-import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { ArrowRight, BadgeCheck, Star } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getReviews, ratingSummary } from '../api/catalog'
+import { findProductById, getReviews, ratingSummary } from '../api/catalog'
 import type { Review } from '../types'
-import { ReviewCard } from './ReviewCard'
-import { Stars } from './Stars'
-
-const GAP = 16
 
 /**
- * Home: the rating and a heading, then the review cards in a swipeable row,
- * with a progress line, a counter and prev/next arrows under it.
+ * Home: a dark band. On the left the rating, how the stars split and a link to every
+ * review; on the right two rows of review cards gliding slowly in opposite directions
+ * (they stop under the pointer; with reduced motion they become a plain swipeable row).
  */
 export function ReviewsSection() {
   const [reviews, setReviews] = useState<Review[]>([])
-  const track = useRef<HTMLUListElement>(null)
-  const [state, setState] = useState({ progress: 0, index: 0, visible: 1, overflow: false, atStart: true, atEnd: false })
 
   useEffect(() => {
     getReviews().then(setReviews)
   }, [])
 
-  const measure = useCallback(() => {
-    const el = track.current
-    const first = el?.firstElementChild as HTMLElement | null
-    if (!el || !first) return
-    const step = first.offsetWidth + GAP
-    const max = el.scrollWidth - el.clientWidth
-    setState({
-      progress: max > 0 ? el.scrollLeft / max : 1,
-      index: Math.round(el.scrollLeft / step),
-      visible: Math.max(1, Math.round((el.clientWidth + GAP) / step)),
-      overflow: max > 4,
-      atStart: el.scrollLeft <= 4,
-      atEnd: el.scrollLeft >= max - 4,
-    })
-  }, [])
-
-  useEffect(() => {
-    const el = track.current
-    if (!el) return
-    measure()
-    const observer = new ResizeObserver(measure)
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [measure, reviews.length])
-
-  const go = (dir: 1 | -1) => {
-    const el = track.current
-    const first = el?.firstElementChild as HTMLElement | null
-    if (!el || !first) return
-    el.scrollBy({ left: dir * (first.offsetWidth + GAP), behavior: 'smooth' })
-  }
-
   const { average, count } = ratingSummary(reviews)
+  const split = useMemo(() => [5, 4, 3, 2, 1].map((n) => ({ n, c: reviews.filter((r) => Math.round(r.rating) === n).length })), [reviews])
+  // The newest with something to say first; very short ones last.
+  const ordered = useMemo(() => [...reviews].filter((r) => r.text.trim()).sort((a, b) => Number(b.text.trim().length > 24) - Number(a.text.trim().length > 24) || b.date.localeCompare(a.date)), [reviews])
+  const rows = useMemo(() => {
+    if (ordered.length < 6) return [ordered]
+    return [ordered.filter((_, i) => i % 2 === 0), ordered.filter((_, i) => i % 2 === 1)]
+  }, [ordered])
+
   // No reviews yet (e.g. a fresh WooCommerce store): hide the section rather than show an empty one.
   if (reviews.length === 0) return null
 
-  const total = reviews.length
-  const shown = Math.min(total, state.index + state.visible)
-  const pad = (n: number) => String(n).padStart(2, '0')
-  const arrow =
-    'grid size-12 place-items-center rounded-full transition duration-300 disabled:pointer-events-none disabled:opacity-30 active:scale-95'
-
   return (
     <section aria-labelledby="reviews-title" className="container-x py-10 lg:py-14">
-      <div className="overflow-hidden rounded-[28px] bg-chip px-5 py-9 lg:rounded-[36px] lg:p-12">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Customer reviews</p>
-            <h2 id="reviews-title" className="mt-3 font-serif text-[40px] leading-[0.98] sm:text-[54px]">
-              Loved by the people <span className="text-gold italic">who wear it.</span>
+      <div className="rf-reviews-band relative overflow-hidden rounded-[28px] bg-[#1a120c] text-[#f6efe4] lg:rounded-[36px]">
+        <div aria-hidden className="pointer-events-none absolute -top-40 -left-32 size-[460px] rounded-full bg-[#e49b2d]/20 blur-[120px]" />
+        <div className="relative grid lg:grid-cols-[340px_1fr] xl:grid-cols-[380px_1fr]">
+          {/* ---------- the rating ---------- */}
+          <div className="px-6 pt-9 pb-2 sm:px-10 lg:py-12 lg:pr-4 lg:pl-12">
+            <p className="text-[11px] font-semibold tracking-[0.24em] text-[#f0c27a] uppercase">Customer reviews</p>
+            <h2 id="reviews-title" className="mt-3 font-serif text-[38px] leading-[0.98] sm:text-[48px]">
+              Loved by the people <span className="text-[#f0c27a] italic">who wear it.</span>
             </h2>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="font-serif text-[64px] leading-none lg:text-[76px]">{average.toFixed(1)}</span>
-            <span>
-              <Stars rating={average} className="size-[17px]" />
-              <span className="mt-1.5 block text-[13.5px] text-ink-soft">
-                From {count} verified {count === 1 ? 'purchase' : 'purchases'}
+            <div className="mt-7 flex items-center gap-4">
+              <span className="font-serif text-[68px] leading-none">{average.toFixed(1)}</span>
+              <span>
+                <GoldStars rating={average} size="size-[18px]" />
+                <span className="mt-1.5 block text-[13px] text-[#f6efe4]/65">
+                  {count} {count === 1 ? 'review' : 'reviews'}
+                </span>
               </span>
-            </span>
+            </div>
+            <ul className="mt-5 hidden max-w-[300px] gap-1.5 sm:grid" aria-label="How the ratings split">
+              {split.map(({ n, c }) => (
+                <li key={n} className="flex items-center gap-2.5 text-[12px] text-[#f6efe4]/65 tabular-nums">
+                  <span className="w-3">{n}</span>
+                  <Star className="size-3 fill-[#e49b2d] text-[#e49b2d]" strokeWidth={0} aria-hidden />
+                  <span className="relative h-[5px] flex-1 overflow-hidden rounded-full bg-white/10">
+                    <span className="absolute inset-y-0 left-0 rounded-full bg-[#e49b2d]" style={{ width: `${count ? (c / count) * 100 : 0}%` }} />
+                  </span>
+                  <span className="w-6 text-right">{c}</span>
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/reviews"
+              className="group mt-8 hidden h-12 items-center gap-2 rounded-full bg-[#e49b2d] px-6 text-[11.5px] font-semibold tracking-[0.12em] text-[#1a120c] uppercase transition hover:bg-[#f0b04a] lg:inline-flex"
+            >
+              Read all reviews
+              <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.6} />
+            </Link>
+          </div>
+
+          {/* ---------- the reviews ---------- */}
+          <div className="rf-reviews-rows relative grid content-center gap-4 py-7 lg:py-12">
+            {rows.map((row, i) => (
+              <Row key={i} reviews={row} reverse={i === 1} />
+            ))}
           </div>
         </div>
-
-        <ul
-          ref={track}
-          onScroll={measure}
-          aria-label="Customer reviews"
-          className="no-scrollbar -mx-5 mt-8 flex snap-x snap-mandatory scroll-px-5 overflow-x-auto px-5 pt-1 pb-6 lg:mx-0 lg:scroll-px-0 lg:px-0"
-          style={{ gap: GAP }}
-        >
-          {reviews.map((r) => (
-            <li key={r.id} className="w-[86%] shrink-0 snap-start sm:w-[calc((100%-16px)/2)] lg:w-[calc((100%-32px)/3)]">
-              <ReviewCard review={r} />
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-2 flex items-center gap-4">
-          {state.overflow ? (
-            <>
-              <span className="text-[13px] font-semibold text-ink tabular-nums" aria-live="polite">
-                {pad(shown)} <span className="text-muted">/ {pad(total)}</span>
-              </span>
-              <span aria-hidden className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-line-strong/60">
-                <span
-                  className="absolute inset-y-0 left-0 rounded-full bg-olive transition-[width] duration-300"
-                  style={{ width: `${Math.max(shown / total, state.progress) * 100}%` }}
-                />
-              </span>
-              <span className="flex gap-2">
-                <button type="button" onClick={() => go(-1)} disabled={state.atStart} aria-label="Previous reviews" className={`${arrow} rf-white text-ink shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] hover:shadow-[inset_0_0_0_1.5px_var(--color-ink)]`}>
-                  <ArrowLeft className="size-5" strokeWidth={1.5} />
-                </button>
-                <button type="button" onClick={() => go(1)} disabled={state.atEnd} aria-label="Next reviews" className={`${arrow} bg-olive text-on-accent hover:bg-olive-hover`}>
-                  <ArrowRight className="size-5" strokeWidth={1.5} />
-                </button>
-              </span>
-            </>
-          ) : (
-            <span className="flex-1" />
-          )}
+        <div className="relative px-6 pb-8 sm:px-10 lg:hidden">
           <Link
             to="/reviews"
-            className="group hidden h-12 items-center gap-2 rounded-full px-2 text-[11.5px] font-semibold tracking-[0.12em] text-ink uppercase underline-offset-4 hover:underline sm:inline-flex"
+            className="group flex h-12 items-center justify-center gap-2 rounded-full bg-[#e49b2d] text-[11.5px] font-semibold tracking-[0.12em] text-[#1a120c] uppercase"
           >
-            All reviews
-            <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.5} />
+            Read all reviews
+            <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.6} />
           </Link>
         </div>
-        <Link
-          to="/reviews"
-          className="group rf-white mt-5 flex h-12 items-center justify-center gap-2 rounded-full text-[11.5px] font-semibold tracking-[0.12em] uppercase sm:hidden"
-        >
-          Read all reviews
-          <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.5} />
-        </Link>
       </div>
     </section>
+  )
+}
+
+/** One gliding row. The list is repeated so the loop has no gap, however few reviews there are. */
+function Row({ reviews, reverse }: { reviews: Review[]; reverse: boolean }) {
+  const times = Math.max(2, Math.ceil(8 / Math.max(1, reviews.length)))
+  const half = Array.from({ length: times }, () => reviews).flat()
+  // About 7 s per card keeps every quote readable while it passes.
+  const seconds = Math.max(28, half.length * 7)
+  return (
+    <div className="rf-marquee relative overflow-hidden">
+      <ul
+        className="rf-marquee-track flex w-max gap-4 px-2"
+        style={{ animationDuration: `${seconds}s`, animationDirection: reverse ? 'reverse' : 'normal' }}
+      >
+        {[...half, ...half].map((r, i) => (
+          <li key={`${r.id}-${i}`} aria-hidden={i >= half.length || undefined} className="w-[280px] shrink-0 sm:w-[330px]">
+            <Quote review={r} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function Quote({ review }: { review: Review }) {
+  const product = findProductById(review.productId)
+  const photo = review.images?.[0]
+  return (
+    <article className="flex h-full flex-col rounded-[22px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-sm transition hover:border-[#f0c27a]/40 hover:bg-white/[0.09]">
+      <div className="flex items-center justify-between gap-3">
+        <GoldStars rating={review.rating} size="size-[14px]" />
+        {review.verified && (
+          <span className="flex items-center gap-1 text-[11px] font-medium text-[#b9d39a]">
+            <BadgeCheck className="size-3.5" strokeWidth={1.8} aria-hidden />
+            Verified
+          </span>
+        )}
+      </div>
+      <div className="mt-3 flex flex-1 gap-3">
+        <blockquote dir="auto" className="line-clamp-4 flex-1 font-serif text-[18px] leading-[1.32] text-[#f6efe4]">
+          “{review.text.trim()}”
+        </blockquote>
+        {photo && <img src={photo} alt="" loading="lazy" className="size-[64px] shrink-0 rounded-[14px] object-cover" />}
+      </div>
+      <div className="mt-4 flex items-center gap-2.5 border-t border-white/10 pt-4">
+        <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-[#e49b2d] font-serif text-[16px] text-[#1a120c]">
+          {review.author.trim().charAt(0).toUpperCase()}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span dir="auto" className="block truncate text-[13px] font-semibold">
+            {review.author}
+          </span>
+          {product && (
+            <Link to={`/product/${product.slug}`} tabIndex={-1} className="block truncate text-[11.5px] text-[#f0c27a] hover:underline">
+              {product.name}
+              {review.size ? ` · ${review.size.replace(/\s*ML$/i, ' ml')}` : ''}
+            </Link>
+          )}
+        </span>
+        {product && <img src={product.images[0].src} alt="" loading="lazy" className="size-9 shrink-0 rounded-full object-cover" />}
+      </div>
+    </article>
+  )
+}
+
+function GoldStars({ rating, size }: { rating: number; size: string }) {
+  return (
+    <span className="inline-flex gap-[3px]" role="img" aria-label={`${rating.toFixed(1)} out of 5 stars`}>
+      {Array.from({ length: 5 }, (_, i) => {
+        const fill = Math.max(0, Math.min(1, rating - i))
+        return (
+          <span key={i} className="relative">
+            <Star className={`${size} fill-white/15 text-white/15`} strokeWidth={0} />
+            <span className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+              <Star className={`${size} fill-[#e49b2d] text-[#e49b2d]`} strokeWidth={0} />
+            </span>
+          </span>
+        )
+      })}
+    </span>
   )
 }
