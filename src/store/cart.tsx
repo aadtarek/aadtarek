@@ -68,7 +68,7 @@ interface CartContextValue {
   /** Gift wrap switch: whether it's offered, its price and whether it's on. */
   giftWrap: { available: boolean; price: number; on: boolean; toggle: () => void }
   /** WooCommerce only: the raw server cart, for checkout totals/shipping. */
-  woo?: { cart: WooCart | null; apply: (cart: WooCart) => void; refresh: () => Promise<void> }
+  woo?: { cart: WooCart | null; apply: (cart: WooCart) => void; refresh: () => Promise<void>; /** Resolves once every cart change has reached WooCommerce */ settle: () => Promise<void> }
 }
 
 interface Backend {
@@ -158,9 +158,18 @@ function useWooCart(): Backend {
   // kept here (by cart item key) and sent with the order as the customer note.
   const [gifts, setGifts] = usePersistentState<Record<string, string[]>>('rfaheya.giftNotes', {})
   const queue = useRef(Promise.resolve())
+  const latest = useRef(0)
+  const cartRef = useRef<WooCart | null>(null)
+  cartRef.current = cart
 
-  /** Serialise cart requests so quick clicks can't race each other. */
-  const run = useCallback(async (fn: () => Promise<WooCart>) => {
+  /**
+   * Serialise cart requests so quick clicks can't race each other. `guess` changes the cart
+   * on screen straight away (no waiting, no loader); WooCommerce's answer replaces it once the
+   * last request in flight has answered, and a failed request reloads the real cart.
+   */
+  const run = useCallback(async (fn: () => Promise<WooCart>, guess?: (c: WooCart) => WooCart) => {
+    if (guess) setCart((c) => guess(c ?? emptyWooCart()))
+    const ticket = ++latest.current
     setPending((n) => n + 1)
     const job = queue.current.then(fn)
     queue.current = job.then(
@@ -169,11 +178,22 @@ function useWooCart(): Backend {
     )
     try {
       const next = await job
-      setCart(next)
+      if (ticket === latest.current) setCart(next)
       return next
+    } catch (e) {
+      if (guess) storeApi<WooCart>('cart').then(setCart, () => undefined)
+      throw e
     } finally {
       setPending((n) => n - 1)
     }
+  }, [])
+
+  /** A line added on screen before WooCommerce answers has a stand-in key; find its real one. */
+  const realKey = useCallback(async (key: string) => {
+    if (!key.startsWith('tmp-')) return key
+    await queue.current
+    const id = Number(key.split('-')[1])
+    return cartRef.current?.items.find((i) => i.id === id)?.key ?? key
   }, [])
 
   const refresh = useCallback(async () => {
@@ -225,7 +245,8 @@ function useWooCart(): Backend {
 
   return {
     lines,
-    busy: pending > 0,
+    // Only while the cart is first read: changes show straight away, so there's nothing to wait for.
+    busy: cart === null && pending > 0,
     ...wooDiscounts(cart),
     wrapOn: Boolean(wrapItem),
     setWrap: async (on) => {
@@ -233,26 +254,82 @@ function useWooCart(): Backend {
       if (!on && wrapItem) await run(() => storeApi<WooCart>('cart/remove-item', { method: 'POST', body: { key: wrapItem.key } }))
     },
     add: async (_productId, variationId, quantity, giftMessage) => {
-      const next = await run(() => storeApi<WooCart>('cart/add-item', { method: 'POST', body: { id: variationId, quantity } }))
+      const next = await run(
+        () => storeApi<WooCart>('cart/add-item', { method: 'POST', body: { id: variationId, quantity } }),
+        (c) => guessAdd(c, variationId, quantity),
+      )
       if (giftMessage) {
         const item = next.items.find((i) => i.id === variationId)
         if (item) setGifts((g) => ({ ...g, [item.key]: [...(g[item.key] ?? []), giftMessage] }))
       }
     },
     setQuantity: async (key, quantity) => {
-      if (quantity <= 0) await run(() => storeApi<WooCart>('cart/remove-item', { method: 'POST', body: { key } }))
-      else await run(() => storeApi<WooCart>('cart/update-item', { method: 'POST', body: { key, quantity: Math.min(MAX_QTY, quantity) } }))
+      const q = Math.min(MAX_QTY, quantity)
+      if (quantity <= 0) {
+        await run(async () => storeApi<WooCart>('cart/remove-item', { method: 'POST', body: { key: await realKey(key) } }), (c) => guessRemove(c, key))
+      } else {
+        await run(async () => storeApi<WooCart>('cart/update-item', { method: 'POST', body: { key: await realKey(key), quantity: q } }), (c) => guessQuantity(c, key, q))
+      }
     },
     remove: async (key) => {
-      await run(() => storeApi<WooCart>('cart/remove-item', { method: 'POST', body: { key } }))
+      await run(async () => storeApi<WooCart>('cart/remove-item', { method: 'POST', body: { key: await realKey(key) } }), (c) => guessRemove(c, key))
     },
     clear: async () => {
       // After checkout WooCommerce empties the cart itself; just re-read it.
       setGifts({})
       await refresh()
     },
-    woo: { cart, apply: setCart, refresh },
+    woo: { cart, apply: setCart, refresh, settle: () => queue.current },
   }
+}
+
+// ---- the cart on screen before WooCommerce answers (its answer then replaces these guesses)
+
+function emptyWooCart(): WooCart {
+  return {
+    items: [],
+    items_count: 0,
+    needs_shipping: true,
+    payment_methods: [],
+    shipping_rates: [],
+    totals: { total_items: '0', total_shipping: null, total_discount: '0', total_price: '0', currency_minor_unit: 2 },
+  }
+}
+
+function withItems(c: WooCart, items: WooCart['items']): WooCart {
+  return { ...c, items, items_count: items.reduce((n, i) => n + i.quantity, 0) }
+}
+
+function guessAdd(c: WooCart, variationId: number, quantity: number): WooCart {
+  const minor = c.totals.currency_minor_unit
+  const found = findByVariationId(variationId) ?? (findProductById(variationId) ? { variation: findProductById(variationId)!.variations[0] } : undefined)
+  const unit = Math.round((found?.variation.price ?? 0) * 10 ** minor)
+  const existing = c.items.find((i) => i.id === variationId)
+  if (existing) return guessQuantity(c, existing.key, Math.min(MAX_QTY, existing.quantity + quantity))
+  const total = String(unit * quantity)
+  return withItems(c, [
+    ...c.items,
+    { key: `tmp-${variationId}-${Date.now()}`, id: variationId, quantity, totals: { line_subtotal: total, line_total: total, currency_minor_unit: minor } },
+  ])
+}
+
+function guessQuantity(c: WooCart, key: string, quantity: number): WooCart {
+  return withItems(
+    c,
+    c.items.map((i) => {
+      if (i.key !== key) return i
+      const unit = Number(i.totals.line_subtotal) / Math.max(1, i.quantity)
+      const total = String(Math.round(unit * quantity))
+      return { ...i, quantity, totals: { ...i.totals, line_subtotal: total, line_total: total } }
+    }),
+  )
+}
+
+function guessRemove(c: WooCart, key: string): WooCart {
+  return withItems(
+    c,
+    c.items.filter((i) => i.key !== key),
+  )
 }
 
 /** The negative fees WooCommerce adds (rfaheya.php): the bundle discount and the spend-more offer. */

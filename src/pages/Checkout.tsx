@@ -152,6 +152,8 @@ export function Checkout() {
     const note = [address.notes.trim(), ...gifts].filter(Boolean).join('\n\n')
     setSubmitting(true)
     try {
+      // Cart changes show at once; make sure the last ones have reached WooCommerce before ordering.
+      await cart.woo?.settle()
       const result = await placeWooOrder(address, payment, note)
       if (result.payment_result?.payment_status === 'failure') throw new Error('Payment failed. Please try another method.')
       // Signed in: the order belongs to the account (points, first-order discount), whatever email was typed.
@@ -200,6 +202,9 @@ export function Checkout() {
       </div>
     )
   }
+
+  // The saved cart is still being read (a first visit straight to checkout): no "empty" flash.
+  if (cart.lines.length === 0 && cart.busy) return <div className="min-h-[60vh]" />
 
   if (cart.lines.length === 0) {
     return (

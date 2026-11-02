@@ -54,11 +54,6 @@ export function CartDrawer() {
           </button>
         </header>
 
-        {cart.busy && (
-          <span aria-hidden className="block h-[2px] w-full overflow-hidden bg-line">
-            <span className="block h-full w-1/3 animate-[splash_1.1s_ease-in-out_infinite] bg-olive" />
-          </span>
-        )}
         {cart.error && (
           <div role="alert" className="mx-4 mb-2 flex items-start justify-between gap-3 rounded-2xl bg-red-50 px-4 py-3 text-[13px] text-red-800">
             <span>{cart.error}</span>

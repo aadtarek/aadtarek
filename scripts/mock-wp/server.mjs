@@ -283,6 +283,8 @@ createServer(async (req, res) => {
       for (const p of products) for (const c of p.categories) cats.set(c.slug, c)
       return send(res, 200, [...cats.values()].map((c) => ({ id: c.id, name: c.name, slug: c.slug, description: c.slug === 'fresh' ? 'Mock fresh tagline.' : '', image: null })))
     }
+    // MOCK_CART_DELAY=900: answer cart requests slowly, like a real host (to check the cart never waits on screen).
+    if (route.startsWith('cart') && process.env.MOCK_CART_DELAY) await new Promise((r) => setTimeout(r, Number(process.env.MOCK_CART_DELAY)))
     if (route === 'cart' && req.method === 'GET') return send(res, 200, cartJson(s))
     if (route === 'cart/add-item') {
       const v = variations.find((x) => x.id === body.id)
