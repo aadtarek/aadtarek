@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import cta from '../assets/cta.webp'
 import wordmark from '../assets/logo-wordmark.svg'
+import { useOwnLogo } from '../lib/ownLogo'
 import flag from '../assets/payments/egypt-flag.webp'
 import instapay from '../assets/payments/instapay.png'
 import mastercard from '../assets/payments/mastercard.png'
@@ -151,16 +152,18 @@ function CtaBanner() {
 }
 
 function BrandColumn() {
+  const ownLogo = useOwnLogo()
   return (
     <div className="xl:pr-8 xl:pl-[50px]">
-      <Link to="/" aria-label="Rfaheya — home" className="block w-[192px]">
+      <Link to="/" aria-label="Rfaheya — home" className={`block ${HOME.logo ? 'w-[240px]' : 'w-[192px]'}`}>
         {HOME.logo ? (
-          <img src={HOME.logo} alt="Rfaheya" loading="lazy" className="rf-own-logo h-auto max-h-24 w-auto max-w-full" />
+          <img src={ownLogo.src} alt="Rfaheya" loading="lazy" className="rf-own-logo h-auto max-h-32 w-auto max-w-full" />
         ) : (
           <img src={wordmark} alt="Rfaheya" width={1098} height={223} loading="lazy" className="rf-wordmark h-auto w-full" />
         )}
       </Link>
-      <p className="mt-[22px] text-[15px] tracking-[0.42em] text-muted uppercase">Speak your scent</p>
+      {/* The dashboard logo usually carries the tagline itself. */}
+      {!HOME.logo && <p className="mt-[22px] text-[15px] tracking-[0.42em] text-muted uppercase">Speak your scent</p>}
       <p className="mt-[24px] max-w-[302px] text-[16px] leading-[1.45] text-ink-soft">
         Inspired fragrances with high performance and honest craftsmanship. Created for people who appreciate great scents,
         every day.

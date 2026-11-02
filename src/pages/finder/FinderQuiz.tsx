@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import logo from '../../assets/logo.svg'
 import { Overlay } from '../../components/Overlay'
 import {
   allNotes,
@@ -115,16 +114,13 @@ export function FinderQuiz() {
   )
 
   return (
-    <div className="min-h-screen bg-sand text-ink lg:grid lg:grid-cols-[minmax(0,36%)_1fr]">
+    <div className="container-x pt-3 pb-16 text-ink lg:grid lg:grid-cols-[minmax(0,36%)_1fr] lg:gap-6 lg:pt-4 lg:pb-20">
       {/* ---------- Left: a photo island for the question ---------- */}
       <aside className="relative hidden lg:block">
-        <div className="sticky top-0 h-screen p-4">
+        <div className="sticky top-[96px] h-[calc(100vh-112px)] max-h-[820px] min-h-[560px]">
           <div className="relative size-full overflow-hidden rounded-[36px] bg-[#1c120b]">
             <img key={step} src={panels[step]} alt="" className="size-full animate-fade-in object-cover" />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[#140c07]/55 via-transparent to-[#140c07]/70" />
-            <Link to="/" aria-label="Rfaheya — home" className="absolute top-8 left-8 block h-[44px]">
-              <img src={logo} alt="Rfaheya — Speak your scent" className="h-full w-auto invert" />
-            </Link>
             <div className="absolute inset-x-6 bottom-6 rounded-[24px] bg-white/15 p-5 text-white backdrop-blur-xl">
               <p className="text-[11px] font-semibold tracking-[0.24em] text-[#f0c27a] uppercase">
                 Step {step + 1} of {TOTAL_STEPS}
@@ -136,15 +132,7 @@ export function FinderQuiz() {
       </aside>
 
       {/* ---------- Right: question ---------- */}
-      <main className="flex min-h-screen flex-col px-4 pt-4 pb-8 sm:px-8 lg:px-[4.5%] lg:pt-9 xl:pr-[4%]">
-        <div className="mb-5 flex items-center justify-between lg:hidden">
-          <Link to="/" aria-label="Rfaheya — home" className="block h-9">
-            <img src={logo} alt="Rfaheya" className="h-full w-auto" />
-          </Link>
-          <Link to="/finder" aria-label="Exit the finder" className="rf-white grid size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)]">
-            <X className="size-5" strokeWidth={1.5} />
-          </Link>
-        </div>
+      <section className="flex flex-col pt-1 lg:pt-5">
 
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase sm:text-[12px]">Rfaheya Finder</p>
@@ -152,7 +140,7 @@ export function FinderQuiz() {
             <p className="rf-white rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold tabular-nums shadow-[inset_0_0_0_1px_var(--color-line)]" aria-live="polite">
               {step + 1} <span className="text-muted">/ {TOTAL_STEPS}</span>
             </p>
-            <Link to="/finder" aria-label="Exit the finder" className="rf-white hidden size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)] lg:grid">
+            <Link to="/finder" aria-label="Exit the finder" className="rf-white grid size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)]">
               <X className="size-5" strokeWidth={1.5} />
             </Link>
           </div>
@@ -345,7 +333,7 @@ export function FinderQuiz() {
             </>
           )}
         </div>
-      </main>
+      </section>
 
       {notesOpen && <MoreNotesModal answers={answers} setAnswers={setAnswers} onClose={() => setNotesOpen(false)} />}
       {reviewOpen && <ReviewModal answers={answers} onEdit={edit} onClose={() => setReviewOpen(false)} onFinish={finish} />}

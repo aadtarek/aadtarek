@@ -227,6 +227,9 @@ async function readBody(req) {
   return raw ? JSON.parse(raw) : {}
 }
 
+/** Customer accounts for the account page (email → details). */
+const accounts = new Map([['sara@example.com', { email: 'sara@example.com', password: 'secret12', firstName: 'Sara', lastName: 'Kamal', phone: '01012345678', address: '', area: '', governorate: '' }]])
+
 createServer(async (req, res) => {
   const url = new URL(req.url, site)
   const path = url.pathname
@@ -240,9 +243,76 @@ createServer(async (req, res) => {
     res.setHeader('Access-Control-Expose-Headers', 'X-WP-Total, X-WP-TotalPages, Link, Cart-Token, Nonce')
     res.setHeader('Vary', 'Origin')
   }
+  if (path === '/wp-admin/admin-ajax.php' && origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+    res.setHeader('Vary', 'Origin')
+  }
   if (req.method === 'OPTIONS') {
     res.writeHead(204)
     return res.end()
+  }
+
+  // The account actions of rfaheya.php (admin-ajax, signed in with a cookie): enough to test the account page.
+  if (path === '/wp-admin/admin-ajax.php') {
+    let raw = ''
+    for await (const chunk of req) raw += chunk
+    const form = new URLSearchParams(raw)
+    const action = form.get('action') || url.searchParams.get('action')
+    const email = /(?:^|;\s*)mock_user=([^;]+)/.exec(req.headers.cookie || '')?.[1]
+    const user = email ? accounts.get(decodeURIComponent(email)) : undefined
+    const json = (data, cookie) => {
+      const headers = { 'Content-Type': 'application/json' }
+      if (cookie !== undefined) headers['Set-Cookie'] = `mock_user=${cookie}; Path=/; SameSite=Lax${cookie ? '' : '; Max-Age=0'}`
+      res.writeHead(200, headers)
+      res.end(JSON.stringify(data))
+    }
+    const me = () =>
+      user
+        ? { loggedIn: true, firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone, points: 120, accountNonce: 'n', nonce: 'n', social: [] }
+        : { loggedIn: false, social: [] }
+    if (action === 'rfaheya_me' || action === 'rfaheya_account_me') return json(me())
+    if (action === 'rfaheya_login') {
+      const u = accounts.get((form.get('email') || '').toLowerCase())
+      if (!u || u.password !== form.get('password')) return json({ error: 'Incorrect email or password.' })
+      return json({ ok: true }, encodeURIComponent(u.email))
+    }
+    if (action === 'rfaheya_register') {
+      const mail = (form.get('email') || '').toLowerCase()
+      if (accounts.has(mail)) return json({ error: 'An account with this email already exists. Sign in instead.' })
+      accounts.set(mail, { email: mail, password: form.get('password'), firstName: form.get('firstName') || '', lastName: form.get('lastName') || '', phone: form.get('phone') || '', address: '', area: '', governorate: '' })
+      return json({ ok: true }, encodeURIComponent(mail))
+    }
+    if (action === 'rfaheya_lost_password') return json({ ok: true, message: 'If an account exists for this email, a link to choose a new password is on its way.' })
+    if (action === 'rfaheya_reset_password') return json({ error: 'This link has expired. Ask for a new one.' })
+    if (!user) return json({ error: 'Your session has ended. Please sign in again.' })
+    if (action === 'rfaheya_logout') return json({ ok: true }, '')
+    if (action === 'rfaheya_account_data') {
+      const mine = orders.filter((o) => (o.body.billing_address?.email || '').toLowerCase() === user.email)
+      return json({
+        orders: mine.map((o) => ({
+          id: o.id,
+          number: `#${o.id}`,
+          date: new Date().toISOString(),
+          status: 'Processing',
+          statusKey: 'processing',
+          total: Number(o.cart.totals.total_price) / 100,
+          shipping: Number(o.cart.totals.total_shipping || 0) / 100,
+          discount: 0,
+          payment: 'Cash on delivery',
+          address: [o.body.billing_address?.address_1, o.body.billing_address?.city, o.body.billing_address?.state].filter(Boolean).join(', '),
+          items: o.cart.items.map((i) => ({ name: i.name, quantity: i.quantity, total: Number(i.totals.line_total) / 100, image: '' })),
+        })),
+        details: { firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone, address: user.address, area: user.area, governorate: user.governorate },
+      })
+    }
+    if (action === 'rfaheya_save_account') {
+      if (form.get('newPassword') && form.get('currentPassword') !== user.password) return json({ error: 'Your current password is not right.' })
+      for (const k of ['firstName', 'lastName', 'phone', 'address', 'area', 'governorate']) user[k] = form.get(k) || ''
+      if (form.get('newPassword')) user.password = form.get('newPassword')
+      return json({ ok: true })
+    }
+    return json({ error: 'Unknown action' })
   }
 
   if (path.startsWith('/wp-json/wc/store/v1/')) {

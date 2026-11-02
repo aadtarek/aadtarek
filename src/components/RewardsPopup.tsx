@@ -2,7 +2,6 @@ import { Check, Copy, Gift, Sparkles, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
-import { wp } from '../api/wp'
 import { LOYALTY } from '../config'
 import { confetti } from '../lib/fx'
 import { readStorage, usePersistentState, writeStorage } from '../lib/storage'
@@ -99,15 +98,9 @@ export function RewardsPopup() {
               <p className="mx-auto mt-2 max-w-[300px] text-[14.5px] leading-relaxed text-ink-soft">
                 Sign in or create your account and get {percent}% off your first order — plus points on everything you buy.
               </p>
-              {wp ? (
-                <a href={wp.myAccountUrl} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-on-accent uppercase transition hover:bg-olive-hover">
-                  Sign in &amp; get {percent}% off
-                </a>
-              ) : (
-                <Link to="/account" onClick={close} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-on-accent uppercase transition hover:bg-olive-hover">
-                  Sign in &amp; get {percent}% off
-                </Link>
-              )}
+              <Link to="/account" onClick={close} className="mt-6 inline-flex h-[52px] w-full items-center justify-center rounded-full bg-olive text-[12.5px] font-medium tracking-[0.14em] text-on-accent uppercase transition hover:bg-olive-hover">
+                Sign in &amp; get {percent}% off
+              </Link>
               <button type="button" onClick={close} className="mt-3 text-[13px] text-muted underline-offset-4 hover:text-ink hover:underline">
                 Maybe later
               </button>

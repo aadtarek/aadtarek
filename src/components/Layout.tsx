@@ -8,6 +8,7 @@ import { QuickAddModal } from './QuickAddModal'
 import { RewardsPopup } from './RewardsPopup'
 import { installFx } from '../lib/fx'
 import { readLogoColor } from '../lib/logoColor'
+import { trimOwnLogo } from '../lib/ownLogo'
 import { useScrollReveal } from '../lib/useScrollReveal'
 
 export function Layout() {
@@ -18,7 +19,10 @@ export function Layout() {
   const animate = pathname !== firstPath
   useScrollReveal(main, pathname)
   useEffect(installFx, [])
-  useEffect(readLogoColor, [])
+  useEffect(() => {
+    readLogoColor()
+    trimOwnLogo()
+  }, [])
   useEffect(() => {
     // The effect must not return scrollTo's value: some browsers return a Promise.
     window.scrollTo(0, 0)

@@ -2715,10 +2715,8 @@ function rfaheya_oauth_redirect_uri( $provider ) {
 
 /** Ends a social sign-in attempt with a message on the sign-in page. */
 function rfaheya_oauth_fail( $message ) {
-	if ( function_exists( 'wc_add_notice' ) && WC()->session ) {
-		wc_add_notice( $message, 'error' );
-	}
-	wp_safe_redirect( home_url( '/my-account/' ) );
+	// The storefront's account page shows the message.
+	wp_safe_redirect( add_query_arg( 'error', rawurlencode( $message ), home_url( '/account' ) ) );
 	exit;
 }
 
@@ -4287,4 +4285,347 @@ add_action(
 		</script>
 		<?php
 	}
+);
+
+/* -------------------------------------------------------------------------
+ * The storefront's own My Account page (/account): sign in, create an account,
+ * forgotten password, orders, addresses and details, all inside the site
+ * with its header and footer. WordPress's /my-account/ sends visitors there;
+ * Google / Facebook sign-in and the password-reset email link still pass
+ * through it first.
+ * ---------------------------------------------------------------------- */
+
+/** The customer data plus a nonce for the account actions. */
+function rfaheya_account_me() {
+	$me = rfaheya_me_data();
+	// Google / Facebook sign-in, when their keys are filled in (Settings → Rfaheya Store).
+	$me['social'] = array();
+	foreach ( rfaheya_oauth_providers() as $name => $p ) {
+		$me['social'][] = array(
+			'name'  => $p['label'],
+			'url'   => add_query_arg( 'rfaheya_login', $name, home_url( '/my-account/' ) ),
+		);
+	}
+	if ( ! empty( $me['loggedIn'] ) ) {
+		$me['accountNonce'] = wp_create_nonce( 'rfaheya_account' );
+	}
+	return $me;
+}
+
+function rfaheya_account_fail( $message ) {
+	nocache_headers();
+	wp_send_json( array( 'error' => $message ) );
+}
+
+function rfaheya_account_ok( $extra = array() ) {
+	nocache_headers();
+	wp_send_json( array_merge( array( 'ok' => true ), $extra ) );
+}
+
+/** POST field, trimmed. */
+function rfaheya_post( $key ) {
+	return isset( $_POST[ $key ] ) ? trim( (string) wp_unslash( $_POST[ $key ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised by the callers
+}
+
+foreach ( array( 'wp_ajax_rfaheya_account_me', 'wp_ajax_nopriv_rfaheya_account_me' ) as $rfaheya_hook ) {
+	add_action(
+		$rfaheya_hook,
+		function () {
+			nocache_headers();
+			wp_send_json( rfaheya_account_me() );
+		}
+	);
+}
+
+foreach ( array( 'wp_ajax_rfaheya_login', 'wp_ajax_nopriv_rfaheya_login' ) as $rfaheya_hook ) {
+	add_action(
+		$rfaheya_hook,
+		function () {
+			$login    = sanitize_text_field( rfaheya_post( 'email' ) );
+			$password = rfaheya_post( 'password' );
+			if ( '' === $login || '' === $password ) {
+				rfaheya_account_fail( 'Enter your email and password.' );
+			}
+			if ( is_email( $login ) ) {
+				$found = get_user_by( 'email', $login );
+				if ( $found ) {
+					$login = $found->user_login;
+				}
+			}
+			$user = wp_signon(
+				array(
+					'user_login'    => $login,
+					'user_password' => $password,
+					'remember'      => true,
+				),
+				is_ssl()
+			);
+			if ( is_wp_error( $user ) ) {
+				rfaheya_account_fail( 'Incorrect email or password.' );
+			}
+			rfaheya_account_ok();
+		}
+	);
+}
+
+foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' ) as $rfaheya_hook ) {
+	add_action(
+		$rfaheya_hook,
+		function () {
+			if ( ! function_exists( 'wc_create_new_customer' ) ) {
+				rfaheya_account_fail( 'Accounts are not available right now.' );
+			}
+			$email    = sanitize_email( rfaheya_post( 'email' ) );
+			$password = rfaheya_post( 'password' );
+			$first    = sanitize_text_field( rfaheya_post( 'firstName' ) );
+			$last     = sanitize_text_field( rfaheya_post( 'lastName' ) );
+			$phone    = sanitize_text_field( rfaheya_post( 'phone' ) );
+			if ( ! is_email( $email ) ) {
+				rfaheya_account_fail( 'Enter a valid email.' );
+			}
+			if ( strlen( $password ) < 6 ) {
+				rfaheya_account_fail( 'Password must be at least 6 characters.' );
+			}
+			if ( email_exists( $email ) ) {
+				rfaheya_account_fail( 'An account with this email already exists. Sign in instead.' );
+			}
+			$id = wc_create_new_customer(
+				$email,
+				'',
+				$password,
+				array(
+					'first_name' => $first,
+					'last_name'  => $last,
+				)
+			);
+			if ( is_wp_error( $id ) ) {
+				rfaheya_account_fail( wp_strip_all_tags( $id->get_error_message() ) );
+			}
+			foreach ( array(
+				'billing_first_name' => $first,
+				'billing_last_name'  => $last,
+				'billing_phone'      => $phone,
+				'billing_email'      => $email,
+			) as $key => $value ) {
+				if ( '' !== $value ) {
+					update_user_meta( $id, $key, $value );
+				}
+			}
+			wc_set_customer_auth_cookie( $id );
+			rfaheya_account_ok();
+		}
+	);
+}
+
+foreach ( array( 'wp_ajax_rfaheya_lost_password', 'wp_ajax_nopriv_rfaheya_lost_password' ) as $rfaheya_hook ) {
+	add_action(
+		$rfaheya_hook,
+		function () {
+			$email = sanitize_email( rfaheya_post( 'email' ) );
+			if ( ! is_email( $email ) ) {
+				rfaheya_account_fail( 'Enter a valid email.' );
+			}
+			$user = get_user_by( 'email', $email );
+			if ( $user && function_exists( 'retrieve_password' ) ) {
+				retrieve_password( $user->user_login );
+			}
+			// The same answer either way: no hint whether an account exists.
+			rfaheya_account_ok( array( 'message' => 'If an account exists for this email, a link to choose a new password is on its way.' ) );
+		}
+	);
+}
+
+foreach ( array( 'wp_ajax_rfaheya_reset_password', 'wp_ajax_nopriv_rfaheya_reset_password' ) as $rfaheya_hook ) {
+	add_action(
+		$rfaheya_hook,
+		function () {
+			$key      = rfaheya_post( 'key' );
+			$login    = rfaheya_post( 'login' );
+			$password = rfaheya_post( 'password' );
+			if ( '' === $login && ctype_digit( rfaheya_post( 'id' ) ) ) {
+				$by_id = get_user_by( 'id', (int) rfaheya_post( 'id' ) );
+				$login = $by_id ? $by_id->user_login : '';
+			}
+			if ( strlen( $password ) < 6 ) {
+				rfaheya_account_fail( 'Password must be at least 6 characters.' );
+			}
+			$user = check_password_reset_key( $key, $login );
+			if ( is_wp_error( $user ) ) {
+				rfaheya_account_fail( 'This link has expired. Ask for a new one.' );
+			}
+			reset_password( $user, $password );
+			wp_set_auth_cookie( $user->ID, true, is_ssl() );
+			rfaheya_account_ok();
+		}
+	);
+}
+
+add_action(
+	'wp_ajax_rfaheya_logout',
+	function () {
+		check_ajax_referer( 'rfaheya_account' );
+		wp_logout();
+		rfaheya_account_ok();
+	}
+);
+
+/** The signed-in customer's orders, address and details. */
+add_action(
+	'wp_ajax_rfaheya_account_data',
+	function () {
+		check_ajax_referer( 'rfaheya_account' );
+		$user     = wp_get_current_user();
+		$customer = new WC_Customer( $user->ID );
+		$orders   = array();
+		foreach ( wc_get_orders(
+			array(
+				'customer_id' => $user->ID,
+				'limit'       => 30,
+				'orderby'     => 'date',
+				'order'       => 'DESC',
+			)
+		) as $order ) {
+			$items = array();
+			foreach ( $order->get_items() as $item ) {
+				$product = $item->get_product();
+				$image   = $product ? wp_get_attachment_image_url( $product->get_image_id(), 'thumbnail' ) : '';
+				$items[] = array(
+					'name'     => $item->get_name(),
+					'quantity' => (int) $item->get_quantity(),
+					'total'    => (float) $order->get_line_total( $item, true ),
+					'image'    => $image ? $image : '',
+				);
+			}
+			$created  = $order->get_date_created();
+			$orders[] = array(
+				'id'       => $order->get_id(),
+				'number'   => '#' . $order->get_order_number(),
+				'date'     => $created ? $created->date( 'c' ) : '',
+				'status'   => wc_get_order_status_name( $order->get_status() ),
+				'statusKey'=> $order->get_status(),
+				'total'    => (float) $order->get_total(),
+				'shipping' => (float) $order->get_shipping_total(),
+				'discount' => (float) $order->get_discount_total(),
+				'payment'  => $order->get_payment_method_title(),
+				'address'  => trim( implode( ', ', array_filter( array( $order->get_billing_address_1(), $order->get_billing_city(), $order->get_billing_state() ) ) ) ),
+				'items'    => $items,
+			);
+		}
+		nocache_headers();
+		wp_send_json(
+			array(
+				'orders'  => $orders,
+				'details' => array(
+					'firstName' => $customer->get_first_name() ? $customer->get_first_name() : $customer->get_billing_first_name(),
+					'lastName'  => $customer->get_last_name() ? $customer->get_last_name() : $customer->get_billing_last_name(),
+					'email'     => $user->user_email,
+					'phone'     => $customer->get_billing_phone(),
+					'address'   => $customer->get_billing_address_1(),
+					'area'      => $customer->get_billing_city(),
+					'governorate' => $customer->get_billing_state(),
+				),
+			)
+		);
+	}
+);
+
+/** Saves name, phone, address, email and (with the current one) a new password. */
+add_action(
+	'wp_ajax_rfaheya_save_account',
+	function () {
+		check_ajax_referer( 'rfaheya_account' );
+		$user     = wp_get_current_user();
+		$customer = new WC_Customer( $user->ID );
+		$first    = sanitize_text_field( rfaheya_post( 'firstName' ) );
+		$last     = sanitize_text_field( rfaheya_post( 'lastName' ) );
+		$email    = sanitize_email( rfaheya_post( 'email' ) );
+		if ( '' === $first ) {
+			rfaheya_account_fail( 'Please enter your first name.' );
+		}
+		if ( ! is_email( $email ) ) {
+			rfaheya_account_fail( 'Enter a valid email.' );
+		}
+		$taken = email_exists( $email );
+		if ( $taken && (int) $taken !== (int) $user->ID ) {
+			rfaheya_account_fail( 'Another account already uses this email.' );
+		}
+		$new_password = rfaheya_post( 'newPassword' );
+		if ( '' !== $new_password ) {
+			if ( strlen( $new_password ) < 6 ) {
+				rfaheya_account_fail( 'The new password must be at least 6 characters.' );
+			}
+			if ( ! wp_check_password( rfaheya_post( 'currentPassword' ), $user->user_pass, $user->ID ) ) {
+				rfaheya_account_fail( 'Your current password is not right.' );
+			}
+		}
+		$customer->set_first_name( $first );
+		$customer->set_last_name( $last );
+		$customer->set_billing_first_name( $first );
+		$customer->set_billing_last_name( $last );
+		$customer->set_billing_phone( sanitize_text_field( rfaheya_post( 'phone' ) ) );
+		$customer->set_billing_email( $email );
+		$customer->set_billing_address_1( sanitize_text_field( rfaheya_post( 'address' ) ) );
+		$customer->set_billing_city( sanitize_text_field( rfaheya_post( 'area' ) ) );
+		$customer->set_billing_state( sanitize_text_field( rfaheya_post( 'governorate' ) ) );
+		$customer->set_billing_country( 'EG' );
+		$customer->set_shipping_first_name( $first );
+		$customer->set_shipping_last_name( $last );
+		$customer->set_shipping_address_1( sanitize_text_field( rfaheya_post( 'address' ) ) );
+		$customer->set_shipping_city( sanitize_text_field( rfaheya_post( 'area' ) ) );
+		$customer->set_shipping_state( sanitize_text_field( rfaheya_post( 'governorate' ) ) );
+		$customer->set_shipping_country( 'EG' );
+		$customer->save();
+		$update = array(
+			'ID'           => $user->ID,
+			'user_email'   => $email,
+			'display_name' => trim( $first . ' ' . $last ),
+		);
+		if ( '' !== $new_password ) {
+			$update['user_pass'] = $new_password;
+		}
+		$saved = wp_update_user( $update );
+		if ( is_wp_error( $saved ) ) {
+			rfaheya_account_fail( wp_strip_all_tags( $saved->get_error_message() ) );
+		}
+		if ( '' !== $new_password ) {
+			// A new password signs the other sessions out; this one stays signed in.
+			wp_set_auth_cookie( $user->ID, true, is_ssl() );
+		}
+		rfaheya_account_ok();
+	}
+);
+
+/** WordPress's /my-account/ now opens the site's account page. */
+add_action(
+	'template_redirect',
+	function () {
+		if ( ! rfaheya_is_account() ) {
+			return;
+		}
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only routing
+		if ( isset( $_GET['rfaheya_login'] ) || isset( $_GET['rfaheya_oauth'] ) ) {
+			return; // Google / Facebook sign-in finishes here first.
+		}
+		$target = home_url( '/account' );
+		if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'lost-password' ) && isset( $_GET['key'] ) ) {
+			$target = add_query_arg(
+				array(
+					'reset' => rawurlencode( sanitize_text_field( wp_unslash( $_GET['key'] ) ) ),
+					'login' => isset( $_GET['login'] ) ? rawurlencode( sanitize_text_field( wp_unslash( $_GET['login'] ) ) ) : '',
+					'id'    => isset( $_GET['id'] ) ? (int) $_GET['id'] : '',
+				),
+				$target
+			);
+		} elseif ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'customer-logout' ) ) {
+			wp_logout();
+		} elseif ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'view-order' ) ) {
+			global $wp;
+			$target = add_query_arg( 'order', (int) ( isset( $wp->query_vars['view-order'] ) ? $wp->query_vars['view-order'] : 0 ), $target );
+		}
+		// phpcs:enable
+		// Messages from a social sign-in (e.g. "not available") are shown by the account page itself.
+		wp_safe_redirect( $target );
+		exit;
+	},
+	5
 );

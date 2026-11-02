@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { wp } from '../api/wp'
 import { haptic } from '../lib/fx'
 import { BagIcon, HeartIcon, HomeIcon, SearchIcon, ShopIcon, UserIcon, type LineIconProps } from './LineIcons'
 import { useCart } from '../store/cart'
@@ -43,7 +42,7 @@ export function TabBar() {
     { key: 'shop', label: 'Shop', Icon: ShopIcon, to: '/shop' },
     { key: 'wishlist', label: 'Wishlist', Icon: HeartIcon, to: '/wishlist', badge: wishlist.ids.length },
     { key: 'cart', label: 'Cart', Icon: BagIcon, onTap: cart.open, badge: cart.count, cart: true },
-    wp ? { key: 'account', label: 'Account', Icon: UserIcon, href: wp.myAccountUrl } : { key: 'account', label: 'Account', Icon: UserIcon, to: '/account' },
+    { key: 'account', label: 'Account', Icon: UserIcon, to: '/account' },
   ]
   const current =
     pathname === '/' ? 'home' : pathname.startsWith('/shop') || pathname.startsWith('/product') || pathname.startsWith('/collections') ? 'shop' : pathname.startsWith('/wishlist') ? 'wishlist' : pathname.startsWith('/account') ? 'account' : ''

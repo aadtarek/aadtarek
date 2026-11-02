@@ -59,7 +59,6 @@ export default function App() {
             <IntroReveal />
             <RouteGate>
             <Routes>
-              <Route path="finder/quiz" element={<Suspense fallback={<div className="min-h-screen bg-sand" />}><FinderQuiz /></Suspense>} />
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="shop" element={<Shop />} />
@@ -77,6 +76,7 @@ export default function App() {
                 <Route path="contact" element={<Contact />} />
                 <Route path="faqs" element={<div className="pb-16 lg:pb-20"><FaqSection asPage /></div>} />
                 <Route path="finder" element={<FinderLanding />} />
+                <Route path="finder/quiz" element={<Suspense fallback={<div className="min-h-[70vh]" />}><FinderQuiz /></Suspense>} />
                 <Route path="finder/result" element={<FinderResult />} />
                 <Route path="discover" element={<Navigate to="/finder" replace />} />
                 <Route path="collections" element={<CollectionsIndex />} />

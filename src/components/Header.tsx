@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom'
 import { BagIcon, HeartIcon, MoonIcon, SearchIcon, SunIcon, UserIcon } from './LineIcons'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { wp } from '../api/wp'
 import { useTheme } from '../lib/theme'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
@@ -96,7 +95,7 @@ export function Header() {
           <Menu className="size-[22px]" strokeWidth={1.5} />
         </button>
 
-        <Logo className="h-11 lg:h-[41px]" />
+        <Logo className="h-11 lg:h-[41px]" ownClassName="h-[50px] max-w-[48vw] lg:h-[58px] lg:max-w-[260px]" />
 
         <nav aria-label="Main" className="ml-6 hidden items-center gap-6 lg:flex xl:ml-10 xl:gap-8 2xl:ml-[4.5%] 2xl:gap-10">
           {navLinks.map((l) => (
@@ -139,16 +138,9 @@ export function Header() {
             <HeartIcon className="size-[22px]" />
             {wishlist.ids.length > 0 && <CountBadge count={wishlist.ids.length} />}
           </Link>
-          {/* With WordPress, the account lives in WooCommerce's My Account page. */}
-          {wp ? (
-            <a href={wp.myAccountUrl} aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
-              <UserIcon className="size-[22px]" />
-            </a>
-          ) : (
-            <Link to="/account" aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
-              <UserIcon className="size-[22px]" />
-            </Link>
-          )}
+          <Link to="/account" aria-label="Account" className={`${iconBtn} hidden xs:grid`}>
+            <UserIcon className="size-[22px]" />
+          </Link>
           <button type="button" aria-label={`Cart, ${count} items`} onClick={open} className={iconBtn} data-cart-target>
             <BagIcon className="size-[22px]" />
             <CountBadge count={count} />
@@ -174,7 +166,7 @@ export function Header() {
               className="absolute inset-y-2 left-2 flex w-[min(23rem,calc(100vw-48px))] flex-col overflow-hidden rounded-[28px] bg-cream shadow-[0_40px_120px_-30px_rgba(16,14,11,0.6)] [animation:slide-in-left_.5s_cubic-bezier(.16,1,.3,1)]"
             >
               <div className="flex items-center justify-between px-5 pt-5 pb-3">
-                <Logo className="h-12" />
+                <Logo className="h-12" ownClassName="h-14 max-w-[60%]" />
                 <button type="button" aria-label="Close menu" className="grid size-11 place-items-center rounded-full bg-chip transition hover:bg-line" onClick={() => setMenuOpen(false)}>
                   <X className="size-5" strokeWidth={1.5} />
                 </button>
@@ -214,17 +206,10 @@ export function Header() {
               </nav>
 
               <div className="grid grid-cols-3 gap-2 border-t border-line p-3">
-                {wp ? (
-                  <a href={wp.myAccountUrl} className={menuTile}>
-                    <UserIcon className="size-5" />
-                    Account
-                  </a>
-                ) : (
-                  <NavLink to="/account" className={menuTile}>
-                    <UserIcon className="size-5" />
-                    Account
-                  </NavLink>
-                )}
+                <NavLink to="/account" className={menuTile}>
+                  <UserIcon className="size-5" />
+                  Account
+                </NavLink>
                 <NavLink to="/wishlist" className={menuTile}>
                   <HeartIcon className="size-5" />
                   Wishlist{wishlist.ids.length > 0 ? ` (${wishlist.ids.length})` : ''}

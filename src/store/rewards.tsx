@@ -121,10 +121,13 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
     // After the products: it never delays the first page.
     const id = window.setTimeout(refresh, 600)
     const onVisible = () => document.visibilityState === 'visible' && refresh()
+    // The account page signed the customer in or out: points and coupons follow.
+    window.addEventListener('rf:account', refresh)
     document.addEventListener('visibilitychange', onVisible)
     return () => {
       window.clearTimeout(id)
       document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('rf:account', refresh)
     }
   }, [refresh])
 

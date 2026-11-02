@@ -1,6 +1,5 @@
 import { Sparkles } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { wp } from '../api/wp'
 import { LOYALTY, pointsFor } from '../config'
 import { formatPrice } from '../lib/format'
 import { useRewards } from '../store/rewards'
@@ -21,15 +20,9 @@ export function PointsPanel({ total, className = '' }: { total: number; classNam
       </p>
       {!me.loggedIn ? (
         <p className="mt-1 text-ink-soft">
-          {wp ? (
-            <a href={wp.myAccountUrl} className="font-semibold text-ink underline underline-offset-2">
-              Sign in
-            </a>
-          ) : (
-            <Link to="/account" className="font-semibold text-ink underline underline-offset-2">
-              Sign in
-            </Link>
-          )}{' '}
+          <Link to="/account" className="font-semibold text-ink underline underline-offset-2">
+            Sign in
+          </Link>{' '}
           to earn {earn.toLocaleString('en-US')} points on this order{LOYALTY.welcome ? ` and get ${LOYALTY.welcomePercent}% off your first order` : ''}.
         </p>
       ) : (
