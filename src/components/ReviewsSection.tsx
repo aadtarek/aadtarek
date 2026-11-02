@@ -19,9 +19,23 @@ export function ReviewsSection() {
   const { average, count } = ratingSummary(reviews)
   const split = useMemo(() => [5, 4, 3, 2, 1].map((n) => ({ n, c: reviews.filter((r) => Math.round(r.rating) === n).length })), [reviews])
   // The newest with something to say first; very short ones last.
-  const ordered = useMemo(() => [...reviews].filter((r) => r.text.trim()).sort((a, b) => Number(b.text.trim().length > 24) - Number(a.text.trim().length > 24) || b.date.localeCompare(a.date)), [reviews])
+  // Only a handful are shown (a store can have hundreds): the best ones, newest first —
+  // with something to say, 4★ or more, photos first.
+  const ordered = useMemo(
+    () =>
+      [...reviews]
+        .filter((r) => r.text.trim() && r.rating >= 4)
+        .sort(
+          (a, b) =>
+            Number(b.text.trim().length > 24) - Number(a.text.trim().length > 24) ||
+            Number(Boolean(b.images?.length)) - Number(Boolean(a.images?.length)) ||
+            b.date.localeCompare(a.date),
+        )
+        .slice(0, 16),
+    [reviews],
+  )
   const rows = useMemo(() => {
-    if (ordered.length < 6) return [ordered]
+    if (ordered.length < 10) return [ordered]
     return [ordered.filter((_, i) => i % 2 === 0), ordered.filter((_, i) => i % 2 === 1)]
   }, [ordered])
 

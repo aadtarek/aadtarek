@@ -8,6 +8,8 @@ import type { Review } from '../types'
 
 export function Reviews() {
   const [reviews, setReviews] = useState<Review[]>([])
+  // A store can have hundreds: 24 at a time keeps the page quick.
+  const [shown, setShown] = useState(24)
   useEffect(() => {
     getReviews().then(setReviews)
   }, [])
@@ -34,12 +36,26 @@ export function Reviews() {
         }
       />
       <ul className="container-x mt-6 grid gap-3.5 md:grid-cols-2 lg:mt-8 xl:grid-cols-3">
-        {reviews.map((r) => (
+        {reviews.slice(0, shown).map((r) => (
           <li key={r.id}>
             <ReviewCard review={r} />
           </li>
         ))}
       </ul>
+      {shown < reviews.length && (
+        <div className="container-x mt-8 flex flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShown((n) => n + 24)}
+            className="h-12 rounded-full bg-olive px-8 text-[12px] font-semibold tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
+          >
+            Show more reviews
+          </button>
+          <p className="text-[12.5px] text-muted tabular-nums">
+            {shown} of {reviews.length}
+          </p>
+        </div>
+      )}
     </div>
   )
 }
