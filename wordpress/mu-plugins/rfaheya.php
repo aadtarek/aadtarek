@@ -1884,11 +1884,15 @@ function rfaheya_bootstrap_current( $data ) {
 function rfaheya_bootstrap_ready() {
 	$data = get_transient( 'rfaheya_bootstrap' );
 	if ( rfaheya_bootstrap_current( $data ) && ! empty( $data['products'] ) ) {
+		// The store settings are always the current ones (they are quick to read), so a change
+		// in Settings → Rfaheya Store shows at once, even while the product copy is being rebuilt.
+		$data['settings'] = rfaheya_settings_data();
 		return array( $data, false );
 	}
 	$last = get_option( 'rfaheya_bootstrap_last' );
 	if ( rfaheya_bootstrap_current( $last ) && ! empty( $last['products'] ) ) {
 		rfaheya_build_after_response();
+		$last['settings'] = rfaheya_settings_data();
 		return array( $last, true );
 	}
 	// None yet: this visitor's storefront loads the products itself; the copy is built meanwhile.
@@ -1963,7 +1967,7 @@ function rfaheya_storefront_shell() {
 	if ( $data && ! $fresh && ! $stale ) {
 		// The same page for every visitor; LiteSpeed keeps it until products, stock,
 		// settings or content change (rfaheya_purge_page_cache).
-		header( 'Cache-Control: public, max-age=0, s-maxage=3600' );
+		header( 'Cache-Control: public, max-age=0, s-maxage=60' ); // CDNs we can't purge keep it a minute at most
 		header( 'X-LiteSpeed-Cache-Control: public,max-age=3600' );
 		header( 'X-LiteSpeed-Tag: rfaheya_page' );
 	} else {
@@ -4576,6 +4580,47 @@ foreach ( array( 'wp_ajax_rfaheya_login', 'wp_ajax_nopriv_rfaheya_login' ) as $r
 	);
 }
 
+/**
+ * Makes a customer account. Not through WooCommerce's register form checks: other plugins
+ * add their own required fields there (a "full name" box, a captcha…) that this page's
+ * sign-up and the checkout never send, which made every sign-up fail. This page checks
+ * the name, number, email and password itself.
+ */
+function rfaheya_make_customer( $email, $password, $first = '', $last = '' ) {
+	$email = sanitize_email( $email );
+	if ( ! is_email( $email ) ) {
+		return new WP_Error( 'rf_email', 'Enter a valid email.' );
+	}
+	if ( email_exists( $email ) ) {
+		return new WP_Error( 'rf_exists', 'An account with this email already exists. Sign in instead.' );
+	}
+	$username = function_exists( 'wc_create_new_customer_username' ) ? wc_create_new_customer_username( $email, array( 'first_name' => $first, 'last_name' => $last ) ) : '';
+	if ( ! $username || username_exists( $username ) ) {
+		$base     = sanitize_user( current( explode( '@', $email ) ), true );
+		$base     = $base ? $base : 'customer';
+		$username = $base;
+		for ( $i = 1; username_exists( $username ); $i++ ) {
+			$username = $base . $i;
+		}
+	}
+	$data = array(
+		'user_login'   => $username,
+		'user_pass'    => $password,
+		'user_email'   => $email,
+		'first_name'   => $first,
+		'last_name'    => $last,
+		'display_name' => trim( $first . ' ' . $last ) ? trim( $first . ' ' . $last ) : $username,
+		'role'         => get_role( 'customer' ) ? 'customer' : get_option( 'default_role', 'subscriber' ),
+	);
+	$id = wp_insert_user( $data );
+	if ( is_wp_error( $id ) ) {
+		return $id;
+	}
+	// WooCommerce's own follow-ups (the "new account" email, customer data); our hook saves the name and WhatsApp.
+	do_action( 'woocommerce_created_customer', $id, $data, false );
+	return $id;
+}
+
 foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' ) as $rfaheya_hook ) {
 	add_action(
 		$rfaheya_hook,
@@ -4615,15 +4660,7 @@ foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' )
 			$_POST['rf_phone']     = $phone;
 			// This page checks the name and number itself; the old form's check stays out of it.
 			$GLOBALS['rfaheya_account_register'] = true;
-			$id = wc_create_new_customer(
-				$email,
-				'',
-				$password,
-				array(
-					'first_name' => $first,
-					'last_name'  => $last,
-				)
-			);
+			$id = rfaheya_make_customer( $email, $password, $first, $last );
 			unset( $GLOBALS['rfaheya_account_register'] );
 			if ( is_wp_error( $id ) ) {
 				rfaheya_account_fail( wp_strip_all_tags( $id->get_error_message() ) );
@@ -4987,15 +5024,7 @@ add_action(
 		if ( ! is_email( $email ) || email_exists( $email ) ) {
 			return;
 		}
-		$id = wc_create_new_customer(
-			$email,
-			'',
-			wp_generate_password( 24 ),
-			array(
-				'first_name' => $order->get_billing_first_name(),
-				'last_name'  => $order->get_billing_last_name(),
-			)
-		);
+		$id = rfaheya_make_customer( $email, wp_generate_password( 24 ), $order->get_billing_first_name(), $order->get_billing_last_name() );
 		if ( is_wp_error( $id ) ) {
 			return;
 		}

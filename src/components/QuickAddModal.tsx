@@ -73,8 +73,9 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
               ))}
             </ul>
 
+            {product.notes.length > 0 && <p className="mt-4 text-[11px] font-medium tracking-[0.08em] uppercase">Key notes</p>}
             {product.notes.length > 0 && (
-              <ul className="mt-3 flex gap-3" aria-label="Fragrance notes">
+              <ul className="mt-2 flex gap-3" aria-label="Fragrance notes">
                 {product.notes.slice(0, 5).map((n) => (
                   <li key={n.name} className="flex w-12 flex-col items-center text-center">
                     <span className="grid size-9 place-items-center rounded-full bg-chip">
