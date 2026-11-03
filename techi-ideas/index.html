@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Techi بيتك الذكي</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: a floor plan is the hero; every other section is a tool that ends in "book a visit". */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --ink:#16202E; --muted:#5A6678; --line:#DCE2EA;
+  --plan:#E7ECF2; --wall:#2A3646;
+  --glow:#F2A93B; --glow-soft:#F2A93B33;
+  --accent:#1F6FEB; --accent-ink:#FFFFFF;
+  --ok:#1E8E5A; --warn:#C2410C; --wa:#1FA855;
+  --display:"Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif;
+  --body:"IBM Plex Sans Arabic","Readex Pro",Tahoma,sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E141C; --surface:#151D28; --ink:#E8EDF3; --muted:#98A4B5; --line:#273344;
+  --plan:#1A2431; --wall:#7F8DA1; --glow:#F5B451; --glow-soft:#F5B45140;
+  --accent:#5B9BFF; --accent-ink:#0B1220; --ok:#3BC283; --warn:#FB8A4C; --wa:#2BC067; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E141C; --surface:#151D28; --ink:#E8EDF3; --muted:#98A4B5; --line:#273344;
+  --plan:#1A2431; --wall:#7F8DA1; --glow:#F5B451; --glow-soft:#F5B45140;
+  --accent:#5B9BFF; --accent-ink:#0B1220; --ok:#3BC283; --warn:#FB8A4C; --wa:#2BC067; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 var(--body)}
+h1,h2,h3{font-family:var(--display);line-height:1.3;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:700}
+h2{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:700}
+h3{font-size:1.1rem;font-weight:600}
+p{margin:0}
+a{color:var(--accent)}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{padding-block:56px;border-top:1px solid var(--line)}
+.eyebrow{font-family:var(--display);font-size:.8rem;color:var(--accent);letter-spacing:.04em;font-weight:600}
+.lead{color:var(--muted);max-width:62ch}
+.head{display:grid;gap:8px;margin-bottom:28px}
+.btn{font:600 1rem var(--display);border:0;border-radius:10px;padding:12px 20px;cursor:pointer;background:var(--accent);color:var(--accent-ink);text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.note{font-size:.82rem;color:var(--muted);border-inline-start:3px solid var(--glow);padding-inline-start:10px}
+.tag{display:inline-block;font-size:.75rem;padding:2px 10px;border-radius:99px;background:var(--glow-soft);color:var(--ink)}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--surface)}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px}
+.logo{font:700 1.3rem var(--display)}
+.logo span{color:var(--glow)}
+.bar nav{display:flex;gap:16px;flex-wrap:wrap;font-size:.9rem}
+.bar nav a{color:var(--muted);text-decoration:none}
+.bar nav a:hover{color:var(--ink)}
+@media (max-width:760px){.bar nav{display:none}}
+
+/* hero + house */
+.hero{padding-block:36px 56px;border-top:0}
+.hero-grid{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;align-items:start}
+@media (max-width:880px){.hero-grid{grid-template-columns:1fr}}
+.hero-copy{display:grid;gap:14px;margin-bottom:24px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px}
+.plan svg{width:100%;height:auto;display:block}
+.room{cursor:pointer}
+.room rect.fill{fill:var(--plan);stroke:var(--wall);stroke-width:3;transition:fill .3s}
+.room:hover rect.fill,.room.sel rect.fill{fill:var(--glow-soft)}
+.room.sel rect.fill{stroke:var(--accent)}
+.room text{fill:var(--ink);font:600 15px var(--display)}
+.room text.sub{fill:var(--muted);font:400 11px var(--body)}
+.lamp{fill:var(--line);transition:fill .4s,filter .4s}
+.lamp.on{fill:var(--glow);filter:drop-shadow(0 0 10px var(--glow))}
+.curtain{stroke:var(--accent);stroke-width:6;stroke-linecap:round;transition:all .6s}
+.lockbox{fill:var(--surface);stroke:var(--wall);stroke-width:2}
+.lockdot{transition:fill .3s}
+.dim{opacity:.55}
+.status{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:.82rem}
+.status span{background:var(--plan);border-radius:8px;padding:4px 10px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:14px}
+.panel ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.panel li{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+.panel li:last-child{border-bottom:0}
+.panel li b{font-weight:600}
+.panel li small{color:var(--muted);grid-column:1/-1}
+.price{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem;white-space:nowrap}
+
+/* scenes */
+.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:820px){.scenes{grid-template-columns:1fr}}
+.scene{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:10px;text-align:start;font:inherit;color:inherit;cursor:pointer}
+.scene[aria-pressed="true"]{border-color:var(--glow);box-shadow:0 0 0 3px var(--glow-soft)}
+.scene .say{font-family:var(--display);font-size:.9rem;color:var(--accent)}
+.scene ol{margin:0;padding-inline-start:18px;color:var(--muted);font-size:.92rem}
+
+/* quiz */
+.quiz{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:820px){.quiz{grid-template-columns:1fr}}
+fieldset{border:0;padding:0;margin:0 0 18px}
+legend{font:600 1rem var(--display);margin-bottom:8px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts label{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 14px;cursor:pointer;font-size:.92rem}
+.opts input{position:absolute;opacity:0;pointer-events:none}
+.opts input:checked+span{color:var(--accent);font-weight:600}
+.opts label:has(input:checked){border-color:var(--accent);background:var(--glow-soft)}
+.opts label:has(input:focus-visible){outline:3px solid var(--accent)}
+.result{background:var(--surface);border:2px solid var(--accent);border-radius:16px;padding:22px;display:grid;gap:12px;align-content:start}
+.result .big{font:700 1.8rem var(--display);font-variant-numeric:tabular-nums}
+
+/* calc */
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+@media (max-width:820px){.calc{grid-template-columns:1fr}}
+.field{display:grid;gap:6px;margin-bottom:16px}
+.field label{font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=number],input[type=text],input[type=tel],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.out{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.out div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.out b{display:block;font:700 1.5rem var(--display);font-variant-numeric:tabular-nums}
+.out small{color:var(--muted)}
+
+/* showroom */
+.show{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media (max-width:820px){.show{grid-template-columns:1fr}}
+.slots{display:flex;flex-wrap:wrap;gap:8px}
+.slots button{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer;font-variant-numeric:tabular-nums}
+.slots button[aria-pressed="true"]{border-color:var(--accent);background:var(--glow-soft)}
+.msg{background:var(--plan);border-radius:10px;padding:12px;font-size:.92rem;white-space:pre-wrap;user-select:all}
+
+/* proof */
+.ba{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:820px){.ba{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:8px;align-content:start}
+.ph{aspect-ratio:16/9;max-width:100%;border-radius:10px;background:repeating-linear-gradient(-45deg,var(--plan) 0 10px,var(--bg) 10px 20px);display:grid;place-items:center;color:var(--muted);font-size:.85rem;text-align:center;padding:8px}
+.stars{color:var(--glow);letter-spacing:2px}
+
+/* info */
+.info{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@media (max-width:820px){.info{grid-template-columns:1fr}}
+.steps{margin:0;padding-inline-start:20px;display:grid;gap:6px}
+details{border-bottom:1px solid var(--line);padding-block:12px}
+summary{cursor:pointer;font-weight:600;font-family:var(--display)}
+details p{color:var(--muted);margin-top:8px}
+.pay{display:flex;flex-wrap:wrap;gap:8px}
+.pay span{border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:.9rem;background:var(--surface)}
+
+footer{padding-block:28px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+
+.wa{position:fixed;inset-inline-start:calc(18px + env(safe-area-inset-left,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--wa);color:#fff;border-radius:99px;padding:12px 18px;font:600 .95rem var(--display);text-decoration:none;box-shadow:0 6px 20px #0003;display:flex;gap:8px;align-items:center}
+.wa svg{width:20px;height:20px;fill:currentColor}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="logo">Techi<span>.</span></div>
+    <nav aria-label="أقسام الصفحة">
+      <a href="#house">بيتك</a><a href="#scenes">السيناريوهات</a><a href="#quiz">صمم باقتك</a><a href="#calc">التوفير</a><a href="#showroom">الشوروم</a><a href="#faq">أسئلة</a>
+    </nav>
+    <a class="btn" href="#showroom">احجز معاينة</a>
+  </div>
+</header>
+
+<!-- 1. Interactive house -->
+<section class="hero" id="house">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">بيت ذكي من التجمع الخامس، Value Mall</span>
+      <h1>دوس على أي أوضة في بيتك واعرف تقدر تخليها ذكية إزاي</h1>
+      <p class="lead">بنركب ونظبط كل حاجة بنفسنا: النور، الستاير، الكالون، حساس الغاز. وبعدها تتحكم في بيتك كله من موبايلك أو بصوتك.</p>
+    </div>
+    <div class="hero-grid">
+      <div class="plan">
+        <svg viewBox="0 0 600 400" role="img" aria-label="رسم بيت تفاعلي، اختار أوضة">
+          <g class="room" data-room="living" tabindex="0" role="button" aria-label="الصالة">
+            <rect class="fill" x="20" y="20" width="300" height="220" rx="4"/>
+            <line class="curtain" id="cur-living" x1="60" y1="20" x2="140" y2="20"/>
+            <circle class="lamp" data-lamp="living" cx="170" cy="110" r="16"/>
+            <text x="170" y="170" text-anchor="middle">الصالة</text>
+            <text class="sub" x="170" y="190" text-anchor="middle">نور · ستارة · شاشة تحكم</text>
+          </g>
+          <g class="room" data-room="kitchen" tabindex="0" role="button" aria-label="المطبخ">
+            <rect class="fill" x="330" y="20" width="250" height="140" rx="4"/>
+            <circle class="lamp" data-lamp="kitchen" cx="455" cy="62" r="13"/>
+            <text x="455" y="110" text-anchor="middle">المطبخ</text>
+            <text class="sub" x="455" y="130" text-anchor="middle">حساس غاز · محبس مياه</text>
+          </g>
+          <g class="room" data-room="bedroom" tabindex="0" role="button" aria-label="أوضة النوم">
+            <rect class="fill" x="330" y="170" width="250" height="210" rx="4"/>
+            <line class="curtain" id="cur-bed" x1="420" y1="380" x2="500" y2="380"/>
+            <circle class="lamp" data-lamp="bedroom" cx="455" cy="240" r="14"/>
+            <text x="455" y="295" text-anchor="middle">أوضة النوم</text>
+            <text class="sub" x="455" y="315" text-anchor="middle">ستارة · تكييف · نور ليلي</text>
+          </g>
+          <g class="room" data-room="entrance" tabindex="0" role="button" aria-label="المدخل">
+            <rect class="fill" x="20" y="250" width="150" height="130" rx="4"/>
+            <circle class="lamp" data-lamp="entrance" cx="95" cy="285" r="12"/>
+            <rect class="lockbox" x="2" y="300" width="30" height="40" rx="6"/>
+            <circle class="lockdot" id="lockdot" cx="17" cy="320" r="7"/>
+            <text x="95" y="335" text-anchor="middle">المدخل</text>
+            <text class="sub" x="95" y="355" text-anchor="middle">كالون بصمة · انتركم</text>
+          </g>
+          <g class="room" data-room="bath" tabindex="0" role="button" aria-label="الحمام">
+            <rect class="fill" x="180" y="250" width="140" height="130" rx="4"/>
+            <circle class="lamp" data-lamp="bath" cx="250" cy="285" r="12"/>
+            <text x="250" y="335" text-anchor="middle">الحمام</text>
+            <text class="sub" x="250" y="355" text-anchor="middle">نور بالحركة · سخان</text>
+          </g>
+        </svg>
+        <div class="status" id="status" aria-live="polite"></div>
+      </div>
+      <aside class="panel" id="roomPanel" aria-live="polite"></aside>
+    </div>
+  </div>
+</section>
+
+<!-- 2. Scenarios -->
+<section id="scenes">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">سيناريوهات جاهزة</span>
+      <h2>كلمة واحدة بتشغّل البيت كله</h2>
+      <p class="lead">جرّب: دوس على أي سيناريو وشوف البيت اللي فوق بيتغير إزاي.</p>
+    </div>
+    <div class="scenes">
+      <button class="scene" data-scene="sleep" aria-pressed="false">
+        <h3>وضع النوم</h3>
+        <span class="say">"أليكسا، تصبح على خير"</span>
+        <ol><li>كل الأنوار تطفي</li><li>الستاير تقفل</li><li>الكالون يتقفل</li><li>التكييف يظبط على 24°</li></ol>
+      </button>
+      <button class="scene" data-scene="away" aria-pressed="false">
+        <h3>وانت مسافر</h3>
+        <span class="say">من الموبايل، من أي مكان</span>
+        <ol><li>البيت كله يطفي</li><li>الكالون مقفول وبيبعتلك أي محاولة فتح</li><li>لو فيه تسريب غاز يجيلك تنبيه ويتقفل المحبس</li></ol>
+      </button>
+      <button class="scene" data-scene="home" aria-pressed="false">
+        <h3>راجع البيت</h3>
+        <span class="say">أوتوماتيك لما توصل</span>
+        <ol><li>نور المدخل والصالة يولّع</li><li>الستاير تفتح</li><li>التكييف يشتغل قبلها بـ 10 دقايق</li></ol>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- 3. Quiz -->
+<section id="quiz">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">صمم باقتك في دقيقة</span>
+      <h2>4 أسئلة ونقولك الباقة المناسبة لبيتك</h2>
+    </div>
+    <div class="quiz">
+      <form id="quizForm">
+        <fieldset><legend>نوع البيت</legend><div class="opts">
+          <label><input type="radio" name="home" value="apt" checked><span>شقة</span></label>
+          <label><input type="radio" name="home" value="duplex"><span>دوبلكس</span></label>
+          <label><input type="radio" name="home" value="villa"><span>فيلا</span></label>
+        </div></fieldset>
+        <fieldset><legend>كام أوضة؟</legend><div class="opts">
+          <label><input type="radio" name="rooms" value="2"><span>2</span></label>
+          <label><input type="radio" name="rooms" value="3" checked><span>3</span></label>
+          <label><input type="radio" name="rooms" value="4"><span>4</span></label>
+          <label><input type="radio" name="rooms" value="5"><span>5 أو أكتر</span></label>
+        </div></fieldset>
+        <fieldset><legend>أهم حاجة بالنسبالك</legend><div class="opts">
+          <label><input type="radio" name="goal" value="safety" checked><span>الأمان</span></label>
+          <label><input type="radio" name="goal" value="comfort"><span>الراحة</span></label>
+          <label><input type="radio" name="goal" value="saving"><span>توفير الكهربا</span></label>
+        </div></fieldset>
+        <fieldset><legend>الميزانية</legend><div class="opts">
+          <label><input type="radio" name="budget" value="1"><span>أقل من 20 ألف</span></label>
+          <label><input type="radio" name="budget" value="2" checked><span>20 – 50 ألف</span></label>
+          <label><input type="radio" name="budget" value="3"><span>أكتر من 50 ألف</span></label>
+        </div></fieldset>
+      </form>
+      <div class="result" id="quizResult" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. Savings calculator -->
+<section id="calc">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">حاسبة التوفير</span>
+      <h2>البيت الذكي هيوفرلك كام في السنة؟</h2>
+    </div>
+    <div class="calc">
+      <div>
+        <div class="field">
+          <label for="bill">فاتورة الكهربا في الشهر: <span id="billOut"></span> جنيه</label>
+          <input type="range" id="bill" min="300" max="10000" step="100" value="2500">
+        </div>
+        <div class="field">
+          <label for="acShare">التكييف بياخد قد إيه من الفاتورة؟</label>
+          <select id="acShare">
+            <option value="0.3">قليل (شتا أو تكييف واحد)</option>
+            <option value="0.5" selected>متوسط</option>
+            <option value="0.65">كتير (صيف وأكتر من تكييف)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pkg">سعر الباقة</label>
+          <select id="pkg">
+            <option value="15000">باقة البداية، حوالي 15,000</option>
+            <option value="35000" selected>باقة الراحة، حوالي 35,000</option>
+            <option value="100000">البيت الكامل، حوالي 100,000</option>
+          </select>
+        </div>
+        <p class="note">الحسبة دي تقديرية. افترضنا إن الحساسات والجدولة بتوفر بين 5% و12% من النور والأجهزة، وبين 8% و15% من التكييف لما يطفي أوتوماتيك في الأوض الفاضية. لازم تظبطوا النسب دي على أرقام من تركيبات حقيقية قبل ما تنشروها.</p>
+      </div>
+      <div class="out">
+        <div><small>توفير متوقع في السنة</small><b id="saveYear"></b><small>جنيه</small></div>
+        <div><small>في الشهر تقريباً</small><b id="saveMonth"></b><small>جنيه</small></div>
+        <div style="grid-column:1/-1"><small>الباقة ترجّع جزء من تمنها من التوفير في حوالي</small><b id="payback"></b><small>ده غير الأمان والراحة اللي ما بتتحسبش بفلوس.</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. Live showroom -->
+<section id="showroom">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">شوروم أونلاين</span>
+      <h2>شوف الجهاز شغال لايف قبل ما تشتري</h2>
+      <p class="lead">مكالمة فيديو 10 دقايق من الشوروم في Value Mall. حد من فريقنا يوريك الكالون أو الشاشة أو الستارة بتشتغل إزاي ويجاوب على أسئلتك.</p>
+    </div>
+    <div class="show">
+      <form id="bookForm" novalidate>
+        <div class="field"><label for="bName">الاسم</label><input type="text" id="bName" value="أحمد"></div>
+        <div class="field"><label for="bProduct">عايز تشوف إيه؟</label>
+          <select id="bProduct"><option>كالون بصمة / وش</option><option>كالون بكاميرا وانتركم</option><option>شاشة التحكم</option><option>ستارة سمارت</option><option>باقة كاملة</option></select></div>
+        <div class="field"><label>الميعاد (بكرة)</label>
+          <div class="slots" id="slots"></div></div>
+        <button class="btn" type="submit">جهّز رسالة الحجز</button>
+      </form>
+      <div class="panel">
+        <h3>رسالة الحجز على واتساب</h3>
+        <div class="msg" id="bookMsg"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn" id="waLink" href="#" target="_blank" rel="noopener">افتح واتساب</a>
+          <button class="btn ghost" type="button" id="copyMsg">انسخ الرسالة</button>
+        </div>
+        <p class="note">غيّروا رقم الواتساب في الكود (WA_NUMBER) لرقم الشركة.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Before / after + reviews -->
+<section id="proof">
+  <div class="wrap">
+    <div class="head">
+      <span class="eyebrow">من بيوت عملائنا</span>
+      <h2>قبل وبعد التركيب</h2>
+      <p class="note">ده شكل القسم بس. حطوا هنا صور وفيديوهات وتقييمات حقيقية من عملاءكم بعد ما تاخدوا موافقتهم. التقييمات اللي تحت أمثلة توضيحية، ماتتنشرش كده.</p>
+    </div>
+    <div class="ba">
+      <article class="card">
+        <div class="ph">فيديو قبل وبعد<br>شقة في التجمع الخامس</div>
+        <span class="tag">شقة 3 أوض · باقة الراحة</span>
+        <p class="stars" aria-label="5 من 5">★★★★★</p>
+        <p>"[مثال] بقيت أقفل البيت كله من السرير."</p>
+      </article>
+      <article class="card">
+        <div class="ph">صورة الكالون بعد التركيب<br>فيلا في الشيخ زايد</div>
+        <span class="tag">فيلا · باقة الأمان</span>
+        <p class="stars" aria-label="5 من 5">★★★★★</p>
+        <p>"[مثال] الانتركم بيوريني مين على الباب وانا في الشغل."</p>
+      </article>
+      <article class="card">
+        <div class="ph">ريل 15 ثانية<br>سيناريو "وضع النوم"</div>
+        <span class="tag">دوبلكس · البيت الكامل</span>
+        <p class="stars" aria-label="4 من 5">★★★★☆</p>
+        <p>"[مثال] التركيب خلص في يوم واحد ومن غير تكسير."</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- 7. About / install / FAQ / payment -->
+<section id="faq">
+  <div class="wrap">
+    <div class="info">
+      <article class="card">
+        <span class="eyebrow">مين احنا</span>
+        <h2>Techi</h2>
+        <p>شركة مصرية متخصصة في البيوت الذكية، والشوروم بتاعنا في Value Mall بالتجمع الخامس. بنختار أجهزة شغالة بنظام Zigbee 3.0 وTuya، وبتشتغل مع Alexa وGoogle Home، وبنركبها ونظبطها لحد ما تبقى شغالة معاك 100%.</p>
+        <p class="note">ضيفوا هنا: سنة البداية، عدد البيوت اللي ركبتوا فيها، وصورة الفريق.</p>
+      </article>
+      <article class="card">
+        <span class="eyebrow">التركيب والضمان</span>
+        <h3>من أول مكالمة لحد ما البيت يشتغل</h3>
+        <ol class="steps">
+          <li>معاينة في البيت وتحديد الأماكن</li>
+          <li>عرض سعر واضح بالأجهزة والتركيب</li>
+          <li>تركيب من غير تكسير، على نفس العلب الموجودة</li>
+          <li>نظبط الأبلكيشن والسيناريوهات معاك</li>
+          <li>ضمان ودعم فني بعد التركيب</li>
+        </ol>
+        <p class="note">اكتبوا مدة الضمان الحقيقية، وهل التركيب مجاني ولا بسعر.</p>
+      </article>
+    </div>
+    <div class="head" style="margin-top:40px">
+      <span class="eyebrow">أسئلة بتتسأل كتير</span>
+      <h2>قبل ما تقرر</h2>
+    </div>
+    <details open><summary>هل محتاج أغير الكهربا أو أكسّر الحيطة؟</summary><p>لأ. السويتشات الذكية بتتركب مكان السويتشات العادية على نفس العلب. بعض الموديلات محتاجة سلك نيوترال، وده بنتأكد منه في المعاينة.</p></details>
+    <details><summary>لو النت فصل إيه اللي هيحصل؟</summary><p>السويتشات بتفضل شغالة باليد عادي. أجهزة Zigbee المربوطة بالـ Hub بتفضل تنفذ السيناريوهات المحلية، والتحكم من برا البيت بيرجع أول ما النت يرجع.</p></details>
+    <details><summary>لو الكهربا قطعت الكالون هيفتح إزاي؟</summary><p>الكوالين شغالة ببطارية، وفيها مفتاح ميكانيكي احتياطي ومدخل شحن طوارئ من برا.</p></details>
+    <details><summary>ينفع أبدأ بحاجة صغيرة وأزوّد بعدين؟</summary><p>أيوه. ابدأ ببريزة أو سويتش، وكل الأجهزة بتتضاف على نفس الأبلكيشن بعدين.</p></details>
+    <details><summary>بيشتغل مع Alexa وGoogle؟</summary><p>أيوه، وكمان بنبيع Echo Dot وEcho Pop ونظبطهم مع الأجهزة.</p></details>
+    <div class="head" style="margin-top:40px">
+      <span class="eyebrow">الدفع</span>
+      <h3>ادفع بالطريقة اللي تريحك</h3>
+      <div class="pay"><span>كاش عند الاستلام</span><span>فيزا / ميزة</span><span>إنستاباي</span><span>تقسيط valU</span></div>
+      <p class="note">سيبوا بس الطرق اللي متاحة عندكم فعلاً. لو فيه تقسيط، كبّروه، لأن الباقات أسعارها عالية.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">© Techi · All Rights Reserved · Value Mall، التجمع الخامس</div>
+</footer>
+
+<a class="wa" id="waFloat" href="#" target="_blank" rel="noopener" aria-label="كلمنا على واتساب">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></svg>
+  اسألنا على واتساب
+</a>
+
+<script>
+const WA_NUMBER = "201000000000"; // TODO: رقم واتساب الشركة بصيغة دولية من غير +
+const fmt = n => Math.round(n).toLocaleString("ar-EG");
+
+/* ---------- house ---------- */
+const ROOMS = {
+  living:{name:"الصالة",items:[
+    ["شاشة تحكم 10 بوصة","تتحكم منها في البيت كله من على الحيطة",null],
+    ["سويتش واي فاي 3 جانج","يبدل السويتش العادي على نفس العلبة",null],
+    ["كنترولر ستارة / شتر","الستارة تفتح وتقفل بالموبايل أو بالمواعيد",null],
+    ["Echo Dot","تحكم بالصوت بالعربي والإنجليزي",null]]},
+  kitchen:{name:"المطبخ",items:[
+    ["حساس غاز","تنبيه على موبايلك أول ما يحس بتسريب",null],
+    ["كنترولر محبس المياه","يقفل المياه أوتوماتيك أو من برا البيت",null],
+    ["بريزة واي فاي سمارت","شغّل أو اطفي أي جهاز من الموبايل",2000],
+    ["Zigbee Hub","العقل اللي بيربط الحساسات ببعض",1500]]},
+  bedroom:{name:"أوضة النوم",items:[
+    ["كنترولر ستارة","وضع النوم يقفلها لوحده",null],
+    ["حساس حركة PIR","نور ليلي خفيف لما تقوم بالليل",null],
+    ["سويتش واي فاي 2 جانج","النور والأباجورة من السرير",null],
+    ["Echo Pop","المنبه وتصبح على خير بصوتك",null]]},
+  entrance:{name:"المدخل",items:[
+    ["كالون بكاميرا وانتركم","تشوف مين على الباب وتفتحله من أي مكان",17000],
+    ["كالون بصمة / وش / كف","من غير مفاتيح، وكل فرد له بصمته",null],
+    ["حساس حركة","نور المدخل يولّع أول ما تدخل",null]]},
+  bath:{name:"الحمام",items:[
+    ["حساس حركة","النور يولّع ويطفي لوحده",null],
+    ["بريزة سمارت للسخان","سخّن المية قبل ما تصحى بمعاد",2000]]}
+};
+const state={lights:{living:true,kitchen:false,bedroom:true,entrance:false,bath:false},curtains:true,locked:false,ac:false,scene:null};
+
+function renderHouse(){
+  document.querySelectorAll(".lamp").forEach(l=>l.classList.toggle("on",state.lights[l.dataset.lamp]));
+  const cl=document.getElementById("cur-living"),cb=document.getElementById("cur-bed");
+  cl.setAttribute("x2",state.curtains?140:300); cb.setAttribute("x1",state.curtains?420:340); cb.setAttribute("x2",state.curtains?500:580);
+  document.getElementById("lockdot").style.fill=state.locked?"var(--ok)":"var(--warn)";
+  const on=Object.values(state.lights).filter(Boolean).length;
+  document.getElementById("status").innerHTML=
+    `<span>💡 ${fmt(on)} نور شغال</span><span>${state.curtains?"الستاير مفتوحة":"الستاير مقفولة"}</span><span>${state.locked?"🔒 الباب مقفول":"🔓 الباب مفتوح"}</span><span>${state.ac?"❄️ التكييف 24°":"التكييف مطفي"}</span>`;
+}
+function showRoom(key){
+  document.querySelectorAll(".room").forEach(r=>r.classList.toggle("sel",r.dataset.room===key));
+  const r=ROOMS[key];
+  document.getElementById("roomPanel").innerHTML=
+    `<span class="eyebrow">اخترت</span><h2>${r.name}</h2><ul>${r.items.map(([n,d,p])=>
+      `<li><b>${n}</b><span class="price">${p?fmt(p)+" ج.م":"شوف السعر"}</span><small>${d}</small></li>`).join("")}</ul>
+     <button class="btn" type="button" onclick="state.lights['${key}']=!state.lights['${key}'];renderHouse()">جرّب: ولّع / اطفي النور</button>
+     <p class="note">الأسعار من الموقع الحالي بعد الخصم، ولازم تتحدّث.</p>`;
+}
+document.querySelectorAll(".room").forEach(g=>{
+  g.addEventListener("click",()=>showRoom(g.dataset.room));
+  g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showRoom(g.dataset.room)}});
+});
+
+/* ---------- scenes ---------- */
+const SCENES={
+  sleep:{lights:{living:false,kitchen:false,bedroom:false,entrance:false,bath:false},curtains:false,locked:true,ac:true},
+  away:{lights:{living:false,kitchen:false,bedroom:false,entrance:false,bath:false},curtains:false,locked:true,ac:false},
+  home:{lights:{living:true,kitchen:false,bedroom:false,entrance:true,bath:false},curtains:true,locked:true,ac:true}
+};
+document.querySelectorAll(".scene").forEach(b=>b.addEventListener("click",()=>{
+  const s=SCENES[b.dataset.scene];
+  Object.assign(state,{...s,lights:{...s.lights}});
+  document.querySelectorAll(".scene").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  renderHouse();
+  document.getElementById("house").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
+}));
+
+/* ---------- quiz ---------- */
+const BUNDLES={
+  start:{name:"باقة البداية",price:15000,items:["Zigbee Hub","سويتشات للصالة والنوم","بريزة سمارت","Echo Pop"]},
+  safety:{name:"باقة الأمان",price:35000,items:["كالون بكاميرا وانتركم","حساس غاز","كنترولر محبس المياه","حساسات حركة","Zigbee Hub"]},
+  comfort:{name:"باقة الراحة",price:35000,items:["شاشة تحكم 8 بوصة","سويتشات لكل الأوض","كنترولر ستاير","Echo Dot","Zigbee Hub"]},
+  full:{name:"البيت الكامل",price:100000,items:["شاشات تحكم 10 بوصة","كالون بكاميرا وانتركم","كل السويتشات والستاير","حساسات غاز ومياه وحركة","سيناريوهات جاهزة متظبطة"]}
+};
+function runQuiz(){
+  const f=new FormData(document.getElementById("quizForm"));
+  const rooms=+f.get("rooms"),budget=+f.get("budget"),goal=f.get("goal"),home=f.get("home");
+  let key = budget===1?"start": budget===3||home==="villa"?"full": goal==="safety"?"safety":"comfort";
+  if(goal==="saving" && budget===2) key="comfort";
+  const b=BUNDLES[key];
+  const factor = key==="full"?1:Math.max(.8,Math.min(1.5,rooms/3));
+  const lo=b.price*factor*0.9, hi=b.price*factor*1.15;
+  document.getElementById("quizResult").innerHTML=
+   `<span class="eyebrow">الباقة المقترحة</span><h2>${b.name}</h2>
+    <div class="big">${fmt(lo)} – ${fmt(hi)} <small style="font-size:1rem">ج.م</small></div>
+    <ul style="margin:0;padding-inline-start:20px">${b.items.map(i=>`<li>${i}</li>`).join("")}</ul>
+    <a class="btn" href="#showroom">احجز معاينة مجانية</a>
+    <p class="note">الأسعار تقريبية، والنطاق بيتغير حسب عدد الأوض. السعر النهائي بعد المعاينة.</p>`;
+}
+document.getElementById("quizForm").addEventListener("change",runQuiz);
+
+/* ---------- calculator ---------- */
+function runCalc(){
+  const bill=+document.getElementById("bill").value, ac=+document.getElementById("acShare").value, pkg=+document.getElementById("pkg").value;
+  document.getElementById("billOut").textContent=fmt(bill);
+  const lo=bill*12*(ac*0.08+(1-ac)*0.05), hi=bill*12*(ac*0.15+(1-ac)*0.12);
+  document.getElementById("saveYear").textContent=`${fmt(lo)} – ${fmt(hi)}`;
+  document.getElementById("saveMonth").textContent=`${fmt(lo/12)} – ${fmt(hi/12)}`;
+  const mid=(lo+hi)/2, yrs=pkg/mid;
+  document.getElementById("payback").textContent = yrs<1?`${fmt(yrs*12)} شهر`:`${yrs.toLocaleString("ar-EG",{maximumFractionDigits:1})} سنة`;
+}
+["bill","acShare","pkg"].forEach(id=>document.getElementById(id).addEventListener("input",runCalc));
+
+/* ---------- showroom ---------- */
+const SLOTS=["11:00","12:30","2:00","4:30","6:00","8:00"]; let slot=SLOTS[2];
+const slotsEl=document.getElementById("slots");
+SLOTS.forEach(t=>{const b=document.createElement("button");b.type="button";b.textContent=t;b.setAttribute("aria-pressed",t===slot);
+  b.onclick=()=>{slot=t;slotsEl.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b));buildMsg()};slotsEl.appendChild(b)});
+function buildMsg(){
+  const m=`أهلاً Techi، أنا ${document.getElementById("bName").value||"..."}.\nعايز أحجز مكالمة فيديو من الشوروم أشوف: ${document.getElementById("bProduct").value}.\nالميعاد: بكرة الساعة ${slot}.`;
+  document.getElementById("bookMsg").textContent=m;
+  document.getElementById("waLink").href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(m)}`;
+  return m;
+}
+document.getElementById("bookForm").addEventListener("submit",e=>{e.preventDefault();buildMsg()});
+document.getElementById("bookForm").addEventListener("input",buildMsg);
+document.getElementById("copyMsg").addEventListener("click",async e=>{
+  const t=buildMsg();
+  try{await navigator.clipboard.writeText(t);e.target.textContent="اتنسخت"}
+  catch{const r=document.createRange();r.selectNodeContents(document.getElementById("bookMsg"));getSelection().removeAllRanges();getSelection().addRange(r);e.target.textContent="اتحددت، اعمل نسخ"}
+});
+document.getElementById("waFloat").href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent("أهلاً Techi، عندي سؤال عن البيت الذكي")}`;
+
+renderHouse(); showRoom("living"); runQuiz(); runCalc(); buildMsg();
+</script>
+</body>
+</html>
