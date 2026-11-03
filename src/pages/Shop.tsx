@@ -6,6 +6,7 @@ import { Overlay } from '../components/Overlay'
 import { useSwipeClose } from '../lib/useSwipeClose'
 import { ProductCard } from '../components/ProductCard'
 import { GENDERS, OCCASIONS, SEASONS } from '../lib/profile'
+import { usePageTitle } from '../lib/usePageTitle'
 import type { FamilySlug, Gender, Occasion, Product, Season } from '../types'
 
 const sorts: { value: ProductSort; label: string }[] = [
@@ -58,6 +59,7 @@ function useSearchEngine(needed: boolean) {
 }
 
 export function Shop() {
+  usePageTitle('Shop all fragrances — Rfaheya')
   const [params, setParams] = useSearchParams()
   const sort = (params.get('sort') as ProductSort) || 'best-sellers'
   const num = (k: string) => (params.get(k) ? Number(params.get(k)) : null)

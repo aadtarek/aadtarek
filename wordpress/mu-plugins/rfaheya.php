@@ -1950,6 +1950,12 @@ function rfaheya_storefront_shell() {
 		}
 		$html = str_replace( '</head>', $preload . '></head>', $html );
 	}
+	// This page's title, description, sharing picture and structured data for search engines.
+	try {
+		$html = rfaheya_seo_apply( $html, (string) $path, $data );
+	} catch ( Throwable $e ) {
+		error_log( 'Rfaheya: SEO tags failed: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	}
 	// The stylesheet inline: one request less before the page shows.
 	if ( preg_match( '#<link rel="stylesheet" crossorigin href="/([^"]+\.css)">#', $html, $css ) && is_readable( ABSPATH . $css[1] ) && filesize( ABSPATH . $css[1] ) < 300000 ) {
 		$html = str_replace( $css[0], '<style>' . str_replace( '</style', '<\/style', (string) file_get_contents( ABSPATH . $css[1] ) ) . '</style>', $html );
@@ -4900,6 +4906,270 @@ add_action(
 		exit;
 	},
 	5
+);
+
+/* -------------------------------------------------------------------------
+ * Search engines: each storefront page's title, description, sharing picture and
+ * structured data in the page itself; robots.txt and a sitemap of the storefront.
+ * ------------------------------------------------------------------------- */
+
+/** Plain text, one line, at most $max characters (cut at a word). */
+function rfaheya_seo_text( $html, $max = 160 ) {
+	$text = trim( preg_replace( '/\s+/u', ' ', html_entity_decode( wp_strip_all_tags( (string) $html ), ENT_QUOTES, 'UTF-8' ) ) );
+	if ( function_exists( 'mb_strlen' ) && mb_strlen( $text ) > $max ) {
+		$cut  = mb_substr( $text, 0, $max - 1 );
+		$text = preg_replace( '/\s+\S*$/u', '', $cut ) . '…';
+	}
+	return $text;
+}
+
+/** Storefront paths that are only for one visitor: not in search results. */
+function rfaheya_seo_private( $path ) {
+	return (bool) preg_match( '#^/(account|checkout|cart|wishlist|track-order)(/|$)#', $path );
+}
+
+/** Title, description, picture and structured data for a storefront path. */
+function rfaheya_seo_for( $path, $data ) {
+	$site  = 'Rfaheya';
+	$home  = home_url( '/' );
+	$desc  = 'Rfaheya — inspired fragrances crafted with quality materials and high concentration. Try any scent in a small size first, delivered across Egypt.';
+	$logo  = rfaheya_logo_url();
+	$out   = array(
+		'title'       => 'Rfaheya — Speak Your Scent',
+		'description' => $desc,
+		'image'       => $logo,
+		'type'        => 'website',
+		'noindex'     => rfaheya_seo_private( $path ),
+		'jsonld'      => array(),
+	);
+	$crumbs = array( array( 'Home', $home ) );
+	$static = array(
+		'/shop'         => array( 'Shop all fragrances', 'Every Rfaheya fragrance — inspired scents for men, women and everyone, in full bottles and small sizes to try first.' ),
+		'/collections'  => array( 'Collections', 'Rfaheya collections: discovery sets, gift boxes and fragrances grouped by mood and family.' ),
+		'/finder'       => array( 'Rfaheya Finder — find your scent', 'Answer a few questions and find the Rfaheya fragrance that feels like you.' ),
+		'/reviews'      => array( 'Customer reviews', 'What Rfaheya customers say about their fragrances.' ),
+		'/about'        => array( 'About Rfaheya', $desc ),
+		'/contact'      => array( 'Contact us', 'Questions about a fragrance or an order? Reach Rfaheya on WhatsApp, by phone or by email.' ),
+		'/faqs'         => array( 'Frequently asked questions', 'Delivery, returns, sizes and how Rfaheya fragrances are made.' ),
+		'/our-standard' => array( 'The Rfaheya Standard', 'How every Rfaheya fragrance is measured on skin: character, comfort, density, projection, longevity and evolution.' ),
+		'/journal'      => array( 'Journal', 'Stories, guides and notes from the Rfaheya fragrance lab.' ),
+	);
+	$path = '/' === $path ? '/' : rtrim( $path, '/' );
+
+	if ( '/' === $path ) {
+		$out['jsonld'][] = array(
+			'@context' => 'https://schema.org',
+			'@type'    => 'Organization',
+			'name'     => $site,
+			'url'      => $home,
+			'logo'     => $logo ? $logo : null,
+			'sameAs'   => array_values( array_filter( rfaheya_options()['social'] ) ),
+		);
+		$out['jsonld'][] = array(
+			'@context' => 'https://schema.org',
+			'@type'    => 'WebSite',
+			'name'     => $site,
+			'url'      => $home,
+		);
+		return $out;
+	}
+	if ( isset( $static[ $path ] ) ) {
+		$out['title']       = $static[ $path ][0] . ' — ' . $site;
+		$out['description'] = $static[ $path ][1];
+		$crumbs[]           = array( $static[ $path ][0], home_url( $path ) );
+	} elseif ( preg_match( '#^/(?:product|shop)/([^/]+)$#', $path, $m ) ) {
+		$slug    = sanitize_title( rawurldecode( $m[1] ) );
+		$product = null;
+		foreach ( isset( $data['products'] ) ? $data['products'] : array() as $p ) {
+			if ( isset( $p['slug'] ) && $p['slug'] === $slug ) {
+				$product = $p;
+				break;
+			}
+		}
+		if ( $product ) {
+			$short  = rfaheya_seo_text( $product['short_description'] ?? '', 80 );
+			$about  = rfaheya_seo_text( ( $product['short_description'] ?? '' ) . ' ' . ( $product['description'] ?? '' ), 158 );
+			$image  = $product['images'][0]['src'] ?? '';
+			$prices = $product['prices'] ?? array();
+			$unit   = (int) ( $prices['currency_minor_unit'] ?? 0 );
+			$money  = fn( $v ) => round( (float) $v / pow( 10, $unit ), 2 );
+			$low    = $money( $prices['price_range']['min_amount'] ?? ( $prices['price'] ?? 0 ) );
+			$high   = $money( $prices['price_range']['max_amount'] ?? ( $prices['price'] ?? 0 ) );
+			$url    = home_url( '/product/' . $slug );
+			$out['title']       = $product['name'] . ( $short ? ' — ' . $short : '' ) . ' | ' . $site;
+			$out['description'] = $about ? $about : $desc;
+			$out['image']       = $image ? $image : $out['image'];
+			$out['type']        = 'product';
+			$crumbs[]           = array( 'Shop', home_url( '/shop' ) );
+			$crumbs[]           = array( $product['name'], $url );
+			$item = array(
+				'@context'    => 'https://schema.org',
+				'@type'       => 'Product',
+				'name'        => $product['name'],
+				'description' => $about,
+				'image'       => array_values( array_filter( array_map( fn( $i ) => $i['src'] ?? '', array_slice( $product['images'] ?? array(), 0, 4 ) ) ) ),
+				'brand'       => array( '@type' => 'Brand', 'name' => $site ),
+				'url'         => $url,
+				'sku'         => (string) ( $product['id'] ?? '' ),
+				'offers'      => array(
+					'@type'         => 'AggregateOffer',
+					'priceCurrency' => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'EGP',
+					'lowPrice'      => $low,
+					'highPrice'     => $high,
+					'availability'  => ! empty( $product['is_in_stock'] ) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+					'url'           => $url,
+				),
+			);
+			$ratings = array();
+			foreach ( isset( $data['reviews'] ) ? $data['reviews'] : array() as $r ) {
+				if ( (int) ( $r['product_id'] ?? 0 ) === (int) $product['id'] && ! empty( $r['rating'] ) ) {
+					$ratings[] = (float) $r['rating'];
+				}
+			}
+			if ( $ratings ) {
+				$item['aggregateRating'] = array(
+					'@type'       => 'AggregateRating',
+					'ratingValue' => round( array_sum( $ratings ) / count( $ratings ), 1 ),
+					'reviewCount' => count( $ratings ),
+					'bestRating'  => 5,
+				);
+			}
+			$out['jsonld'][] = $item;
+		}
+	} elseif ( preg_match( '#^/collections/([^/]+)$#', $path, $m ) ) {
+		$name               = ucwords( str_replace( '-', ' ', sanitize_title( $m[1] ) ) );
+		$out['title']       = $name . ' — ' . $site;
+		$out['description'] = $name . ' by Rfaheya: inspired fragrances, made to be tried and loved.';
+		$crumbs[]           = array( 'Collections', home_url( '/collections' ) );
+		$crumbs[]           = array( $name, home_url( $path ) );
+	} elseif ( preg_match( '#^/journal/([^/]+)$#', $path, $m ) ) {
+		$post = get_page_by_path( sanitize_title( $m[1] ), OBJECT, 'post' );
+		if ( $post && 'publish' === $post->post_status ) {
+			$out['title']       = get_the_title( $post ) . ' — Rfaheya Journal';
+			$out['description'] = rfaheya_seo_text( $post->post_excerpt ? $post->post_excerpt : $post->post_content );
+			$out['image']       = get_the_post_thumbnail_url( $post, 'large' ) ? get_the_post_thumbnail_url( $post, 'large' ) : $out['image'];
+			$out['type']        = 'article';
+			$crumbs[]           = array( 'Journal', home_url( '/journal' ) );
+			$crumbs[]           = array( get_the_title( $post ), home_url( $path ) );
+		}
+	} elseif ( preg_match( '#^/([^/]+)$#', $path, $m ) && ! $out['noindex'] ) {
+		$page = get_page_by_path( sanitize_title( $m[1] ) );
+		if ( $page && 'publish' === $page->post_status ) {
+			$out['title']       = get_the_title( $page ) . ' — ' . $site;
+			$out['description'] = rfaheya_seo_text( $page->post_excerpt ? $page->post_excerpt : $page->post_content );
+			$crumbs[]           = array( get_the_title( $page ), home_url( $path ) );
+		}
+	}
+	if ( count( $crumbs ) > 1 ) {
+		$out['jsonld'][] = array(
+			'@context'        => 'https://schema.org',
+			'@type'           => 'BreadcrumbList',
+			'itemListElement' => array_map(
+				fn( $c, $i ) => array( '@type' => 'ListItem', 'position' => $i + 1, 'name' => $c[0], 'item' => $c[1] ),
+				$crumbs,
+				array_keys( $crumbs )
+			),
+		);
+	}
+	return $out;
+}
+
+/** Puts a page's search and sharing details into the storefront's HTML. */
+function rfaheya_seo_apply( $html, $path, $data ) {
+	$seo   = rfaheya_seo_for( $path, $data );
+	$canon = home_url( '/' === $path ? '/' : rtrim( $path, '/' ) );
+	$html  = preg_replace( '#<title>.*?</title>#s', '<title>' . esc_html( $seo['title'] ) . '</title>', $html, 1 );
+	$html  = preg_replace( '#<meta name="description" content="[^"]*"\s*/?>#', '<meta name="description" content="' . esc_attr( $seo['description'] ) . '">', $html, 1 );
+	$head  = '<link rel="canonical" href="' . esc_url( $canon ) . '">';
+	if ( $seo['noindex'] ) {
+		$head .= '<meta name="robots" content="noindex, follow">';
+	}
+	$head .= '<meta property="og:site_name" content="Rfaheya">';
+	$head .= '<meta property="og:type" content="' . esc_attr( 'product' === $seo['type'] ? 'product' : ( 'article' === $seo['type'] ? 'article' : 'website' ) ) . '">';
+	$head .= '<meta property="og:title" content="' . esc_attr( $seo['title'] ) . '">';
+	$head .= '<meta property="og:description" content="' . esc_attr( $seo['description'] ) . '">';
+	$head .= '<meta property="og:url" content="' . esc_url( $canon ) . '">';
+	if ( $seo['image'] ) {
+		$head .= '<meta property="og:image" content="' . esc_url( $seo['image'] ) . '"><meta name="twitter:card" content="summary_large_image">';
+	}
+	foreach ( $seo['jsonld'] as $ld ) {
+		$head .= '<script type="application/ld+json">' . wp_json_encode( array_filter( $ld, fn( $v ) => null !== $v ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>';
+	}
+	return str_replace( '</head>', $head . '</head>', $html );
+}
+
+// robots.txt (routed to WordPress by .htaccess): private pages out, the sitemap in.
+add_filter(
+	'robots_txt',
+	function ( $output, $public ) {
+		if ( ! $public ) {
+			return $output; // Settings → Reading → "Discourage search engines" is on.
+		}
+		$lines = array(
+			'User-agent: *',
+			'Allow: /',
+			'Disallow: /wp-admin/',
+			'Allow: /wp-admin/admin-ajax.php',
+			'Disallow: /account',
+			'Disallow: /checkout',
+			'Disallow: /cart',
+			'Disallow: /wishlist',
+			'Disallow: /my-account/',
+			'Disallow: /*?add-to-cart=',
+			'',
+			'Sitemap: ' . home_url( '/sitemap.xml' ),
+		);
+		return implode( "\n", $lines ) . "\n";
+	},
+	99,
+	2
+);
+
+// WordPress's own sitemap lists WordPress addresses, not the storefront's: ours replaces it.
+add_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+/** /sitemap.xml: every storefront page search engines should know about. */
+function rfaheya_sitemap() {
+	list( $data ) = rfaheya_bootstrap_ready();
+	$urls = array();
+	foreach ( array( '/', '/shop', '/collections', '/collections/discovery-sets', '/collections/gift-boxes', '/finder', '/reviews', '/about', '/contact', '/faqs', '/our-standard', '/journal' ) as $p ) {
+		$urls[ home_url( $p ) ] = '';
+	}
+	foreach ( isset( $data['products'] ) ? $data['products'] : array() as $p ) {
+		if ( ! empty( $p['slug'] ) ) {
+			$urls[ home_url( '/product/' . $p['slug'] ) ] = '';
+		}
+	}
+	foreach ( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 200 ) ) as $post ) {
+		$urls[ home_url( '/journal/' . $post->post_name ) ] = get_post_modified_time( 'c', true, $post );
+	}
+	foreach ( get_pages( array( 'post_status' => 'publish' ) ) as $page ) {
+		if ( ! rfaheya_seo_private( '/' . $page->post_name ) && ! in_array( $page->post_name, array( 'shop', 'cart', 'checkout', 'my-account' ), true ) ) {
+			$urls[ home_url( '/' . $page->post_name ) ] = get_post_modified_time( 'c', true, $page );
+		}
+	}
+	while ( ob_get_level() > 0 ) {
+		ob_end_clean();
+	}
+	header( 'Content-Type: application/xml; charset=utf-8' );
+	header( 'Cache-Control: public, max-age=3600' );
+	echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n" . '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+	foreach ( $urls as $loc => $modified ) {
+		echo '<url><loc>' . esc_url( $loc ) . '</loc>' . ( $modified ? '<lastmod>' . esc_html( $modified ) . '</lastmod>' : '' ) . "</url>\n";
+	}
+	echo '</urlset>';
+	exit;
+}
+
+add_action(
+	'wp_loaded',
+	function () {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only
+		if ( isset( $_GET['rfaheya_sitemap'] ) && ! is_admin() ) {
+			rfaheya_sitemap();
+		}
+	},
+	98
 );
 
 /* -------------------------------------------------------------------------

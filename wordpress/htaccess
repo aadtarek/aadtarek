@@ -60,6 +60,10 @@ RewriteRule ^(my-account|checkout/order-pay|wc-api|wp-sitemap|feed)(/|\.|$) inde
 RewriteCond %{QUERY_STRING} (^|&)(rest_route|wc-api|wc-ajax|preview|p|page_id|post_type|s|customize_changeset_uuid)= [NC]
 RewriteRule ^ index.php [L]
 
+# robots.txt and the sitemap come from WordPress (they list the storefront's pages)
+RewriteRule ^robots\.txt$ index.php?robots=1 [QSA,L]
+RewriteRule ^sitemap\.xml$ index.php?rfaheya_sitemap=1 [QSA,L]
+
 # Home page -> storefront page shell, served by WordPress with the shop data
 # (and the page's main image) already inside, for a fast first view.
 RewriteRule ^$ index.php?rfaheya_shell=1 [QSA,L]

@@ -1,6 +1,7 @@
 import { ArrowRight, ChevronLeft, ChevronRight, Heart, Minus, Play, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { usePageTitle } from '../lib/usePageTitle'
 import {
   composition,
   familyName,
@@ -78,6 +79,7 @@ function ProductDetails({ product }: { product: Product }) {
   const [reviews, setReviews] = useState<Review[]>([])
   const [videoOpen, setVideoOpen] = useState<number | null>(null)
   const buyBox = useRef<HTMLDivElement>(null)
+  usePageTitle(`${product.name}${product.tagline ? ` — ${product.tagline}` : ''} | Rfaheya`)
   const [showSticky, setShowSticky] = useState(false)
 
   const variation = product.variations.find((v) => v.id === variationId)!

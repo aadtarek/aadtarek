@@ -12,6 +12,7 @@ import { flyToCart } from '../lib/fx'
 import { useCart } from '../store/cart'
 import type { Product } from '../types'
 import collectionsImage from '../assets/categories/oriental.webp'
+import { usePageTitle } from '../lib/usePageTitle'
 import { NotFound } from './NotFound'
 
 export function CollectionsIndex() {
@@ -53,6 +54,7 @@ export function CollectionsIndex() {
 export function CollectionPage() {
   const { slug = '' } = useParams()
   const c = findCollection(slug)
+  usePageTitle(c ? `${c.name} — Rfaheya` : undefined)
   if (!c) return <NotFound />
 
   return (
