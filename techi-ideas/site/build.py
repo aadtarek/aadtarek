@@ -27,6 +27,8 @@ html = html.replace('<link rel="stylesheet" href="styles.css">', '<style>\n' + r
 html = re.sub(r'src="img/([^"]+)"', lambda m: f'src="{imgs[m.group(1)]}"', html)
 inline = {
     'data.js': read('data.js'),
+    'i18n.js': read('i18n.js'),
+    'bgmesh.js': read('bgmesh.js'),
     'three-home.js': read('three-home.js'),
     'app.js': 'window.TECHI_IMG=' + json.dumps(imgs) + ';\n' + read('app.js'),
 }

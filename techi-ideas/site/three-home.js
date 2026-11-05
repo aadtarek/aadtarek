@@ -370,17 +370,17 @@ function drawTV(){
 function drawPanel(){
   const g=panelCanvas.getContext("2d"),w=640,h=400;
   g.fillStyle="#0E1520";g.fillRect(0,0,w,h);
-  g.direction="rtl";g.textAlign="right";
-  g.fillStyle="#E9EEF4";g.font="700 34px 'Readex Pro',sans-serif";g.fillText("بيتي",w-28,56);
+  g.direction=LANG==="en"?"ltr":"rtl";g.textAlign="right";
+  g.fillStyle="#E9EEF4";g.font="700 34px 'Readex Pro',sans-serif";g.fillText(TR("بيتي","My home"),w-28,56);
   g.fillStyle="#9AA6B6";g.font="500 22px 'IBM Plex Sans Arabic',sans-serif";
-  g.fillText(A.dayT?"نهار · 31°":"بالليل · 27°",w-28,90);
+  g.fillText(A.dayT?TR("نهار · 31°","Day · 31°"):TR("بالليل · 27°","Night · 27°"),w-28,90);
   g.textAlign="left";g.direction="ltr";g.fillStyle="#E9EEF4";g.font="700 40px 'Readex Pro',sans-serif";g.fillText(A.dayT?"02:15":"09:40",28,60);
   const on=Object.values(S.light).filter(Boolean).length;
-  const tiles=[["النور",on?on+" شغالين":"مطفي",on>0],["الستاير",(S.curtain.living||S.curtain.bed)?"مفتوحة":"مقفولة",S.curtain.living||S.curtain.bed],
-    ["الباب",S.locked?"مقفول":"مفتوح",!S.locked],["التكييف",S.ac?"24°":"مطفي",S.ac],["الغاز",S.gas?"تسريب!":"آمن",S.gas],["المية",S.valveOpen?"مفتوحة":"مقفولة",S.valveOpen]];
-  g.direction="rtl";g.textAlign="right";
+  const tiles=[[TR("النور","Lights"),on?on+TR(" شغالين"," on"):TR("مطفي","Off"),on>0],[TR("الستاير","Curtains"),(S.curtain.living||S.curtain.bed)?TR("مفتوحة","Open"):TR("مقفولة","Closed"),S.curtain.living||S.curtain.bed],
+    [TR("الباب","Door"),S.locked?TR("مقفول","Locked"):TR("مفتوح","Open"),!S.locked],[TR("التكييف","AC"),S.ac?"24°":TR("مطفي","Off"),S.ac],[TR("الغاز","Gas"),S.gas?TR("تسريب!","Leak!"):TR("آمن","Safe"),S.gas],[TR("المية","Water"),S.valveOpen?TR("مفتوحة","Open"):TR("مقفولة","Closed"),S.valveOpen]];
+  g.direction=LANG==="en"?"ltr":"rtl";g.textAlign="right";
   tiles.forEach((t,i)=>{const col=i%3,row=Math.floor(i/3),tw=184,th=118,x=w-28-tw-col*(tw+14),y=120+row*(th+14);
-    const alert=t[0]==="الغاز"&&S.gas;
+    const alert=i===4&&S.gas;
     g.fillStyle=alert?"#D9372B":t[2]?"#F2A93B":"#1B2533";g.beginPath();g.roundRect?g.roundRect(x,y,tw,th,16):g.rect(x,y,tw,th);g.fill();
     g.fillStyle=t[2]||alert?"#141B26":"#E9EEF4";if(alert)g.fillStyle="#fff";
     g.font="600 26px 'IBM Plex Sans Arabic',sans-serif";g.fillText(t[0],x+tw-16,y+44);
@@ -409,20 +409,20 @@ function pulseAt(v){ripple.position.set(v.x,0.02,v.z);rippleT=0;}
 
 /* ============ devices ============ */
 const D=[
- {id:"light_living",room:"الصالة",name:"سويتش النور",wall:null,pos:[-3.1,2.35,-1.4],cam:[2.8,2.4,4]},
- {id:"curtain_living",room:"الصالة",name:"سويتش الستارة",wall:"back",pos:[-3,2.6,-3.8],cam:[1.8,1.2,5.2]},
- {id:"ac",room:"الصالة",name:"ريموت التكييف IR",wall:"back",pos:[0,2.62,-3.75],cam:[.5,.6,5.5]},
- {id:"socket",room:"الصالة",name:"البريزة السمارت",wall:"left",pos:[-5.9,0.55,-0.15],cam:[4.2,1.2,1.2]},
- {id:"hub",room:"الصالة",name:"Zigbee Hub",wall:null,pos:[-5.68,0.7,-2.2],cam:[4.5,3.6,3.2]},
- {id:"echo",room:"الصالة",name:"Echo Dot",wall:null,pos:[-1.4,0.85,0.25],cam:[2,1.4,2.6]},
- {id:"panel",room:"الصالة",name:"شاشة التحكم",wall:"left",pos:[-5.9,1.7,0.9],cam:[3,.6,.4]},
- {id:"lock",room:"المدخل",name:"الكالون الذكي",wall:"left",pos:[-5.9,1.35,2.85],look:[-5,1,2.4],lookCam:[0.2,3.6,7.2]},
- {id:"motion",room:"المدخل",name:"حساس الحركة",wall:"left",pos:[-5.9,2.75,3.75],look:[-4.4,0.9,2.4],lookCam:[0.6,5.2,8]},
- {id:"gas",room:"المطبخ",name:"حساس الغاز",wall:"back",pos:[5.0,1.62,-3.85],cam:[-.6,1.1,3.8]},
- {id:"valve",room:"المطبخ",name:"محبس المياه",wall:"back",pos:[2.25,1.55,-3.85],cam:[.6,.9,3.6]},
- {id:"light_kitchen",room:"المطبخ",name:"نور المطبخ",wall:null,pos:[3.4,2.2,-1.75],cam:[1.8,2.2,4]},
- {id:"light_bedroom",room:"أوضة النوم",name:"نور أوضة النوم",wall:null,pos:[2.2,1.15,.45],cam:[-1.4,2.2,3.4]},
- {id:"curtain_bed",room:"أوضة النوم",name:"ستارة أوضة النوم",wall:"right",pos:[5.84,2.65,2],cam:[-4,1,.4]}
+ {id:"light_living",room:["الصالة","Living"],name:["سويتش النور","Light switch"],wall:null,pos:[-3.1,2.35,-1.4],cam:[2.8,2.4,4]},
+ {id:"curtain_living",room:["الصالة","Living"],name:["سويتش الستارة","Curtain switch"],wall:"back",pos:[-3,2.6,-3.8],cam:[1.8,1.2,5.2]},
+ {id:"ac",room:["الصالة","Living"],name:["ريموت التكييف IR","AC IR remote"],wall:"back",pos:[0,2.62,-3.75],cam:[.5,.6,5.5]},
+ {id:"socket",room:["الصالة","Living"],name:["البريزة السمارت","Smart socket"],wall:"left",pos:[-5.9,0.55,-0.15],cam:[4.2,1.2,1.2]},
+ {id:"hub",room:["الصالة","Living"],name:["Zigbee Hub","Zigbee Hub"],wall:null,pos:[-5.68,0.7,-2.2],cam:[4.5,3.6,3.2]},
+ {id:"echo",room:["الصالة","Living"],name:["Echo Dot","Echo Dot"],wall:null,pos:[-1.4,0.85,0.25],cam:[2,1.4,2.6]},
+ {id:"panel",room:["الصالة","Living"],name:["شاشة التحكم","Control panel"],wall:"left",pos:[-5.9,1.7,0.9],cam:[3,.6,.4]},
+ {id:"lock",room:["المدخل","Entrance"],name:["الكالون الذكي","Smart lock"],wall:"left",pos:[-5.9,1.35,2.85],look:[-5,1,2.4],lookCam:[0.2,3.6,7.2]},
+ {id:"motion",room:["المدخل","Entrance"],name:["حساس الحركة","Motion sensor"],wall:"left",pos:[-5.9,2.75,3.75],look:[-4.4,0.9,2.4],lookCam:[0.6,5.2,8]},
+ {id:"gas",room:["المطبخ","Kitchen"],name:["حساس الغاز","Gas sensor"],wall:"back",pos:[5.0,1.62,-3.85],cam:[-.6,1.1,3.8]},
+ {id:"valve",room:["المطبخ","Kitchen"],name:["محبس المياه","Water valve"],wall:"back",pos:[2.25,1.55,-3.85],cam:[.6,.9,3.6]},
+ {id:"light_kitchen",room:["المطبخ","Kitchen"],name:["نور المطبخ","Kitchen lights"],wall:null,pos:[3.4,2.2,-1.75],cam:[1.8,2.2,4]},
+ {id:"light_bedroom",room:["أوضة النوم","Bedroom"],name:["نور أوضة النوم","Bedroom lamps"],wall:null,pos:[2.2,1.15,.45],cam:[-1.4,2.2,3.4]},
+ {id:"curtain_bed",room:["أوضة النوم","Bedroom"],name:["ستارة أوضة النوم","Bedroom curtain"],wall:"right",pos:[5.84,2.65,2],cam:[-4,1,.4]}
 ];
 D.forEach((p,i)=>{p.n=i+1;p.v=new THREE.Vector3(...p.pos);});
 const byId=Object.fromEntries(D.map(p=>[p.id,p]));
@@ -436,14 +436,18 @@ clickMap.forEach(([o,id])=>o.traverse(c=>c.userData.pid=id));
 walls.back.attached.forEach(g=>g.traverse(c=>{if(c.material===mat.curtain)c.userData.pid="curtain_living";}));
 walls.right.attached.forEach(g=>g.traverse(c=>{if(c.material===mat.curtain)c.userData.pid="curtain_bed";}));
 
+/* ============ language ============ */
+let LANG=(window.TECHI_LANG==="en")?"en":"ar";
+const TR=(a,e)=>LANG==="en"?e:a;
+const L=v=>Array.isArray(v)?(LANG==="en"?v[1]:v[0]):v;
 /* ============ host wiring ============ */
 let host=null,pinsEl=null,listeners=[],running=false,visible=true;
 const emit=(id,did)=>listeners.forEach(f=>f(id,did,S));
 function notify(msg,alert){window.dispatchEvent(new CustomEvent("techi:notify",{detail:{msg,alert:!!alert}}));}
 function buildPins(){
   pinsEl=document.createElement("div");pinsEl.className="t3d-pins";
-  D.forEach(p=>{const b=document.createElement("button");b.className="t3d-pin";b.dataset.id=p.id;b.setAttribute("aria-label",p.name);
-    b.innerHTML=`<i>${p.n}</i><span>${p.name}</span>`;b.addEventListener("click",e=>{e.stopPropagation();activate(p.id,true);});pinsEl.appendChild(b);p.el=b;});
+  D.forEach(p=>{const b=document.createElement("button");b.className="t3d-pin";b.dataset.id=p.id;b.setAttribute("aria-label",L(p.name));
+    b.innerHTML=`<i>${p.n}</i><span>${L(p.name)}</span>`;b.addEventListener("click",e=>{e.stopPropagation();activate(p.id,true);});pinsEl.appendChild(b);p.el=b;});
 }
 buildPins();
 
@@ -467,25 +471,25 @@ async function personEnter(token){
   S.doorOpen=false;await wait(600);S.locked=true;drawPanel();emit(null,"");
 }
 const ACT={
-  light_living(){S.light.living^=1;return S.light.living?"نور الصالة ولّع":"نور الصالة طفى";},
-  light_kitchen(){S.light.kitchen^=1;return S.light.kitchen?"نور المطبخ والسفرة ولّع":"نور المطبخ طفى";},
-  light_bedroom(){S.light.bedroom^=1;return S.light.bedroom?"الأباجورات ولّعت":"الأباجورات طفت";},
-  curtain_living(){S.curtain.living^=1;return S.curtain.living?"الستارة بتفتح":"الستارة بتقفل";},
-  curtain_bed(){S.curtain.bed^=1;return S.curtain.bed?"ستارة أوضة النوم بتفتح":"ستارة أوضة النوم بتقفل";},
-  ac(){S.ac=!S.ac;if(S.ac)notify("التكييف اشتغل على 24°");return S.ac?"التكييف اشتغل، والريشة فتحت والهوا طالع":"التكييف طفى";},
-  socket(){S.tv=!S.tv;return S.tv?"البريزة اشتغلت والتلفزيون فتح":"البريزة فصلت والتلفزيون طفى";},
-  hub(){S.hub=6;return "الـ Hub بيكلم الحساسات والكالون والستاير والشاشة";},
-  echo(){S.echo=2.8;notify("Alexa: تصبح على خير");setTimeout(()=>runScene("sleep",true),1300);return "قلت \"أليكسا تصبح على خير\"، والبيت بيجهز للنوم";},
-  panel(){S.hub=3;return "الشاشة بتعرض حالة البيت كله وبتتحدث مع كل جهاز";},
+  light_living(){S.light.living^=1;return S.light.living?TR("نور الصالة ولّع","Living-room lights on"):TR("نور الصالة طفى","Living-room lights off");},
+  light_kitchen(){S.light.kitchen^=1;return S.light.kitchen?TR("نور المطبخ والسفرة ولّع","Kitchen and dining lights on"):TR("نور المطبخ طفى","Kitchen lights off");},
+  light_bedroom(){S.light.bedroom^=1;return S.light.bedroom?TR("الأباجورات ولّعت","Bedside lamps on"):TR("الأباجورات طفت","Bedside lamps off");},
+  curtain_living(){S.curtain.living^=1;return S.curtain.living?TR("الستارة بتفتح","Curtain opening"):TR("الستارة بتقفل","Curtain closing");},
+  curtain_bed(){S.curtain.bed^=1;return S.curtain.bed?TR("ستارة أوضة النوم بتفتح","Bedroom curtain opening"):TR("ستارة أوضة النوم بتقفل","Bedroom curtain closing");},
+  ac(){S.ac=!S.ac;if(S.ac)notify(TR("التكييف اشتغل على 24°","AC on at 24°"));return S.ac?TR("التكييف اشتغل، والريشة فتحت والهوا طالع","AC on: the flap opens and cool air flows"):TR("التكييف طفى","AC off");},
+  socket(){S.tv=!S.tv;return S.tv?TR("البريزة اشتغلت والتلفزيون فتح","Socket on, the TV powers up"):TR("البريزة فصلت والتلفزيون طفى","Socket off, the TV shuts down");},
+  hub(){S.hub=6;return TR("الـ Hub بيكلم الحساسات والكالون والستاير والشاشة","The hub talks to the sensors, lock, curtains and panel");},
+  echo(){S.echo=2.8;notify(TR("Alexa: تصبح على خير","Alexa: good night"));setTimeout(()=>runScene("sleep",true),1300);return TR("قلت \"أليكسا تصبح على خير\"، والبيت بيجهز للنوم","You said \"Alexa, good night\" and the home gets ready for sleep");},
+  panel(){S.hub=3;return TR("الشاشة بتعرض حالة البيت كله وبتتحدث مع كل جهاز","The panel shows the whole home and updates with every device");},
   lock(){
-    if(S.locked){S.locked=false;S.doorOpen=true;notify("الباب اتفتح ببصمة الوش");return "الكالون فتح ببصمة الوش والباب اتفتح";}
-    S.doorOpen=false;setTimeout(()=>{S.locked=true;drawPanel();emit(null,"");},700);notify("الباب اتقفل");return "الباب اتقفل والكالون قفل لوحده";},
-  motion(){const tk=++walkToken;S.motion=1;personEnter(tk);notify("حركة في المدخل، النور ولّع");return "حد دخل من الباب، والحساس ولّع نور المدخل لوحده";},
+    if(S.locked){S.locked=false;S.doorOpen=true;notify(TR("الباب اتفتح ببصمة الوش","Door unlocked by face ID"));return TR("الكالون فتح ببصمة الوش والباب اتفتح","Face ID unlocked the door and it opens");}
+    S.doorOpen=false;setTimeout(()=>{S.locked=true;drawPanel();emit(null,"");},700);notify(TR("الباب اتقفل","Door locked"));return TR("الباب اتقفل والكالون قفل لوحده","The door closes and locks itself");},
+  motion(){const tk=++walkToken;S.motion=1;personEnter(tk);notify(TR("حركة في المدخل، النور ولّع","Motion at the entrance, lights on"));return TR("حد دخل من الباب، والحساس ولّع نور المدخل لوحده","Someone walks in and the sensor turns the hall light on");},
   gas(){
-    if(S.gas){S.gas=false;return "رجعنا الوضع الطبيعي";}
-    S.gas=true;S.valveOpen=false;S.waterRun=false;notify("⚠ تسريب غاز في المطبخ، ومحبس المية اتقفل",true);
-    return "إنذار أحمر، وتنبيه على الموبايل، والمحبس اتقفل لوحده";},
-  valve(){S.valveOpen=!S.valveOpen;S.waterRun=S.valveOpen;notify(S.valveOpen?"محبس المية اتفتح":"محبس المية اتقفل من الموبايل");return S.valveOpen?"المحبس فتح والمية رجعت":"المحبس لف واتقفل، والمية وقفت";}
+    if(S.gas){S.gas=false;return TR("رجعنا الوضع الطبيعي","Back to normal");}
+    S.gas=true;S.valveOpen=false;S.waterRun=false;notify(TR("⚠ تسريب غاز في المطبخ، ومحبس المية اتقفل","⚠ Gas leak in the kitchen. Water valve closed"),true);
+    return TR("إنذار أحمر، وتنبيه على الموبايل، والمحبس اتقفل لوحده","Red alarm, a phone alert, and the valve shuts itself");},
+  valve(){S.valveOpen=!S.valveOpen;S.waterRun=S.valveOpen;notify(S.valveOpen?TR("محبس المية اتفتح","Water valve opened"):TR("محبس المية اتقفل من الموبايل","Water valve closed from the app"));return S.valveOpen?TR("المحبس فتح والمية رجعت","Valve open, water flows again"):TR("المحبس لف واتقفل، والمية وقفت","The valve turns shut and the water stops");}
 };
 function activate(id,moveCam){
   const p=byId[id];if(!p)return;
@@ -498,13 +502,13 @@ async function runScene(name,fromEcho){
   homeView();
   if(name==="sleep"){
     Object.assign(S.light,{living:0,kitchen:0,hall:0});S.tv=false;S.curtain.living=0;S.curtain.bed=0;S.doorOpen=false;S.locked=true;S.ac=true;
-    drawPanel();emit(null,"وضع النوم");await wait(1600);S.light.bedroom=0;drawPanel();emit(null,"");
-    if(!fromEcho)notify("وضع النوم: كله طفى، والباب اتقفل، والتكييف على 24°");
+    drawPanel();emit(null,"");await wait(1600);S.light.bedroom=0;drawPanel();emit(null,"");
+    if(!fromEcho)notify(TR("وضع النوم: كله طفى، والباب اتقفل، والتكييف على 24°","Sleep mode: lights off, door locked, AC at 24°"));
   }else if(name==="away"){
     Object.assign(S.light,{living:0,kitchen:0,bedroom:0,hall:0});S.tv=false;S.ac=false;S.curtain.living=0;S.curtain.bed=0;S.doorOpen=false;S.locked=true;S.valveOpen=false;S.waterRun=false;
-    person.visible=false;walkToken++;drawPanel();emit(null,"");notify("خرجت من البيت: كله طفى، والباب مقفول، والمحبس مقفول");
+    person.visible=false;walkToken++;drawPanel();emit(null,"");notify(TR("خرجت من البيت: كله طفى، والباب مقفول، والمحبس مقفول","Away: everything off, door locked, water shut"));
   }else if(name==="home"){
-    S.ac=true;S.light.living=1;S.light.kitchen=1;S.curtain.living=1;drawPanel();emit(null,"");notify("قرّبت من البيت: التكييف اشتغل والنور ولّع");
+    S.ac=true;S.light.living=1;S.light.kitchen=1;S.curtain.living=1;drawPanel();emit(null,"");notify(TR("قرّبت من البيت: التكييف اشتغل والنور ولّع","Almost home: AC on, lights on"));
     await wait(1200);const tk=++walkToken;S.motion=1;personEnter(tk);
   }
 }
@@ -600,7 +604,8 @@ window.TechiHome={
   unmount(){if(host){ro.unobserve(host);io.unobserve(host);}host=null;running=false;},
   activate,runScene,setDay,home:()=>homeView(),
   on(f){listeners.push(f);return()=>{listeners=listeners.filter(x=>x!==f);};},
-  devices:D.map(p=>({id:p.id,room:p.room,name:p.name,n:p.n})),
+  get devices(){return D.map(p=>({id:p.id,room:L(p.room),name:L(p.name),n:p.n}));},
+  setLang(l){LANG=l==="en"?"en":"ar";D.forEach(p=>{p.el.setAttribute("aria-label",L(p.name));p.el.querySelector("span").textContent=L(p.name);});drawPanel();},
   state:S
 };
 })();
