@@ -1,0 +1,98 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { gsap } from "gsap";
+import { I18N } from "./data/i18n.js";
+import { byId, img, L, reduceMotion } from "./lib/util.js";
+import { getHome } from "./lib/home3d.js";
+
+const Ctx = createContext(null);
+export const useApp = () => useContext(Ctx);
+
+const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } };
+const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+
+export function AppProvider({ children }) {
+  /* ---------- language ---------- */
+  const [lang, setLangState] = useState(() => read("techi-lang-v", "ar"));
+  const t = useCallback((k) => I18N[lang][k], [lang]);
+  const fields = useMemo(() => L(lang), [lang]);
+  const dir = lang === "en" ? -1 : 1;
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
+    window.TECHI_LANG = lang;
+    write("techi-lang-v", lang);
+    const h = getHome();
+    if (h && h.setLang) h.setLang(lang);
+  }, [lang]);
+
+  /* ---------- shared refs: mesh background + smooth scroll ---------- */
+  const bg = useRef(null);
+  const lenis = useRef(null);
+
+  /* ---------- toasts ---------- */
+  const [toasts, setToasts] = useState([]);
+  const toast = useCallback((title, body, image, alert) => {
+    const id = Math.random().toString(36).slice(2);
+    setToasts((x) => [{ id, title, body, image, alert }, ...x].slice(0, 4));
+    setTimeout(() => setToasts((x) => x.filter((i) => i.id !== id)), 3900);
+  }, []);
+
+  /* ---------- cart ---------- */
+  const [cart, setCart] = useState(() => read("techi-cart", []).filter((i) => byId[i.id]));
+  const [cartOpen, setCartOpen] = useState(false);
+  useEffect(() => write("techi-cart", cart), [cart]);
+  const flyToCart = useCallback((fromEl, p) => {
+    if (reduceMotion() || !fromEl) return;
+    const s = fromEl.closest(".card,.pp,.dev-card,.xp-item,.slide,.suite")?.querySelector("img") || fromEl;
+    const target = document.getElementById("cartBtn");
+    if (!target) return;
+    const a = s.getBoundingClientRect(), b = target.getBoundingClientRect();
+    const f = document.createElement("img"); f.src = img(p); f.className = "flyimg"; const sz = Math.min(a.width, 170);
+    Object.assign(f.style, { width: sz + "px", height: sz + "px", left: a.left + (a.width - sz) / 2 + "px", top: a.top + (a.height - sz) / 2 + "px" });
+    document.body.appendChild(f);
+    const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2);
+    gsap.timeline({ onComplete: () => f.remove() })
+      .to(f, { x: dx * 0.4, y: dy * 0.4 - 160, scale: 0.75, rotation: -14, duration: 0.5, ease: "power2.out" })
+      .to(f, { x: dx, y: dy, scale: 0.1, rotation: 0, opacity: 0.3, duration: 0.5, ease: "power3.in" });
+  }, []);
+  const addToCart = useCallback((id, qty = 1, fromEl) => {
+    setCart((c) => { const it = c.find((i) => i.id === id); return it ? c.map((i) => (i.id === id ? { ...i, qty: i.qty + qty } : i)) : [...c, { id, qty }]; });
+    const p = byId[id];
+    flyToCart(fromEl, p);
+    toast(I18N[lang].added_toast, fields.nm(p), img(p));
+    gsap.fromTo("#cartCount", { scale: 1 }, { scale: 1.5, duration: 0.2, yoyo: true, repeat: 1 });
+    if (bg.current && !reduceMotion()) gsap.fromTo(bg.current, { spin: 6 }, { spin: 1, duration: 2, ease: "power3.out" });
+  }, [flyToCart, toast, lang, fields]);
+  const setQty = useCallback((id, q) => setCart((c) => (q < 1 ? c.filter((i) => i.id !== id) : c.map((i) => (i.id === id ? { ...i, qty: q } : i)))), []);
+
+  /* 3D notifications become toasts */
+  useEffect(() => {
+    const f = (e) => toast(I18N[window.TECHI_LANG || "ar"].now, e.detail.msg, null, e.detail.alert);
+    window.addEventListener("techi:notify", f);
+    return () => window.removeEventListener("techi:notify", f);
+  }, [toast]);
+
+  /* ---------- "power cut" page transition ---------- */
+  const navigate = useNavigate();
+  const busy = useRef(false);
+  const wipe = useCallback((mid) => {
+    if (reduceMotion() || busy.current) { mid(); return; }
+    busy.current = true;
+    const t1 = document.querySelector("#tr .t1"), t2 = document.querySelector("#tr .t2"), ln = document.querySelector("#tr b");
+    gsap.timeline({ onComplete: () => { busy.current = false; } })
+      .to([t1, t2], { yPercent: 0, duration: 0.6, ease: "expo.inOut" })
+      .to(ln, { scaleX: 1, opacity: 1, duration: 0.35, ease: "power3.out" }, "-=.15")
+      .add(() => { mid(); if (lenis.current) lenis.current.scrollTo(0, { immediate: true }); else window.scrollTo(0, 0); })
+      .to(ln, { keyframes: [{ opacity: 0.2, duration: 0.05 }, { opacity: 1, duration: 0.05 }, { opacity: 0.4, duration: 0.06 }, { opacity: 1, duration: 0.08 }] })
+      .to(t1, { yPercent: -101, duration: 0.9, ease: "expo.inOut" }, "+=.1")
+      .to(t2, { yPercent: 101, duration: 0.9, ease: "expo.inOut" }, "<")
+      .to(ln, { scaleY: 40, opacity: 0, duration: 0.6, ease: "power2.out" }, "<")
+      .set(ln, { scaleX: 0, scaleY: 1 });
+  }, []);
+  const go = useCallback((to) => { setCartOpen(false); wipe(() => navigate(to)); }, [wipe, navigate]);
+  const setLang = useCallback((l) => wipe(() => setLangState(l)), [wipe]);
+
+  const value = { lang, setLang, t, f: fields, dir, bg, lenis, toast, toasts, cart, setQty, addToCart, cartOpen, setCartOpen, go };
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
