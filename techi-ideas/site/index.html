@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Techi Smart Home</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Techi: أجهزة البيت الذكي في مصر. سويتشات، شاشات تحكم، كوالين، وحساسات Zigbee بتركيب احترافي.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- preloader: the logo's network mark draws itself -->
+<div class="pre" id="pre" aria-hidden="true">
+  <div class="pre-in">
+    <svg id="preMark" viewBox="0 0 560 540" fill="none"></svg>
+    <div class="bar"><i id="preBar"></i></div>
+    <div class="pc"><span id="preNum">0</span>%</div>
+  </div>
+</div>
+
+<div class="wipe" id="wipe" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><div class="wlogo"><img src="img/logo-white.png" alt=""></div></div>
+<div class="cur" id="cur" aria-hidden="true"></div><div class="cur-ring" id="curRing" aria-hidden="true"></div>
+
+<header class="hdr" id="hdr">
+  <div class="wrap">
+    <a href="#home" aria-label="Techi الرئيسية"><img class="logo logo-w" src="img/logo-white.png" alt="Techi"><img class="logo logo-n" src="img/logo-navy.png" alt="Techi"></a>
+    <nav class="nav" aria-label="القائمة">
+      <a href="#home" data-r="home">الرئيسية</a>
+      <a href="#shop" data-r="shop">المتجر</a>
+      <a href="#bundles" data-r="bundles">الباقات</a>
+      <a href="#experience" data-r="experience">جرّب 3D</a>
+      <a href="#about" data-r="about">مين احنا</a>
+    </nav>
+    <div class="hdr-actions">
+      <button class="icon-btn" id="cartBtn" aria-label="السلة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8L5 7z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>
+        <span class="cart-count num" id="cartCount" hidden>0</span>
+      </button>
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="افتح القائمة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h16M4 16h10"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mmenu" id="mmenu" hidden>
+  <button class="icon-btn close-m" id="menuClose" aria-label="اقفل القائمة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <a href="#home"><span>الرئيسية</span></a><a href="#shop"><span>المتجر</span></a><a href="#bundles"><span>الباقات</span></a><a href="#experience"><span>جرّب 3D</span></a><a href="#about"><span>مين احنا</span></a>
+</div>
+
+<main id="app"></main>
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="fg">
+      <div>
+        <img src="img/logo-white.png" alt="Techi" style="height:34px;width:auto;margin-bottom:16px">
+        <p>أجهزة البيت الذكي بتركيب احترافي. Value Mall، التجمع الخامس، القاهرة الجديدة.</p>
+      </div>
+      <div><h5>المتجر</h5><a href="#shop-screens">شاشات التحكم</a><a href="#shop-switches">السويتشات والبرايز</a><a href="#shop-security">الأمان والحساسات</a><a href="#shop-voice">التحكم والصوت</a><a href="#bundles">الباقات</a></div>
+      <div><h5>Techi</h5><a href="#about">مين احنا</a><a href="#experience">جرّب البيت 3D</a><a href="https://techi-eg.com/" target="_blank" rel="noopener">الموقع الحالي</a></div>
+      <div><h5>تواصل</h5><a id="footWa" href="#" target="_blank" rel="noopener">واتساب</a><span>Value Mall · التجمع الخامس</span></div>
+    </div>
+    <div class="big-word">TECHI</div>
+    <div class="legal"><span>© <span id="yr"></span> Techi. All Rights Reserved.</span><span>Zigbee 3.0 · Tuya · Alexa · Google Home</span></div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="السلة" data-lenis-prevent>
+  <div class="dh"><h3>سلتك</h3><button class="x" id="drawerClose" aria-label="اقفل السلة"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="dl" id="cartList"></div>
+  <div class="df" id="cartFoot"></div>
+</aside>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/geometries/RoundedBoxGeometry.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/environments/RoomEnvironment.js"></script>
+<script src="data.js"></script>
+<script src="three-home.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
