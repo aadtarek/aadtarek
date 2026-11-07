@@ -6,6 +6,7 @@ import { CAT_IMG, CAT_KEYS, P, byId, catLink, fmt, img, isFine, off, pad, reduce
 import { ScrollTrigger, bgPlace, bgTo, flipIn, gsap, reveals } from "../lib/motion.js";
 import { createDeviceStage } from "../lib/devices3d.js";
 import H3D from "../components/H3D.jsx";
+import { HeroApp, HeroBento, HeroCinema, HeroSplit } from "./Heroes.jsx";
 
 const SPOT = [231855, 231759, 231737, 231916, 231686];
 const TABS = ["all", "screens", "switches", "security", "voice"];
@@ -103,6 +104,7 @@ function Hero3D() {
 }
 
 export default function Home() {
+  const hero = new URLSearchParams(window.location.search).get("hero") || "1";
   const { t, dir, bg } = useApp();
   const root = useRef(null), grid = useRef(null);
   const [tab, setTab] = useState("all");
@@ -154,6 +156,7 @@ export default function Home() {
   return (
     <div ref={root}>
       {/* ---------- HERO ---------- */}
+      {hero === "2" ? <HeroBento /> : hero === "3" ? <HeroCinema /> : hero === "4" ? <HeroSplit /> : hero === "5" ? <HeroApp /> : (
       <section className="hero2">
         <div className="wrap h-grid">
           <div className="h-copy">
@@ -168,7 +171,7 @@ export default function Home() {
           </div>
           <Hero3D />
         </div>
-      </section>
+      </section>)}
 
       {/* ---------- CATEGORIES ---------- */}
       <section className="sec2 tight">
