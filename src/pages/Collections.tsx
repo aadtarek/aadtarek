@@ -11,7 +11,7 @@ import { formatPrice } from '../lib/format'
 import { flyToCart } from '../lib/fx'
 import { useCart } from '../store/cart'
 import type { Product } from '../types'
-import collectionsImage from '../assets/categories/oriental.webp'
+import collectionsImage from '../assets/headers/collections.webp'
 import { usePageTitle } from '../lib/usePageTitle'
 import { NotFound } from './NotFound'
 

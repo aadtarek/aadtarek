@@ -6,7 +6,7 @@ import { isWoo } from '../api/wp'
 import { PageHeader } from '../components/PageHeader'
 import { PageLoading, WpHtml } from '../components/WpHtml'
 import { articles as demoArticles, findArticle, type Article as ArticleData } from '../data/journal'
-import journalImage from '../assets/cta.webp'
+import journalImage from '../assets/headers/journal.webp'
 import { NotFound } from './NotFound'
 
 const date = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })

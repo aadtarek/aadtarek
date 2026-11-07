@@ -1,6 +1,6 @@
-import { BadgePercent, PartyPopper, Truck, type LucideIcon } from 'lucide-react'
+import { BadgePercent, PartyPopper, ShoppingBag, Truck, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import { FREE_SHIPPING, SPEND_OFFER, spendDiscount } from '../config'
+import { FREE_SHIPPING, ORDER_MIN, SPEND_OFFER, spendDiscount } from '../config'
 import { confetti, haptic } from '../lib/fx'
 import { formatPrice } from '../lib/format'
 
@@ -17,6 +17,8 @@ interface Milestone {
  */
 export function OfferBar({ amount, className = '' }: { amount: number; className?: string }) {
   const milestones: Milestone[] = []
+  // The smallest order comes first on the bar.
+  if (ORDER_MIN.min > 0) milestones.push({ at: ORDER_MIN.min, Icon: ShoppingBag, label: 'Minimum order' })
   if (FREE_SHIPPING.enabled && FREE_SHIPPING.min > 0 && (!SPEND_OFFER.enabled || FREE_SHIPPING.min < SPEND_OFFER.min))
     milestones.push({ at: FREE_SHIPPING.min, Icon: Truck, label: 'Free shipping' })
   if (SPEND_OFFER.enabled && SPEND_OFFER.min > 0) milestones.push({ at: SPEND_OFFER.min, Icon: BadgePercent, label: `${SPEND_OFFER.percent}% off + free shipping` })
@@ -58,9 +60,14 @@ export function OfferBar({ amount, className = '' }: { amount: number; className
               You’ve unlocked <strong className="font-semibold text-ink">{SPEND_OFFER.percent}% off + free shipping</strong>
               {savings > 0 && <> — you save {formatPrice(savings)}</>}.
             </>
+          ) : next?.Icon === ShoppingBag ? (
+            <>
+              Add <strong className="font-semibold text-ink">{formatPrice(next.at - Math.max(0, amount))}</strong> more to reach the{' '}
+              <strong className="font-semibold text-ink">{formatPrice(next.at)} minimum order</strong>.
+            </>
           ) : next ? (
             <>
-              {reached > 0 && <strong className="font-semibold text-ink">Free shipping unlocked! </strong>}
+              {milestones[reached - 1]?.Icon === Truck && <strong className="font-semibold text-ink">Free shipping unlocked! </strong>}
               Add <strong className="font-semibold text-ink">{formatPrice(next.at - Math.max(0, amount))}</strong> more for{' '}
               <strong className="font-semibold text-ink">{next.Icon === Truck ? 'free shipping' : `${SPEND_OFFER.percent}% off + free shipping`}</strong>
               {next.Icon === Truck && ' in Cairo & Alexandria'}.

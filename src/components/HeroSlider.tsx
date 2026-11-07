@@ -1,17 +1,31 @@
 import { ArrowRight } from 'lucide-react'
 import { useEffect, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import oudEdit from '../assets/finder/landing-hero.webp'
-import offer from '../assets/about/hero.webp'
-import sample from '../assets/cta.webp'
+import obsidian from '../assets/slider/obsidian.webp'
+import obsidianClosed from '../assets/slider/obsidian-closed.webp'
+import obsidianMobile from '../assets/slider/obsidian-mobile.webp'
+import dynasty from '../assets/slider/dynasty.webp'
+import dynastyClosed from '../assets/slider/dynasty-closed.webp'
+import finder from '../assets/slider/finder.webp'
+import finderClosed from '../assets/slider/finder-closed.webp'
+import finderMobile from '../assets/slider/finder-mobile.webp'
 import { HERO_SLIDER, type HeroSlide } from '../config'
 import { haptic } from '../lib/fx'
 
-const slide = (image: string, position: string, eyebrow: string, title: string, text: string, button: string, link: string): HeroSlide & { position: string } => ({
+const slide = (
+  [image, closed, mobile]: [string, string, string],
+  position: string,
+  eyebrow: string,
+  title: string,
+  text: string,
+  button: string,
+  link: string,
+): HeroSlide & { position: string } => ({
   image,
+  closed,
   position,
   srcset: '',
-  mobile: '',
+  mobile,
   eyebrow,
   title,
   text,
@@ -21,16 +35,19 @@ const slide = (image: string, position: string, eyebrow: string, title: string, 
 
 /** Shown until slides are filled in the dashboard. */
 const BUILT_IN: (HeroSlide & { position?: string })[] = [
-  slide(oudEdit, '62% 50%', 'New season', 'The Oud Edit', 'Deep, warm and unforgettable — our richest scents for the cold nights.', 'Shop the edit', '/shop?family=oriental'),
-  slide(offer, '72% 50%', 'Limited offer', 'Spend more, save more', 'Free shipping over 1,200 EGP · 20% off + free shipping over 2,500 EGP.', 'Start shopping', '/shop'),
-  slide(sample, '68% 50%', 'Rfaheya sample', 'Try before you commit', 'Any fragrance in 5 ml for 35 EGP. Live with it, then choose your bottle.', 'Try 5 ml', '/finder'),
+  slide([obsidian, obsidianClosed, obsidianMobile], '62% 50%', 'New season', 'The Oud Edit', 'Deep, warm and unforgettable — our richest scents for the cold nights.', 'Shop the edit', '/shop?family=oriental'),
+  slide([dynasty, dynastyClosed, ''], '62% 50%', 'Limited offer', 'Spend more, save more', 'Free shipping over 1,200 EGP · 20% off + free shipping over 2,500 EGP.', 'Start shopping', '/shop'),
+  slide([finder, finderClosed, finderMobile], '62% 50%', 'Rfaheya Finder', 'Find your scent', 'Answer a few questions and meet the fragrance that feels like you.', 'Take the quiz', '/finder'),
 ]
 
 /** The dashboard's slides (those with a picture or a title); a slide without a picture borrows a built-in one. */
 export function heroSlides(): (HeroSlide & { position?: string })[] {
   const filled = HERO_SLIDER.slides.filter((s) => s.image || s.title.trim())
   if (filled.length === 0) return BUILT_IN
-  return filled.map((s, i) => (s.image ? s : { ...s, image: BUILT_IN[i % BUILT_IN.length].image }))
+  return filled.map((s, i) => {
+    const own = BUILT_IN[i % BUILT_IN.length]
+    return s.image ? s : { ...s, image: own.image, closed: s.closed || own.closed, mobile: s.mobile || own.mobile }
+  })
 }
 
 /**
@@ -84,6 +101,8 @@ export function HeroSlider() {
                   style={s.position ? { objectPosition: s.position } : undefined}
                 />
               </picture>
+              {/* Its own narrow picture while closed (computers) */}
+              {s.closed && <img src={s.closed} alt="" width={170} height={780} loading="lazy" className="rf-acc-closed" />}
               <span aria-hidden className="rf-acc-shade" />
               <span aria-hidden className="rf-acc-no">{String(i + 1).padStart(2, '0')}</span>
               {/* Closed: the whole panel opens it */}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { findProductById } from '../api/catalog'
 import { EmptyState, PageHeader, ghostButton, primaryButton } from '../components/PageHeader'
 import { ProductCard } from '../components/ProductCard'
-import wishImage from '../assets/categories/floral.webp'
+import wishImage from '../assets/headers/wishlist.webp'
 import { useWishlist } from '../store/wishlist'
 
 export function Wishlist() {

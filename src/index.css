@@ -1556,6 +1556,25 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
 .rf-acc-panel[data-on] .rf-acc-img {
   transform: none;
 }
+.rf-acc-closed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 1;
+  transition: opacity 0.5s ease 0.15s;
+  pointer-events: none;
+}
+.rf-acc-panel[data-on] .rf-acc-closed {
+  opacity: 0;
+  transition-delay: 0s;
+}
+@media (max-width: 767px) {
+  .rf-acc-closed {
+    display: none;
+  }
+}
 .rf-acc-shade {
   position: absolute;
   inset: 0;

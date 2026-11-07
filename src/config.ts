@@ -87,6 +87,8 @@ export interface HeroSlide {
   srcset: string
   /** Optional upright picture for phones */
   mobile: string
+  /** Optional narrow picture shown while the slide is closed (computers) */
+  closed?: string
   eyebrow: string
   title: string
   text: string
@@ -241,6 +243,7 @@ export function applyStoreSettings(settings: StoreSettings) {
         image: x.image ?? '',
         srcset: x.srcset ?? '',
         mobile: x.mobile ?? '',
+        closed: x.closed ?? '',
         eyebrow: x.eyebrow ?? '',
         title: x.title ?? '',
         text: x.text ?? '',
