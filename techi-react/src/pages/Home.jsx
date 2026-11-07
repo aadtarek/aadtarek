@@ -104,7 +104,7 @@ function Hero3D() {
 }
 
 export default function Home() {
-  const hero = new URLSearchParams(window.location.search).get("hero") || "1";
+  const hero = new URLSearchParams(window.location.search).get("hero") || "3";
   const { t, dir, bg } = useApp();
   const root = useRef(null), grid = useRef(null);
   const [tab, setTab] = useState("all");
