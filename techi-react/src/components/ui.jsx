@@ -4,6 +4,9 @@ import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "./Icons.jsx";
 import { D3MAP, byId, fmt, img, isFine, off, pad, reduceMotion, waLink } from "../lib/util.js";
 import { getHome } from "../lib/home3d.js";
+import { createTitle3D } from "../lib/devices3d.js";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import fontUrl from "three/examples/fonts/helvetiker_bold.typeface.json?url";
 
 /* link that plays the page transition */
 export function TLink({ to, children, onClick, ...rest }) {
@@ -44,9 +47,9 @@ export function ProductCard({ p }) {
   const [done, setDone] = useState(false);
   const o = off(p), alt = p.imgs.length > 1, inCart = cart.some((i) => i.id === p.id), out = p.inStock === false;
   return (
-    <article className={"pcard" + (alt ? " has-alt" : "")} data-id={p.id} data-cat={p.cat}>
-      <TLink className="pc-media" to={"/product/" + p.id} data-cursor={t("view")}>
-        {o > 0 && <span className="pc-off num">−{o}%</span>}
+    <article className={"pcard" + (alt ? " has-alt" : "")} data-id={p.id} data-cat={p.cat} data-tilt="9">
+      <TLink className="pc-media" to={"/product/" + p.id} data-cursor={t("view")} data-z="36">
+        {o > 0 && <span className="pc-off num" data-z="30">−{o}%</span>}<span className="pc-glare" />
         <img className="main" src={img(p)} alt={f.nm(p)} loading="lazy" />
         {alt && <img className="alt" src={img(p, 1)} alt="" loading="lazy" />}
       </TLink>
@@ -54,7 +57,7 @@ export function ProductCard({ p }) {
         <span className="pc-cat"><Icon name={CAT_ICON[p.cat]} />{t("cats")[p.cat]}</span>
         <h3><TLink to={"/product/" + p.id}>{f.nm(p)}</TLink></h3>
         <span className="pc-var">{f.vr(p)}</span>
-        <div className="pc-foot">
+        <div className="pc-foot" data-z="22">
           <div className="pc-price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
           <button className={"pc-add" + (done ? " done" : "") + (inCart && !done ? " in" : "")} disabled={out} aria-label={t("add") + ": " + f.nm(p)}
             onClick={(e) => { addToCart(p.id, 1, e.currentTarget); setDone(true); setTimeout(() => setDone(false), 1400); }}>
@@ -73,8 +76,8 @@ export function BundleCard({ p, big, best }) {
   const show = big ? items.slice(0, 8) : items.slice(0, 4);
   const pct = off(p);
   return (
-    <article className={"bcard" + (big ? " big" : "")}>
-      <TLink className="bc-media" to={"/product/" + p.id} data-cursor={t("view")}>
+    <article className={"bcard" + (big ? " big" : "")} data-tilt={big ? "5" : "8"}>
+      <TLink className="bc-media" to={"/product/" + p.id} data-cursor={t("view")} data-z="40">
         <img src={img(p)} alt={f.nm(p)} loading="lazy" />
         <span className="bc-badges">{best && <span className="bc-best">{t("b_best")}</span>}{pct > 0 && <span className="bc-save num">{t("b_save_pct")} {pct}%</span>}</span>
       </TLink>
@@ -85,7 +88,7 @@ export function BundleCard({ p, big, best }) {
           <ul>{show.map(([n, q], i) => <li key={i}><Icon name="check" /><span>{n}</span>{q ? <b className="num">×{q}</b> : null}</li>)}</ul>
           {items.length > show.length && <span className="bc-more num">+{items.length - show.length} {t("b_more")}</span>}
         </div>
-        <div className="bc-foot">
+        <div className="bc-foot" data-z="24">
           <div className="bc-price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
           <div className="bc-acts"><AddButton id={p.id} className="btn btn-white bc-btn"><Icon name="plus" />{t("add_bundle")}</AddButton><TLink className="btn btn-line bc-btn" to={"/product/" + p.id}>{t("details")}</TLink></div>
         </div>
@@ -124,10 +127,24 @@ export function Suites({ list }) {
 
 export function Finale() {
   const { t } = useApp();
+  const host = useRef(null);
+  const [is3d, set3d] = useState(false);
+  useEffect(() => {
+    let title = null, st = null;
+    if (!reduceMotion()) {
+      title = createTitle3D(host.current, fontUrl);
+      if (title) {
+        set3d(true);
+        st = ScrollTrigger.create({ trigger: host.current, start: "top bottom", end: "top 45%", scrub: 0.8, onUpdate: (x) => (title.progress = x.progress) });
+      }
+    }
+    return () => { st && st.kill(); title && title.destroy(); };
+  }, []);
   return (
     <section className="finale" id="finale">
       <div className="wrap">
-        <div className="giant">TECHI</div>
+        <div className={"giant3d" + (is3d ? " on" : "")} ref={host} aria-hidden="true" />
+        {!is3d && <div className="giant">TECHI</div>}
         <div className="row">
           <Split text={t("fin_h")} />
           <div className="addr"><Icon name="pin" /><div><b>{t("fin_addr")}</b><span>{t("fin_addr2")}</span></div></div>

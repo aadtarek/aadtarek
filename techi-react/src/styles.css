@@ -966,3 +966,70 @@ body.tour-on .foot,body.tour-on .cur{display:none}
 :root[lang="en"] .h-title{font-size:clamp(2.6rem,5.2vw,4.8rem)}
 :root[lang="ar"] .tag,:root[lang="ar"] .tour-meta,:root[lang="ar"] .tour-hint,:root[lang="ar"] .hold-ring span,:root[lang="ar"] .tour-label em{font-family:"Cairo",sans-serif;letter-spacing:0}
 @media (max-width:900px){.co-sum{order:0}.h-trust{grid-template-columns:repeat(3,1fr);gap:10px}.h-trust li{flex-direction:column;align-items:flex-start;gap:6px}.h-trust small{display:none}.h-trust b{font-size:.8rem}}
+
+/* ===================== v6: 3D everywhere ===================== */
+[data-tilt]{transform-style:preserve-3d;will-change:transform}
+[data-z]{will-change:transform}
+.pcard,.bcard{overflow:visible}
+.bc-media{border-radius:24px 24px 0 0}
+.pcard{position:relative}
+.pc-glare{position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:16px;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.55),transparent 45%);mix-blend-mode:soft-light;opacity:0;transition:opacity .4s}
+.pcard:hover .pc-glare{opacity:1}
+.pcard:hover{transform:none}
+.bcard:hover{transform:none}
+.pcard::after,.bcard::after{content:"";position:absolute;inset:auto 10% -18px;height:30px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);transform:translateZ(-40px);opacity:0;transition:opacity .5s;pointer-events:none}
+.pcard:hover::after,.bcard:hover::after{opacity:1}
+.bcard{position:relative}
+
+/* 3D headings */
+.h3d{display:flex;flex-wrap:wrap;gap:0 .28em;perspective:700px}
+.h3d .hw{display:inline-block;transform-style:preserve-3d}
+.h3d .hw>span{display:inline-block;backface-visibility:hidden}
+
+/* hero 3D carousel */
+.h3d-stage{position:relative;height:clamp(520px,58vh,640px);border-radius:32px;overflow:hidden;background:radial-gradient(70% 60% at 50% 40%,rgba(36,74,150,.55),rgba(3,12,32,.2) 70%);border:1px solid var(--line-2);box-shadow:0 50px 100px -50px rgba(0,0,0,.9),inset 0 0 0 1px rgba(156,192,255,.05)}
+.h3d-canvas{position:absolute;inset:0;touch-action:pan-y}
+.d3-canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.h3d-info{position:absolute;inset-inline:14px;bottom:14px;z-index:2;display:grid;gap:8px;padding:16px 18px;border-radius:22px;background:rgba(3,10,30,.66);border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.hi-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.hi-off{background:var(--sale);color:#fff;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:99px;direction:ltr}
+.h3d-info h3{font-size:clamp(1.15rem,1.7vw,1.5rem);line-height:1.3}
+.hi-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.hi-acts{display:flex;gap:6px}
+.hi-btn{height:42px;padding:0 16px;font-size:.88rem}
+.hi-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:8px;border-top:1px solid var(--line)}
+.hi-nav>button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--ink)}
+.hi-nav>button:first-child .ic{transform:scaleX(-1)}
+:root[dir="rtl"] .hi-nav>button:first-child .ic{transform:none}
+:root[dir="rtl"] .hi-nav>button:last-child .ic{transform:scaleX(-1)}
+.hi-nav>button:hover{background:#fff;color:var(--navy)}
+.hi-dots{display:flex;gap:6px}
+.hi-dots button{width:8px;height:8px;border-radius:99px;background:var(--line-2);transition:width .4s var(--ease),background .4s}
+.hi-dots button.on{width:26px;background:var(--ice)}
+@media (max-width:980px){.h3d-stage{height:560px}}
+
+/* finale 3D title */
+.giant3d{position:relative;height:clamp(200px,26vw,380px);margin-bottom:10px}
+.giant3d:not(.on){display:none}
+
+/* 3D drawer */
+.drawer{transform:perspective(1400px) translateX(-105%) rotateY(-28deg);transform-origin:left center}
+:root[dir="ltr"] .drawer{transform:perspective(1400px) translateX(105%) rotateY(28deg);transform-origin:right center}
+.drawer.on,:root[dir="ltr"] .drawer.on{transform:perspective(1400px) translateX(0) rotateY(0)}
+
+/* 3D buttons: press down in depth */
+.btn,.pc-add,.tabs button{transform-style:preserve-3d}
+.btn:active,.pc-add:active{transform:perspective(400px) translateZ(-14px)}
+
+/* tabs flip */
+.tabs button{transition:background .3s,color .3s,border-color .3s,transform .5s var(--ease)}
+.tabs button.on{transform:perspective(500px) rotateX(-8deg) translateZ(6px)}
+
+/* category tiles: image pops */
+.cat{transform-style:preserve-3d}
+.cat-img{box-shadow:0 14px 30px -14px rgba(0,0,0,.8)}
+.rit{transform-style:preserve-3d;border-radius:18px;padding:18px!important;background:var(--card);border:1px solid var(--line)!important}
+.ritual{gap:12px;border-top:0!important}
+.rit .bar{top:0;inset-inline:18px;width:auto}
+@media (max-width:800px){.rit{padding:16px!important}}
+@media (max-width:700px){.h3d-stage{height:600px}.h3d-info{padding:12px 14px;gap:6px}.h3d-info h3{font-size:1.05rem}.hi-btn{height:38px;padding:0 12px}}

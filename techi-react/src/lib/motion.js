@@ -32,6 +32,9 @@ export function reveals(root, dir = 1) {
     fin.addEventListener("pointermove", mv);
     if (!isFine()) gsap.to(g, { "--mx": "100%", duration: 4, yoyo: true, repeat: -1, ease: "sine.inOut" });
   }
+  root.querySelectorAll(".sec2>.wrap,.sec>.wrap,.phead>.wrap").forEach((w) => { if (!w.closest(".co-page") && !w.hasAttribute("data-depth")) w.setAttribute("data-depth", ""); });
+  depth3d(root); heads3d(root);
+  requestAnimationFrame(() => tilt3d(root));
   magnetic(root);
 }
 
@@ -57,4 +60,53 @@ export function bgTo(bg, v, d = 1.6) {
   if (!bg) return;
   if (reduceMotion()) Object.assign(bg, v);
   else gsap.to(bg, { duration: d, ease: "expo.inOut", overwrite: "auto", ...v });
+}
+
+/* ---------- 3D everywhere ---------- */
+
+/* sections swing in from depth and tilt away as they leave */
+export function depth3d(root) {
+  if (reduceMotion()) return;
+  root.querySelectorAll("[data-depth]").forEach((el) => {
+    gsap.set(el, { transformPerspective: 1600, transformOrigin: "50% 0%" });
+    gsap.timeline({ scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: 0.6 } })
+      .fromTo(el, { rotateX: 11, z: -160, y: 30, opacity: 0.45 }, { rotateX: 0, z: 0, y: 0, opacity: 1, ease: "power2.out", duration: 0.35 })
+      .to(el, { rotateX: 0, z: 0, duration: 0.35 })
+      .to(el, { rotateX: -8, z: -120, opacity: 0.6, transformOrigin: "50% 100%", ease: "power2.in", duration: 0.3 });
+  });
+}
+
+/* cards follow the pointer in 3D; children with data-z pop forward */
+export function tilt3d(root) {
+  if (!isFine() || reduceMotion()) return;
+  root.querySelectorAll("[data-tilt]").forEach((el) => {
+    if (el.dataset.tb) return; el.dataset.tb = 1;
+    const max = +(el.dataset.tilt || 10);
+    gsap.set(el, { transformPerspective: 900, transformStyle: "preserve-3d" });
+    const rx = gsap.quickTo(el, "rotationX", { duration: 0.6, ease: "power3" }), ry = gsap.quickTo(el, "rotationY", { duration: 0.6, ease: "power3" });
+    const pops = [...el.querySelectorAll("[data-z]")];
+    el.addEventListener("pointermove", (e) => {
+      const r = el.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      ry(x * max * 2); rx(-y * max * 2);
+      el.style.setProperty("--gx", (x + 0.5) * 100 + "%"); el.style.setProperty("--gy", (y + 0.5) * 100 + "%");
+      pops.forEach((p) => gsap.to(p, { z: +p.dataset.z, x: x * (+p.dataset.z) * 0.25, y: y * (+p.dataset.z) * 0.25, duration: 0.6, ease: "power3" }));
+    });
+    el.addEventListener("pointerleave", () => { rx(0); ry(0); pops.forEach((p) => gsap.to(p, { z: 0, x: 0, y: 0, duration: 0.9, ease: "elastic.out(1,.5)" })); });
+  });
+}
+
+/* grids flip in, card by card, out of depth */
+export function flipIn(el, opts = {}) {
+  if (reduceMotion() || !el) return;
+  gsap.fromTo(el.children, { rotateY: opts.rotY ?? -55, rotateX: 18, z: -300, opacity: 0, transformPerspective: 1200 },
+    { rotateY: 0, rotateX: 0, z: 0, opacity: 1, duration: 1.2, ease: "expo.out", stagger: opts.stagger ?? 0.07, clearProps: "transform,opacity",
+      scrollTrigger: opts.now ? undefined : { trigger: el, start: "top 85%" } });
+}
+
+export function heads3d(root) {
+  if (reduceMotion()) return;
+  root.querySelectorAll("[data-h3d]").forEach((h) => {
+    gsap.fromTo(h.querySelectorAll(".hw>span"), { rotateX: -95, y: 30, opacity: 0, transformOrigin: "50% 100% -30px" },
+      { rotateX: 0, y: 0, opacity: 1, duration: 1.2, ease: "expo.out", stagger: 0.07, scrollTrigger: { trigger: h, start: "top 88%" } });
+  });
 }

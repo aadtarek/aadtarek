@@ -107,7 +107,7 @@ function ProductView({ p }) {
         <nav className="crumbs" aria-label="breadcrumb"><TLink to="/">{t("crumbs_home")}</TLink><span>/</span><TLink to={catLink(p.cat)}>{t("cats")[p.cat]}</TLink><span>/</span><span>{f.nm(p)}</span></nav>
         <div className="pp-grid">
           <div className="gal">
-            <div className="gal-stage">
+            <div className="gal-stage" data-tilt="7">
               <div className={"gal-main" + (zoom ? " zoom" : "")} data-cursor={t("zoom")} onClick={() => setZoom(!zoom)} onPointerLeave={() => setZoom(false)}
                 onPointerMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); gi.current.style.transformOrigin = `${((e.clientX - r.left) / r.width) * 100}% ${((e.clientY - r.top) / r.height) * 100}%`; }}>
                 {o > 0 && <span className="badge num">−{o}%</span>}<img ref={gi} src={src(p.imgs[cur])} alt={f.nm(p)} />
@@ -128,7 +128,7 @@ function ProductView({ p }) {
               <a className="btn btn-wa" href={waLink(t("wa_order") + f.nm(p) + " (" + f.vr(p) + ")")} target="_blank" rel="noopener"><Icon name="wa" /><BT>{t("order_wa")}</BT></a>
             </div>
             {d3 && <TLink className="btn btn-line" to={"/experience/" + d3} style={{ justifySelf: "start" }} data-fade=""><Icon name="house" /><BT>{t("see3d")}</BT></TLink>}
-            <div className="perks" data-fade="">{t("perks").map(([b, s], i) => <div key={i}><Icon name={["install", "pin", "app"][i]} /><b>{b}</b><span>{s}</span></div>)}</div>
+            <div className="perks" data-fade="" data-tilt="6">{t("perks").map(([b, s], i) => <div key={i}><Icon name={["install", "pin", "app"][i]} /><b>{b}</b><span>{s}</span></div>)}</div>
             {specs.length > 0 && <div className="specs" data-fade=""><table><caption>{t("specs")}</caption><tbody>{specs.map(([k, v], i) => <tr key={i}><td>{k}</td><td>{v}</td></tr>)}</tbody></table></div>}
           </div>
         </div>

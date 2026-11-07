@@ -92,12 +92,15 @@ export function AppProvider({ children }) {
     if (reduceMotion() || busy.current) { mid(); return; }
     busy.current = true;
     const t1 = document.querySelector("#tr .t1"), t2 = document.querySelector("#tr .t2"), ln = document.querySelector("#tr b");
+    const main = document.querySelector("main");
     gsap.timeline({ onComplete: () => { busy.current = false; } })
-      .to([t1, t2], { yPercent: 0, duration: 0.6, ease: "expo.inOut" })
+      .to(main, { rotateX: 8, rotateY: -14, z: -420, opacity: 0.4, transformPerspective: 1600, transformOrigin: "50% 40vh", duration: 0.7, ease: "power3.in" }, 0)
+      .to([t1, t2], { yPercent: 0, duration: 0.6, ease: "expo.inOut" }, 0.1)
       .to(ln, { scaleX: 1, opacity: 1, duration: 0.35, ease: "power3.out" }, "-=.15")
       .add(() => { mid(); if (lenis.current) lenis.current.scrollTo(0, { immediate: true }); else window.scrollTo(0, 0); })
       .to(ln, { keyframes: [{ opacity: 0.2, duration: 0.05 }, { opacity: 1, duration: 0.05 }, { opacity: 0.4, duration: 0.06 }, { opacity: 1, duration: 0.08 }] })
-      .to(t1, { yPercent: -101, duration: 0.9, ease: "expo.inOut" }, "+=.1")
+      .fromTo(main, { rotateX: -6, rotateY: 14, z: -420, opacity: 0.4 }, { rotateX: 0, rotateY: 0, z: 0, opacity: 1, duration: 1.3, ease: "expo.out", clearProps: "transform,opacity" }, "+=.1")
+      .to(t1, { yPercent: -101, duration: 0.9, ease: "expo.inOut" }, "<")
       .to(t2, { yPercent: 101, duration: 0.9, ease: "expo.inOut" }, "<")
       .to(ln, { scaleY: 40, opacity: 0, duration: 0.6, ease: "power2.out" }, "<")
       .set(ln, { scaleX: 0, scaleY: 1 });

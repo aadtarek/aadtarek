@@ -3,7 +3,9 @@ import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "../components/Icons.jsx";
 import { AddButton, BT, BundleGrid, Finale, Frame3D, Money, ProductCard, TLink, Tag } from "../components/ui.jsx";
 import { CAT_IMG, CAT_KEYS, P, byId, catLink, fmt, img, isFine, off, pad, reduceMotion } from "../lib/util.js";
-import { ScrollTrigger, bgPlace, bgTo, gsap, reveals } from "../lib/motion.js";
+import { ScrollTrigger, bgPlace, bgTo, flipIn, gsap, reveals } from "../lib/motion.js";
+import { createDeviceStage } from "../lib/devices3d.js";
+import H3D from "../components/H3D.jsx";
 
 const SPOT = [231855, 231759, 231737, 231916, 231686];
 const TABS = ["all", "screens", "switches", "security", "voice"];
@@ -53,6 +55,53 @@ function Spotlight() {
   );
 }
 
+const STAGE = [["lock", 231855], ["panel", 231759], ["echo", 231737], ["switch", 231686], ["gas", 231916], ["hub", 231933], ["motion", 231925]];
+/* hero: real 3D devices on a carousel you can spin */
+function Hero3D() {
+  const { t, f } = useApp();
+  const host = useRef(null), stage = useRef(null), info = useRef(null);
+  const [i, setI] = useState(0);
+  const [ok, setOk] = useState(true);
+  useEffect(() => {
+    const s = createDeviceStage(host.current, STAGE.map(([model]) => ({ model })), setI);
+    if (!s) { setOk(false); return; }
+    stage.current = s;
+    let iv = !reduceMotion() && setInterval(() => { if (!host.current.matches(":hover")) s.next(); }, 4500);
+    const st = ScrollTrigger.create({ trigger: host.current, start: "top top+=90", end: "bottom top", scrub: true, onUpdate: (x) => (s.scroll = x.progress) });
+    return () => { clearInterval(iv); st.kill(); s.destroy(); };
+  }, []);
+  useLayoutEffect(() => {
+    if (reduceMotion() || !info.current) return;
+    gsap.fromTo(info.current.querySelectorAll(".hi-anim"), { rotateX: -80, y: 20, opacity: 0, transformPerspective: 600, transformOrigin: "50% 100%" }, { rotateX: 0, y: 0, opacity: 1, duration: 0.8, ease: "expo.out", stagger: 0.05 });
+  }, [i]);
+  if (!ok) return <Spotlight />;
+  const p = byId[STAGE[i][1]], o = off(p);
+  return (
+    <div className="h3d-stage">
+      <div className="h3d-canvas" ref={host} data-cursor={t("drag3d")} />
+      <div className="h3d-info" ref={info}>
+        <div className="hi-top">
+          <span className="hi-anim sp-cat"><Icon name={CAT_ICON[p.cat]} />{t("cats")[p.cat]}</span>
+          {o > 0 && <span className="hi-anim hi-off num">−{o}%</span>}
+        </div>
+        <h3 className="hi-anim">{f.nm(p)}</h3>
+        <div className="hi-row">
+          <div className="hi-anim sp-price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
+          <div className="hi-acts">
+            <TLink className="btn btn-line hi-btn" to={"/product/" + p.id}>{t("details")}</TLink>
+            <AddButton id={p.id} className="btn btn-white hi-btn"><Icon name="plus" />{t("add_short")}</AddButton>
+          </div>
+        </div>
+        <div className="hi-nav">
+          <button aria-label="prev" onClick={() => stage.current && stage.current.prev()}><Icon name="arrow" /></button>
+          <div className="hi-dots">{STAGE.map((_, k) => <button key={k} className={k === i ? "on" : ""} aria-label={String(k + 1)} onClick={() => stage.current && stage.current.setActive(k)} />)}</div>
+          <button aria-label="next" onClick={() => stage.current && stage.current.next()}><Icon name="arrow" /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const { t, dir, bg } = useApp();
   const root = useRef(null), grid = useRef(null);
@@ -69,7 +118,7 @@ export default function Home() {
         gsap.timeline({ delay: 0.2 })
           .from(".h-title .ln>span", { yPercent: 110, duration: 1.3, ease: "expo.out", stagger: 0.1 })
           .from(".hero2 .tag, .h-p, .h-ctas, .h-trust>*", { y: 24, opacity: 0, duration: 0.9, ease: "power3.out", stagger: 0.07 }, "-=.9")
-          .from(".hspot", { y: 60, opacity: 0, duration: 1.3, ease: "expo.out" }, "-=1.1");
+          .from(".h3d-stage,.hspot", { rotateY: -30, z: -400, opacity: 0, transformPerspective: 1400, duration: 1.6, ease: "expo.out" }, "-=1.1");
       }
       if (B) {
         const heroPos = () => { bgPlace(B, mob ? 0 : -0.5 * s, mob ? 0.25 : 0.05, mob ? 0.6 : 0.95); bgTo(B, { dim: 0.7 }); };
@@ -85,8 +134,9 @@ export default function Home() {
         }
       }
       if (reduce) return;
-      gsap.from(".bgrid>*", { y: 70, opacity: 0, duration: 1.1, ease: "expo.out", stagger: 0.08, scrollTrigger: { trigger: ".bgrid", start: "top 85%" } });
-      gsap.from(".cats>*", { y: 50, opacity: 0, duration: 1, ease: "expo.out", stagger: 0.06, scrollTrigger: { trigger: ".cats", start: "top 88%" } });
+      flipIn(el.querySelector(".bgrid"), { rotY: 40 });
+      flipIn(el.querySelector(".cats"), { rotY: -70, stagger: 0.06 });
+      flipIn(el.querySelector("#ritual"), { rotY: 60, stagger: 0.12 });
       const rit = el.querySelector("#ritual"); const items = [...rit.children];
       items.forEach((it, i) => gsap.to(it.querySelector(".bar"), { scaleX: 1, duration: 1.2, ease: "expo.inOut", delay: i * 0.2, scrollTrigger: { trigger: rit, start: "top 80%" }, onComplete: () => it.classList.add("on") }));
     }, el);
@@ -97,7 +147,7 @@ export default function Home() {
   /* product grid re-enters when the tab changes */
   useLayoutEffect(() => {
     if (reduceMotion() || !grid.current) return;
-    gsap.fromTo(grid.current.children, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "expo.out", stagger: 0.05 });
+    flipIn(grid.current, { now: true, stagger: 0.05 });
   }, [tab]);
 
   const trust = t("h_trust");
@@ -116,7 +166,7 @@ export default function Home() {
             </div>
             <ul className="h-trust">{trust.map(([ic, a, b]) => <li key={a}><span className="ti"><Icon name={ic} /></span><span><b>{a}</b><small>{b}</small></span></li>)}</ul>
           </div>
-          <Spotlight />
+          <Hero3D />
         </div>
       </section>
 
@@ -125,8 +175,8 @@ export default function Home() {
         <div className="wrap">
           <div className="cats">
             {CAT_KEYS.map((k) => (
-              <TLink key={k} className="cat" to={catLink(k)}>
-                <span className="cat-img"><img src={img(byId[CAT_IMG[k]])} alt="" loading="lazy" /></span>
+              <TLink key={k} className="cat" to={catLink(k)} data-tilt="14">
+                <span className="cat-img" data-z="40"><img src={img(byId[CAT_IMG[k]])} alt="" loading="lazy" /></span>
                 <span className="cat-txt"><b>{t("cats")[k]}</b><small className="num">{pad(P.filter((p) => p.cat === k).length)} {t("pieces")}</small></span>
                 <span className="cat-go"><Icon name="arrow" /></span>
               </TLink>
@@ -139,7 +189,7 @@ export default function Home() {
       <section className="sec2" id="prods">
         <div className="wrap">
           <div className="head2">
-            <div><Tag>{t("p_tag")}</Tag><h2>{t("p_h")}</h2><p>{t("p_p")}</p></div>
+            <div><Tag>{t("p_tag")}</Tag><H3D text={t("p_h")} /><p>{t("p_p")}</p></div>
             <TLink className="btn btn-line" to="/shop"><BT>{t("p_all")}</BT><Icon name="arrow" /></TLink>
           </div>
           <div className="tabs" role="tablist">
@@ -153,7 +203,7 @@ export default function Home() {
       <section className="sec2" id="xp">
         <div className="wrap">
           <div className="head2">
-            <div><Tag>{t("x_tag")}</Tag><h2>{t("x_h")}</h2><p>{t("x_p")}</p></div>
+            <div><Tag>{t("x_tag")}</Tag><H3D text={t("x_h")} /><p>{t("x_p")}</p></div>
             <TLink className="btn btn-line" to="/experience"><Icon name="house" /><BT>{t("x_cta")}</BT></TLink>
           </div>
           <Frame3D />
@@ -164,7 +214,7 @@ export default function Home() {
       <section className="sec2" id="bundles">
         <div className="wrap">
           <div className="head2">
-            <div><Tag>{t("b_tag2")}</Tag><h2>{t("b_h2")}</h2><p>{t("b_p2")}</p></div>
+            <div><Tag>{t("b_tag2")}</Tag><H3D text={t("b_h2")} /><p>{t("b_p2")}</p></div>
             <TLink className="btn btn-line" to="/bundles"><BT>{t("all_bundles")}</BT><Icon name="arrow" /></TLink>
           </div>
           <BundleGrid list={bundles} />
@@ -174,9 +224,9 @@ export default function Home() {
       {/* ---------- PROCESS ---------- */}
       <section className="sec2">
         <div className="wrap">
-          <div className="head2"><div><Tag>{t("s5_tag")}</Tag><h2>{t("s5_h")}</h2></div></div>
+          <div className="head2"><div><Tag>{t("s5_tag")}</Tag><H3D text={t("s5_h")} /></div></div>
           <div className="ritual" id="ritual">
-            {t("steps").map(([h, p], i) => <div className="rit" key={i}><i className="bar" /><span className="ri"><Icon name={["pin", "screen", "install", "app"][i]} /></span><span className="n num">{pad(i + 1)}</span><h4>{h}</h4><p>{p}</p></div>)}
+            {t("steps").map(([h, p], i) => <div className="rit" key={i} data-tilt="10"><i className="bar" /><span className="ri" data-z="50"><Icon name={["pin", "screen", "install", "app"][i]} /></span><span className="n num">{pad(i + 1)}</span><h4>{h}</h4><p>{p}</p></div>)}
           </div>
         </div>
       </section>
