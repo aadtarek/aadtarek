@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Flip } from "gsap/Flip";
 import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "../components/Icons.jsx";
-import { AddButton, BT, Finale, Frame3D, Money, ProductCard, Split, Suites, TLink, Tag } from "../components/ui.jsx";
+import { AddButton, BT, BundleGrid, Finale, Frame3D, Money, ProductCard, Split, Suites, TLink, Tag } from "../components/ui.jsx";
 import { CAT_KEYS, D3MAP, P, SHOP, byId, catLink, fmt, img, off, pad, reduceMotion, src, waLink } from "../lib/util.js";
 import { ScrollTrigger, bgPlace, bgTo, gsap, reveals } from "../lib/motion.js";
 import { getHome } from "../lib/home3d.js";
@@ -39,11 +39,11 @@ export function Shop() {
   const [q, setQ] = useState("");
   const [sort, setSort] = useState("pop");
   const grid = useRef(null), chips = useRef(null), pill = useRef(null), flipState = useRef(null);
-  const root = usePage((el) => { if (!reduceMotion()) gsap.from(el.querySelectorAll("#shopGrid .card"), { y: 80, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.05, delay: 0.5 }); });
+  const root = usePage((el) => { if (!reduceMotion()) gsap.from(el.querySelectorAll("#shopGrid .pcard"), { y: 80, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.05, delay: 0.5 }); });
   const order = SHOP.map((p) => p.id);
   const list = SHOP.filter((p) => (c === "all" || p.cat === c) && (!q || (p.ar + " " + p.en + " " + p.variant + " " + p.variantEn).toLowerCase().includes(q.toLowerCase())))
     .sort((A, B) => (sort === "lo" ? A.sale - B.sale : sort === "hi" ? B.sale - A.sale : sort === "off" ? off(B) - off(A) : order.indexOf(A.id) - order.indexOf(B.id)));
-  const capture = () => { if (!reduceMotion() && grid.current) flipState.current = Flip.getState(grid.current.querySelectorAll(".card")); };
+  const capture = () => { if (!reduceMotion() && grid.current) flipState.current = Flip.getState(grid.current.querySelectorAll(".pcard")); };
   useLayoutEffect(() => {
     const on = chips.current.querySelector("button.on"); if (on && pill.current) { pill.current.style.left = on.offsetLeft + "px"; pill.current.style.width = on.offsetWidth + "px"; }
     if (flipState.current) { Flip.from(flipState.current, { duration: 0.8, ease: "expo.inOut", scale: true, absolute: true, stagger: 0.015, onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.6 }) }); flipState.current = null; }
@@ -64,7 +64,7 @@ export function Shop() {
             <select aria-label="sort" value={sort} onChange={(e) => { capture(); setSort(e.target.value); }}>{t("sort").map((s, i) => <option key={i} value={["pop", "lo", "hi", "off"][i]}>{s}</option>)}</select>
           </div>
         </div>
-        <div className="grid" id="shopGrid" ref={grid}>{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>
+        <div className="pgrid" id="shopGrid" ref={grid}>{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>
         {!list.length && <p className="empty">{t("empty")}</p>}
       </section>
     </div>
@@ -79,8 +79,7 @@ export function Bundles() {
   return (
     <div ref={root}>
       <PHead tag={t("b_tag")} h={t("b_h")} p={t("b_p")} count={pad(b.length)} />
-      <section className="wrap" style={{ paddingBottom: 60 }}><Suites list={b} /></section>
-      <section className="sec" style={{ paddingTop: 60 }}><div className="wrap"><div className="grid" data-stagger="">{b.map((p) => <ProductCard key={p.id} p={p} />)}</div></div></section>
+      <section className="wrap" style={{ paddingBottom: 60 }}><BundleGrid list={b} /></section>
     </div>
   );
 }
@@ -134,7 +133,7 @@ function ProductView({ p }) {
           </div>
         </div>
       </section>
-      <section className="sec"><div className="wrap"><div className="shead"><div><Tag>{t("pairs_tag")}</Tag><Split text={t("pairs")} /></div></div><div className="grid" data-stagger="">{rel.map((x) => <ProductCard key={x.id} p={x} />)}</div></div></section>
+      <section className="sec"><div className="wrap"><div className="shead"><div><Tag>{t("pairs_tag")}</Tag><Split text={t("pairs")} /></div></div><div className="pgrid" data-stagger="">{rel.map((x) => <ProductCard key={x.id} p={x} />)}</div></div></section>
     </div>
   );
 }

@@ -376,7 +376,7 @@ function drawPanel(){
   g.fillStyle="#0E1520";g.fillRect(0,0,w,h);
   g.direction=LANG==="en"?"ltr":"rtl";g.textAlign="right";
   g.fillStyle="#E9EEF4";g.font="700 34px 'Readex Pro',sans-serif";g.fillText(TR("بيتي","My home"),w-28,56);
-  g.fillStyle="#9AA6B6";g.font="500 22px 'IBM Plex Sans Arabic',sans-serif";
+  g.fillStyle="#9AA6B6";g.font="500 22px 'Cairo',sans-serif";
   g.fillText(A.dayT?TR("نهار · 31°","Day · 31°"):TR("بالليل · 27°","Night · 27°"),w-28,90);
   g.textAlign="left";g.direction="ltr";g.fillStyle="#E9EEF4";g.font="700 40px 'Readex Pro',sans-serif";g.fillText(A.dayT?"02:15":"09:40",28,60);
   const on=Object.values(S.light).filter(Boolean).length;
@@ -387,8 +387,8 @@ function drawPanel(){
     const alert=i===4&&S.gas;
     g.fillStyle=alert?"#D9372B":t[2]?"#F2A93B":"#1B2533";g.beginPath();g.roundRect?g.roundRect(x,y,tw,th,16):g.rect(x,y,tw,th);g.fill();
     g.fillStyle=t[2]||alert?"#141B26":"#E9EEF4";if(alert)g.fillStyle="#fff";
-    g.font="600 26px 'IBM Plex Sans Arabic',sans-serif";g.fillText(t[0],x+tw-16,y+44);
-    g.font="500 22px 'IBM Plex Sans Arabic',sans-serif";g.fillText(t[1],x+tw-16,y+88);});
+    g.font="600 26px 'Cairo',sans-serif";g.fillText(t[0],x+tw-16,y+44);
+    g.font="500 22px 'Cairo',sans-serif";g.fillText(t[1],x+tw-16,y+88);});
   panelTex.needsUpdate=true;
 }
 

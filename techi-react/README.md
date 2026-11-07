@@ -26,3 +26,22 @@ npm run dev
 - `src/pages/` الصفحات (الرئيسية، المتجر، المنتج، الباقات، البيت 3D، عن Techi)
 - `src/components/` الهيدر، السلة، الكروت، إطار الـ 3D، الأيقونات
 - `src/lib/home3d.js` الشقة الـ 3D · `src/lib/bgmesh.js` خلفية شبكة اللوجو · `src/lib/motion.js` الأنيميشن
+
+## ربط المتجر بـ WooCommerce (WordPress)
+أرقام المنتجات في `src/data/products.js` هي نفس IDs المنتجات في WooCommerce، فالطلبات بتتسجل على نفس المنتجات.
+
+1. في WordPress: **WooCommerce → Settings → Advanced → REST API → Add key**، الصلاحية **Read/Write**.
+2. في Vercel: **Project → Settings → Environment Variables** ضيف:
+   - `WC_URL` = `https://techi-eg.com`
+   - `WC_KEY` = `ck_...`
+   - `WC_SECRET` = `cs_...`
+   - `WC_CARD_GATEWAY` (اختياري) = ID بوابة الدفع بالكارت في WooCommerce، مثلًا `paymob`
+3. اعمل **Redeploy**.
+
+بعدها:
+- `/api/checkout` بيعمل الأوردر في WooCommerce (الدفع عند الاستلام → حالة Processing، الكارت → بيحوّل العميل لصفحة الدفع).
+- `/api/products` بيجيب الأسعار والمخزون الحالية من المتجر، فأي تعديل سعر في WordPress بيظهر في الموقع.
+- المفاتيح بتفضل على السيرفر ومش بتوصل للمتصفح، والأسعار في الأوردر بتتحسب من WooCommerce نفسه.
+
+لو المتغيرات دي مش متظبطة، صفحة إتمام الطلب بتحوّل الطلب على واتساب بدل ما يضيع.
+لتجربة الـ API على جهازك: `npx vercel dev` بدل `npm run dev`.

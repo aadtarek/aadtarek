@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AppProvider } from "./context.jsx";
+import "./data/i18n2.js";
 import App from "./App.jsx";
 import "./styles.css";
 

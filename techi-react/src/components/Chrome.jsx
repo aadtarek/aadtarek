@@ -161,8 +161,8 @@ export function CartDrawer() {
           <div className="df">
             {saved > 0 && <div className="r s"><span>{t("saved")}</span><span className="num">{fmt(saved)} {t("cur")}</span></div>}
             <div className="r t"><span>{t("total")}</span><span className="num">{fmt(total)} {t("cur")}</span></div>
-            <a className="btn btn-wa" href={waLink(order)} target="_blank" rel="noopener"><Icon name="wa" /><BT>{t("order_on_wa")}</BT></a>
-            <details><summary>{t("order_text")}</summary><div className="order-msg">{order}</div></details>
+            <TLink className="btn btn-white" to="/checkout"><BT>{t("checkout")}</BT><Icon name="arrow" /></TLink>
+            <a className="d-wa" href={waLink(order)} target="_blank" rel="noopener"><Icon name="wa" />{t("order_on_wa")}</a>
           </div>
         )}
       </aside>

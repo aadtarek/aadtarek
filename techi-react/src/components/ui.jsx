@@ -38,42 +38,63 @@ export function AddButton({ id, qty = 1, className = "btn btn-white", children }
   return <button className={className} data-qty={qty} onClick={(e) => addToCart(id, qty, e.currentTarget)}>{children}</button>;
 }
 
+/* product tile: white stage, clear name & price, add-to-cart always visible */
 export function ProductCard({ p }) {
-  const { t, f, addToCart } = useApp();
+  const { t, f, addToCart, cart } = useApp();
   const [done, setDone] = useState(false);
-  const top = useRef(null), media = useRef(null);
-  const o = off(p), alt = p.imgs.length > 1;
-  const move = (e) => {
-    if (!isFine()) return;
-    const r = media.current.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-    media.current.style.setProperty("--gx", x * 100 + "%"); media.current.style.setProperty("--gy", y * 100 + "%");
-    gsap.to(top.current, { rotationY: (x - 0.5) * 14, rotationX: -(y - 0.5) * 14, duration: 0.6, ease: "power3" });
-  };
-  const leave = () => gsap.to(top.current, { rotationY: 0, rotationX: 0, duration: 1, ease: "elastic.out(1,.5)" });
+  const o = off(p), alt = p.imgs.length > 1, inCart = cart.some((i) => i.id === p.id), out = p.inStock === false;
   return (
-    <article className={"card" + (alt ? " has-alt" : "")} data-id={p.id} data-cat={p.cat} onPointerMove={move} onPointerLeave={leave}>
-      <div className="card-top" ref={top}>
-        <TLink className="card-media" to={"/product/" + p.id} data-cursor={t("view")}>
-          <span ref={media} style={{ position: "absolute", inset: 0 }}>
-            {o > 0 && <span className="badge num">−{o}%</span>}
-            <img className="main" src={img(p)} alt={f.nm(p)} loading="lazy" />
-            {alt && <img className="alt" src={img(p, 1)} alt="" loading="lazy" />}
-            <span className="glare" />
-          </span>
-        </TLink>
-        <button className={"add" + (done ? " done" : "")} aria-label={t("add") + ": " + f.nm(p)}
-          onClick={(e) => { addToCart(p.id, 1, e.currentTarget); setDone(true); setTimeout(() => setDone(false), 1600); }}>
-          <Icon name={done ? "check" : "plus"} /><span className="lbl">{done ? t("added") : t("add")}</span>
-        </button>
-      </div>
-      <div className="card-body">
-        <span className="card-cat"><Icon name={CAT_ICON[p.cat]} />{t("cats")[p.cat]}</span>
+    <article className={"pcard" + (alt ? " has-alt" : "")} data-id={p.id} data-cat={p.cat}>
+      <TLink className="pc-media" to={"/product/" + p.id} data-cursor={t("view")}>
+        {o > 0 && <span className="pc-off num">−{o}%</span>}
+        <img className="main" src={img(p)} alt={f.nm(p)} loading="lazy" />
+        {alt && <img className="alt" src={img(p, 1)} alt="" loading="lazy" />}
+      </TLink>
+      <div className="pc-body">
+        <span className="pc-cat"><Icon name={CAT_ICON[p.cat]} />{t("cats")[p.cat]}</span>
         <h3><TLink to={"/product/" + p.id}>{f.nm(p)}</TLink></h3>
-        <span className="var">{f.vr(p)}</span>
-        <div className="price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
+        <span className="pc-var">{f.vr(p)}</span>
+        <div className="pc-foot">
+          <div className="pc-price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
+          <button className={"pc-add" + (done ? " done" : "") + (inCart && !done ? " in" : "")} disabled={out} aria-label={t("add") + ": " + f.nm(p)}
+            onClick={(e) => { addToCart(p.id, 1, e.currentTarget); setDone(true); setTimeout(() => setDone(false), 1400); }}>
+            <Icon name={done ? "check" : "plus"} /><span>{out ? t("stock_out") : done ? t("added") : t("add_short")}</span>
+          </button>
+        </div>
       </div>
     </article>
   );
+}
+
+/* bundle card: image, what's inside, savings, price */
+export function BundleCard({ p, big, best }) {
+  const { t, f } = useApp();
+  const items = f.its(p) || [];
+  const show = big ? items.slice(0, 8) : items.slice(0, 4);
+  const pct = off(p);
+  return (
+    <article className={"bcard" + (big ? " big" : "")}>
+      <TLink className="bc-media" to={"/product/" + p.id} data-cursor={t("view")}>
+        <img src={img(p)} alt={f.nm(p)} loading="lazy" />
+        <span className="bc-badges">{best && <span className="bc-best">{t("b_best")}</span>}{pct > 0 && <span className="bc-save num">{t("b_save_pct")} {pct}%</span>}</span>
+      </TLink>
+      <div className="bc-body">
+        <div className="bc-head"><span className="bc-var">{f.vr(p)}</span><h3><TLink to={"/product/" + p.id}>{f.nm(p)}</TLink></h3>{big && <p>{f.pt(p)}</p>}</div>
+        <div className="bc-inc">
+          <span className="bc-inc-l">{t("b_includes")}</span>
+          <ul>{show.map(([n, q], i) => <li key={i}><Icon name="check" /><span>{n}</span>{q ? <b className="num">×{q}</b> : null}</li>)}</ul>
+          {items.length > show.length && <span className="bc-more num">+{items.length - show.length} {t("b_more")}</span>}
+        </div>
+        <div className="bc-foot">
+          <div className="bc-price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
+          <div className="bc-acts"><AddButton id={p.id} className="btn btn-white bc-btn"><Icon name="plus" />{t("add_bundle")}</AddButton><TLink className="btn btn-line bc-btn" to={"/product/" + p.id}>{t("details")}</TLink></div>
+        </div>
+      </div>
+    </article>
+  );
+}
+export function BundleGrid({ list }) {
+  return <div className="bgrid">{list.map((p, i) => <BundleCard key={p.id} p={p} big={i === 0} best={i === 0} />)}</div>;
 }
 
 export function Suites({ list }) {

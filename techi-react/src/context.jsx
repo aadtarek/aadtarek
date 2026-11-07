@@ -44,7 +44,7 @@ export function AppProvider({ children }) {
   useEffect(() => write("techi-cart", cart), [cart]);
   const flyToCart = useCallback((fromEl, p) => {
     if (reduceMotion() || !fromEl) return;
-    const s = fromEl.closest(".card,.pp,.dev-card,.xp-item,.slide,.suite")?.querySelector("img") || fromEl;
+    const s = fromEl.closest(".pcard,.bcard,.spot,.co-items li,.card,.pp,.dev-card,.xp-item,.slide,.suite")?.querySelector("img") || fromEl;
     const target = document.getElementById("cartBtn");
     if (!target) return;
     const a = s.getBoundingClientRect(), b = target.getBoundingClientRect();
@@ -64,6 +64,18 @@ export function AppProvider({ children }) {
     gsap.fromTo("#cartCount", { scale: 1 }, { scale: 1.5, duration: 0.2, yoyo: true, repeat: 1 });
     if (bg.current && !reduceMotion()) gsap.fromTo(bg.current, { spin: 6 }, { spin: 1, duration: 2, ease: "power3.out" });
   }, [flyToCart, toast, lang, fields]);
+  const clearCart = useCallback(() => setCart([]), []);
+
+  /* live prices & stock from WooCommerce (when /api/products is configured) */
+  const [catalogV, setCatalogV] = useState(0);
+  useEffect(() => {
+    fetch("/api/products").then((r) => (r.ok ? r.json() : null)).then((list) => {
+      if (!Array.isArray(list)) return;
+      list.forEach((x) => { const p = byId[x.id]; if (p && x.sale > 0) { p.sale = x.sale; p.reg = Math.max(x.reg, x.sale); p.inStock = x.in_stock; } });
+      setCatalogV((v) => v + 1);
+    }).catch(() => {});
+  }, []);
+
   const setQty = useCallback((id, q) => setCart((c) => (q < 1 ? c.filter((i) => i.id !== id) : c.map((i) => (i.id === id ? { ...i, qty: q } : i)))), []);
 
   /* 3D notifications become toasts */
@@ -93,6 +105,6 @@ export function AppProvider({ children }) {
   const go = useCallback((to) => { setCartOpen(false); wipe(() => navigate(to)); }, [wipe, navigate]);
   const setLang = useCallback((l) => wipe(() => setLangState(l)), [wipe]);
 
-  const value = { lang, setLang, t, f: fields, dir, bg, lenis, toast, toasts, cart, setQty, addToCart, cartOpen, setCartOpen, go };
+  const value = { lang, setLang, t, f: fields, dir, bg, lenis, toast, toasts, cart, setQty, clearCart, addToCart, cartOpen, setCartOpen, go, catalogV };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
