@@ -1,6 +1,9 @@
 /* Techi copy — Arabic (Egyptian) and English */
 export const I18N={
 ar:{
+  tour_tag:"جولة في البيت",tour_h:"ادخل البيت.",tour_p:"اسحب عشان تلف حوالين الشقة. اختار أوضة واضغط مطوّل عليها عشان تدخلها وتشوف أجهزتها شغالة.",
+  tour_drag:"اسحب عشان تستكشف",tour_hold_hint:"اضغط مطوّل على أوضة عشان تدخلها",tour_tap_hint:"اضغط مطوّل على أوضة أو دوس على اسمها",tour_hold:"اضغط",
+  tour_devices:"أجهزة",tour_drag_room:"اسحب عشان تبص حواليك",tour_back:"ارجع للشقة",tour_next:"الأوضة اللي بعدها",tour_rooms:"الأوض",tour_in_room:"الأجهزة في الأوضة دي",tour_again:"شغّله",
   nav_home:"الرئيسية",nav_shop:"المجموعة",nav_bundles:"الباقات",nav_xp:"البيت 3D",nav_about:"عن Techi",cart:"السلة",lang:"EN",lang_label:"Switch to English",
   cats:{screens:"شاشات التحكم",switches:"السويتشات والبرايز",security:"الأمان والحساسات",voice:"التحكم والصوت",bundles:"الباقات"},
   cur:"ج.م",pieces:"منتج",
@@ -36,6 +39,9 @@ ar:{
   foot_p:"أجهزة البيت الذكي بتركيب احترافي. Value Mall، التجمع الخامس، القاهرة الجديدة.",foot_contact:"تواصل",view:"شوف",zoom:"زووم",menu:"القائمة",close:"اقفل"
 },
 en:{
+  tour_tag:"Home tour",tour_h:"Step inside.",tour_p:"Drag to orbit the apartment. Pick a room, then click and hold to step in and watch its devices work.",
+  tour_drag:"Drag to explore",tour_hold_hint:"Click & hold a room to enter",tour_tap_hint:"Press & hold a room, or tap its name",tour_hold:"Hold",
+  tour_devices:"devices",tour_drag_room:"Drag to look around",tour_back:"Back to the apartment",tour_next:"Next room",tour_rooms:"Rooms",tour_in_room:"Devices in this room",tour_again:"Run it",
   nav_home:"Home",nav_shop:"Collection",nav_bundles:"Bundles",nav_xp:"3D Home",nav_about:"About",cart:"Cart",lang:"ع",lang_label:"التحويل للعربي",
   cats:{screens:"Control screens",switches:"Switches & sockets",security:"Security & sensors",voice:"Voice & hub",bundles:"Bundles"},
   cur:"EGP",pieces:"items",

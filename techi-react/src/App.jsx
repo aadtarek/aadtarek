@@ -4,7 +4,8 @@ import Lenis from "lenis";
 import { useApp } from "./context.jsx";
 import { CartDrawer, Cursor, Footer, Header, MeshBG, MobileMenu, Preloader, Toasts, Transition } from "./components/Chrome.jsx";
 import Home from "./pages/Home.jsx";
-import { About, Bundles, Experience, Product, Shop } from "./pages/Pages.jsx";
+import Tour from "./pages/Tour.jsx";
+import { About, Bundles, Product, Shop } from "./pages/Pages.jsx";
 import { ScrollTrigger, gsap } from "./lib/motion.js";
 import { reduceMotion } from "./lib/util.js";
 
@@ -44,8 +45,8 @@ export default function App() {
             <Route path="/shop/:cat" element={<Shop />} />
             <Route path="/product/:id" element={<Product />} />
             <Route path="/bundles" element={<Bundles />} />
-            <Route path="/experience" element={<Experience />} />
-            <Route path="/experience/:dev" element={<Experience />} />
+            <Route path="/experience" element={<Tour />} />
+            <Route path="/experience/:dev" element={<Tour />} />
             <Route path="/about" element={<About />} />
             <Route path="*" element={<Home />} />
           </Routes>

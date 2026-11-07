@@ -613,3 +613,124 @@ html,body{overflow-x:clip}
 @keyframes toastIn{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
 @keyframes toastOut{to{opacity:0;transform:translateY(20px)}}
 .order-msg{white-space:pre-wrap}
+
+/* ===================== HOME TOUR (unseen-style) ===================== */
+body.tour-on{overflow:hidden}
+body.tour-on .foot,body.tour-on .cur{display:none}
+.tour{position:fixed;inset:0;z-index:2;background:#00061A;user-select:none;-webkit-user-select:none}
+.tour-host{position:absolute;inset:0;touch-action:none}
+.tour-host canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.tour .t3d-pins{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+
+/* room labels floating over the apartment */
+.tour-labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.tour-label{position:absolute;left:0;top:0;width:0;height:0;pointer-events:auto;cursor:pointer;transition:opacity .6s}
+.tour.in-room .tour-label{opacity:0}
+.tour-label::after{content:"";position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(156,192,255,.18),0 0 18px rgba(156,192,255,.9)}
+.tour-label::before{content:"";position:absolute;left:0;bottom:8px;width:1px;height:46px;background:linear-gradient(to top,rgba(255,255,255,.75),rgba(255,255,255,0));transform-origin:bottom;transition:height .7s var(--ease)}
+.tour-label i,.tour-label b,.tour-label em{position:absolute;left:0;transform:translateX(-50%);white-space:nowrap;font-style:normal;transition:transform .7s var(--ease),color .4s,opacity .4s}
+.tour-label i{bottom:112px;font:500 .7rem var(--mono);letter-spacing:.2em;color:var(--ice)}
+.tour-label b{bottom:72px;font:500 clamp(1.3rem,2.2vw,2rem) var(--kufi);color:rgba(238,242,250,.82);letter-spacing:-.01em}
+.tour-label em{bottom:56px;font:400 .68rem var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+:root[lang="ar"] .tour-label em{letter-spacing:0;font-family:"IBM Plex Mono","IBM Plex Sans Arabic",monospace}
+.tour-label.on::before{height:70px}
+.tour-label.on i,.tour-label.on b,.tour-label.on em{transform:translate(-50%,-24px)}
+.tour-label.on b{color:#fff;text-shadow:0 0 30px rgba(156,192,255,.6)}
+.tour.hovering .tour-label:not(.on){opacity:.35}
+
+/* minimal device pins inside a room */
+.tour .t3d-pin{width:34px;height:34px;margin:-17px 0 0 -17px;background:rgba(0,6,26,.35);border:1px solid rgba(255,255,255,.75);box-shadow:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font:500 .7rem var(--mono)}
+.tour .t3d-pin::before{border-color:rgba(255,255,255,.35)}
+.tour .t3d-pin.hl,.tour .t3d-pin.sel{background:#fff;color:var(--navy);transform:scale(1.3)}
+.tour .t3d-pin span{bottom:44px;font:500 .72rem var(--body);border-radius:4px}
+.tour .t3d-pin.hl span{opacity:1;transform:none}
+
+/* click & hold ring */
+.hold-ring{position:fixed;left:0;top:0;width:76px;height:76px;margin:-38px 0 0 -38px;z-index:60;pointer-events:none;opacity:0;transform:scale(.6);transition:opacity .35s,transform .5s var(--ease)}
+.hold-ring.show{opacity:1;transform:scale(1)}
+.hold-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.hold-ring circle{fill:none;stroke-width:1.5}
+.hold-ring .track{stroke:rgba(255,255,255,.25)}
+.hold-ring .fill{stroke:#fff;stroke-dasharray:189;stroke-dashoffset:189;filter:drop-shadow(0 0 6px rgba(156,192,255,.9))}
+.hold-ring span{position:absolute;inset:0;display:grid;place-items:center;font:500 .62rem var(--mono);letter-spacing:.2em;text-transform:uppercase;color:#fff}
+:root[lang="ar"] .hold-ring span{letter-spacing:0;font:500 .78rem "IBM Plex Sans Arabic",sans-serif}
+@media (hover:none),(pointer:coarse){.hold-ring{display:none}}
+
+/* overlay chrome */
+.tour-ui{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:calc(110px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right,0px)) calc(26px + env(safe-area-inset-bottom,0px)) max(24px,env(safe-area-inset-left,0px))}
+.tour-ui button,.tour-ui a{pointer-events:auto}
+.tour-intro,.tour-title{display:grid;gap:16px;justify-items:start;max-width:min(560px,90vw)}
+.tour-intro h1,.tour-title h1{font:500 clamp(2.8rem,7vw,7rem) var(--kufi);line-height:.95;letter-spacing:-.02em}
+:root[lang="en"] .tour-intro h1,:root[lang="en"] .tour-title h1{font-stretch:118%}
+.tour-intro p{color:var(--dim);max-width:38ch;font-size:.95rem}
+.stacked{display:inline-flex;flex-wrap:wrap}
+.stacked .ch{display:inline-block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
+.stacked .ch>span{display:inline-block;will-change:transform}
+.stacked .sp{display:inline-block;width:.28em}
+.tour-meta{display:flex;gap:18px;flex-wrap:wrap;font:400 .72rem var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+:root[lang="ar"] .tour-meta{letter-spacing:0;font-family:"IBM Plex Mono","IBM Plex Sans Arabic",monospace;font-size:.82rem}
+.tour-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.tour-hint{display:flex;align-items:center;gap:14px;font:400 .7rem var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+:root[lang="ar"] .tour-hint{letter-spacing:0;font-family:"IBM Plex Mono","IBM Plex Sans Arabic",monospace;font-size:.82rem}
+.tour-hint .sep{width:24px;height:1px;background:var(--line-2)}
+.tour-back{display:inline-flex;align-items:center;gap:12px;color:var(--ink);font:inherit;letter-spacing:inherit;text-transform:inherit}
+.tour-back .ic{transform:scaleX(-1)}
+:root[dir="rtl"] .tour-back .ic{transform:none}
+.tour-back:hover{color:#fff}
+.tour-nav{display:flex;gap:4px;padding:6px;border-radius:99px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.tour-nav button{display:inline-flex;align-items:baseline;gap:8px;height:42px;padding:0 16px;border-radius:99px;color:var(--dim);font:400 .88rem var(--body);transition:background .4s,color .4s}
+.tour-nav button i{font:500 .66rem var(--mono);font-style:normal;color:var(--ice)}
+.tour-nav button:hover,.tour-nav button.hv{color:var(--ink)}
+.tour-nav button.on{background:#fff;color:var(--navy)}
+.tour-nav button.on i{color:var(--navy)}
+.tour-next{display:inline-flex;align-items:center;gap:12px;color:var(--ink);text-align:start}
+.tour-next span{font:400 .68rem var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+:root[lang="ar"] .tour-next span{letter-spacing:0;font-family:"IBM Plex Sans Arabic",sans-serif;font-size:.8rem}
+.tour-next b{font:500 1.2rem var(--kufi)}
+.tour-next .ic{transition:transform .5s var(--ease)}
+.tour-next:hover .ic{transform:translateX(6px)}
+:root[dir="rtl"] .tour-next:hover .ic{transform:scaleX(-1) translateX(6px)}
+
+/* products of the room */
+.tour-panel{position:absolute;top:calc(110px + env(safe-area-inset-top,0px));inset-inline-end:max(24px,env(safe-area-inset-left,0px));width:min(400px,92vw);max-height:calc(100% - 230px);overflow:auto;display:grid;gap:2px;align-content:start;padding:10px;border-radius:24px;background:rgba(3,10,30,.62);border:1px solid var(--line);backdrop-filter:blur(22px) saturate(1.3);-webkit-backdrop-filter:blur(22px) saturate(1.3);z-index:3}
+.tp-head{padding:10px 12px 12px;font:500 .68rem var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+:root[lang="ar"] .tp-head{letter-spacing:0;font:500 .82rem "IBM Plex Sans Arabic",sans-serif}
+.tp-row{border-radius:16px;transition:background .4s}
+.tp-row:hover,.tp-row.open{background:rgba(156,192,255,.08)}
+.tp-main{width:100%;display:grid;grid-template-columns:22px 52px 1fr auto;gap:12px;align-items:center;padding:10px 12px;text-align:start}
+.tp-main i{font:500 .68rem var(--mono);font-style:normal;color:var(--dim)}
+.tp-main img{width:52px;height:52px;border-radius:12px;background:#fff;object-fit:contain;padding:4px}
+.tp-txt{display:grid;min-width:0}
+.tp-txt b{font:500 .98rem var(--kufi)}
+.tp-txt small{color:var(--dim);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tp-pr{font:500 .95rem var(--kufi);white-space:nowrap}
+.tp-pr em{font:400 .7rem var(--body);font-style:normal;color:var(--dim);margin-inline-start:4px}
+.tp-more{padding:0 12px 14px;display:grid;gap:12px;animation:tpIn .6s var(--ease) both}
+@keyframes tpIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.tp-did{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--ink)}
+.tp-did .led{flex:none;width:7px;height:7px;margin-top:8px;border-radius:1.5px;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.tp-acts{display:flex;gap:6px;flex-wrap:wrap}
+.tp-btn{height:40px;padding:0 14px;font-size:.82rem}
+@media (max-width:900px){
+  .tour-ui{padding-top:calc(86px + env(safe-area-inset-top,0px))}
+  .tour-intro p{display:none}
+  .tour-panel{top:auto;bottom:calc(84px + env(safe-area-inset-bottom,0px));inset-inline:12px;width:auto;max-height:38%}
+  .tour.in-room .tour-title h1{font-size:2.4rem}
+  .tour-bottom{flex-direction:column;align-items:stretch}
+  .tour-nav{overflow-x:auto;scrollbar-width:none}
+  .tour-nav::-webkit-scrollbar{display:none}
+  .tour-nav button{flex:none}
+  .tour-next{display:none}
+  .tour-label b{font-size:1.05rem}
+}
+.stacked{gap:0 .28em}
+.stacked .wd{display:inline-flex;white-space:nowrap}
+.tour.in-room .tour-ui::before{content:"";position:absolute;top:0;inset-inline-end:0;width:min(760px,70vw);height:420px;pointer-events:none;background:radial-gradient(80% 70% at 100% 0%,rgba(0,6,26,.78),rgba(0,6,26,0) 72%);z-index:-1}
+:root[dir="ltr"] .tour.in-room .tour-ui::before{background:radial-gradient(80% 70% at 0% 0%,rgba(0,6,26,.78),rgba(0,6,26,0) 72%)}
+.tour-ui{z-index:2}
+.tour-title{position:relative}
+.tour-title h1,.tour-intro h1{text-shadow:0 2px 40px rgba(0,6,26,.55)}
+.tour .t3d-pin i{font-style:normal}
+/* keep chrome readable over bright rooms */
+.tour.in-room::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(180deg,rgba(0,6,26,.72) 0%,rgba(0,6,26,0) 22%,rgba(0,6,26,0) 78%,rgba(0,6,26,.72) 100%)}
+.tour-panel{z-index:3}
