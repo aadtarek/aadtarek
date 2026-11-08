@@ -1,4 +1,5 @@
 import { ArrowRight, CheckCircle2, Clock, Mail, MapPin, MessageCircle, Phone, type LucideIcon } from 'lucide-react'
+import { Deferred } from '../components/Deferred'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { PageHeader } from '../components/PageHeader'
@@ -200,7 +201,9 @@ export function Contact() {
         </div>
       </section>
 
-      <FaqSection />
+      <Deferred height={700}>
+        <FaqSection />
+      </Deferred>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import type { Product } from '../types'
 import perfumeLab from '../assets/standard/background.webp'
+import perfumeLabCard from '../assets/standard/background-800.webp'
 import ledger from '../assets/finder/for-men.webp'
 import serenity from '../assets/finder/for-women.webp'
 import discovery from '../assets/finder/more-preferences.webp'
@@ -12,6 +13,8 @@ export interface Collection {
   tagline: string
   description: string
   image: string
+  /** A lighter 800 × 500 copy for the cards (16:10), when the picture is large */
+  card?: string
   /** 'list' shows matching products; the others render an interactive builder. */
   kind: 'list' | 'discovery' | 'gift'
   includes?: (p: Product) => boolean
@@ -27,6 +30,7 @@ export const collections: Collection[] = [
     description:
       'Our inspired collection: familiar fragrances re-composed with quality materials and high concentration, each with its own Rfaheya signature.',
     image: perfumeLab,
+    card: perfumeLabCard,
     kind: 'list',
     includes: () => true,
   },

@@ -6,7 +6,7 @@ import { isWoo } from '../api/wp'
 import { PageHeader } from '../components/PageHeader'
 import { PageLoading, WpHtml } from '../components/WpHtml'
 import { contentPages, findContentPage, splitLabel, type ContentPage } from '../data/content'
-import infoImage from '../assets/standard/background.webp'
+import infoImage from '../assets/standard/background-800.webp'
 import { NotFound } from './NotFound'
 
 const helpLinks = [

@@ -262,7 +262,7 @@ function usePopular() {
     const best = [...products].sort((a, b) => b.totalSales - a.totalSales)[0]
     const chips: { label: string; image?: string; Icon?: LucideIcon }[] = [
       ...topNotes.map(([name, n]) => ({ label: name, image: n.image })),
-      ...topFamilies.map((f) => ({ label: f.name, image: f.image })),
+      ...topFamilies.map((f) => ({ label: f.name, image: f.imageXs ?? f.image })),
       { label: OCCASIONS.date.label, Icon: OCCASIONS.date.Icon },
       ...(best?.inspiredBy ? [{ label: best.inspiredBy, image: best.images[0]?.src }] : []),
       { label: SEASONS.summer.label, Icon: SEASONS.summer.Icon },
@@ -347,7 +347,7 @@ function Discover({ recent, onPick, onClearRecent, onGo }: { recent: string[]; o
 
 function Categories({ onGo }: { onGo: (to: string) => void }) {
   const tiles = [
-    ...getFamilies().map((f) => ({ key: f.slug, name: f.name, tagline: f.tagline, image: f.image, to: `/shop?family=${f.slug}` })),
+    ...getFamilies().map((f) => ({ key: f.slug, name: f.name, tagline: f.tagline, image: f.imageXs ?? f.image, to: `/shop?family=${f.slug}` })),
     ...collections.filter((c) => c.slug === 'discovery-sets').map((c) => ({ key: c.slug, name: c.name, tagline: 'Sets of 10 or 20 samples', image: c.image, to: `/collections/${c.slug}` })),
   ].slice(0, 6)
   return (

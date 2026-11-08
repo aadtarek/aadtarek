@@ -1,6 +1,7 @@
 import { ArrowRight, FlaskConical, Leaf, Sun, type LucideIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import heroBg from '../assets/about/hero.webp'
+import heroMobile from '../assets/about/hero-mobile.webp'
 import blobFlower from '../assets/about/blob-flower.webp'
 import blobWood from '../assets/about/blob-wood.webp'
 import blobAmber from '../assets/about/blob-amber.webp'
@@ -11,7 +12,7 @@ import value4 from '../assets/about/value-4.webp'
 import dnaOriginal from '../assets/about/dna-original.webp'
 import dnaRfaheya from '../assets/about/dna-rfaheya.webp'
 import { pillars } from '../data/pillars'
-import { getAllProducts } from '../api/catalog'
+import { getAllProducts, useCatalogVersion } from '../api/catalog'
 import { TINTS } from '../lib/tints'
 
 // ---------------------------------------------------------------- content
@@ -44,12 +45,17 @@ const h2 = 'mt-3 font-serif text-[40px] leading-[0.98] sm:text-[56px]'
  * why Rfaheya exists, what it stands for, the Standard and the DNA approach.
  */
 export function About() {
+  useCatalogVersion() // the count fills in once the products are in (the page opens before)
   const count = getAllProducts().length
   return (
     <div className="container-x space-y-4 pt-3 pb-16 lg:space-y-5 lg:pt-4 lg:pb-20">
       {/* ---------- Hero ---------- */}
       <section aria-labelledby="about-title" className="relative overflow-hidden rounded-[28px] bg-[#1c120b] lg:rounded-[36px]">
-        <img src={heroBg} alt="" fetchPriority="high" className="absolute inset-0 size-full object-cover object-[72%_center]" />
+        <picture>
+          {/* Phones: the part of the photo they show, cut ahead (a lighter file) */}
+          <source media="(max-width: 767px)" srcSet={heroMobile} />
+          <img src={heroBg} alt="" fetchPriority="high" className="absolute inset-0 size-full object-cover object-[72%_center] max-md:object-center" />
+        </picture>
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#140c07]/85 via-[#140c07]/30 to-transparent md:bg-gradient-to-r md:from-[#140c07]/80 md:via-[#140c07]/35" />
         <div className="relative flex min-h-[560px] flex-col justify-end px-6 pt-40 pb-9 md:min-h-[620px] md:justify-center md:px-14 md:py-16">
           <p className="text-[11px] font-semibold tracking-[0.24em] text-[#f0c27a] uppercase">About Rfaheya</p>

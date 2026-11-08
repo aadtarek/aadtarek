@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { families } from '../data/families'
 import type { FamilySlug, Product, Review, WearVideo } from '../types'
 import { fetchBootstrap, primeCache, fetchNotes, fetchProductCategories, fetchProductDetails, fetchVideos, type RawCategory } from './content'
-import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, setNoteLibrary, type RawProduct } from './woo'
+import { buildCatalog, fetchWooRaw, fetchWooReviews, mapReviews, paragraphs, setNoteLibrary, type RawProduct, type RawReview } from './woo'
 import { applyStoreSettings, GIFT_BOX, GIFT_WRAP, giftBoxPrice } from '../config'
 import giftImage from '../assets/finder/landing-cta.webp'
 import { fetchStoreSettings, isWoo, storeApi, stripHtml, type StoreSettings } from './wp'
@@ -60,6 +60,9 @@ export async function loadCatalog(): Promise<void> {
     products = buildCatalog(boot.products, boot.dateOrder ?? [], boot.variations ?? [], boot.details ?? {})
     applyLoaded(mapReviews(boot.reviews ?? []), boot.videos ?? [], boot.settings ?? {}, boot.categories ?? [])
     saveSnapshot(boot.settings ?? {})
+    // The long product texts and the reviews follow (the pages show without waiting for them).
+    // Read once the page has loaded, so it doesn't compete with the page's own pictures.
+    if (boot.extra) extras = afterLoad().then(() => loadExtra(boot.extra!, boot.settings ?? {}))
     return
   }
   // …otherwise the individual WooCommerce / WordPress requests.
@@ -156,6 +159,7 @@ function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings,
     if (c.image?.src) {
       family.image = c.image.src
       family.imageSm = undefined
+      family.imageXs = undefined
     }
   }
 }
@@ -342,6 +346,34 @@ export function sampleVariation(product: Product) {
 
 export function fullSizeVariations(product: Product) {
   return product.variations.filter((v) => !v.isSample)
+}
+
+/** Resolves once the page has finished loading (at once if it already has). */
+const afterLoad = () =>
+  new Promise<void>((resolve) => {
+    if (document.readyState === 'complete') return void setTimeout(resolve, 300)
+    window.addEventListener('load', () => setTimeout(resolve, 1200), { once: true })
+  })
+
+/** The second shop data file: product descriptions by id, and the reviews. */
+async function loadExtra(url: string, settings: StoreSettings) {
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return
+    const x = (await res.json()) as { descriptions?: Record<string, string>; reviews?: RawReview[] }
+    const texts = x.descriptions ?? {}
+    for (const p of products) {
+      const html = texts[String(p.id)]
+      if (!html) continue
+      p.description = stripHtml(html)
+      p.story = paragraphs(html)
+    }
+    reviews = mapReviews(x.reviews ?? []).filter((r) => products.some((p) => p.id === r.productId))
+    notify()
+    saveSnapshot(settings)
+  } catch {
+    // The pages work without them.
+  }
 }
 
 export function getFamilies() {

@@ -2099,6 +2099,176 @@ function rfaheya_bootstrap() {
 	}
 }
 
+/**
+ * The shop data (without the settings) as static files in uploads/rfaheya, named by their
+ * content, so browsers and the CDN keep them until they change: the core (what every page
+ * needs) and the extra (long product texts and reviews), which the core links to and which
+ * the storefront reads right after. Returns the core's URL, or '' when the files can't be
+ * written (the page then carries the data itself). Old copies are removed after a day.
+ */
+function rfaheya_boot_file( $data ) {
+	try {
+		unset( $data['settings'] );
+		$texts = array();
+		foreach ( $data['products'] as $i => $product ) {
+			if ( ! empty( $product['description'] ) ) {
+				$texts[ (string) $product['id'] ] = $product['description'];
+			}
+			$data['products'][ $i ]['description'] = '';
+		}
+		$extra = rfaheya_write_data_file(
+			'extra',
+			array(
+				'descriptions' => (object) $texts,
+				'reviews'      => $data['reviews'] ?? array(),
+			)
+		);
+		if ( ! $extra ) {
+			return '';
+		}
+		$data['reviews'] = array();
+		$data['extra']   = $extra;
+		return rfaheya_write_data_file( 'boot', $data );
+	} catch ( Throwable $e ) {
+		return '';
+	}
+}
+
+/** Writes JSON to uploads/rfaheya/<prefix>-<content hash>.json once; returns its site-relative URL or ''. */
+function rfaheya_write_data_file( $prefix, $data ) {
+	$json = wp_json_encode( $data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+	if ( ! $json ) {
+		return '';
+	}
+	$up = wp_upload_dir( null, false );
+	if ( ! empty( $up['error'] ) ) {
+		return '';
+	}
+	$dir  = trailingslashit( $up['basedir'] ) . 'rfaheya';
+	$name = $prefix . '-' . substr( md5( $json ), 0, 12 ) . '.json';
+	$path = $dir . '/' . $name;
+	if ( ! is_readable( $path ) ) {
+		if ( ! wp_mkdir_p( $dir ) ) {
+			return '';
+		}
+		$tmp = $path . '.' . wp_generate_password( 6, false ) . '.tmp';
+		if ( false === file_put_contents( $tmp, $json ) || ! rename( $tmp, $path ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions
+			@unlink( $tmp ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			return '';
+		}
+		foreach ( (array) glob( $dir . '/' . $prefix . '-*.json' ) as $old ) {
+			if ( $old !== $path && filemtime( $old ) < time() - DAY_IN_SECONDS ) {
+				@unlink( $old ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			}
+		}
+	}
+	// Same-origin path (works on the temporary and the real domain alike).
+	return (string) wp_make_link_relative( trailingslashit( $up['baseurl'] ) . 'rfaheya/' . $name );
+}
+
+/**
+ * The journal's published posts in the shape the storefront reads from the REST API
+ * (src/api/content.ts), without their full text: what the journal list needs. Kept an hour,
+ * and dropped whenever a post is saved.
+ */
+function rfaheya_posts_slim() {
+	$cached = get_transient( 'rfaheya_posts_slim' );
+	if ( is_array( $cached ) ) {
+		return $cached;
+	}
+	$out = array();
+	foreach ( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 100 ) ) as $post ) {
+		$media = array();
+		$thumb = (int) get_post_thumbnail_id( $post );
+		if ( $thumb ) {
+			$meta  = wp_get_attachment_metadata( $thumb );
+			$sizes = array();
+			foreach ( (array) ( $meta['sizes'] ?? array() ) as $name => $size ) {
+				if ( (int) ( $size['width'] ?? 0 ) >= 600 ) {
+					$sizes[ $name ] = array(
+						'source_url' => (string) wp_get_attachment_image_url( $thumb, $name ),
+						'width'      => (int) $size['width'],
+					);
+				}
+			}
+			$media[] = array(
+				'source_url'    => (string) wp_get_attachment_image_url( $thumb, 'full' ),
+				'alt_text'      => (string) get_post_meta( $thumb, '_wp_attachment_image_alt', true ),
+				'media_details' => array( 'sizes' => (object) $sizes ),
+			);
+		}
+		$terms = array();
+		foreach ( get_the_category( $post->ID ) as $cat ) {
+			$terms[] = array(
+				'taxonomy' => 'category',
+				'name'     => $cat->name,
+			);
+		}
+		$text  = trim( wp_strip_all_tags( (string) $post->post_content ) );
+		$out[] = array(
+			'slug'      => $post->post_name,
+			'date'      => str_replace( ' ', 'T', $post->post_date ),
+			'title'     => array( 'rendered' => get_the_title( $post ) ),
+			'excerpt'   => array( 'rendered' => get_the_excerpt( $post ) ),
+			'content'   => array( 'rendered' => '' ),
+			'rf_words'  => '' === $text ? 0 : count( preg_split( '/\s+/u', $text ) ),
+			'_embedded' => array(
+				'wp:featuredmedia' => $media,
+				'wp:term'          => array( $terms ),
+			),
+		);
+	}
+	set_transient( 'rfaheya_posts_slim', $out, HOUR_IN_SECONDS );
+	return $out;
+}
+add_action(
+	'save_post_post',
+	function () {
+		delete_transient( 'rfaheya_posts_slim' );
+	}
+);
+
+/** Published pages for "Related" links on the info pages: slug, title and section label. */
+function rfaheya_pages_index() {
+	return array_values(
+		array_map(
+			function ( $p ) {
+				return array(
+					'slug'    => $p->post_name,
+					'title'   => get_the_title( $p ),
+					'eyebrow' => (string) get_post_meta( $p->ID, 'rfaheya_eyebrow', true ),
+				);
+			},
+			get_pages( array( 'post_status' => 'publish' ) )
+		)
+	);
+}
+
+/** The slug of an info page address (/privacy-policy → privacy-policy); '' for the storefront's own pages. */
+function rfaheya_info_slug( $path ) {
+	if ( ! preg_match( '#^/([a-z0-9-]+)/?$#', (string) $path, $m ) ) {
+		return '';
+	}
+	// The storefront's own pages (and WooCommerce's) are not info pages.
+	if ( preg_match( '#^(shop|product|cart|checkout|my-account|account|wishlist|about|contact|faqs|reviews|journal|collections|finder|discover|our-standard|track-order)$#', $m[1] ) ) {
+		return '';
+	}
+	return $m[1];
+}
+
+/** A published page by its address (for the info pages, e.g. /privacy-policy), or null. */
+function rfaheya_info_page_for( $path ) {
+	$slug = rfaheya_info_slug( $path );
+	if ( '' === $slug ) {
+		return null;
+	}
+	$page = get_page_by_path( $slug, OBJECT, 'page' );
+	if ( ! $page || 'publish' !== $page->post_status || ! empty( $page->post_password ) || has_shortcode( $page->post_content, 'woocommerce_checkout' ) || false !== strpos( $page->post_content, '[woocommerce' ) ) {
+		return null;
+	}
+	return $page;
+}
+
 /** A saved copy of the shop data made by this version of the plugin. */
 function rfaheya_bootstrap_current( $data ) {
 	return is_array( $data ) && isset( $data['v'] ) && RFAHEYA_DATA_VERSION === (int) $data['v'];
@@ -2157,7 +2327,19 @@ function rfaheya_storefront_shell() {
 	if ( $logo ) {
 		$html = str_replace( '<head>', '<head><script>window.__rfLogo=' . wp_json_encode( $logo, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . '</script><link rel="preload" as="image" href="' . esc_url( $logo ) . '">', $html );
 	}
-	if ( $data ) {
+	$boot_url = $data ? rfaheya_boot_file( $data ) : '';
+	if ( $boot_url ) {
+		// The shop data as a separate file (kept by the browser and the CDN, downloaded alongside
+		// the storefront's code): the page itself stays small and shows sooner. The settings
+		// travel in the page, so a change in the dashboard shows at once.
+		$settings = wp_json_encode( $data['settings'] ?? new stdClass(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES );
+		// Pages that show no products (About, Contact…) fetch it only once they are on screen.
+		$html = str_replace(
+			'<head>',
+			'<head><script>window.__rfSettings=' . $settings . ';(function(){var u=' . wp_json_encode( $boot_url, JSON_HEX_TAG | JSON_UNESCAPED_SLASHES ) . ';window.__rfBootLoad=function(){return window.__rfBoot||(window.__rfBoot=fetch(u).then(function(r){return r.ok?r.json():null}).then(function(d){if(d&&d.products)d.settings=window.__rfSettings;return d&&d.products?d:null}).catch(function(){return null}))};if(!/^\\/(about|our-standard|contact|track-order|journal|finder\\/?$|collections\\/?$)/.test(location.pathname))window.__rfBootLoad()})()</script>',
+			$html
+		);
+	} elseif ( $data ) {
 		// At the end of the page: the first screen (and its picture) starts before this is read.
 		// The storefront's module runs only once the whole page is read, so it is there in time.
 		$html = str_replace( '</body>', '<script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script></body>', $html );
@@ -2211,6 +2393,38 @@ function rfaheya_storefront_shell() {
 			$preload .= ' imagesrcset="' . esc_attr( $srcset ) . '" imagesizes="(max-width: 767px) 250vw, 100vw"';
 		}
 		$html = str_replace( '</head>', $preload . '></head>', $html );
+	}
+	// The journal: its posts come with the page (no slow REST request), and the first
+	// post's picture starts at once.
+	if ( preg_match( '#^/journal(/|$)#', (string) $path ) ) {
+		$posts = rfaheya_posts_slim();
+		$head  = '<script>window.__rfPosts=' . wp_json_encode( $posts, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>';
+		$lead  = $posts[0]['_embedded']['wp:featuredmedia'][0] ?? null;
+		if ( preg_match( '#^/journal/?$#', (string) $path ) && ! empty( $lead['source_url'] ) ) {
+			$set = array();
+			foreach ( $lead['media_details']['sizes'] as $size ) {
+				$set[ $size['width'] ] = $size['source_url'] . ' ' . $size['width'] . 'w';
+			}
+			$head .= '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $lead['source_url'] ) . '"' . ( $set ? ' imagesrcset="' . esc_attr( implode( ', ', $set ) ) . '" imagesizes="(max-width: 1023px) 100vw, 50vw"' : '' ) . '>';
+		}
+		$html = str_replace( '</head>', $head . '</head>', $html );
+	}
+	// An info page (privacy, terms…): its text comes with the page (no slow REST request).
+	$info = rfaheya_info_page_for( $path );
+	if ( ! $info && rfaheya_info_slug( $path ) ) {
+		// No such page in WordPress: the storefront shows its built-in text at once.
+		$flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+		$html  = str_replace( '</head>', '<script>window.__rfWpPage=' . wp_json_encode( array( 'slug' => rfaheya_info_slug( $path ), 'missing' => true ), $flags ) . ';window.__rfPageIndex=' . wp_json_encode( rfaheya_pages_index(), $flags ) . '</script></head>', $html );
+	}
+	if ( $info ) {
+		$copy = array(
+			'slug'    => $info->post_name,
+			'title'   => array( 'rendered' => get_the_title( $info ) ),
+			'excerpt' => array( 'rendered' => has_excerpt( $info ) ? get_the_excerpt( $info ) : '' ),
+			'content' => array( 'rendered' => apply_filters( 'the_content', $info->post_content ) ), // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+		);
+		$flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE;
+		$html  = str_replace( '</head>', '<script>window.__rfWpPage=' . wp_json_encode( $copy, $flags ) . ';window.__rfPageIndex=' . wp_json_encode( rfaheya_pages_index(), $flags ) . '</script></head>', $html );
 	}
 	// This page's title, description, sharing picture and structured data for search engines.
 	try {
@@ -2326,23 +2540,7 @@ add_action(
 			array(
 				'methods'             => 'GET',
 				'permission_callback' => $public,
-				'callback'            => function () {
-					$pages = get_pages( array( 'post_status' => 'publish' ) );
-					return rest_ensure_response(
-						array_values(
-							array_map(
-								function ( $p ) {
-									return array(
-										'slug'    => $p->post_name,
-										'title'   => get_the_title( $p ),
-										'eyebrow' => (string) get_post_meta( $p->ID, 'rfaheya_eyebrow', true ),
-									);
-								},
-								$pages
-							)
-						)
-					);
-				},
+				'callback'            => fn() => rest_ensure_response( rfaheya_pages_index() ),
 			)
 		);
 

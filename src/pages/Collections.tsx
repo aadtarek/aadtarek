@@ -28,7 +28,9 @@ export function CollectionsIndex() {
           <li key={c.slug} className={i < 2 ? 'col-span-2 lg:col-span-3' : i === 2 ? 'col-span-2 lg:col-span-2' : 'lg:col-span-2'}>
             <Link to={`/collections/${c.slug}`} className="group relative block overflow-hidden rounded-[22px] bg-[#1c120b] lg:rounded-[28px]">
               <img
-                src={c.image}
+                src={c.card ?? c.image}
+                srcSet={c.card ? `${c.card} 800w, ${c.image} 1018w` : undefined}
+                sizes="(min-width: 1024px) 50vw, 100vw"
                 alt=""
                 loading={i === 0 ? undefined : 'lazy'}
                 decoding="async"

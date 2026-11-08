@@ -1,4 +1,5 @@
 import { ArrowRight, ChevronDown, Search, SlidersHorizontal, X } from 'lucide-react'
+import { LazyItem } from '../components/Deferred'
 import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { getAllProducts, getFamilies, priceRange, sortProducts, type ProductSort } from '../api/catalog'
@@ -181,7 +182,7 @@ export function Shop() {
             .map((f) => (
               <li key={f.slug} className="shrink-0">
                 <StoryButton label={f.name} active={onlyFamily === f.slug} onClick={() => update({ family: onlyFamily === f.slug ? '' : f.slug })}>
-                  <img src={f.image} alt="" loading="lazy" className="size-full rounded-full object-cover" />
+                  <img src={f.imageXs ?? f.imageSm ?? f.image} alt="" loading="lazy" decoding="async" className="size-full rounded-full object-cover" />
                 </StoryButton>
               </li>
             ))}
@@ -290,7 +291,14 @@ export function Shop() {
                     </li>
                   )}
                   <li>
-                    <ProductCard product={p} priority={i < 4} />
+                    {i < 6 ? (
+                      <ProductCard product={p} priority={i < 4} />
+                    ) : (
+                      // Further down: built as it comes near (the page starts quicker).
+                      <LazyItem placeholder="aspect-[5/8] rounded-[22px] bg-white/60 sm:aspect-[5/7]">
+                        <ProductCard product={p} />
+                      </LazyItem>
+                    )}
                   </li>
                 </Fragment>
               ))}
@@ -562,7 +570,7 @@ function TryFirstTile() {
       <p className="mt-3 max-w-[62%] text-[13.5px] leading-normal text-[#b9ae9c] sm:max-w-none sm:text-[14px]">35 EGP — live with it for a few days, then commit to the full bottle.</p>
       <div className="absolute top-5 right-4 flex sm:static sm:mt-auto sm:pt-6">
         {shots.map((p) => (
-          <img key={p.id} src={p.images[0].src} alt="" loading="lazy" className="-mr-3.5 size-[54px] rounded-full border-[3px] border-[#14110d] object-cover sm:size-[78px]" />
+          <img key={p.id} src={p.images[0].src} srcSet={p.images[0].srcset} sizes="78px" alt="" loading="lazy" decoding="async" className="-mr-3.5 size-[54px] rounded-full border-[3px] border-[#14110d] object-cover sm:size-[78px]" />
         ))}
       </div>
       <Link

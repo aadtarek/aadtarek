@@ -116,6 +116,8 @@ export interface FragranceFamily {
   image: string
   /** A smaller copy of the built-in picture (phones) */
   imageSm?: string
+  /** A small square thumbnail (160 px) for round icons */
+  imageXs?: string
 }
 
 export interface Review {

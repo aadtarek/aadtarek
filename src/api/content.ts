@@ -64,6 +64,8 @@ interface RawPost {
   title: { rendered: string }
   excerpt: { rendered: string }
   content: { rendered: string }
+  /** Word count, when the post comes without its text (the page's own copy, rfaheya.php) */
+  rf_words?: number
   _embedded?: {
     'wp:featuredmedia'?: { source_url?: string; alt_text?: string; media_details?: { sizes?: Record<string, { source_url: string; width: number }> } }[]
     'wp:term'?: { taxonomy: string; name: string }[][]
@@ -77,7 +79,7 @@ export interface WpArticle extends Article {
 }
 
 function mapPost(p: RawPost): WpArticle {
-  const words = stripHtml(p.content.rendered).split(/\s+/).filter(Boolean).length
+  const words = p.rf_words ?? stripHtml(p.content.rendered).split(/\s+/).filter(Boolean).length
   const media = p._embedded?.['wp:featuredmedia']?.[0]
   const sizes = Object.values(media?.media_details?.sizes ?? {}).filter((x) => x.width >= 600)
   const category = p._embedded?.['wp:term']?.flat().find((t) => t.taxonomy === 'category' && t.name !== 'Uncategorized')?.name ?? 'Journal'
@@ -124,7 +126,10 @@ interface RawPage {
 
 export const fetchPage = (slug: string) =>
   cached(`page:${slug}`, async (): Promise<WpPage | null> => {
-    const list = await wpGet<RawPage[]>(`wp/v2/pages?slug=${encodeURIComponent(slug)}`)
+    // The page's own copy when WordPress put it in the page (rfaheya.php), else the REST API.
+    const own = window.__rfWpPage as (RawPage & { missing?: boolean }) | undefined
+    if (own?.slug === slug && own.missing) return null
+    const list = own?.slug === slug ? [own] : await wpGet<RawPage[]>(`wp/v2/pages?slug=${encodeURIComponent(slug)}`)
     const p = list[0]
     if (!p) return null
     // A page without its own excerpt gets one cut from its text by WordPress; that would repeat the first lines.
@@ -141,12 +146,18 @@ export const fetchPage = (slug: string) =>
   })
 
 /** Published pages (for "Related" links): slug, title and section label. */
-export const fetchPageIndex = () => cached('pages', () => wpGet<{ slug: string; title: string; eyebrow: string }[]>('rfaheya/v1/pages'))
+type PageIndex = { slug: string; title: string; eyebrow: string }[]
+export const fetchPageIndex = () => cached('pages', async () => (window.__rfPageIndex as PageIndex | undefined) ?? wpGet<PageIndex>('rfaheya/v1/pages'))
 
 // ---------------------------------------------------------------- FAQs
 
 export const fetchFaqs = () =>
-  cached('faqs', async () => (await wpGet<{ q: string; a: string }[]>('rfaheya/v1/faqs')).map((f) => ({ q: stripHtml(f.q), html: f.a })))
+  cached('faqs', async () => {
+    // A page that opened before the shop data: its FAQs come with that data (no extra request).
+    const boot = typeof window !== 'undefined' ? await (window.__rfBoot ?? window.__rfBootLoad?.())?.catch(() => null) : null
+    const list = boot?.faqs ?? (await wpGet<{ q: string; a: string }[]>('rfaheya/v1/faqs'))
+    return list.map((f) => ({ q: stripHtml(f.q), html: f.a }))
+  })
 
 // ---------------------------------------------------------------- catalog extras (loaded at start-up)
 
@@ -197,14 +208,23 @@ export interface Bootstrap {
   variations: import('./woo').RawProduct[]
   reviews: import('./woo').RawReview[]
   faqs?: { q: string; a: string }[]
+  /** The long product texts and the reviews, in a second file read right after (rfaheya.php) */
+  extra?: string
 }
 
 declare global {
   interface Window {
     /** The shop data, put in the page by WordPress (rfaheya.php) */
     __rfBoot?: Promise<Bootstrap | null>
+    /** Starts (once) and returns the shop data download, for pages that fetch it later (rfaheya.php) */
+    __rfBootLoad?: () => Promise<Bootstrap | null>
+    /** The store settings, put in the page by WordPress so the first view already uses them */
+    __rfSettings?: import('./wp').StoreSettings
     /** The journal's posts, put in the /journal page by WordPress (rfaheya.php) */
     __rfPosts?: unknown[]
+    /** An info page's text and the list of pages, put in the page by WordPress (rfaheya.php) */
+    __rfWpPage?: unknown
+    __rfPageIndex?: unknown
   }
 }
 
@@ -215,6 +235,7 @@ declare global {
  */
 export async function fetchBootstrap(): Promise<Bootstrap | null> {
   if (window.__rfBoot) return window.__rfBoot
+  if (window.__rfBootLoad) return window.__rfBootLoad()
   const boot = await wpGet<Bootstrap>('rfaheya/v1/bootstrap')
   return boot?.products?.length ? boot : null
 }

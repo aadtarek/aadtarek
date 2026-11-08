@@ -1,6 +1,7 @@
 import { Suspense, type ReactNode } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { isCatalogReady, useCatalogVersion } from './api/catalog'
+import { NO_PRODUCTS } from './routeTable'
 import { AnnouncementBar } from './components/AnnouncementBar'
 import { Header } from './components/Header'
 import { Hero } from './components/Hero'
@@ -35,9 +36,11 @@ function Startup() {
   )
 }
 
+
 function RouteGate({ children }: { children: ReactNode }) {
   useCatalogVersion()
-  return isCatalogReady() ? children : <Startup />
+  const { pathname } = useLocation()
+  return isCatalogReady() || NO_PRODUCTS.test(pathname) ? children : <Startup />
 }
 
 /** /shop/<product> (WooCommerce's product link) → the storefront's product page. */

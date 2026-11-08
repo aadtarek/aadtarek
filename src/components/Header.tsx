@@ -64,9 +64,14 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const update = () => setScrolled((was) => (was ? window.scrollY > 12 : window.scrollY > 40))
-    update()
+    // First check on the next frame: reading the scroll position now would make the browser
+    // lay the whole new page out at once, in the middle of drawing it.
+    const first = requestAnimationFrame(update)
     window.addEventListener('scroll', update, { passive: true })
-    return () => window.removeEventListener('scroll', update)
+    return () => {
+      cancelAnimationFrame(first)
+      window.removeEventListener('scroll', update)
+    }
   }, [])
   const clear = isHome && !scrolled && !searchOpen
   const floating = scrolled

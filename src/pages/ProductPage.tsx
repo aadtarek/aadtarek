@@ -1,4 +1,5 @@
 import { ArrowRight, ChevronLeft, ChevronRight, Heart, Minus, Play, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react'
+import { Deferred } from '../components/Deferred'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { usePageTitle } from '../lib/usePageTitle'
@@ -244,12 +245,27 @@ function ProductDetails({ product }: { product: Product }) {
         </div>
       </section>
 
-      <NotesIsland product={product} />
-      <Story product={product} />
-      <StandardBars product={product} />
-      <ProductReviews product={product} reviews={reviews} />
-      <ProductFaq />
-      {related.length > 0 && <Related products={related} />}
+      {/* Below the first screen: built when the visitor scrolls near (the page opens quicker). */}
+      <Deferred height={620}>
+        <NotesIsland product={product} />
+      </Deferred>
+      <Deferred height={560}>
+        <Story product={product} />
+      </Deferred>
+      <Deferred height={520}>
+        <StandardBars product={product} />
+      </Deferred>
+      <Deferred height={700} anchor="reviews">
+        <ProductReviews product={product} reviews={reviews} />
+      </Deferred>
+      <Deferred height={640}>
+        <ProductFaq />
+      </Deferred>
+      {related.length > 0 && (
+        <Deferred height={720}>
+          <Related products={related} />
+        </Deferred>
+      )}
 
       {videoOpen != null && <VideoModal videos={videos} index={videoOpen} onIndex={setVideoOpen} onClose={() => setVideoOpen(null)} />}
 

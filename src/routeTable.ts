@@ -23,3 +23,6 @@ export const ROUTE_TABLE: [pattern: string, module: string][] = [
   ['^/journal', 'src/pages/Journal.tsx'],
   ['^/[^/]+/?$', 'src/pages/InfoPage.tsx'],
 ]
+
+/** Pages that show nothing from the product list: they open without waiting for it (App.tsx, main.tsx). */
+export const NO_PRODUCTS = /^\/(about|our-standard|contact|track-order|journal|finder\/?$|collections\/?$)/

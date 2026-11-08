@@ -1,15 +1,19 @@
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { AnnouncementBar } from './AnnouncementBar'
-import { CartDrawer } from './CartDrawer'
-import { Footer } from './Footer'
 import { Header } from './Header'
-import { QuickAddModal } from './QuickAddModal'
-import { RewardsPopup } from './RewardsPopup'
 import { installFx } from '../lib/fx'
 import { readLogoColor } from '../lib/logoColor'
 import { trimOwnLogo } from '../lib/ownLogo'
 import { hideShell } from '../lib/shell'
+import { Deferred, useAfterLoad } from './Deferred'
+import { useCart } from '../store/cart'
+
+// Not needed for the first view: downloaded once the page has loaded (or when first opened).
+const Footer = lazy(() => import('./Footer').then((m) => ({ default: m.Footer })))
+const CartDrawer = lazy(() => import('./CartDrawer').then((m) => ({ default: m.CartDrawer })))
+const QuickAddModal = lazy(() => import('./QuickAddModal').then((m) => ({ default: m.QuickAddModal })))
+const RewardsPopup = lazy(() => import('./RewardsPopup').then((m) => ({ default: m.RewardsPopup })))
 import { useScrollReveal } from '../lib/useScrollReveal'
 
 export function Layout() {
@@ -19,6 +23,8 @@ export function Layout() {
   const [firstPath] = useState(pathname)
   const animate = pathname !== firstPath
   useScrollReveal(main, pathname)
+  const loaded = useAfterLoad()
+  const cart = useCart()
   useEffect(installFx, [])
   useEffect(() => {
     // The phone's first screen from index.html: the home slider removes it once its picture
@@ -45,7 +51,9 @@ export function Layout() {
     <div className="flex min-h-screen flex-col pb-[calc(84px+env(safe-area-inset-bottom))] lg:pb-0">
       <AnnouncementBar />
       <Header />
-      <main ref={main} className="flex-1">
+      {/* At least a screen tall: the footer starts below the first view, so pages whose content
+          arrives a moment later don't push it (no layout jump). */}
+      <main ref={main} className="min-h-[100svh] flex-1">
         <div key={pathname} className={animate ? 'page-enter' : undefined}>
           <Suspense fallback={<div className="min-h-screen" />}>
             <Outlet />
@@ -53,10 +61,23 @@ export function Layout() {
         </div>
       </main>
       {/* Checkout: no banner and only the footer's last line, so nothing pulls away from the order. */}
-      <Footer showCta={pathname === '/'} compact={pathname.startsWith('/checkout')} />
-      <CartDrawer />
-      <QuickAddModal />
-      <RewardsPopup />
+      {pathname.startsWith('/checkout') ? (
+        <Suspense fallback={null}>
+          <Footer compact />
+        </Suspense>
+      ) : (
+        // Built when the visitor scrolls near it: the page's start doesn't wait for it.
+        <Deferred height={900}>
+          <Footer showCta={pathname === '/'} />
+        </Deferred>
+      )}
+      {(loaded || cart.isOpen || cart.quickAdd) && (
+        <Suspense fallback={null}>
+          <CartDrawer />
+          <QuickAddModal />
+          {loaded && <RewardsPopup />}
+        </Suspense>
+      )}
     </div>
   )
 }

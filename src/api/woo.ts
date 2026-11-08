@@ -159,7 +159,7 @@ const PROJECTION_FROM_PRESENCE: Record<Presence, string> = { soft: 'Intimate', b
 const LONGEVITY_LEVEL: Record<Longevity, string> = { standard: 'Moderate', extended: 'Extended', eternal: 'Long-lasting' }
 
 /** Description HTML → plain paragraphs. */
-function paragraphs(html: string): string[] {
+export function paragraphs(html: string): string[] {
   return html
     .split(/<\/p>|<br\s*\/?>\s*<br\s*\/?>|\n\s*\n/i)
     .map(stripHtml)
