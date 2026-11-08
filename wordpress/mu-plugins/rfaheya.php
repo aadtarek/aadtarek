@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
 // Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
-const RFAHEYA_DATA_VERSION = 7;
+const RFAHEYA_DATA_VERSION = 8;
 
 // ==================================================================== settings
 
@@ -328,7 +328,7 @@ function rfaheya_settings_field( $group, $key, $field, $value ) {
 		printf( '<textarea id="%s" rows="3" name="%s">%s</textarea>', esc_attr( $id ), esc_attr( $input ), esc_textarea( $value ) );
 	} elseif ( 'product' === $field[2] ) {
 		printf( '<select id="%s" name="%s"><option value="">— Best seller —</option>', esc_attr( $id ), esc_attr( $input ) );
-		foreach ( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) as $p ) {
+		foreach ( rfaheya_one_language( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) ) as $p ) {
 			printf( '<option value="%d" %s>%s</option>', (int) $p->ID, selected( (int) $value, $p->ID, false ), esc_html( get_the_title( $p ) ) );
 		}
 		echo '</select>';
@@ -1565,7 +1565,7 @@ function rfaheya_products_details() {
 	foreach ( $ids as $id ) {
 		$d = rfaheya_details( $id );
 		if ( ! empty( $d['dna_image'] ) ) {
-			$d['dna_image_url'] = (string) wp_get_attachment_image_url( (int) $d['dna_image'], 'medium' );
+			$d['dna_image_url'] = (string) wp_get_attachment_image_url( (int) $d['dna_image'], 'large' );
 		}
 		$out[ (string) $id ] = $d;
 	}
@@ -4175,17 +4175,43 @@ function rfaheya_review_ids_from_post() {
 	return array_values( array_filter( array_map( 'absint', explode( ',', $raw ) ) ) );
 }
 
+/**
+ * With WPML (translations), each product exists once per language: keep the English ones
+ * (or the site's main language), so a product is listed once. Its translation follows it.
+ */
+function rfaheya_one_language( $posts ) {
+	if ( ! has_filter( 'wpml_post_language_details' ) ) {
+		return $posts;
+	}
+	$languages = (array) apply_filters( 'wpml_active_languages', null, array( 'skip_missing' => 0 ) );
+	$main      = isset( $languages['en'] ) ? 'en' : (string) apply_filters( 'wpml_default_language', null );
+	if ( '' === $main ) {
+		return $posts;
+	}
+	return array_values(
+		array_filter(
+			$posts,
+			function ( $p ) use ( $main ) {
+				$details = apply_filters( 'wpml_post_language_details', null, is_object( $p ) ? $p->ID : (int) $p );
+				return ! is_array( $details ) || empty( $details['language_code'] ) || $details['language_code'] === $main;
+			}
+		)
+	);
+}
+
 function rfaheya_add_review_page() {
 	if ( ! current_user_can( 'moderate_comments' ) ) {
 		return;
 	}
-	$products = get_posts(
-		array(
-			'post_type'   => 'product',
-			'post_status' => 'publish',
-			'numberposts' => -1,
-			'orderby'     => 'title',
-			'order'       => 'ASC',
+	$products = rfaheya_one_language(
+		get_posts(
+			array(
+				'post_type'   => 'product',
+				'post_status' => 'publish',
+				'numberposts' => -1,
+				'orderby'     => 'title',
+				'order'       => 'ASC',
+			)
 		)
 	);
 	$notice = isset( $_GET['rfaheya-review'] ) ? sanitize_text_field( wp_unslash( $_GET['rfaheya-review'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -4913,6 +4939,338 @@ add_action(
 	},
 	5
 );
+
+/* -------------------------------------------------------------------------
+ * Discount rules (Products → Discount rules): a percent or an amount off chosen
+ * products and sizes, on their own, with optional start and end dates. They change
+ * the product's price in WooCommerce itself, so the store, cart, checkout and orders
+ * all show the discounted price (and the old one struck through).
+ * ------------------------------------------------------------------------- */
+
+const RFAHEYA_DISCOUNTS = 'rfaheya_discount_rules';
+
+/** The saved rules. */
+function rfaheya_discount_rules() {
+	$rules = get_option( RFAHEYA_DISCOUNTS, array() );
+	return is_array( $rules ) ? array_values( array_filter( $rules, 'is_array' ) ) : array();
+}
+
+/** Whether a rule is on right now (switched on, and inside its dates if it has any). */
+function rfaheya_rule_live( $rule, $now = null ) {
+	$now = null === $now ? current_time( 'timestamp' ) : $now; // phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested -- compared with dates typed in the store's time zone
+	if ( empty( $rule['enabled'] ) || (float) ( $rule['value'] ?? 0 ) <= 0 ) {
+		return false;
+	}
+	if ( ! empty( $rule['start'] ) && $now < strtotime( $rule['start'] . ' 00:00:00' ) ) {
+		return false;
+	}
+	if ( ! empty( $rule['end'] ) && $now > strtotime( $rule['end'] . ' 23:59:59' ) ) {
+		return false;
+	}
+	return true;
+}
+
+/** The product id rules are written for (with WPML, the English / main-language product). */
+function rfaheya_rule_product_id( $id ) {
+	if ( has_filter( 'wpml_object_id' ) ) {
+		$languages = (array) apply_filters( 'wpml_active_languages', null, array( 'skip_missing' => 0 ) );
+		$main      = isset( $languages['en'] ) ? 'en' : (string) apply_filters( 'wpml_default_language', null );
+		if ( $main ) {
+			$id = (int) apply_filters( 'wpml_object_id', $id, 'product', true, $main );
+		}
+	}
+	return (int) $id;
+}
+
+/** The biggest discount (in money) the live rules give this product at this price. */
+function rfaheya_rule_discount( $product, $price ) {
+	static $cache = array();
+	$price = (float) $price;
+	if ( $price <= 0 || ! $product instanceof WC_Product ) {
+		return 0;
+	}
+	$parent = $product->is_type( 'variation' ) ? $product->get_parent_id() : $product->get_id();
+	$key    = $product->get_id() . '|' . $price;
+	if ( isset( $cache[ $key ] ) ) {
+		return $cache[ $key ];
+	}
+	$best = 0;
+	$main = rfaheya_rule_product_id( $parent );
+	$size = '';
+	if ( $product->is_type( 'variation' ) ) {
+		$size = rfaheya_size_key( $product->get_attribute( 'size' ) ? $product->get_attribute( 'size' ) : $product->get_attribute( 'pa_size' ) );
+	}
+	foreach ( rfaheya_discount_rules() as $rule ) {
+		if ( ! rfaheya_rule_live( $rule ) ) {
+			continue;
+		}
+		$ids = array_map( 'intval', (array) ( $rule['products'] ?? array() ) );
+		if ( $ids && ! in_array( $main, $ids, true ) && ! in_array( (int) $parent, $ids, true ) ) {
+			continue;
+		}
+		$sizes = array_map( 'rfaheya_size_key', (array) ( $rule['sizes'] ?? array() ) );
+		if ( $sizes && ( '' === $size || ! in_array( $size, $sizes, true ) ) ) {
+			continue;
+		}
+		$value = (float) $rule['value'];
+		$off   = 'amount' === ( $rule['type'] ?? 'percent' ) ? $value : $price * min( 100, $value ) / 100;
+		$best  = max( $best, min( $price, round( $off ) ) );
+	}
+	$cache[ $key ] = $best;
+	return $best;
+}
+
+/** The price after the rules (unchanged when no rule applies). */
+function rfaheya_ruled_price( $price, $product ) {
+	if ( '' === $price || null === $price || is_admin() && ! wp_doing_ajax() && ! ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return $price;
+	}
+	$off = rfaheya_rule_discount( $product, $price );
+	return $off > 0 ? (string) max( 0, (float) $price - $off ) : $price;
+}
+
+foreach ( array( 'woocommerce_product_get_price', 'woocommerce_product_variation_get_price' ) as $rfaheya_hook ) {
+	add_filter( $rfaheya_hook, 'rfaheya_ruled_price', 50, 2 );
+}
+foreach ( array( 'woocommerce_product_get_sale_price', 'woocommerce_product_variation_get_sale_price' ) as $rfaheya_hook ) {
+	add_filter(
+		$rfaheya_hook,
+		function ( $sale, $product ) {
+			$base = '' !== $sale && null !== $sale ? $sale : $product->get_regular_price();
+			$new  = rfaheya_ruled_price( $base, $product );
+			return (string) $new !== (string) $base ? $new : $sale;
+		},
+		50,
+		2
+	);
+}
+// The price ranges WooCommerce keeps for variable products.
+foreach ( array( 'woocommerce_variation_prices_price', 'woocommerce_variation_prices_sale_price' ) as $rfaheya_hook ) {
+	add_filter(
+		$rfaheya_hook,
+		fn( $price, $variation ) => rfaheya_ruled_price( $price, $variation ),
+		50,
+		2
+	);
+}
+add_filter(
+	'woocommerce_get_variation_prices_hash',
+	function ( $hash ) {
+		$hash[] = md5( wp_json_encode( array( rfaheya_discount_rules(), gmdate( 'Y-m-d' ) ) ) );
+		return $hash;
+	}
+);
+add_filter(
+	'woocommerce_product_is_on_sale',
+	function ( $on_sale, $product ) {
+		return $on_sale || ( $product instanceof WC_Product && ! $product->is_type( 'variable' ) && rfaheya_rule_discount( $product, $product->get_regular_price() ) > 0 );
+	},
+	50,
+	2
+);
+
+/** Rules start and end on their own: the storefront's copy is refreshed at those times. */
+function rfaheya_schedule_rule_refresh() {
+	wp_clear_scheduled_hook( 'rfaheya_rules_refresh' );
+	$now = current_time( 'timestamp' ); // phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+	foreach ( rfaheya_discount_rules() as $rule ) {
+		foreach ( array( array( 'start', ' 00:00:05' ), array( 'end', ' 23:59:59' ) ) as $edge ) {
+			if ( ! empty( $rule[ $edge[0] ] ) ) {
+				$at = strtotime( $rule[ $edge[0] ] . $edge[1] ) + ( 'end' === $edge[0] ? 2 : 0 );
+				if ( $at > $now ) {
+					wp_schedule_single_event( $at - ( $now - time() ), 'rfaheya_rules_refresh', array( $at ) );
+				}
+			}
+		}
+	}
+}
+add_action(
+	'rfaheya_rules_refresh',
+	function () {
+		delete_transient( 'rfaheya_bootstrap' );
+		rfaheya_purge_page_cache();
+		rfaheya_bootstrap();
+	}
+);
+
+add_action(
+	'admin_menu',
+	function () {
+		add_submenu_page( 'edit.php?post_type=product', 'Discount rules', 'Discount rules', 'manage_woocommerce', 'rfaheya-discounts', 'rfaheya_discounts_page' );
+	}
+);
+
+add_action(
+	'admin_post_rfaheya_save_discounts',
+	function () {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_die( 'Sorry, you are not allowed to change discounts.' );
+		}
+		check_admin_referer( 'rfaheya_save_discounts' );
+		$input = isset( $_POST['rules'] ) && is_array( $_POST['rules'] ) ? wp_unslash( $_POST['rules'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned below
+		$rules = array();
+		foreach ( $input as $r ) {
+			if ( ! is_array( $r ) || ! empty( $r['delete'] ) ) {
+				continue;
+			}
+			$date    = fn( $v ) => preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $v ) ? (string) $v : '';
+			$rules[] = array(
+				'name'     => sanitize_text_field( $r['name'] ?? '' ),
+				'enabled'  => ! empty( $r['enabled'] ),
+				'type'     => 'amount' === ( $r['type'] ?? '' ) ? 'amount' : 'percent',
+				'value'    => max( 0, (float) ( $r['value'] ?? 0 ) ),
+				'products' => array_values( array_unique( array_filter( array_map( 'absint', (array) ( $r['products'] ?? array() ) ) ) ) ),
+				'sizes'    => array_values( array_unique( array_filter( array_map( 'sanitize_text_field', (array) ( $r['sizes'] ?? array() ) ) ) ) ),
+				'start'    => $date( $r['start'] ?? '' ),
+				'end'      => $date( $r['end'] ?? '' ),
+			);
+		}
+		update_option( RFAHEYA_DISCOUNTS, $rules, false );
+		rfaheya_schedule_rule_refresh();
+		if ( function_exists( 'wc_delete_product_transients' ) ) {
+			wc_delete_product_transients();
+		}
+		delete_transient( 'rfaheya_bootstrap' );
+		rfaheya_purge_page_cache();
+		wp_safe_redirect( add_query_arg( array( 'post_type' => 'product', 'page' => 'rfaheya-discounts', 'saved' => '1' ), admin_url( 'edit.php' ) ) );
+		exit;
+	}
+);
+
+add_action(
+	'admin_enqueue_scripts',
+	function ( $hook ) {
+		if ( 'product_page_rfaheya-discounts' !== $hook ) {
+			return;
+		}
+		wp_enqueue_style( 'rfaheya-settings', WPMU_PLUGIN_URL . '/rfaheya-admin/settings.css', array(), rfaheya_admin_asset_version( 'settings.css' ) );
+		wp_enqueue_script( 'rfaheya-discounts', WPMU_PLUGIN_URL . '/rfaheya-admin/discounts.js', array(), rfaheya_admin_asset_version( 'discounts.js' ), true );
+	}
+);
+
+/** Every size the store's products come in, e.g. "10 ML", "50 ML", "100 ML". */
+function rfaheya_all_sizes() {
+	$sizes = array();
+	foreach ( array( 'pa_size', 'size' ) as $tax ) {
+		if ( taxonomy_exists( $tax ) ) {
+			foreach ( get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false ) ) as $term ) {
+				$sizes[ rfaheya_size_key( $term->name ) ] = $term->name;
+			}
+		}
+	}
+	// Sizes typed on the products themselves (custom attributes).
+	global $wpdb;
+	$values = $wpdb->get_col( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key IN ('attribute_size','attribute_pa_size') AND meta_value <> '' LIMIT 200" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	foreach ( $values as $v ) {
+		$name = ucwords( str_replace( '-', ' ', $v ) );
+		$name = preg_replace( '/\bml\b/i', 'ML', $name );
+		if ( ! isset( $sizes[ rfaheya_size_key( $name ) ] ) ) {
+			$sizes[ rfaheya_size_key( $name ) ] = $name;
+		}
+	}
+	uasort( $sizes, fn( $a, $b ) => (float) $a <=> (float) $b ?: strcmp( $a, $b ) );
+	return $sizes;
+}
+
+/** One rule's card (also the blank template for "Add a rule"). */
+function rfaheya_discount_card( $i, $rule, $products, $sizes ) {
+	$n     = 'rules[' . $i . ']';
+	$rule  = wp_parse_args( $rule, array( 'name' => '', 'enabled' => true, 'type' => 'percent', 'value' => '', 'products' => array(), 'sizes' => array(), 'start' => '', 'end' => '' ) );
+	$live  = rfaheya_rule_live( $rule );
+	$picked = array_map( 'intval', (array) $rule['products'] );
+	?>
+	<div class="rfs-card rfd-rule" data-index="<?php echo esc_attr( $i ); ?>">
+		<div class="rfd-head">
+			<input type="text" class="rfd-name" name="<?php echo esc_attr( $n ); ?>[name]" value="<?php echo esc_attr( $rule['name'] ); ?>" placeholder="Rule name, e.g. Ramadan offer on 100 ml" aria-label="Rule name">
+			<span class="rfd-state <?php echo $live ? 'is-live' : ''; ?>"><?php echo $live ? 'Running now' : ( empty( $rule['enabled'] ) ? 'Off' : 'Not running now' ); ?></span>
+			<label class="rfs-switch rfd-switch"><input type="checkbox" name="<?php echo esc_attr( $n ); ?>[enabled]" value="1" <?php checked( ! empty( $rule['enabled'] ) ); ?>><span class="rfs-track" aria-hidden="true"></span><span class="rfs-switch-text"><strong>On</strong></span></label>
+			<button type="button" class="rfd-delete" title="Delete this rule">Delete</button>
+			<input type="hidden" class="rfd-deleted" name="<?php echo esc_attr( $n ); ?>[delete]" value="">
+		</div>
+		<div class="rfs-grid rfd-grid">
+			<div class="rfs-field">
+				<span class="rfs-label">Discount</span>
+				<div class="rfd-amount">
+					<input type="number" min="0" step="any" name="<?php echo esc_attr( $n ); ?>[value]" value="<?php echo esc_attr( $rule['value'] ); ?>" placeholder="20" aria-label="Discount">
+					<select name="<?php echo esc_attr( $n ); ?>[type]" aria-label="Discount type">
+						<option value="percent" <?php selected( $rule['type'], 'percent' ); ?>>% off</option>
+						<option value="amount" <?php selected( $rule['type'], 'amount' ); ?>>EGP off each</option>
+					</select>
+				</div>
+			</div>
+			<div class="rfs-field">
+				<span class="rfs-label">Dates <small class="rfs-help">(optional — empty means always)</small></span>
+				<div class="rfd-dates">
+					<input type="date" name="<?php echo esc_attr( $n ); ?>[start]" value="<?php echo esc_attr( $rule['start'] ); ?>" aria-label="From">
+					<span>to</span>
+					<input type="date" name="<?php echo esc_attr( $n ); ?>[end]" value="<?php echo esc_attr( $rule['end'] ); ?>" aria-label="Until">
+				</div>
+			</div>
+			<div class="rfs-field rfs-wide">
+				<span class="rfs-label">Sizes <small class="rfs-help">(none ticked = every size)</small></span>
+				<div class="rfd-chips">
+					<?php foreach ( $sizes as $size ) : ?>
+						<label class="rfd-chip"><input type="checkbox" name="<?php echo esc_attr( $n ); ?>[sizes][]" value="<?php echo esc_attr( $size ); ?>" <?php checked( in_array( rfaheya_size_key( $size ), array_map( 'rfaheya_size_key', (array) $rule['sizes'] ), true ) ); ?>><span><?php echo esc_html( $size ); ?></span></label>
+					<?php endforeach; ?>
+				</div>
+			</div>
+			<div class="rfs-field rfs-wide">
+				<span class="rfs-label">Products <small class="rfs-help">(none ticked = every product)</small></span>
+				<div class="rfd-products">
+					<div class="rfd-tools"><input type="search" class="rfd-search" placeholder="Search products…" aria-label="Search products"><button type="button" class="rfd-all">Tick all shown</button><button type="button" class="rfd-none">Clear</button><span class="rfd-count"></span></div>
+					<div class="rfd-list">
+						<?php foreach ( $products as $p ) : ?>
+							<label class="rfd-product" data-name="<?php echo esc_attr( strtolower( get_the_title( $p ) ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $n ); ?>[products][]" value="<?php echo esc_attr( $p->ID ); ?>" <?php checked( in_array( (int) $p->ID, $picked, true ) ); ?>><?php echo get_the_post_thumbnail( $p->ID, array( 40, 40 ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( get_the_title( $p ) ); ?></span></label>
+						<?php endforeach; ?>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
+function rfaheya_discounts_page() {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+	$products = rfaheya_one_language( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) );
+	$sizes    = rfaheya_all_sizes();
+	$rules    = rfaheya_discount_rules();
+	$saved    = isset( $_GET['saved'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	?>
+	<div class="wrap rfs rfd">
+		<header class="rfs-hero">
+			<div>
+				<p class="rfs-eyebrow">Rfaheya · Products</p>
+				<h1>Discount rules</h1>
+				<p>Take a percent or an amount off chosen products and sizes. Each rule works on its own: the store shows the new price with the old one struck through, and the cart and checkout charge it. When two rules fit the same bottle, the bigger discount wins.</p>
+			</div>
+		</header>
+		<?php if ( $saved ) : ?>
+			<div class="rfs-toast" role="status"><span class="dashicons dashicons-yes-alt"></span> Saved — the new prices are live on the store.</div>
+		<?php endif; ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rfs-form rfd-form">
+			<input type="hidden" name="action" value="rfaheya_save_discounts">
+			<?php wp_nonce_field( 'rfaheya_save_discounts' ); ?>
+			<div class="rfd-rules">
+				<?php
+				foreach ( $rules as $i => $rule ) {
+					rfaheya_discount_card( $i, $rule, $products, $sizes );
+				}
+				?>
+			</div>
+			<p class="rfd-empty" <?php echo $rules ? 'hidden' : ''; ?>>No rules yet. Add your first one.</p>
+			<button type="button" class="rfs-btn rfs-btn-ghost rfd-add"><span class="dashicons dashicons-plus-alt2"></span> Add a rule</button>
+			<template id="rfd-template"><?php rfaheya_discount_card( '__i__', array(), $products, $sizes ); ?></template>
+			<div class="rfs-savebar">
+				<span>Prices change on the store as soon as you save.</span>
+				<button type="submit" class="rfs-btn">Save rules</button>
+			</div>
+		</form>
+	</div>
+	<?php
+}
 
 /* -------------------------------------------------------------------------
  * Search engines: each storefront page's title, description, sharing picture and

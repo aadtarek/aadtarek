@@ -712,3 +712,176 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
   cursor: pointer;
 }
+
+/* ---------- Products → Discount rules ---------- */
+.rfd .rfd-form {
+  margin-top: 22px;
+}
+.rfd-rules {
+  display: grid;
+  gap: 16px;
+}
+.rfd-rule[hidden] {
+  display: none;
+}
+.rfd-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.rfs .rfd-head .rfd-name {
+  flex: 1 1 280px;
+  min-height: 48px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.rfd-state {
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--rfs-chip);
+  color: var(--rfs-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.rfd-state.is-live {
+  background: #e3ecd5;
+  color: #3e5a1f;
+}
+.rfd-switch {
+  padding: 8px 14px;
+}
+.rfd-delete {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #b4472f;
+  font-size: 13px;
+  cursor: pointer;
+}
+.rfd-delete:hover {
+  background: #fbeae6;
+}
+.rfd-amount,
+.rfd-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rfs .rfd-amount input {
+  flex: 0 0 120px;
+}
+.rfs .rfd-dates input {
+  flex: 1;
+}
+.rfd-dates span {
+  color: var(--rfs-muted);
+}
+.rfd-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.rfd-chip input {
+  position: absolute;
+  opacity: 0;
+}
+.rfd-chip span {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border: 1.5px solid var(--rfs-line);
+  border-radius: 999px;
+  background: var(--rfs-cream);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.rfd-chip input:checked + span {
+  border-color: var(--rfs-gold);
+  background: var(--rfs-gold);
+  color: #fff;
+}
+.rfd-chip input:focus-visible + span {
+  outline: 2px solid var(--rfs-gold);
+  outline-offset: 2px;
+}
+.rfd-products {
+  border: 1.5px solid var(--rfs-line);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.rfd-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid var(--rfs-line);
+  background: var(--rfs-cream);
+}
+.rfs .rfd-tools .rfd-search {
+  flex: 1 1 220px;
+  min-height: 40px;
+  background: #fff;
+}
+.rfd-tools button {
+  padding: 8px 14px;
+  border: 1px solid var(--rfs-line);
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+}
+.rfd-count {
+  margin-left: auto;
+  color: var(--rfs-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.rfd-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 10px;
+}
+.rfd-product {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.rfd-product[hidden] {
+  display: none;
+}
+.rfd-product:hover {
+  background: var(--rfs-cream);
+}
+.rfd-product img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+.rfd-product input {
+  accent-color: var(--rfs-gold);
+}
+.rfd-product:has(input:checked) {
+  background: #fbf1df;
+}
+.rfd-add {
+  margin-top: 16px;
+}
+.rfd-empty {
+  padding: 28px;
+  border: 1.5px dashed var(--rfs-line);
+  border-radius: 20px;
+  color: var(--rfs-muted);
+  text-align: center;
+}

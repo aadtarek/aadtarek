@@ -27,6 +27,8 @@ export interface ProductVariation {
   /** Value of the "Size" attribute, e.g. "50 ML" */
   size: string
   price: Money
+  /** The price before a discount, when there is one */
+  regularPrice?: Money
   /** Discovery sample (the "Try 5 ML" option) */
   isSample: boolean
   inStock: boolean

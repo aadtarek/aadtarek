@@ -205,7 +205,7 @@ function ProductHit({ hit, active, onHover, onGo }: { hit: SearchHit; active: bo
           <img src={p.images[0]?.src} alt="" className="size-full object-cover transition duration-700 group-hover:scale-[1.04]" />
         </span>
         <span className="mt-2 block px-1 font-serif text-[18px] leading-tight">{p.name}</span>
-        <span className="block truncate px-1 text-[12px] text-muted">{p.inspiredBy ? `Inspired by ${p.inspiredBy}` : p.tagline}</span>
+        <span className="block truncate px-1 text-[12px] text-muted">{p.inspiredBy ? `DNA: ${p.inspiredBy}` : p.tagline}</span>
         <span className="mt-0.5 block px-1 pb-1 text-[13px] font-semibold">{formatPriceRange(range.min, range.max)}</span>
       </Link>
     </li>
@@ -324,7 +324,7 @@ function Discover({ recent, onPick, onClearRecent, onGo }: { recent: string[]; o
               <SuggestionRow
                 key={p.id}
                 onGo={onGo}
-                doc={{ id: `product:${p.id}`, kind: 'product', title: p.name, subtitle: p.inspiredBy ? `Inspired by ${p.inspiredBy}` : p.tagline, to: `/product/${p.slug}`, image: p.images[0]?.src, fields: [] }}
+                doc={{ id: `product:${p.id}`, kind: 'product', title: p.name, subtitle: p.inspiredBy ? `DNA: ${p.inspiredBy}` : p.tagline, to: `/product/${p.slug}`, image: p.images[0]?.src, fields: [] }}
               />
             ))}
           </ul>

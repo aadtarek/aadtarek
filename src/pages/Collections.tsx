@@ -388,7 +388,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
                   </span>
                   <span className="block px-2.5 pt-2 pb-2 sm:px-4 sm:pt-3">
                     <span className="block truncate font-serif text-[16px] leading-tight sm:text-[19px]">{p.name}</span>
-                    <span className="block truncate text-[11.5px] text-muted sm:text-[12.5px]">{p.inspiredBy ? `Inspired by ${p.inspiredBy}` : p.tagline}</span>
+                    <span className="block truncate text-[11.5px] text-muted sm:text-[12.5px]">{p.inspiredBy ? `DNA: ${p.inspiredBy}` : p.tagline}</span>
                   </span>
                 </button>
                 {choice && (

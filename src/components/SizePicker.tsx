@@ -36,6 +36,7 @@ export function SizePicker({
             <span className="text-[12px] font-semibold tracking-[0.06em] uppercase">{v.size}</span>
             <span className={`mt-0.5 text-[11px] ${selected ? 'text-on-accent/75' : 'text-muted'}`}>
               {v.isSample ? 'Sample · ' : ''}
+              {v.regularPrice && <s className="mr-1 opacity-70">{formatPrice(v.regularPrice)}</s>}
               {formatPrice(v.price)}
             </span>
           </button>

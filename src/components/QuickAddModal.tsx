@@ -62,7 +62,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
             {product.badge && <span className="rounded-full bg-chip px-2.5 py-1 text-[10.5px] font-medium tracking-[0.03em]">{product.badge}</span>}
             <h2 className="mt-2 pr-8 font-serif text-[26px] leading-none sm:text-[34px]">{product.name}</h2>
             {product.tagline && <p className="mt-1 font-serif text-[16px] text-ink-soft sm:text-[18px]">{product.tagline}</p>}
-            {product.inspiredBy && <p className="mt-1.5 text-[12px] text-muted">Inspired by {product.inspiredBy}</p>}
+            {product.inspiredBy && <p className="mt-1.5 text-[12px] text-muted">DNA: {product.inspiredBy}</p>}
 
             <ul className="mt-3 flex flex-wrap gap-1" aria-label="Profile">
               {chips.map(({ label, Icon }) => (

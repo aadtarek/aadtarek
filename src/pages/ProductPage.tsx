@@ -181,7 +181,10 @@ function ProductDetails({ product }: { product: Product }) {
                   }`}
                 >
                   <span className="relative z-[1] block text-[15px] font-semibold sm:text-[16px]">{v.size.replace(/\s*ML$/i, ' ml')}</span>
-                  <span className={`relative z-[1] block text-[12px] transition-colors duration-300 sm:text-[12.5px] ${on ? 'text-on-accent/80' : 'text-muted'}`}>{formatPrice(v.price)}</span>
+                  <span className={`relative z-[1] block text-[12px] transition-colors duration-300 sm:text-[12.5px] ${on ? 'text-on-accent/80' : 'text-muted'}`}>
+                    {v.regularPrice && <s className="mr-1 opacity-70">{formatPrice(v.regularPrice)}</s>}
+                    {formatPrice(v.price)}
+                  </span>
                 </button>
               )
             })}
@@ -398,25 +401,32 @@ function Gallery({ product, videos, onVideo, wished, onWish }: { product: Produc
 
 // ---------------------------------------------------------------- blocks
 
-/** "Inspired by" the original, with what that means one tap away. */
+/** The DNA: the original this fragrance is inspired by, with its picture; what that means is one tap away. */
 function InspiredBy({ product }: { product: Product }) {
   const [open, setOpen] = useState(false)
   // "Vanilla 28 by Kayali" → the name large, the house small.
   const [, title, by] = product.inspiredBy.match(/^(.*?)\s+by\s+(.+)$/i) ?? []
   const name = title || product.inspiredBy
   return (
-    <div className="mt-5 rounded-[18px] bg-chip">
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-2.5 px-[18px] py-3.5 text-left">
-        <span className="shrink-0 text-[10.5px] font-semibold tracking-[0.18em] text-gold uppercase">Inspired by</span>
-        <span className="min-w-0 flex-1 truncate">
-          <span className="font-serif text-[22px] leading-none">{name}</span>
-          {by && <span className="ml-1.5 text-[13px] text-muted">by {by}</span>}
+    <div className="mt-5 overflow-hidden rounded-[20px] bg-chip">
+      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-3.5 p-2.5 pr-[18px] text-left">
+        {product.dnaImage ? (
+          <img src={product.dnaImage} alt={`${name}${by ? ` by ${by}` : ''}`} loading="lazy" className="h-[84px] w-[64px] shrink-0 rounded-[14px] bg-white object-cover" />
+        ) : (
+          <span aria-hidden className="grid h-[84px] w-[64px] shrink-0 place-items-center rounded-[14px] bg-white font-serif text-[20px] text-gold">
+            DNA
+          </span>
+        )}
+        <span className="min-w-0 flex-1">
+          <span className="block text-[10.5px] font-semibold tracking-[0.18em] text-gold uppercase">DNA</span>
+          <span className="mt-1 block truncate font-serif text-[23px] leading-none">{name}</span>
+          {by && <span className="mt-1 block truncate text-[13px] text-muted">by {by}</span>}
         </span>
         <ChevronRight className={`size-4 shrink-0 text-muted transition ${open ? 'rotate-90' : ''}`} strokeWidth={1.6} />
       </button>
       {open && (
         <p className="px-[18px] pb-4 text-[13px] leading-relaxed text-ink-soft">
-          The original fragrance this one is based on: it shows the direction and character behind it — not the original product, and not an exact copy.
+          The DNA is the original fragrance this one is inspired by: it shows the direction and character behind it — not the original product, and not an exact copy.
         </p>
       )}
     </div>

@@ -14,7 +14,7 @@ import { addWithFlight } from '../lib/addToCart'
 import { haptic, heartBurst } from '../lib/fx'
 
 /**
- * Product card: photo (badge, wishlist, quick view), name and price, “Inspired by”,
+ * Product card: photo (badge, wishlist, quick view), name and price, the DNA (the original it's inspired by),
  * tags (the store's WooCommerce tags, else who it's for / family / occasion / season),
  * key notes with their names, the sizes, Add to cart and the 5 ml sample.
  */
@@ -85,11 +85,15 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
               {product.name}
             </Link>
           </h3>
-          <p key={selected.price} className="rf-num-pop shrink-0 text-[12.5px] font-semibold text-gold tabular-nums sm:text-[14px]" aria-live="polite">
+          <p key={selected.price} className="rf-num-pop flex shrink-0 items-baseline gap-1.5 text-[12.5px] font-semibold text-gold tabular-nums sm:text-[14px]" aria-live="polite">
+            {selected.regularPrice && <s className="text-[11px] font-normal text-muted sm:text-[12px]">{formatPrice(selected.regularPrice)}</s>}
             {formatPrice(selected.price)}
+            {selected.regularPrice && (
+              <span className="rounded-full bg-[#e8f0dc] px-1.5 py-px text-[10px] font-semibold text-[#3e5a1f]">−{Math.round((1 - selected.price / selected.regularPrice) * 100)}%</span>
+            )}
           </p>
         </div>
-        {product.inspiredBy && <p className="mt-0.5 truncate text-[11.5px] text-muted sm:text-[13px]">Inspired by {product.inspiredBy}</p>}
+        {product.inspiredBy && <p className="mt-0.5 truncate text-[11.5px] text-muted sm:text-[13px]">DNA: {product.inspiredBy}</p>}
 
         {chips.length > 0 && (
           <ul className="mt-2 flex h-[22px] flex-wrap gap-1 overflow-hidden sm:mt-2.5 sm:h-auto" aria-label="Tags">

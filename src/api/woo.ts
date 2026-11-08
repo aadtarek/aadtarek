@@ -194,8 +194,12 @@ function mapProduct(
   let variations: ProductVariation[] = p.variations.map((v) => {
     const full = variationsById.get(v.id)
     const size = sizeOf(p, v)
-    const price = full ? money(full.prices.price, full.prices.currency_minor_unit ?? minor) : money(p.prices.price, minor)
-    return { id: v.id, size, price, isSample: isSampleSize(size), inStock: full ? full.is_in_stock : p.is_in_stock }
+    const prices = full ? full.prices : p.prices
+    const unit = prices.currency_minor_unit ?? minor
+    const price = money(prices.price, unit)
+    // A sale or a discount rule: the old price shows struck through.
+    const regular = prices.regular_price ? money(prices.regular_price, unit) : 0
+    return { id: v.id, size, price, regularPrice: regular > price ? regular : undefined, isSample: isSampleSize(size), inStock: full ? full.is_in_stock : p.is_in_stock }
   })
   variations.sort((a, b) => parseFloat(a.size) - parseFloat(b.size) || a.price - b.price)
   if (variations.length === 0) {
