@@ -7,7 +7,7 @@ import { BT, TLink } from "./ui.jsx";
 import { byId, fmt, img, isFine, pad, reduceMotion, waLink } from "../lib/util.js";
 import { createBG } from "../lib/bgmesh.js";
 
-const NAV = [["/", "nav_home", "home"], ["/shop", "nav_shop", "shop"], ["/bundles", "nav_bundles", "bundles"], ["/experience", "nav_xp", "experience"], ["/about", "nav_about", "about"]];
+const NAV = [["/", "nav_home", "home"], ["/shop", "nav_shop", "shop"], ["/bundles", "nav_bundles", "bundles"], ["/experience", "nav_xp", "experience"], ["/about", "nav_about", "about"], ["/my-home", "nav_myhome", "my-home"]];
 export function routeKey(pathname) {
   if (pathname.startsWith("/product/")) { const p = byId[+pathname.split("/")[2]]; return p && p.cat === "bundles" ? "bundles" : "shop"; }
   const k = pathname.split("/")[1]; return k || "home";

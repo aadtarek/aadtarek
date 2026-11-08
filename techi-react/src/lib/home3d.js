@@ -517,6 +517,23 @@ async function runScene(name,fromEcho){
   }
 }
 function setDay(on){A.dayT=on?1:0;drawPanel();}
+/* mirror a real device's state into the 3D apartment */
+function mirror(role,st){
+  if(!st)return;
+  switch(role){
+    case"light_living":if("on"in st)S.light.living=st.on?1:0;break;
+    case"light_kitchen":if("on"in st)S.light.kitchen=st.on?1:0;break;
+    case"light_bedroom":if("on"in st)S.light.bedroom=st.on?1:0;break;
+    case"curtain_living":if("position"in st)S.curtain.living=st.position/100;break;
+    case"curtain_bed":if("position"in st)S.curtain.bed=st.position/100;break;
+    case"socket":if("on"in st)S.tv=!!st.on;break;
+    case"ac":if("on"in st)S.ac=!!st.on;break;
+    case"valve":if("on"in st){S.valveOpen=!!st.on;S.waterRun=!!st.on;}break;
+    case"gas":if("alarm"in st)S.gas=!!st.alarm;break;
+    case"motion":if(st.motion&&!person.visible){const tk=++walkToken;personEnter(tk);}break;
+  }
+  drawPanel();
+}
 
 /* ============ picking ============ */
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let downAt=null;
@@ -703,7 +720,7 @@ return {
   onRoom(f){roomListeners.push(f);return()=>{const i=roomListeners.indexOf(f);if(i>=0)roomListeners.splice(i,1);};},
   get hoverRoom(){return hoverRoom&&hoverRoom.id;},
   get lang(){return LANG;},
-  activate,runScene,setDay,home:()=>homeView(),
+  activate,runScene,setDay,mirror,home:()=>homeView(),
   on(f){listeners.push(f);return()=>{listeners=listeners.filter(x=>x!==f);};},
   get devices(){return D.map(p=>({id:p.id,room:L(p.room),name:L(p.name),n:p.n}));},
   setLang(l){LANG=l==="en"?"en":"ar";labelText();D.forEach(p=>{p.el.setAttribute("aria-label",L(p.name));p.el.querySelector("span").textContent=L(p.name);});drawPanel();},

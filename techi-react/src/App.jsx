@@ -5,6 +5,7 @@ import { useApp } from "./context.jsx";
 import { CartDrawer, Cursor, Footer, Header, MeshBG, MobileMenu, Preloader, Toasts, Transition } from "./components/Chrome.jsx";
 import Home from "./pages/Home.jsx";
 import Tour from "./pages/Tour.jsx";
+import MyHome from "./pages/MyHome.jsx";
 import { Checkout, OrderReceived } from "./pages/Checkout.jsx";
 import { About, Bundles, Product, Shop } from "./pages/Pages.jsx";
 import { ScrollTrigger, gsap } from "./lib/motion.js";
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/experience/:dev" element={<Tour />} />
             <Route path="/about" element={<About />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/my-home" element={<MyHome />} />
             <Route path="/order/received" element={<OrderReceived />} />
             <Route path="*" element={<Home />} />
           </Routes>

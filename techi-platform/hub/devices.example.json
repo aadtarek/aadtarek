@@ -1,0 +1,29 @@
+{
+  "hub": {
+    "name": "Showroom — Value Mall",
+    "port": 8787,
+    "token": "CHANGE-ME-local-access-token",
+    "mqtt": "mqtt://localhost:1883",
+    "cloud": { "url": "", "hubId": "", "secret": "" }
+  },
+  "devices": [
+    { "id": "living_light", "name": { "ar": "نور الصالة", "en": "Living-room light" }, "room": "living", "type": "light", "driver": "zigbee", "address": "living_switch", "map": { "on": "state_l1" }, "role3d": "light_living" },
+    { "id": "living_curtain", "name": { "ar": "ستارة الصالة", "en": "Living-room curtain" }, "room": "living", "type": "curtain", "driver": "tuya", "address": { "id": "TUYA_DEVICE_ID", "key": "TUYA_LOCAL_KEY", "ip": "192.168.1.50", "version": "3.3" }, "map": { "position": "2" }, "role3d": "curtain_living" },
+    { "id": "living_socket", "name": { "ar": "بريزة التلفزيون", "en": "TV socket" }, "room": "living", "type": "socket", "driver": "tuya", "address": { "id": "TUYA_DEVICE_ID_2", "key": "TUYA_LOCAL_KEY_2", "ip": "192.168.1.51", "version": "3.3" }, "map": { "on": "1" }, "role3d": "socket" },
+    { "id": "kitchen_gas", "name": { "ar": "حساس الغاز", "en": "Gas sensor" }, "room": "kitchen", "type": "gas", "driver": "zigbee", "address": "kitchen_gas", "map": { "alarm": "gas" }, "role3d": "gas" },
+    { "id": "kitchen_valve", "name": { "ar": "محبس المياه", "en": "Water valve" }, "room": "kitchen", "type": "valve", "driver": "zigbee", "address": "kitchen_valve", "map": { "on": "state" }, "role3d": "valve" },
+    { "id": "kitchen_light", "name": { "ar": "نور المطبخ", "en": "Kitchen light" }, "room": "kitchen", "type": "light", "driver": "zigbee", "address": "kitchen_switch", "map": { "on": "state_l1" }, "role3d": "light_kitchen" },
+    { "id": "bed_light", "name": { "ar": "أباجورات أوضة النوم", "en": "Bedside lamps" }, "room": "bedroom", "type": "light", "driver": "zigbee", "address": "bed_switch", "map": { "on": "state_l1" }, "role3d": "light_bedroom" },
+    { "id": "hall_motion", "name": { "ar": "حساس حركة المدخل", "en": "Entrance motion" }, "room": "entrance", "type": "motion", "driver": "zigbee", "address": "hall_motion", "map": { "motion": "occupancy" }, "role3d": "motion" },
+    { "id": "ac", "name": { "ar": "التكييف", "en": "Air conditioner" }, "room": "living", "type": "ac", "driver": "zigbee", "address": "ir_blaster", "map": { "on": "system_mode", "temp": "current_heating_setpoint" }, "role3d": "ac" }
+  ],
+  "automations": [
+    { "id": "gas_shutoff", "name": { "ar": "قفل المية لو فيه غاز", "en": "Shut water on gas leak" }, "when": { "device": "kitchen_gas", "key": "alarm", "equals": true }, "then": [{ "device": "kitchen_valve", "set": { "on": false } }], "notify": true },
+    { "id": "hall_light", "name": { "ar": "نور المدخل بالحركة", "en": "Hall light on motion" }, "when": { "device": "hall_motion", "key": "motion", "equals": true }, "then": [{ "device": "living_light", "set": { "on": true } }] }
+  ],
+  "scenes": [
+    { "id": "sleep", "name": { "ar": "تصبح على خير", "en": "Good night" }, "actions": [ { "device": "living_light", "set": { "on": false } }, { "device": "kitchen_light", "set": { "on": false } }, { "device": "bed_light", "set": { "on": false } }, { "device": "living_curtain", "set": { "position": 0 } }, { "device": "ac", "set": { "on": true, "temp": 24 } } ] },
+    { "id": "away", "name": { "ar": "خارج البيت", "en": "Away" }, "actions": [ { "device": "living_light", "set": { "on": false } }, { "device": "kitchen_light", "set": { "on": false } }, { "device": "bed_light", "set": { "on": false } }, { "device": "living_socket", "set": { "on": false } }, { "device": "ac", "set": { "on": false } }, { "device": "kitchen_valve", "set": { "on": false } } ] },
+    { "id": "home", "name": { "ar": "راجع البيت", "en": "Coming home" }, "actions": [ { "device": "living_light", "set": { "on": true } }, { "device": "living_curtain", "set": { "position": 100 } }, { "device": "ac", "set": { "on": true, "temp": 24 } }, { "device": "kitchen_valve", "set": { "on": true } } ] }
+  ]
+}

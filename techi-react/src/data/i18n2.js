@@ -79,6 +79,7 @@ const AR = {
   govs: GOV_AR,
   stock_out: "غير متوفر",
   drag3d: "اسحب",
+  nav_myhome: "بيتي",
 };
 
 const EN = {
@@ -155,6 +156,7 @@ const EN = {
   govs: GOV_EN,
   stock_out: "Out of stock",
   drag3d: "Drag",
+  nav_myhome: "My home",
 };
 
 Object.assign(I18N.ar, AR);

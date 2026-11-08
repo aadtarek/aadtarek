@@ -1,0 +1,9 @@
+{
+  "name": "techi-relay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Techi Cloud relay: lets the website and app reach a customer's hub from outside the home.",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "ws": "8.18.0" }
+}

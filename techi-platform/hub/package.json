@@ -1,0 +1,16 @@
+{
+  "name": "techi-hub",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Techi Hub: runs in the customer's home, controls Zigbee and Wi-Fi devices without any vendor cloud.",
+  "scripts": {
+    "start": "node src/index.js",
+    "sim": "TECHI_SIM=1 node src/index.js"
+  },
+  "dependencies": {
+    "mqtt": "5.10.1",
+    "tuyapi": "7.7.0",
+    "ws": "8.18.0"
+  }
+}
