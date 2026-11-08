@@ -290,14 +290,18 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
 
   const claimOrder = useCallback(
     async (orderId: number, orderKey: string) => {
-      if (!isWoo || !me.loggedIn || !me.nonce) return
+      if (!isWoo) return
       try {
-        setWooMe(await ajax('rfaheya_claim_order', { _ajax_nonce: me.nonce, order: String(orderId), key: orderKey }))
+        // A fresh look at who is signed in (the checkout may have created or signed in the account).
+        let current = await ajax('rfaheya_me')
+        if (current.loggedIn && current.nonce) current = await ajax('rfaheya_claim_order', { _ajax_nonce: current.nonce, order: String(orderId), key: orderKey })
+        setWooMe(current)
+        window.dispatchEvent(new Event('rf:account'))
       } catch {
-        /* the order is placed either way; points also catch up from the account email */
+        /* the order is placed either way */
       }
     },
-    [me.loggedIn, me.nonce],
+    [],
   )
 
   const value = useMemo<RewardsValue>(

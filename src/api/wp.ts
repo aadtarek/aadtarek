@@ -43,7 +43,7 @@ export interface StoreSettings {
     logoSize?: { desktop?: number; mobile?: number; footer?: number }
   }
   heroSlider?: { enabled?: boolean; interval?: number; intro?: boolean; slides?: Partial<import('../config').HeroSlide>[] }
-  bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
+  bundle?: { enabled?: boolean; title?: string; text?: string; tiers?: { count: number; percent: number }[] }
   shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number; orderMin?: number }
   loyalty?: Partial<{ enabled: boolean; earn: number; value: number; min: number; welcome: boolean; welcomePercent: number }>
   gift?: {
@@ -126,7 +126,8 @@ async function request<T>(path: string, init: Init = {}): Promise<T> {
 
   const res = await fetch(url, {
     method: init.method ?? 'GET',
-    credentials: 'omit',
+    // The WordPress sign-in cookie goes along, so an order placed while signed in is the account's.
+    credentials: 'same-origin',
     headers,
     body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
   })

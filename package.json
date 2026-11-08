@@ -17,9 +17,8 @@
     "build:preview": "VITE_HASH_ROUTER=1 vite build --base ./ --outDir dist-preview"
   },
   "dependencies": {
-    "@fontsource-variable/dm-sans": "^5.3.0",
     "@fontsource-variable/playfair-display": "^5.3.0",
-    "@fontsource/instrument-serif": "^5.3.0",
+    "@fontsource-variable/roboto": "^5.3.0",
     "lucide-react": "^1.49.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

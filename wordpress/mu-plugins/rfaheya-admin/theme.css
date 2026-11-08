@@ -20,7 +20,7 @@ body.wp-admin,
 .wp-admin input,
 .wp-admin select,
 .wp-admin textarea {
-  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 body.wp-admin {
   background: var(--rf-a-cream);

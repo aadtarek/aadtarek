@@ -6,13 +6,17 @@ RFAHEYA — HEADLESS WOOCOMMERCE (one zip)
    - Settings > Permalinks > "Post name" > Save.
 
 2) File Manager > public_html:
-   - Delete the old storefront files (index.html, assets/). Don't touch WordPress files.
-   - Upload rfaheya-public_html.zip > Extract here (overwrite).
+   - For updates, overwrite the supplied files. Keep existing assets and WordPress files.
+   - Upload the storefront zip > Extract here (overwrite).
      It adds:
        - the storefront: index.html, assets/, import/
-       - .htaccess
+       - rfaheya-setup/htaccess-reference.txt (reference only)
        - wp-content/mu-plugins/rfaheya.php (store settings; runs automatically)
        - rfaheya-setup/ (this file + the products CSV)
+
+   - Existing working site: keep your current .htaccess unchanged.
+   - First installation only: merge htaccess-reference.txt into the server configuration
+     after backing it up. Do not blindly overwrite existing custom rules.
 
 3) WooCommerce > Settings > General:
    - Country Egypt, sell to Egypt.
@@ -26,7 +30,7 @@ RFAHEYA — HEADLESS WOOCOMMERCE (one zip)
    - Enable Direct bank transfer, with the title "InstaPay".
 
 6) Shipping:
-   - Zone "Cairo & Alexandria": Free shipping (minimum 1000) first, then Flat rate 70.
+   - Zone "Cairo & Alexandria": Free shipping (minimum 1200) first, then Flat rate 70.
    - Zone "Egypt": Flat rate 70.
 
 7) Settings > Rfaheya Store:
@@ -49,6 +53,6 @@ What you edit where:
 
 8) LiteSpeed Cache: keep "Cache REST API" off.
 
-You can delete the rfaheya-setup folder after importing.
+You can delete the rfaheya-setup folder after importing and saving the reference instructions.
 
 Check: https://YOUR-DOMAIN/wp-json/wc/store/v1/products should show your products as JSON.

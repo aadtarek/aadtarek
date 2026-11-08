@@ -6,8 +6,8 @@
  * Author: Rfaheya
  *
  * Packaged by scripts/package-release.mjs: site/ holds the same files as
- * rfaheya-public_html.zip (with .htaccess stored as htaccess.txt, so it
- * doesn't apply inside the plugin folder). They are copied into the
+ * rfaheya-public_html.zip (plus the .htaccess rules as htaccess.txt, put in
+ * place only when the site's .htaccess doesn't route the storefront yet). They are copied into the
  * WordPress folder when the plugin is activated and whenever a newer
  * version is uploaded.
  */
@@ -31,6 +31,10 @@ function rfaheya_storefront_install() {
 	$files  = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $src, FilesystemIterator::SKIP_DOTS ) );
 	foreach ( $files as $file ) {
 		$rel  = str_replace( '\\', '/', substr( $file->getPathname(), strlen( $src ) + 1 ) );
+		// A working site keeps its own .htaccess: the rules are only put in place on a first install.
+		if ( 'htaccess.txt' === $rel && file_exists( ABSPATH . '.htaccess' ) && false !== strpos( (string) file_get_contents( ABSPATH . '.htaccess' ), 'rfaheya_shell' ) ) {
+			continue;
+		}
 		$dest = ABSPATH . ( 'htaccess.txt' === $rel ? '.htaccess' : $rel );
 		wp_mkdir_p( dirname( $dest ) );
 		if ( copy( $file->getPathname(), $dest ) ) {

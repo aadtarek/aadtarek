@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Rfaheya Store
  * Description: WordPress side of the headless Rfaheya storefront: store settings (contact, social, home page), FAQs, page section labels, the "Rfaheya details" box on products, the fragrance notes library, wear-report videos, starter-content import, and the REST routes the storefront reads.
- * Version:     3.0.0
+ * Version:     3.0.1
  *
  * Must-use plugin: lives in wp-content/mu-plugins/ and runs automatically.
  * Starter content (articles, pages, FAQs, images) ships in mu-plugins/rfaheya/.
@@ -34,12 +34,12 @@ function rfaheya_fields() {
 			'facebook'  => array( 'Facebook URL', 'https://www.facebook.com/', 'url' ),
 		),
 		'home'    => array(
-			'announcement_1' => array( 'Announcement bar — message 1', '', 'text' ),
-			'announcement_2' => array( 'Announcement bar — message 2', '', 'text' ),
-			'announcement_3' => array( 'Announcement bar — message 3', '', 'text' ),
-			'hero_eyebrow'   => array( 'Hero — small line above the title', '', 'text' ),
-			'hero_title'     => array( 'Hero — title (press Enter for a new line)', '', 'textarea' ),
-			'hero_text'      => array( 'Hero — text', '', 'textarea' ),
+			'announcement_1' => array( 'Announcement bar — message 1', 'Free shipping in Cairo & Alexandria on orders over 1200 EGP', 'text' ),
+			'announcement_2' => array( 'Announcement bar — message 2', 'Try 5 ML first — discover your scent before committing', 'text' ),
+			'announcement_3' => array( 'Announcement bar — message 3', 'Zero risk guarantee', 'text' ),
+			'hero_eyebrow'   => array( 'Hero — small line above the title', 'Fragrances made personal', 'text' ),
+			'hero_title'     => array( 'Hero — title (press Enter for a new line)', "Speak\nyour scent.", 'textarea' ),
+			'hero_text'      => array( 'Hero — text', 'Discover inspired fragrances crafted with quality materials, high concentration and a signature Rfaheya experience.', 'textarea' ),
 			'hero_image'     => array( 'Hero — image', '', 'image' ),
 			'logo'           => array( 'Logo (header, footer and My Account) — PNG or SVG; empty uses the built-in logo', '', 'image' ),
 			'logo_height'    => array( 'Logo size — height in the header on computers (px, 30–90; 56 is the default)', '56', 'text' ),
@@ -50,30 +50,34 @@ function rfaheya_fields() {
 			'enabled'         => array( 'Show the hero slider on the home page (otherwise the single hero above)', 'yes', 'yesno' ),
 			'interval'        => array( 'Seconds per slide', '6', 'text' ),
 			'intro'           => array( 'Opening animation on the first visit (“Speak your scent”) — looks lovely but slows the PageSpeed score', 'no', 'yesno' ),
+			'slide_1_show'    => array( 'Slide 1 — show this slide', 'yes', 'yesno' ),
 			'slide_1_image'   => array( 'Slide 1 — image (945 × 780)', '', 'image' ),
 			'slide_1_mobile'  => array( 'Slide 1 — image for phones (optional, 358 × 550)', '', 'image' ),
 			'slide_1_closed'  => array( 'Slide 1 — narrow image while closed (optional, computers, 170 × 780)', '', 'image' ),
-			'slide_1_eyebrow' => array( 'Slide 1 — small line above the title', '', 'text' ),
-			'slide_1_title'   => array( 'Slide 1 — title', '', 'text' ),
-			'slide_1_text'    => array( 'Slide 1 — text under the title', '', 'textarea' ),
-			'slide_1_button'  => array( 'Slide 1 — button text', '', 'text' ),
-			'slide_1_link'    => array( 'Slide 1 — button link (e.g. /shop or /collections/oud)', '', 'text' ),
+			'slide_1_eyebrow' => array( 'Slide 1 — small line above the title', 'New season', 'text' ),
+			'slide_1_title'   => array( 'Slide 1 — title', 'The Oud Edit', 'text' ),
+			'slide_1_text'    => array( 'Slide 1 — text under the title', 'Deep, warm and unforgettable — our richest scents for the cold nights.', 'textarea' ),
+			'slide_1_button'  => array( 'Slide 1 — button text', 'Shop the edit', 'text' ),
+			'slide_1_link'    => array( 'Slide 1 — button link (e.g. /shop or /collections/oud)', '/shop?family=oriental', 'text' ),
+			'slide_2_show'    => array( 'Slide 2 — show this slide', 'yes', 'yesno' ),
 			'slide_2_image'   => array( 'Slide 2 — image (945 × 780)', '', 'image' ),
 			'slide_2_mobile'  => array( 'Slide 2 — image for phones (optional, 358 × 550)', '', 'image' ),
 			'slide_2_closed'  => array( 'Slide 2 — narrow image while closed (optional, computers, 170 × 780)', '', 'image' ),
-			'slide_2_eyebrow' => array( 'Slide 2 — small line above the title', '', 'text' ),
-			'slide_2_title'   => array( 'Slide 2 — title', '', 'text' ),
-			'slide_2_text'    => array( 'Slide 2 — text under the title', '', 'textarea' ),
-			'slide_2_button'  => array( 'Slide 2 — button text', '', 'text' ),
-			'slide_2_link'    => array( 'Slide 2 — button link (e.g. /shop or /collections/oud)', '', 'text' ),
+			'slide_2_eyebrow' => array( 'Slide 2 — small line above the title', 'Limited offer', 'text' ),
+			'slide_2_title'   => array( 'Slide 2 — title', 'Spend more, save more', 'text' ),
+			'slide_2_text'    => array( 'Slide 2 — text under the title', 'Free shipping over 1,200 EGP · 20% off + free shipping over 2,500 EGP.', 'textarea' ),
+			'slide_2_button'  => array( 'Slide 2 — button text', 'Start shopping', 'text' ),
+			'slide_2_link'    => array( 'Slide 2 — button link (e.g. /shop or /collections/oud)', '/shop', 'text' ),
+			'slide_3_show'    => array( 'Slide 3 — show this slide', 'yes', 'yesno' ),
 			'slide_3_image'   => array( 'Slide 3 — image (945 × 780)', '', 'image' ),
 			'slide_3_mobile'  => array( 'Slide 3 — image for phones (optional, 358 × 550)', '', 'image' ),
 			'slide_3_closed'  => array( 'Slide 3 — narrow image while closed (optional, computers, 170 × 780)', '', 'image' ),
-			'slide_3_eyebrow' => array( 'Slide 3 — small line above the title', '', 'text' ),
-			'slide_3_title'   => array( 'Slide 3 — title', '', 'text' ),
-			'slide_3_text'    => array( 'Slide 3 — text under the title', '', 'textarea' ),
-			'slide_3_button'  => array( 'Slide 3 — button text', '', 'text' ),
-			'slide_3_link'    => array( 'Slide 3 — button link (e.g. /shop or /collections/oud)', '', 'text' ),
+			'slide_3_eyebrow' => array( 'Slide 3 — small line above the title', 'Rfaheya Finder', 'text' ),
+			'slide_3_title'   => array( 'Slide 3 — title', 'Find your scent', 'text' ),
+			'slide_3_text'    => array( 'Slide 3 — text under the title', 'Answer a few questions and meet the fragrance that feels like you.', 'textarea' ),
+			'slide_3_button'  => array( 'Slide 3 — button text', 'Take the quiz', 'text' ),
+			'slide_3_link'    => array( 'Slide 3 — button link (e.g. /shop or /collections/oud)', '/finder', 'text' ),
+			'slide_4_show'    => array( 'Slide 4 — show this slide', 'yes', 'yesno' ),
 			'slide_4_image'   => array( 'Slide 4 — image (945 × 780)', '', 'image' ),
 			'slide_4_mobile'  => array( 'Slide 4 — image for phones (optional, 358 × 550)', '', 'image' ),
 			'slide_4_closed'  => array( 'Slide 4 — narrow image while closed (optional, computers, 170 × 780)', '', 'image' ),
@@ -90,12 +94,10 @@ function rfaheya_fields() {
 			'facebook_app_secret'  => array( 'Facebook — App secret', '', 'secret' ),
 		),
 		'bundle'  => array(
-			'enabled' => array( 'Show the bundle section and apply its discount', 'yes', 'yesno' ),
-			'title'   => array( 'Title', 'Build your trio.', 'text' ),
-			'text'    => array( 'Text', 'Pick any three fragrances in 30 ML and pay less for the set.', 'textarea' ),
-			'size'    => array( 'Bottle size in the bundle (must match the variation size, e.g. 30 ML)', '30 ML', 'text' ),
-			'count'   => array( 'Bottles per bundle', '3', 'text' ),
-			'price'   => array( 'Bundle price (EGP)', '1200', 'text' ),
+			'enabled' => array( 'Show the bundle section on the home page and apply its discount', 'yes', 'yesno' ),
+			'title'   => array( 'Title', 'Build your bundle.', 'text' ),
+			'text'    => array( 'Text', 'Pick any fragrances in any size — the more you add, the more you save.', 'textarea' ),
+			'tiers'   => array( 'Discount by number of bottles — one per line, “bottles = discount %”. Counts every full bottle in the cart (any fragrance, any size; 5–10 ML samples don’t count). The highest step reached applies.', "2 = 5\n3 = 10\n4 = 15\n5 = 20", 'textarea' ),
 		),
 		'loyalty'  => array(
 			'enabled'         => array( 'Loyalty points: customers earn points on completed orders and use them as a discount', 'yes', 'yesno' ),
@@ -128,7 +130,7 @@ function rfaheya_group_title( $group ) {
 		'contact' => 'Contact details',
 		'social'  => 'Social links',
 		'home'    => 'Home page (empty fields keep the storefront’s built-in text)',
-		'bundle'  => 'Bundle (home page “Build your trio”; the discount is applied in the cart)',
+		'bundle'  => 'Bundle (home page bundle builder; the discount is applied in the cart)',
 		'slider'  => 'Home hero slider (up to four slides, each with your own image and text; they open like an accordion. A slide shows when it has an image or a title; with none filled in, three built-in slides show)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
 		'shipping' => 'Free shipping & spend-more offer (the bar on the product page, cart and checkout; applied in the WooCommerce cart and shipping rates)',
@@ -203,7 +205,7 @@ function rfaheya_settings_section( $group, $key ) {
 		'contact'  => 'Contact details',
 		'social'   => 'Social links',
 		'shipping' => 'Minimum order, free shipping & spend more',
-		'bundle'   => 'Bundle — “Build your trio”',
+		'bundle'   => 'Bundle — the more bottles, the bigger the discount',
 		'gift'     => 'Gift boxes & gift wrap',
 		'loyalty'  => 'Points & welcome discount',
 		'login'    => 'Sign in with Google / Facebook',
@@ -284,6 +286,32 @@ add_action(
 );
 
 /** One field, in the page's own style. */
+/**
+ * Live preview of the home slider in Settings → Rfaheya Store → Hero slider: the slides as the
+ * store shows them, redrawn as the fields change (settings.js). Clicking a slide opens its fields.
+ */
+function rfaheya_slider_preview() {
+	// The storefront's built-in pictures, for slides without their own.
+	$builtin = array();
+	foreach ( array( 'obsidian-945', 'dynasty-945', 'finder-945' ) as $name ) {
+		$found     = glob( ABSPATH . 'assets/' . $name . '-*.webp' );
+		$builtin[] = $found ? home_url( '/assets/' . basename( $found[0] ) ) : '';
+	}
+	?>
+	<div class="rfs-card rfs-preview-card">
+		<div class="rfs-preview-head">
+			<h2>Preview</h2>
+			<div class="rfs-seg" role="tablist">
+				<button type="button" class="is-on" data-view="desktop">Computer</button>
+				<button type="button" data-view="phone">Phone</button>
+			</div>
+		</div>
+		<p class="rfs-text">How the slider looks on the home page with the texts and pictures below. Tap a slide to open its fields; changes show here as you type and go live when you save.</p>
+		<div class="rfs-slider-preview is-desktop" data-builtin="<?php echo esc_attr( wp_json_encode( $builtin ) ); ?>"></div>
+	</div>
+	<?php
+}
+
 function rfaheya_settings_field( $group, $key, $field, $value ) {
 	$id    = "rfaheya-$group-$key";
 	$input = RFAHEYA_OPTION . "[$group][$key]";
@@ -433,6 +461,12 @@ function rfaheya_settings_page() {
 									}
 									echo '</div>';
 									echo $is_slide ? '</details>' : '</div>';
+									if ( 'slider' === $group && 'Hero slider' === $title ) {
+										rfaheya_slider_preview();
+									}
+									if ( 'home' === $group && 'Announcement bar' === $title ) {
+										echo '<div class="rfs-card rfs-preview-card"><h2>Preview</h2><p class="rfs-text">The bar at the very top of every page (the messages take turns).</p><div class="rfs-ann-preview" aria-hidden="true"><span>‹</span><b></b><span>›</span></div></div>';
+									}
 								}
 							}
 							?>
@@ -562,6 +596,11 @@ function rfaheya_hero_slider_data( $s ) {
 		$image    = (int) $s[ "slide_{$i}_image" ];
 		$mobile   = (int) $s[ "slide_{$i}_mobile" ];
 		$closed   = (int) ( $s[ "slide_{$i}_closed" ] ?? 0 );
+		if ( 'no' === ( $s[ "slide_{$i}_show" ] ?? 'yes' ) ) {
+			// Hidden from the dashboard: an empty slide is left out by the storefront.
+			$slides[] = array_fill_keys( array( 'image', 'srcset', 'mobile', 'closed', 'eyebrow', 'title', 'text', 'button', 'link' ), '' );
+			continue;
+		}
 		$slides[] = array(
 			'image'   => $image ? (string) wp_get_attachment_image_url( $image, 'full' ) : '',
 			'srcset'  => $image ? (string) wp_get_attachment_image_srcset( $image, 'full' ) : '',
@@ -1699,11 +1738,16 @@ function rfaheya_settings_data() {
 			'myAccountUrl' => function_exists( 'wc_get_page_permalink' ) ? wc_get_page_permalink( 'myaccount' ) : home_url( '/my-account/' ),
 			'bundle'       => array(
 				'enabled' => 'no' !== $o['bundle']['enabled'],
-				'title'   => $o['bundle']['title'],
-				'text'    => $o['bundle']['text'],
-				'size'    => $o['bundle']['size'],
-				'count'   => (int) $o['bundle']['count'],
-				'price'   => (float) $o['bundle']['price'],
+				// Texts saved for the old fixed-price trio give way to the new ones.
+				'title'   => 'Build your trio.' === $o['bundle']['title'] ? rfaheya_fields()['bundle']['title'][1] : $o['bundle']['title'],
+				'text'    => 0 === strpos( $o['bundle']['text'], 'Pick any three fragrances' ) ? rfaheya_fields()['bundle']['text'][1] : $o['bundle']['text'],
+				'tiers'   => array_map(
+					fn( $t ) => array(
+						'count'   => $t[0],
+						'percent' => $t[1],
+					),
+					rfaheya_bundle_tiers()
+				),
 			),
 			'gift'         => rfaheya_gift_box_data(),
 			'heroSlider'   => rfaheya_hero_slider_data( $o['slider'] ),
@@ -3060,13 +3104,13 @@ add_action(
 <?php endif; ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,600;1,400&display=swap">
 <script>try{if(JSON.parse(localStorage.getItem('rfaheya.theme'))==='dark')document.documentElement.classList.add('dark')}catch(e){}</script>
 <?php wp_head(); ?>
 <style>
 :root { --amber: #e49b2d; --amber-hover: #d08619; --on-amber: #fff; --noir: #100e0b; --ink: #1c1a17; --soft: #4a443b; --muted: #74695b; --bg: #f8f4ed; --card: #fcfaf6; --chip: #f1eadf; --line: #e9e0d2; --line-strong: #d3c6b2; --ease: cubic-bezier(.16,1,.3,1); --spring: cubic-bezier(.2,1.25,.3,1); }
 :root.dark { color-scheme: dark; --ink: #f1ebe1; --soft: #d2c8b8; --muted: #a59a8b; --bg: #14120f; --card: #201c17; --chip: #29241d; --line: #332d25; --line-strong: #4b4236; }
-body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font-family: "DM Sans", system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font-family: Roboto, system-ui, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
 .rfaheya-account * { box-sizing: border-box; }
 @keyframes rf-rise { from { opacity: 0; transform: translateY(26px); } }
 @keyframes rf-pop { from { opacity: 0; transform: translateY(18px) scale(.96); } }
@@ -3079,7 +3123,7 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 .rf-bar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px clamp(16px, 5vw, 78px); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
 .rf-logo img { display: block; height: 38px; width: auto; }
 :root.dark .rf-logo img:not(.rf-own-logo) { filter: invert(1) brightness(.95); }
-.rf-logo span { font-family: "Instrument Serif", serif; font-size: 28px; letter-spacing: .04em; color: var(--ink); }
+.rf-logo span { font-family: Roboto, sans-serif; font-weight: 500; font-size: 28px; letter-spacing: .04em; color: var(--ink); }
 .rf-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 26px; }
 .rf-nav a { color: var(--ink); text-decoration: none; font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 2px; transition: background-size .5s var(--ease); }
 .rf-nav a:hover { background-size: 100% 1px; }
@@ -3093,11 +3137,11 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 .rf-hero::after { width: 300px; height: 300px; left: 30%; bottom: -200px; background: rgba(228,155,45,.18); animation-duration: 18s; animation-direction: reverse; }
 .rf-hero-in { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
 .rf-eyebrow { margin: 0; font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--amber); animation: rf-rise .9s var(--ease) both; }
-.rf-title { font-family: "Instrument Serif", serif; font-weight: 400; font-size: clamp(42px, 7vw, 72px); line-height: 1; letter-spacing: -.01em; margin: 10px 0 0; animation: rf-rise 1s var(--ease) .08s both; }
+.rf-title { font-family: Roboto, sans-serif; font-weight: 500; font-size: clamp(42px, 7vw, 72px); line-height: 1; letter-spacing: -.01em; margin: 10px 0 0; animation: rf-rise 1s var(--ease) .08s both; }
 .rf-title em { color: var(--amber); }
 .rf-hero-sub { margin: 12px 0 0; color: #a99d8b; font-size: 16px; animation: rf-rise 1s var(--ease) .16s both; }
 .rf-hero-points { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-radius: 20px; background: rgba(255,255,255,.06); border: 1px solid rgba(228,155,45,.35); animation: rf-pop .9s var(--spring) .25s both; text-decoration: none; color: inherit; }
-.rf-hero-points strong { font-family: "Instrument Serif", serif; font-size: 40px; font-weight: 400; line-height: 1; color: var(--amber); }
+.rf-hero-points strong { font-family: Roboto, sans-serif; font-weight: 500; font-size: 40px; font-weight: 400; line-height: 1; color: var(--amber); }
 .rf-hero-points span { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #d8cdbb; line-height: 1.4; }
 .rf-main { max-width: 1100px; margin: 0 auto; padding: 40px 16px 96px; }
 .rf-main.rf-main-auth { padding-top: 48px; }
@@ -3105,7 +3149,7 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 .rfaheya-account .woocommerce { font-size: 16px; }
 .rfaheya-account .woocommerce::after { content: ""; display: table; clear: both; }
 .rfaheya-account .woocommerce a { color: var(--ink); text-underline-offset: 4px; }
-.rfaheya-account .woocommerce h2, .rfaheya-account .woocommerce h3 { font-family: "Instrument Serif", serif; font-weight: 400; font-size: 30px; line-height: 1.1; }
+.rfaheya-account .woocommerce h2, .rfaheya-account .woocommerce h3 { font-family: Roboto, sans-serif; font-weight: 500; font-size: 30px; line-height: 1.1; }
 .rfaheya-account .woocommerce .button, .rfaheya-account .woocommerce button.button, .rfaheya-account .woocommerce input.button, .rfaheya-account .woocommerce a.button { position: relative; overflow: hidden; isolation: isolate; display: inline-flex; align-items: center; justify-content: center; background: var(--amber); color: var(--on-amber); border: 0; border-radius: 999px; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 500; padding: 14px 24px; cursor: pointer; text-decoration: none; transition: background .3s, transform .15s; }
 .rfaheya-account .woocommerce .button::after, .rf-primary::after, .rf-nav-cta::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(110deg, transparent 25%, rgba(255,255,255,.4) 50%, transparent 75%); transform: translateX(-130%); pointer-events: none; }
 .rfaheya-account .woocommerce .button:hover::after, .rf-primary:hover::after, .rf-nav-cta:hover::after { transform: translateX(130%); transition: transform .9s var(--ease); }
@@ -3153,8 +3197,8 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 .rfaheya-account .rf-points::before { content: ""; position: absolute; width: 280px; height: 280px; right: -90px; top: -120px; border-radius: 50%; background: rgba(228,155,45,.35); filter: blur(50px); animation: rf-glow 12s ease-in-out infinite; }
 .rfaheya-account .rf-points > * { position: relative; }
 .rf-points-label { margin: 0; font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--amber); }
-.rf-points-total { margin: 8px 0 0; font-family: "Instrument Serif", serif; font-size: 56px; line-height: 1; color: var(--amber); }
-.rf-points-total span { font-family: "DM Sans", sans-serif; font-size: 15px; color: #a99d8b; }
+.rf-points-total { margin: 8px 0 0; font-family: Roboto, sans-serif; font-weight: 500; font-size: 56px; line-height: 1; color: var(--amber); }
+.rf-points-total span { font-family: Roboto, sans-serif; font-size: 15px; color: #a99d8b; }
 .rf-points-how { margin: 12px 0 0; color: #d8cdbb; font-size: 14px; }
 .rf-points-log { margin-top: 16px; width: 100%; font-size: 13px; border-collapse: collapse; }
 .rf-points-log td { padding: 8px 0; border-top: 1px solid rgba(255,255,255,.08); color: #d8cdbb; }
@@ -3166,7 +3210,7 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 @media (min-width: 900px) { .rf-auth { grid-template-columns: 1fr 460px; } }
 .rf-auth-art { display: none; border-radius: 28px; background-size: cover; background-position: 70% center; min-height: 560px; position: relative; overflow: hidden; animation: rf-pop 1.1s var(--ease) both; }
 .rf-auth-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(16,14,11,.75)); }
-.rf-auth-art p { position: absolute; left: 32px; bottom: 26px; z-index: 1; margin: 0; color: #fff; font-family: "Instrument Serif", serif; font-size: 44px; line-height: 1.05; }
+.rf-auth-art p { position: absolute; left: 32px; bottom: 26px; z-index: 1; margin: 0; color: #fff; font-family: Roboto, sans-serif; font-weight: 500; font-size: 44px; line-height: 1.05; }
 .rf-auth-art p em { color: var(--amber); }
 @media (min-width: 900px) { .rf-auth-art { display: block; } }
 .rf-auth-card { background: var(--card); border: 1px solid var(--line); border-radius: 28px; padding: 28px clamp(20px, 4vw, 40px) 32px; box-shadow: 0 30px 70px -40px rgba(16,14,11,.45); animation: rf-pop .9s var(--spring) .1s both; }
@@ -3174,7 +3218,7 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 .rf-tabs a { text-align: center; padding: 10px 8px; border-radius: 999px; font-size: 13px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); text-decoration: none; transition: background .4s var(--ease), color .3s; }
 .rf-tabs a[aria-selected="true"] { background: var(--noir); color: #fff; }
 :root.dark .rf-tabs a[aria-selected="true"] { background: var(--amber); color: var(--on-amber); }
-.rf-auth-title { font-family: "Instrument Serif", serif; font-weight: 400; font-size: 40px; line-height: 1.05; margin: 26px 0 6px; }
+.rf-auth-title { font-family: Roboto, sans-serif; font-weight: 500; font-size: 40px; line-height: 1.05; margin: 26px 0 6px; }
 .rf-auth-sub { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
 .rf-social { display: grid; gap: 10px; }
 .rf-social-btn { display: flex; align-items: center; justify-content: center; gap: 12px; height: 50px; border: 1px solid var(--line-strong); border-radius: 999px; background: var(--card); color: var(--ink); text-decoration: none; font-size: 15px; font-weight: 500; transition: border-color .3s, box-shadow .3s, transform .4s var(--ease); }
@@ -3194,7 +3238,7 @@ body.rfaheya-account { margin: 0; background: var(--bg); color: var(--ink); font
 .rf-switch { margin: 4px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
 .rf-switch a { color: var(--ink); font-weight: 500; text-underline-offset: 4px; }
 .rf-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding: 28px clamp(16px, 5vw, 78px); font-size: 13px; color: #a99d8b; background: var(--noir); }
-.rf-foot .rf-foot-logo { font-family: "Instrument Serif", serif; font-size: 22px; letter-spacing: .06em; color: #f4ede2; }
+.rf-foot .rf-foot-logo { font-family: Roboto, sans-serif; font-weight: 500; font-size: 22px; letter-spacing: .06em; color: #f4ede2; }
 @media (prefers-reduced-motion: reduce) { .rfaheya-account *, .rfaheya-account *::before, .rfaheya-account *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; } }
 </style>
 </head>
@@ -3629,44 +3673,63 @@ function rfaheya_size_key( $size ) {
 }
 
 /**
- * Bundle: every full set of N bottles in the bundle size costs the bundle price
- * (Settings → Rfaheya Store → Bundle). Applied as a negative fee, so it shows
- * in the storefront cart, the checkout and the order.
+ * Bundle: the more full bottles in the cart, the bigger the discount (Settings → Rfaheya Store →
+ * Orders & offers → Bundle: “bottles = %” steps). Samples (10 ML or less), the gift box and the
+ * gift wrap don't count. Applied as a negative fee, so it shows in the cart, checkout and order.
  */
-/** The bundle discount for a cart (0 when the bundle is off or no full set is in the cart). */
+/** The steps as array( array( bottles, percent ) ), fewest bottles first. */
+function rfaheya_bundle_tiers() {
+	$tiers = array();
+	foreach ( preg_split( '/\R/', (string) rfaheya_options()['bundle']['tiers'] ) as $line ) {
+		if ( preg_match( '/^\s*(\d+)\s*[=:]\s*(\d+(?:\.\d+)?)\s*%?\s*$/', $line, $m ) && (int) $m[1] >= 1 && (float) $m[2] > 0 ) {
+			$tiers[ (int) $m[1] ] = min( 100, (float) $m[2] );
+		}
+	}
+	ksort( $tiers );
+	$out = array();
+	foreach ( $tiers as $count => $percent ) {
+		$out[] = array( $count, $percent );
+	}
+	return $out;
+}
+
+/** A cart line's size, e.g. “50 ML” (from the variation's attribute or the product's). */
+function rfaheya_cart_item_size( $item ) {
+	foreach ( (array) ( $item['variation'] ?? array() ) as $attr => $value ) {
+		if ( preg_match( '/^attribute_(pa_)?size$/i', $attr ) ) {
+			return (string) $value;
+		}
+	}
+	$product = $item['data'] ?? null;
+	return $product ? (string) ( $product->get_attribute( 'pa_size' ) ? $product->get_attribute( 'pa_size' ) : $product->get_attribute( 'Size' ) ) : '';
+}
+
+/** The bundle discount for a cart (0 when the bundle is off or below the first step). */
 function rfaheya_bundle_discount( $cart ) {
-	$b     = rfaheya_options()['bundle'];
-	$count = (int) $b['count'];
-	$price = (float) $b['price'];
-	if ( 'no' === $b['enabled'] || $count < 2 || $price <= 0 ) {
+	if ( 'no' === rfaheya_options()['bundle']['enabled'] ) {
 		return 0;
 	}
-	$want   = rfaheya_size_key( $b['size'] );
-	$prices = array();
+	$tiers = rfaheya_bundle_tiers();
+	if ( ! $tiers ) {
+		return 0;
+	}
+	$bottles = 0;
+	$amount  = 0.0;
 	foreach ( $cart->get_cart() as $item ) {
-		$product = $item['data'];
-		$size    = '';
-		foreach ( (array) ( isset( $item['variation'] ) ? $item['variation'] : array() ) as $attr => $value ) {
-			if ( preg_match( '/^attribute_(pa_)?size$/i', $attr ) ) {
-				$size = $value;
-			}
-		}
-		if ( '' === $size && $product ) {
-			$size = $product->get_attribute( 'pa_size' ) ? $product->get_attribute( 'pa_size' ) : $product->get_attribute( 'Size' );
-		}
-		if ( rfaheya_size_key( $size ) !== $want ) {
+		// A full bottle: a size in ML above 10 (5 / 10 ML samples, boxes and wraps are not).
+		if ( ! preg_match( '/(\d+(?:\.\d+)?)\s*-?\s*ml/i', rfaheya_cart_item_size( $item ), $m ) || (float) $m[1] <= 10 ) {
 			continue;
 		}
-		for ( $i = 0; $i < (int) $item['quantity']; $i++ ) {
-			$prices[] = (float) $product->get_price();
+		$bottles += (int) $item['quantity'];
+		$amount  += isset( $item['line_subtotal'] ) ? (float) $item['line_subtotal'] : (float) $item['data']->get_price() * (int) $item['quantity'];
+	}
+	$percent = 0;
+	foreach ( $tiers as $t ) {
+		if ( $bottles >= $t[0] ) {
+			$percent = max( $percent, $t[1] );
 		}
 	}
-	rsort( $prices );
-	$discount = 0;
-	for ( $i = 0; $i + $count <= count( $prices ); $i += $count ) {
-		$discount += max( 0, array_sum( array_slice( $prices, $i, $count ) ) - $price );
-	}
-	return $discount;
+	return $percent > 0 ? round( $amount * $percent / 100 ) : 0;
 }
 
 /** The cart's merchandise before coupons, after the bundle discount (what the offers bar measures). */
@@ -4205,21 +4268,20 @@ add_action(
 	}
 );
 
-/** The customer an order belongs to: its account, or the account with the billing email. */
+/** Only an explicitly assigned account owns an order; billing email is not proof of identity. */
 function rfaheya_order_user( $order ) {
 	if ( $order->get_customer_id() ) {
 		return (int) $order->get_customer_id();
 	}
-	$user = get_user_by( 'email', $order->get_billing_email() );
-	return $user ? (int) $user->ID : 0;
+	return 0;
 }
 
-// Storefront orders are placed as guest orders: link them to the customer's account by email.
+// Cart-token requests may run as guests: verify the WordPress login cookie before assigning an account.
 add_action(
 	'woocommerce_store_api_checkout_order_processed',
 	function ( $order ) {
 		if ( ! $order->get_customer_id() ) {
-			$user_id = rfaheya_order_user( $order );
+			$user_id = (int) wp_validate_auth_cookie( '', 'logged_in' );
 			if ( $user_id ) {
 				$order->set_customer_id( $user_id );
 				$order->save();
@@ -4262,7 +4324,7 @@ add_action(
 
 /**
  * Catches up on completed orders of this customer that got no points yet (an order
- * linked to the account later, or placed with the account's email as a guest).
+ * linked to the account later after proving ownership with the order key).
  */
 function rfaheya_backfill_points( $user, $force = false ) {
 	$loyalty = rfaheya_loyalty();
@@ -4279,12 +4341,8 @@ function rfaheya_backfill_points( $user, $force = false ) {
 		'limit'  => 50,
 		'return' => 'ids',
 	);
-	$ids   = array_unique(
-		array_merge(
-			wc_get_orders( $query + array( 'customer_id' => $user->ID ) ),
-			wc_get_orders( $query + array( 'billing_email' => $user->user_email ) )
-		)
-	);
+	// Never claim historical guest orders using an unverified email address.
+	$ids = wc_get_orders( $query + array( 'customer_id' => $user->ID ) );
 	foreach ( $ids as $id ) {
 		rfaheya_award_points( wc_get_order( $id ), $user->ID );
 	}
@@ -5023,6 +5081,11 @@ function rfaheya_account_ok( $extra = array() ) {
 	wp_send_json( array_merge( array( 'ok' => true ), $extra ) );
 }
 
+/** Passwords must not be trimmed or otherwise normalised. */
+function rfaheya_password_post() {
+	return isset( $_POST['password'] ) && is_string( $_POST['password'] ) ? wp_unslash( $_POST['password'] ) : '';
+}
+
 /** POST field, trimmed. */
 function rfaheya_post( $key ) {
 	return isset( $_POST[ $key ] ) ? trim( (string) wp_unslash( $_POST[ $key ] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitised by the callers
@@ -5043,7 +5106,7 @@ foreach ( array( 'wp_ajax_rfaheya_login', 'wp_ajax_nopriv_rfaheya_login' ) as $r
 		$rfaheya_hook,
 		function () {
 			$login    = sanitize_text_field( rfaheya_post( 'email' ) );
-			$password = rfaheya_post( 'password' );
+			$password = rfaheya_password_post();
 			if ( '' === $login || '' === $password ) {
 				rfaheya_account_fail( 'Enter your email and password.' );
 			}
@@ -5126,7 +5189,7 @@ foreach ( array( 'wp_ajax_rfaheya_register', 'wp_ajax_nopriv_rfaheya_register' )
 			}
 			rfaheya_rate_limit( 'register', rfaheya_client_ip(), 5, HOUR_IN_SECONDS );
 			$email    = sanitize_email( rfaheya_post( 'email' ) );
-			$password = rfaheya_post( 'password' );
+			$password = rfaheya_password_post();
 			$first    = sanitize_text_field( rfaheya_post( 'firstName' ) );
 			$last     = sanitize_text_field( rfaheya_post( 'lastName' ) );
 			if ( '' === $first && '' !== rfaheya_post( 'fullName' ) ) {
@@ -5200,7 +5263,7 @@ foreach ( array( 'wp_ajax_rfaheya_reset_password', 'wp_ajax_nopriv_rfaheya_reset
 			rfaheya_rate_limit( 'reset', rfaheya_client_ip(), 10, HOUR_IN_SECONDS );
 			$key      = rfaheya_post( 'key' );
 			$login    = rfaheya_post( 'login' );
-			$password = rfaheya_post( 'password' );
+			$password = rfaheya_password_post();
 			if ( '' === $login && ctype_digit( rfaheya_post( 'id' ) ) ) {
 				$by_id = get_user_by( 'id', (int) rfaheya_post( 'id' ) );
 				$login = $by_id ? $by_id->user_login : '';
@@ -6011,7 +6074,7 @@ function rfaheya_admin_asset_version( $file ) {
 add_action(
 	'admin_enqueue_scripts',
 	function () {
-		wp_enqueue_style( 'rfaheya-font', 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		wp_enqueue_style( 'rfaheya-font', 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 		wp_enqueue_style( 'rfaheya-theme', WPMU_PLUGIN_URL . '/rfaheya-admin/theme.css', array(), rfaheya_admin_asset_version( 'theme.css' ) );
 	}
 );
@@ -6019,7 +6082,7 @@ add_action(
 add_action(
 	'login_enqueue_scripts',
 	function () {
-		wp_enqueue_style( 'rfaheya-font', 'https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+		wp_enqueue_style( 'rfaheya-font', 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
 		wp_enqueue_style( 'rfaheya-login', WPMU_PLUGIN_URL . '/rfaheya-admin/login.css', array( 'login' ), rfaheya_admin_asset_version( 'login.css' ) );
 		$logo = rfaheya_logo_url();
 		if ( ! $logo && file_exists( __DIR__ . '/rfaheya/logo.svg' ) ) {
@@ -6389,3 +6452,209 @@ add_filter(
 	2
 );
 add_filter( 'pings_open', '__return_false' );
+
+// ==================================================================== buyers of a product
+
+/**
+ * Everyone who bought a product (any of its sizes), newest first: one row per order line with
+ * the customer's details. Cancelled, failed, refunded and draft orders are left out.
+ * $limit 0 = all.
+ */
+function rfaheya_product_buyers( $product_id, $limit = 0 ) {
+	global $wpdb;
+	$product_id = (int) $product_id;
+	$skip       = array( 'cancelled', 'failed', 'refunded', 'checkout-draft', 'trash' );
+	$order_ids  = array();
+	$table      = $wpdb->prefix . 'wc_order_product_lookup';
+	// WooCommerce's own index of order lines (kept for its analytics) answers at once…
+	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) { // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$order_ids = array_map( 'intval', (array) $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT order_id FROM {$table} WHERE product_id = %d ORDER BY date_created DESC", $product_id ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+	// …otherwise (or for orders it hasn't indexed yet) the latest orders are read one by one.
+	$recent = wc_get_orders(
+		array(
+			'limit'   => 300,
+			'orderby' => 'date',
+			'order'   => 'DESC',
+			'type'    => 'shop_order',
+			'return'  => 'ids',
+		)
+	);
+	$order_ids = array_values( array_unique( array_merge( array_map( 'intval', $recent ), $order_ids ) ) );
+	$rows      = array();
+	foreach ( $order_ids as $order_id ) {
+		$order = wc_get_order( $order_id );
+		if ( ! $order || ! is_a( $order, 'WC_Order' ) || in_array( $order->get_status(), $skip, true ) ) {
+			continue;
+		}
+		foreach ( $order->get_items() as $item ) {
+			if ( (int) $item->get_product_id() !== $product_id ) {
+				continue;
+			}
+			$size = '';
+			foreach ( $item->get_meta_data() as $meta ) {
+				if ( preg_match( '/size/i', (string) $meta->key ) ) {
+					$size = (string) $meta->value;
+				}
+			}
+			$user   = $order->get_user();
+			$rows[] = array(
+				'order'    => $order->get_order_number(),
+				'order_id' => $order->get_id(),
+				'date'     => $order->get_date_created() ? $order->get_date_created()->date_i18n( 'Y-m-d H:i' ) : '',
+				'status'   => wc_get_order_status_name( $order->get_status() ),
+				'first'    => $order->get_billing_first_name(),
+				'last'     => $order->get_billing_last_name(),
+				'email'    => $order->get_billing_email(),
+				'phone'    => $order->get_billing_phone(),
+				'address'  => trim( $order->get_billing_address_1() . ' ' . $order->get_billing_address_2() ),
+				'city'     => $order->get_billing_city(),
+				'state'    => WC()->countries->get_states( $order->get_billing_country() )[ $order->get_billing_state() ] ?? $order->get_billing_state(),
+				'country'  => $order->get_billing_country(),
+				'size'     => str_replace( '-', ' ', strtoupper( $size ) ),
+				'qty'      => (int) $item->get_quantity(),
+				'line'     => (float) $item->get_total(),
+				'total'    => (float) $order->get_total(),
+				'payment'  => $order->get_payment_method_title(),
+				'account'  => $user ? $user->user_email : 'Guest',
+				'note'     => $order->get_customer_note(),
+			);
+		}
+		if ( $limit && count( $rows ) >= $limit ) {
+			break;
+		}
+	}
+	usort( $rows, fn( $a, $b ) => strcmp( $b['date'], $a['date'] ) );
+	return $rows;
+}
+
+/** The buyers table (product screen box and the full page). */
+function rfaheya_buyers_table( $rows ) {
+	if ( ! $rows ) {
+		echo '<p style="color:#7b6e5b">Nobody has bought this product yet.</p>';
+		return;
+	}
+	echo '<div style="overflow-x:auto"><table class="widefat striped rf-buyers"><thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Customer</th><th>Email</th><th>Phone</th><th>Address</th><th>Size</th><th>Qty</th><th>Line total</th></tr></thead><tbody>';
+	foreach ( $rows as $r ) {
+		$order_link = admin_url( 'post.php?post=' . (int) $r['order_id'] . '&action=edit' );
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+			$order_link = admin_url( 'admin.php?page=wc-orders&action=edit&id=' . (int) $r['order_id'] );
+		}
+		printf(
+			'<tr><td><a href="%s">#%s</a></td><td>%s</td><td>%s</td><td>%s</td><td><a href="mailto:%s">%s</a></td><td><a href="tel:%s">%s</a></td><td>%s</td><td>%s</td><td>%d</td><td>%s</td></tr>',
+			esc_url( $order_link ),
+			esc_html( $r['order'] ),
+			esc_html( $r['date'] ),
+			esc_html( $r['status'] ),
+			esc_html( trim( $r['first'] . ' ' . $r['last'] ) ),
+			esc_attr( $r['email'] ),
+			esc_html( $r['email'] ),
+			esc_attr( $r['phone'] ),
+			esc_html( $r['phone'] ),
+			esc_html( trim( $r['address'] . ', ' . $r['city'] . ( $r['state'] ? ', ' . $r['state'] : '' ), ', ' ) ),
+			esc_html( $r['size'] ),
+			(int) $r['qty'],
+			wp_kses_post( wc_price( $r['line'] ) )
+		);
+	}
+	echo '</tbody></table></div>';
+}
+
+function rfaheya_buyers_export_url( $product_id ) {
+	return wp_nonce_url( admin_url( 'admin-post.php?action=rfaheya_buyers_csv&product=' . (int) $product_id ), 'rfaheya_buyers_csv_' . (int) $product_id );
+}
+
+// The product screen: who bought it, with the export.
+add_action(
+	'add_meta_boxes_product',
+	function ( $post ) {
+		if ( ! current_user_can( 'edit_shop_orders' ) && ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
+		add_meta_box(
+			'rfaheya_buyers',
+			'Customers who bought this',
+			function ( $post ) {
+				$rows = rfaheya_product_buyers( $post->ID, 25 );
+				echo '<p style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:0">';
+				printf( '<a class="button button-primary" href="%s">Export all buyers (CSV)</a>', esc_url( rfaheya_buyers_export_url( $post->ID ) ) );
+				printf( '<a class="button" href="%s">See the full list</a>', esc_url( admin_url( 'edit.php?post_type=product&page=rfaheya-buyers&product=' . (int) $post->ID ) ) );
+				echo '<span style="color:#7b6e5b">The latest buyers are shown here; the export and the full list have everyone.</span></p>';
+				rfaheya_buyers_table( $rows );
+			},
+			'product',
+			'normal',
+			'default'
+		);
+	}
+);
+
+// Products → Buyers: pick a product, see everyone who bought it, export.
+add_action(
+	'admin_menu',
+	function () {
+		add_submenu_page(
+			'edit.php?post_type=product',
+			'Buyers',
+			'Buyers',
+			'manage_woocommerce',
+			'rfaheya-buyers',
+			function () {
+				$product_id = isset( $_GET['product'] ) ? absint( $_GET['product'] ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				echo '<div class="wrap"><h1 class="wp-heading-inline">Buyers</h1><p>Everyone who bought a product, with their details. Choose a product, then export the list as a CSV file (opens in Excel or Google Sheets).</p>';
+				echo '<form method="get" style="display:flex;gap:8px;align-items:center;margin:14px 0"><input type="hidden" name="post_type" value="product"><input type="hidden" name="page" value="rfaheya-buyers"><select name="product" style="min-width:280px"><option value="">— Choose a product —</option>';
+				foreach ( rfaheya_one_language( get_posts( array( 'post_type' => 'product', 'post_status' => array( 'publish', 'private', 'draft' ), 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) ) as $p ) {
+					printf( '<option value="%d" %s>%s</option>', (int) $p->ID, selected( $product_id, $p->ID, false ), esc_html( get_the_title( $p ) ) );
+				}
+				echo '</select><button class="button">Show buyers</button></form>';
+				if ( $product_id ) {
+					$rows = rfaheya_product_buyers( $product_id );
+					printf( '<p><strong>%d</strong> order lines · <a class="button button-primary" href="%s">Export CSV</a></p>', count( $rows ), esc_url( rfaheya_buyers_export_url( $product_id ) ) );
+					rfaheya_buyers_table( $rows );
+				}
+				echo '</div>';
+			}
+		);
+	},
+	60
+);
+
+// A "Buyers" link under each product in Products.
+add_filter(
+	'post_row_actions',
+	function ( $actions, $post ) {
+		if ( 'product' === $post->post_type && current_user_can( 'manage_woocommerce' ) ) {
+			$actions['rfaheya_buyers'] = sprintf( '<a href="%s">Buyers</a>', esc_url( admin_url( 'edit.php?post_type=product&page=rfaheya-buyers&product=' . (int) $post->ID ) ) );
+		}
+		return $actions;
+	},
+	10,
+	2
+);
+
+// The CSV download.
+add_action(
+	'admin_post_rfaheya_buyers_csv',
+	function () {
+		$product_id = isset( $_GET['product'] ) ? absint( $_GET['product'] ) : 0;
+		if ( ! $product_id || ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ) : '', 'rfaheya_buyers_csv_' . $product_id ) ) {
+			wp_die( 'Not allowed.', 403 );
+		}
+		$rows = rfaheya_product_buyers( $product_id );
+		$name = sanitize_file_name( get_post_field( 'post_name', $product_id ) . '-buyers-' . gmdate( 'Y-m-d' ) . '.csv' );
+		nocache_headers();
+		header( 'Content-Type: text/csv; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="' . $name . '"' );
+		$out = fopen( 'php://output', 'w' );
+		fwrite( $out, "\xEF\xBB\xBF" ); // phpcs:ignore WordPress.WP.AlternativeFunctions -- Excel reads UTF-8 (Arabic names) with this mark
+		fputcsv( $out, array( 'Order', 'Date', 'Status', 'First name', 'Last name', 'Email', 'Phone', 'Address', 'City', 'Governorate', 'Country', 'Product', 'Size', 'Quantity', 'Line total', 'Order total', 'Payment', 'Account', 'Customer note' ) );
+		$product = get_the_title( $product_id );
+		foreach ( $rows as $r ) {
+			// A leading = @ (or + - not starting a number, like a phone) would run as a formula in Excel.
+			$safe = fn( $v ) => is_string( $v ) && preg_match( '/^(=|@|[+\-](?!\d))/', $v ) ? "'" . $v : $v;
+			fputcsv( $out, array_map( $safe, array( $r['order'], $r['date'], $r['status'], $r['first'], $r['last'], $r['email'], $r['phone'], $r['address'], $r['city'], $r['state'], $r['country'], $product, $r['size'], $r['qty'], $r['line'], $r['total'], $r['payment'], $r['account'], $r['note'] ) ) );
+		}
+		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+		exit;
+	}
+);

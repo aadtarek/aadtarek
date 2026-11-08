@@ -149,7 +149,8 @@ function ProductDetails({ product }: { product: Product }) {
         <div className="min-w-0 lg:sticky lg:top-[96px] lg:self-start">
           <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">{chips.map((c) => c.label).join(' · ')}</p>
           <h1 className="mt-2.5 font-serif text-[46px] leading-[0.95] sm:text-[60px] xl:text-[68px]">{product.name}</h1>
-          {product.tagline && <p className="mt-2 font-serif text-[20px] text-ink-soft italic sm:text-[24px]">{product.tagline}</p>}
+          {/* A short description that only names the DNA isn't repeated: the picture card below shows it. */}
+          {product.tagline && !/^\s*dna\b/i.test(product.tagline) && <p className="mt-2 font-serif text-[20px] text-ink-soft italic sm:text-[24px]">{product.tagline}</p>}
           {count > 0 && (
             <a href="#reviews" className="mt-3 inline-flex items-center gap-2 text-[13px] text-muted hover:text-ink">
               <Stars rating={average} className="size-[14px]" />
@@ -417,34 +418,18 @@ function Gallery({ product, videos, onVideo, wished, onWish }: { product: Produc
 
 // ---------------------------------------------------------------- blocks
 
-/** The DNA: the original this fragrance is inspired by, with its picture; what that means is one tap away. */
+/** The original this fragrance is inspired by: its picture with its name beside it. */
 function InspiredBy({ product }: { product: Product }) {
-  const [open, setOpen] = useState(false)
   // "Vanilla 28 by Kayali" → the name large, the house small.
   const [, title, by] = product.inspiredBy.match(/^(.*?)\s+by\s+(.+)$/i) ?? []
   const name = title || product.inspiredBy
   return (
-    <div className="mt-5 overflow-hidden rounded-[20px] bg-chip">
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-3.5 p-2.5 pr-[18px] text-left">
-        {product.dnaImage ? (
-          <img src={product.dnaImage} alt={`${name}${by ? ` by ${by}` : ''}`} loading="lazy" className="h-[84px] w-[64px] shrink-0 rounded-[14px] bg-white object-cover" />
-        ) : (
-          <span aria-hidden className="grid h-[84px] w-[64px] shrink-0 place-items-center rounded-[14px] bg-white font-serif text-[20px] text-gold">
-            DNA
-          </span>
-        )}
-        <span className="min-w-0 flex-1">
-          <span className="block text-[10.5px] font-semibold tracking-[0.18em] text-gold uppercase">DNA</span>
-          <span className="mt-1 block truncate font-serif text-[23px] leading-none">{name}</span>
-          {by && <span className="mt-1 block truncate text-[13px] text-muted">by {by}</span>}
-        </span>
-        <ChevronRight className={`size-4 shrink-0 text-muted transition ${open ? 'rotate-90' : ''}`} strokeWidth={1.6} />
-      </button>
-      {open && (
-        <p className="px-[18px] pb-4 text-[13px] leading-relaxed text-ink-soft">
-          The DNA is the original fragrance this one is inspired by: it shows the direction and character behind it — not the original product, and not an exact copy.
-        </p>
-      )}
+    <div className="mt-5 flex items-center gap-3.5 overflow-hidden rounded-[20px] bg-chip p-2.5 pr-[18px]">
+      {product.dnaImage && <img src={product.dnaImage} alt={`${name}${by ? ` by ${by}` : ''}`} loading="lazy" className="h-[84px] w-[64px] shrink-0 rounded-[14px] bg-white object-cover" />}
+      <span className={`min-w-0 flex-1 ${product.dnaImage ? '' : 'py-2 pl-2'}`}>
+        <span className="block truncate font-serif text-[23px] leading-none">{name}</span>
+        {by && <span className="mt-1 block truncate text-[13px] text-muted">by {by}</span>}
+      </span>
     </div>
   )
 }

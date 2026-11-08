@@ -119,13 +119,35 @@ export const HERO_SLIDER = {
   slides: [] as HeroSlide[],
 }
 
+/**
+ * Bundles: the more full bottles in the cart, the bigger the discount (samples don't count).
+ * With WordPress: Settings → Rfaheya Store → Orders & offers → Bundle.
+ */
 export const BUNDLE = {
   enabled: true,
-  title: 'Build your trio.',
-  text: 'Pick any three fragrances in 30 ML and pay less for the set.',
-  size: '30 ML',
-  count: 3,
-  price: 1200,
+  title: 'Build your bundle.',
+  text: 'Pick any fragrances in any size — the more you add, the more you save.',
+  /** Bottles → % off, smallest first */
+  tiers: [
+    { count: 2, percent: 5 },
+    { count: 3, percent: 10 },
+    { count: 4, percent: 15 },
+    { count: 5, percent: 20 },
+  ] as { count: number; percent: number }[],
+}
+
+/** A full bottle's size (e.g. "50 ML"): sizes above 10 ML; samples and non-bottle choices are not. */
+export const isBottleSize = (size: string) => {
+  const m = size.match(/(\d+(?:\.\d+)?)\s*ml/i)
+  return !!m && parseFloat(m[1]) > 10
+}
+
+/** The bundle percentage for a number of bottles (0 below the first step). */
+export function bundlePercent(bottles: number): number {
+  if (!BUNDLE.enabled) return 0
+  let percent = 0
+  for (const t of BUNDLE.tiers) if (bottles >= t.count) percent = Math.max(percent, t.percent)
+  return Math.min(100, percent)
 }
 
 /**
@@ -174,17 +196,10 @@ export function giftBoxPrice(count: number): number {
 
 /** Bundle discount for a cart: every full set of `count` bundle-size bottles costs `price`. */
 export function bundleDiscount(lines: { size: string; price: number; quantity: number }[]): number {
-  if (!BUNDLE.enabled || BUNDLE.count < 2) return 0
-  const want = BUNDLE.size.replace(/\s+/g, '').toLowerCase()
-  const prices = lines
-    .filter((l) => l.size.replace(/\s+/g, '').toLowerCase() === want)
-    .flatMap((l) => Array<number>(l.quantity).fill(l.price))
-    .sort((a, b) => b - a)
-  let discount = 0
-  for (let i = 0; i + BUNDLE.count <= prices.length; i += BUNDLE.count) {
-    discount += Math.max(0, prices.slice(i, i + BUNDLE.count).reduce((n, p) => n + p, 0) - BUNDLE.price)
-  }
-  return discount
+  const bottles = lines.filter((l) => isBottleSize(l.size))
+  const percent = bundlePercent(bottles.reduce((n, l) => n + l.quantity, 0))
+  if (!percent) return 0
+  return Math.round((bottles.reduce((n, l) => n + l.price * l.quantity, 0) * percent) / 100)
 }
 
 /** Applies the WordPress settings (called once before the app renders). */
@@ -219,9 +234,10 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (typeof b.enabled === 'boolean') BUNDLE.enabled = b.enabled
     if (b.title?.trim()) BUNDLE.title = b.title.trim()
     if (b.text?.trim()) BUNDLE.text = b.text.trim()
-    if (b.size?.trim()) BUNDLE.size = b.size.trim()
-    if (Number(b.count) >= 2) BUNDLE.count = Number(b.count)
-    if (Number(b.price) > 0) BUNDLE.price = Number(b.price)
+    if (Array.isArray(b.tiers)) {
+      const tiers = b.tiers.map((t) => ({ count: Number(t.count), percent: Number(t.percent) })).filter((t) => t.count >= 1 && t.percent > 0)
+      BUNDLE.tiers = tiers.sort((x, y) => x.count - y.count)
+    }
   }
   const g = settings.gift
   if (g) {

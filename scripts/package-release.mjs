@@ -3,7 +3,8 @@
  * mirrors public_html. Extract it in public_html (File Manager → Extract):
  *
  *   index.html  assets/  import/ …          the storefront
- *   .htaccess                               routes the storefront and WordPress
+ *   rfaheya-setup/htaccess-reference.txt    the routing rules, for a first installation only
+ *                                           (a working site keeps its own .htaccess: never overwritten)
  *   wp-content/mu-plugins/rfaheya.php       store settings, FAQs, product details box, content import
  *   wp-content/mu-plugins/rfaheya-admin/    styles and scripts for the product / notes / videos screens
  *   wp-content/mu-plugins/rfaheya/          starter content for the import (npm run export:content) and the notes pack
@@ -50,7 +51,8 @@ const walk = (dir) => {
 }
 walk(dist)
 
-files['.htaccess'] = new Uint8Array(readFileSync(join(root, 'wordpress/htaccess')))
+// Never overwrite the live .htaccess: the rules ship as a reference for a first installation.
+files['rfaheya-setup/htaccess-reference.txt'] = new Uint8Array(readFileSync(join(root, 'wordpress/htaccess')))
 files['wp-content/mu-plugins/rfaheya.php'] = new Uint8Array(readFileSync(join(root, 'wordpress/mu-plugins/rfaheya.php')))
 for (const f of readdirSync(join(root, 'wordpress/mu-plugins/rfaheya-admin'))) {
   files[`wp-content/mu-plugins/rfaheya-admin/${f}`] = new Uint8Array(readFileSync(join(root, 'wordpress/mu-plugins/rfaheya-admin', f)))
@@ -82,6 +84,7 @@ console.log(`release/rfaheya-public_html.zip — ${Object.keys(files).length} fi
 // uploading and extracting a zip in File Manager doesn't work (wordpress/rfaheya-storefront.php).
 const build = new Date().toISOString().replace(/\D/g, '').slice(0, 12)
 const plugin = { 'rfaheya-storefront/rfaheya-storefront.php': new TextEncoder().encode(readFileSync(join(root, 'wordpress/rfaheya-storefront.php'), 'utf8').replaceAll('__BUILD__', build)) }
-for (const [path, data] of Object.entries(files)) plugin[`rfaheya-storefront/site/${path === '.htaccess' ? 'htaccess.txt' : path}`] = data
+for (const [path, data] of Object.entries(files)) plugin[`rfaheya-storefront/site/${path}`] = data
+plugin['rfaheya-storefront/site/htaccess.txt'] = new Uint8Array(readFileSync(join(root, 'wordpress/htaccess')))
 writeFileSync(join(release, 'rfaheya-storefront.zip'), zipSync(plugin, { level: 9 }))
 console.log(`release/rfaheya-storefront.zip — WordPress plugin, version 1.0.${build}`)

@@ -141,7 +141,7 @@ function preloadRouteImages(): Plugin {
         }
         // The page fonts, so text is drawn once in its own font (no reflow when they arrive later).
         const fonts = assets
-          .filter((c) => /(dm-sans-latin-wght-normal|instrument-serif-latin-400-normal|instrument-serif-latin-400-italic)-[\w-]+\.woff2$/.test(c.fileName))
+          .filter((c) => /roboto-latin-wght-normal-[\w-]+\.woff2$/.test(c.fileName))
           .map((c) => ({ tag: 'link', injectTo: 'head' as const, attrs: { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: base + c.fileName } }))
         const table = ROUTE_IMAGES.map(([re, list]) => [re, list.map(([src, media]) => [url(src), media ?? '']).filter(([u]) => u)])
         return [
