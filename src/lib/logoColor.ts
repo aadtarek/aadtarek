@@ -8,6 +8,12 @@ import { HOME } from '../config'
 export function readLogoColor() {
   const src = HOME.logo
   if (!src || typeof document === 'undefined') return
+  if (HOME.logoReady) {
+    const root = document.documentElement
+    if (HOME.logoDark) root.setAttribute('data-logo-dark', '')
+    if (HOME.logoColor) root.style.setProperty('--rf-logo-color', HOME.logoColor)
+    return
+  }
   const img = new Image()
   img.crossOrigin = 'anonymous'
   img.decoding = 'async'

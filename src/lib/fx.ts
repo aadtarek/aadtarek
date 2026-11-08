@@ -233,8 +233,8 @@ function magnetic(e: PointerEvent) {
 function imageIn(e: Event) {
   const img = e.target
   if (!(img instanceof HTMLImageElement) || img.loading !== 'lazy' || img.closest('#rf-fx-layer')) return
-  const r = img.getBoundingClientRect()
-  if (r.bottom < 0 || r.top > window.innerHeight) return
+  // No position check (it would make the browser lay the page out for every picture):
+  // an off-screen picture's fade has simply finished by the time it is scrolled to.
   img.classList.add('rf-img-in')
 }
 

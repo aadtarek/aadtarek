@@ -36,7 +36,7 @@ function publish(url: string) {
 /** Cuts the transparent / white margins around the logo; keeps the original when it can't be read. */
 export function trimOwnLogo() {
   const src = HOME.logo
-  if (!src || typeof document === 'undefined') return publish('')
+  if (!src || typeof document === 'undefined' || HOME.logoReady) return publish('')
   const saved = remembered(src)
   if (saved) return publish(saved)
   const img = new Image()

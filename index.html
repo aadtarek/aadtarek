@@ -7,8 +7,24 @@
     <meta name="theme-color" content="#2a2f1b" />
     <title>Rfaheya — Speak Your Scent</title>
     <script>try{if(localStorage.getItem('rfaheya.theme')==='"dark"'){document.documentElement.classList.add('dark');document.documentElement.style.background='#14120f'}}catch(e){}</script>
+    <style>
+      /* The phone's first screen, drawn before the storefront starts (removed once it is up). */
+      #rf-shell{display:none}
+      .rf-shell-on #rf-shell{display:block;position:fixed;inset:0;z-index:70;background:#f8f4ed;pointer-events:none;transition:opacity .25s;animation:rf-shell-out .3s 8s forwards}
+      @keyframes rf-shell-out{to{opacity:0;visibility:hidden}}
+      .rf-sh-bar{height:36px;background:#100e0b}
+      .rf-sh-head{position:relative;height:65px}
+      .rf-sh-head img{position:absolute;left:64px;top:50%;height:28px;width:auto;max-width:50vw;transform:translateY(-50%);object-fit:contain;object-position:left}
+      .rf-sh-list{display:flex;flex-direction:column;gap:8px;margin:8px 16px 0;height:clamp(560px,calc(100svh - 150px),720px)}
+      .rf-sh-list>div{position:relative;flex:0 0 64px;overflow:hidden;border-radius:24px;background:#1c1a17}
+      .rf-sh-list>.rf-sh-on{flex:1 1 0}
+      .rf-sh-on img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+      .rf-sh-on span{position:absolute;inset:0;background:linear-gradient(0deg,rgb(10 8 5/.82),rgb(10 8 5/.25) 60%,rgb(10 8 5/.15))}
+    </style>
   </head>
   <body>
+    <div id="rf-shell" aria-hidden="true"><div class="rf-sh-bar"></div><div class="rf-sh-head"><img id="rf-sh-logo" alt="" /></div><div class="rf-sh-list" id="rf-sh-list"><div class="rf-sh-on"><img id="rf-sh-img" alt="" fetchpriority="high" sizes="100vw" /><span></span></div></div></div>
+    <script>(function(){var s=window.__rfShell,e=document.getElementById('rf-shell');window.__rfShellOff=function(){window.__rfShellOff=function(){};if(!e.isConnected)return;e.style.opacity='0';setTimeout(function(){e.remove();document.documentElement.classList.remove('rf-shell-on')},260)};if(!s){e.remove();return}var i=document.getElementById('rf-sh-img');if(s.set)i.srcset=s.set;i.src=s.src;if(s.pos)i.style.objectPosition=s.pos;var g=document.getElementById('rf-sh-logo'),hm=window.__rfLogoHm||48;if(window.__rfLogo){g.src=window.__rfLogo;g.style.height=hm+'px'}else g.remove();document.querySelector('.rf-sh-head').style.height=Math.max(64,hm+12)+1+'px';for(var l=document.getElementById('rf-sh-list'),k=1;k<s.n;k++)l.appendChild(document.createElement('div'))})()</script>
     <div id="root" style="min-height:100vh"></div>
     <script type="module" src="/src/main.tsx"></script>
       <script defer src="/assets/motion-a0556a39.js"></script>

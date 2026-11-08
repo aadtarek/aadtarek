@@ -9,6 +9,7 @@ import { RewardsPopup } from './RewardsPopup'
 import { installFx } from '../lib/fx'
 import { readLogoColor } from '../lib/logoColor'
 import { trimOwnLogo } from '../lib/ownLogo'
+import { hideShell } from '../lib/shell'
 import { useScrollReveal } from '../lib/useScrollReveal'
 
 export function Layout() {
@@ -19,6 +20,13 @@ export function Layout() {
   const animate = pathname !== firstPath
   useScrollReveal(main, pathname)
   useEffect(installFx, [])
+  useEffect(() => {
+    // The phone's first screen from index.html: the home slider removes it once its picture
+    // is up; anywhere else (or if that never happens) it goes now / shortly.
+    if (pathname !== '/') return hideShell()
+    const t = window.setTimeout(hideShell, 4000)
+    return () => window.clearTimeout(t)
+  }, [pathname])
   useEffect(() => {
     // After the page has drawn: neither should hold up the first view.
     const run = () => {

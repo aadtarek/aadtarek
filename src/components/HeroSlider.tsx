@@ -1,9 +1,15 @@
 import { ArrowRight } from 'lucide-react'
-import { useEffect, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { hideShell } from '../lib/shell'
 import { Link } from 'react-router-dom'
 import obsidian from '../assets/slider/obsidian.webp'
 import obsidianClosed from '../assets/slider/obsidian-closed.webp'
 import obsidianMobile from '../assets/slider/obsidian-mobile.webp'
+import obsidianMobileSm from '../assets/slider/obsidian-mobile-740.webp'
+import obsidianSm from '../assets/slider/obsidian-945.webp'
+import dynastySm from '../assets/slider/dynasty-945.webp'
+import finderSm from '../assets/slider/finder-945.webp'
+import finderMobileSm from '../assets/slider/finder-mobile-740.webp'
 import dynasty from '../assets/slider/dynasty.webp'
 import dynastyClosed from '../assets/slider/dynasty-closed.webp'
 import finder from '../assets/slider/finder.webp'
@@ -12,8 +18,11 @@ import finderMobile from '../assets/slider/finder-mobile.webp'
 import { HERO_SLIDER, type HeroSlide } from '../config'
 import { haptic } from '../lib/fx'
 
+// Two sizes of each picture: the browser takes the one the screen needs.
+const pair = (small: string, small_w: number, large: string, large_w: number) => `${small} ${small_w}w, ${large} ${large_w}w`
+
 const slide = (
-  [image, closed, mobile]: [string, string, string],
+  [image, closed, mobile, srcset, mobileSrcset]: [string, string, string, string, string],
   position: string,
   eyebrow: string,
   title: string,
@@ -24,8 +33,9 @@ const slide = (
   image,
   closed,
   position,
-  srcset: '',
+  srcset,
   mobile,
+  mobileSrcset,
   eyebrow,
   title,
   text,
@@ -35,9 +45,9 @@ const slide = (
 
 /** Shown until slides are filled in the dashboard. */
 const BUILT_IN: (HeroSlide & { position?: string })[] = [
-  slide([obsidian, obsidianClosed, obsidianMobile], '62% 50%', 'New season', 'The Oud Edit', 'Deep, warm and unforgettable — our richest scents for the cold nights.', 'Shop the edit', '/shop?family=oriental'),
-  slide([dynasty, dynastyClosed, ''], '62% 50%', 'Limited offer', 'Spend more, save more', 'Free shipping over 1,200 EGP · 20% off + free shipping over 2,500 EGP.', 'Start shopping', '/shop'),
-  slide([finder, finderClosed, finderMobile], '62% 50%', 'Rfaheya Finder', 'Find your scent', 'Answer a few questions and meet the fragrance that feels like you.', 'Take the quiz', '/finder'),
+  slide([obsidianSm, obsidianClosed, obsidianMobileSm, pair(obsidianSm, 945, obsidian, 1890), pair(obsidianMobileSm, 740, obsidianMobile, 1074)], '62% 50%', 'New season', 'The Oud Edit', 'Deep, warm and unforgettable — our richest scents for the cold nights.', 'Shop the edit', '/shop?family=oriental'),
+  slide([dynastySm, dynastyClosed, '', pair(dynastySm, 945, dynasty, 1890), ''], '62% 50%', 'Limited offer', 'Spend more, save more', 'Free shipping over 1,200 EGP · 20% off + free shipping over 2,500 EGP.', 'Start shopping', '/shop'),
+  slide([finderSm, finderClosed, finderMobileSm, pair(finderSm, 945, finder, 1890), pair(finderMobileSm, 740, finderMobile, 1074)], '62% 50%', 'Rfaheya Finder', 'Find your scent', 'Answer a few questions and meet the fragrance that feels like you.', 'Take the quiz', '/finder'),
 ]
 
 /** The dashboard's slides (those with a picture or a title); a slide without a picture borrows a built-in one. */
@@ -46,7 +56,7 @@ export function heroSlides(): (HeroSlide & { position?: string })[] {
   if (filled.length === 0) return BUILT_IN
   return filled.map((s, i) => {
     const own = BUILT_IN[i % BUILT_IN.length]
-    return s.image ? s : { ...s, image: own.image, closed: s.closed || own.closed, mobile: s.mobile || own.mobile }
+    return s.image ? s : { ...s, image: own.image, srcset: own.srcset, closed: s.closed || own.closed, mobile: s.mobile || own.mobile, mobileSrcset: s.mobile ? s.mobileSrcset : own.mobileSrcset }
   })
 }
 
@@ -60,6 +70,21 @@ export function HeroSlider() {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const count = slides.length
+  const first = useRef<HTMLImageElement>(null)
+
+  // The first picture is on screen: the page drawn by index.html can go.
+  useEffect(() => {
+    const img = first.current
+    if (!img || img.complete) return hideShell()
+    img.addEventListener('load', hideShell, { once: true })
+    img.addEventListener('error', hideShell, { once: true })
+    const t = window.setTimeout(hideShell, 2500)
+    return () => {
+      window.clearTimeout(t)
+      img.removeEventListener('load', hideShell)
+      img.removeEventListener('error', hideShell)
+    }
+  }, [])
 
   useEffect(() => {
     if (count < 2 || paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
@@ -87,11 +112,12 @@ export function HeroSlider() {
           return (
             <li key={i} className="rf-acc-panel" data-on={on || undefined} aria-roledescription="slide" aria-label={`${i + 1} of ${count}`}>
               <picture>
-                {s.mobile && <source media="(max-width: 767px)" srcSet={s.mobile} />}
+                {s.mobile && <source media="(max-width: 767px)" srcSet={s.mobileSrcset || s.mobile} sizes="100vw" />}
                 <img
+                  ref={i === 0 ? first : undefined}
                   src={s.image}
                   srcSet={s.srcset || undefined}
-                  sizes="(min-width: 1024px) 80vw, 100vw"
+                  sizes="(min-width: 1024px) 66vw, 100vw"
                   alt=""
                   width={2000}
                   height={1100}

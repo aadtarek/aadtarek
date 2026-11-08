@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 const RFAHEYA_OPTION = 'rfaheya_store';
 // Bump when the shop data changes shape or how it is gathered: older saved copies are then rebuilt.
-const RFAHEYA_DATA_VERSION = 8;
+const RFAHEYA_DATA_VERSION = 10;
 
 // ==================================================================== settings
 
@@ -49,6 +49,7 @@ function rfaheya_fields() {
 		'slider'  => array(
 			'enabled'         => array( 'Show the hero slider on the home page (otherwise the single hero above)', 'yes', 'yesno' ),
 			'interval'        => array( 'Seconds per slide', '6', 'text' ),
+			'intro'           => array( 'Opening animation on the first visit (“Speak your scent”) — looks lovely but slows the PageSpeed score', 'no', 'yesno' ),
 			'slide_1_image'   => array( 'Slide 1 — image (945 × 780)', '', 'image' ),
 			'slide_1_mobile'  => array( 'Slide 1 — image for phones (optional, 358 × 550)', '', 'image' ),
 			'slide_1_closed'  => array( 'Slide 1 — narrow image while closed (optional, computers, 170 × 780)', '', 'image' ),
@@ -576,6 +577,7 @@ function rfaheya_hero_slider_data( $s ) {
 	return array(
 		'enabled'  => 'no' !== $s['enabled'],
 		'interval' => max( 2, (float) $s['interval'] ),
+		'intro'    => 'yes' === ( $s['intro'] ?? 'no' ),
 		'slides'   => $slides,
 	);
 }
@@ -586,6 +588,170 @@ function rfaheya_hero_slider_data( $s ) {
 function rfaheya_logo_url() {
 	$id = (int) rfaheya_options()['home']['logo'];
 	return $id ? (string) wp_get_attachment_image_url( $id, 'full' ) : '';
+}
+
+/**
+ * The logo as the storefront shows it, prepared once on the server (not in every visitor's
+ * phone): its empty margins cut off, made small enough for a sharp footer, and its main
+ * colour and darkness read. Kept until the logo changes. Falls back to the original file.
+ * Returns array( url, color, dark, trimmed ).
+ */
+function rfaheya_logo_prepared() {
+	$id  = (int) rfaheya_options()['home']['logo'];
+	$url = rfaheya_logo_url();
+	$out = array(
+		'url'     => $url,
+		'color'   => '',
+		'dark'    => false,
+		'trimmed' => false,
+	);
+	if ( ! $id || ! $url ) {
+		return $out;
+	}
+	$file = get_attached_file( $id );
+	if ( ! $file || ! is_readable( $file ) || preg_match( '/\.svg$/i', $file ) || ! function_exists( 'imagecreatefromstring' ) ) {
+		return $out;
+	}
+	$key  = $id . ':' . filemtime( $file ) . ':' . filesize( $file ) . ':2';
+	$done = get_option( 'rfaheya_logo_prepared' );
+	if ( is_array( $done ) && ( $done['key'] ?? '' ) === $key ) {
+		if ( empty( $done['file'] ) || is_readable( $done['file'] ) ) {
+			return array_merge( $out, $done['data'] );
+		}
+	}
+	$data = array();
+	try {
+		$data = rfaheya_logo_prepare( $file, $id );
+	} catch ( Throwable $e ) {
+		$data = array();
+	}
+	update_option(
+		'rfaheya_logo_prepared',
+		array(
+			'key'  => $key,
+			'file' => $data['file'] ?? '',
+			'data' => array_diff_key( $data, array( 'file' => 1 ) ),
+		),
+		true
+	);
+	return array_merge( $out, array_diff_key( $data, array( 'file' => 1 ) ) );
+}
+
+/** Does the work for rfaheya_logo_prepared(): returns the fields it found (and the new file). */
+function rfaheya_logo_prepare( $file, $id ) {
+	$src = @imagecreatefromstring( (string) file_get_contents( $file ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+	if ( ! $src ) {
+		return array();
+	}
+	$w = imagesx( $src );
+	$h = imagesy( $src );
+	if ( ! imageistruecolor( $src ) ) {
+		imagepalettetotruecolor( $src );
+	}
+	imagealphablending( $src, false );
+	imagesavealpha( $src, true );
+	// Edges and colour from a small copy (quick for any file size).
+	$scale = min( 1, 480 / max( $w, $h ) );
+	$sw    = max( 1, (int) round( $w * $scale ) );
+	$sh    = max( 1, (int) round( $h * $scale ) );
+	$small = imagecreatetruecolor( $sw, $sh );
+	imagealphablending( $small, false );
+	imagesavealpha( $small, true );
+	imagefill( $small, 0, 0, imagecolorallocatealpha( $small, 0, 0, 0, 127 ) );
+	imagecopyresampled( $small, $src, 0, 0, 0, 0, $sw, $sh, $w, $h );
+	$top    = $sh;
+	$bottom = -1;
+	$left   = $sw;
+	$right  = -1;
+	$seen   = 0;
+	$light  = 0.0;
+	$col    = 0;
+	$r      = 0;
+	$g      = 0;
+	$b      = 0;
+	for ( $y = 0; $y < $sh; $y++ ) {
+		for ( $x = 0; $x < $sw; $x++ ) {
+			$c  = imagecolorat( $small, $x, $y );
+			$a  = 255 - ( ( ( $c >> 24 ) & 0x7f ) * 2 );
+			$pr = ( $c >> 16 ) & 0xff;
+			$pg = ( $c >> 8 ) & 0xff;
+			$pb = $c & 0xff;
+			if ( $a < 12 || ( $pr > 246 && $pg > 246 && $pb > 246 ) ) {
+				continue;
+			}
+			$top    = min( $top, $y );
+			$bottom = max( $bottom, $y );
+			$left   = min( $left, $x );
+			$right  = max( $right, $x );
+			if ( $a < 140 || ( $pr > 242 && $pg > 242 && $pb > 242 ) ) {
+				continue;
+			}
+			++$seen;
+			$max    = max( $pr, $pg, $pb );
+			$min    = min( $pr, $pg, $pb );
+			$luma   = ( 0.299 * $pr + 0.587 * $pg + 0.114 * $pb ) / 255;
+			$light += $luma;
+			$sat    = 0 === $max ? 0 : ( $max - $min ) / $max;
+			if ( $sat > 0.28 && $luma > 0.18 && $luma < 0.9 ) {
+				++$col;
+				$r += $pr;
+				$g += $pg;
+				$b += $pb;
+			}
+		}
+	}
+	imagedestroy( $small );
+	$data = array();
+	if ( $seen ) {
+		$data['dark'] = $light / $seen < 0.45;
+		if ( $col / $seen > 0.03 ) {
+			$data['color'] = sprintf( 'rgb(%d %d %d)', round( $r / $col ), round( $g / $col ), round( $b / $col ) );
+		}
+	}
+	if ( $bottom < 0 ) {
+		return $data;
+	}
+	$pad = 2;
+	$x0  = max( 0, ( $left - $pad ) / $scale );
+	$y0  = max( 0, ( $top - $pad ) / $scale );
+	$x1  = min( $w, ( $right + 1 + $pad ) / $scale );
+	$y1  = min( $h, ( $bottom + 1 + $pad ) / $scale );
+	$cw  = $x1 - $x0;
+	$ch  = $y1 - $y0;
+	if ( $cw * $ch > $w * $h * 0.92 && max( $w, $h ) <= 1200 ) {
+		return $data; // nothing worth cutting, and not oversized
+	}
+	// Just big enough for the footer on a sharp screen (about 260 px tall).
+	$k   = min( 1, 260 / $ch );
+	$ow  = max( 1, (int) round( $cw * $k ) );
+	$oh  = max( 1, (int) round( $ch * $k ) );
+	$dst = imagecreatetruecolor( $ow, $oh );
+	imagealphablending( $dst, false );
+	imagesavealpha( $dst, true );
+	imagefill( $dst, 0, 0, imagecolorallocatealpha( $dst, 0, 0, 0, 127 ) );
+	imagecopyresampled( $dst, $src, 0, 0, (int) round( $x0 ), (int) round( $y0 ), $ow, $oh, (int) round( $cw ), (int) round( $ch ) );
+	imagedestroy( $src );
+	$up = wp_upload_dir();
+	if ( ! empty( $up['error'] ) ) {
+		return $data;
+	}
+	$dir = trailingslashit( $up['basedir'] ) . 'rfaheya';
+	wp_mkdir_p( $dir );
+	$name = 'logo-' . $id . '-' . substr( md5( $file . filemtime( $file ) ), 0, 8 );
+	$path = $dir . '/' . $name . '.webp';
+	$ok   = function_exists( 'imagewebp' ) && imagewebp( $dst, $path, 90 );
+	if ( ! $ok ) {
+		$path = $dir . '/' . $name . '.png';
+		$ok   = imagepng( $dst, $path, 9 );
+	}
+	imagedestroy( $dst );
+	if ( ! $ok ) {
+		return $data;
+	}
+	$data['url']     = trailingslashit( $up['baseurl'] ) . 'rfaheya/' . basename( $path );
+	$data['trimmed'] = true;
+	$data['file']    = $path;
+	return $data;
 }
 
 /**
@@ -1506,6 +1672,7 @@ add_action(
 function rfaheya_settings_data() {
 	$o    = rfaheya_options();
 	$h    = $o['home'];
+	$logo = rfaheya_logo_prepared();
 	$home = array(
 		'announcements' => array_values( array_filter( array( $h['announcement_1'], $h['announcement_2'], $h['announcement_3'] ) ) ),
 		'hero'          => array(
@@ -1515,7 +1682,10 @@ function rfaheya_settings_data() {
 			'image'   => $h['hero_image'] ? (string) wp_get_attachment_image_url( (int) $h['hero_image'], 'full' ) : '',
 		'srcset'  => $h['hero_image'] ? (string) wp_get_attachment_image_srcset( (int) $h['hero_image'], 'full' ) : '',
 		),
-		'logo'          => rfaheya_logo_url(),
+		'logo'          => $logo['url'],
+		'logoReady'     => function_exists( 'imagecreatefromstring' ),
+		'logoColor'     => $logo['color'],
+		'logoDark'      => $logo['dark'],
 		'logoSize'      => array(
 			'desktop' => max( 30, min( 90, (int) ( $h['logo_height'] ?? 56 ) ) ),
 			'mobile'  => max( 28, min( 70, (int) ( $h['logo_height_mobile'] ?? 48 ) ) ),
@@ -1619,6 +1789,44 @@ function rfaheya_store_data( $route, $params ) {
 }
 
 /** A Store API product or variation with only the fields the storefront reads (RawProduct in src/api/woo.ts). */
+/**
+ * A product text with only its words and simple formatting: text pasted from other sites or
+ * chat tools carries long hidden class lists and wrappers that weigh more than the words.
+ */
+function rfaheya_clean_html( $html ) {
+	$html = (string) $html;
+	if ( '' === $html || false === strpos( $html, '<' ) ) {
+		return $html;
+	}
+	$keep = array(
+		'p'          => array(),
+		'br'         => array(),
+		'strong'     => array(),
+		'b'          => array(),
+		'em'         => array(),
+		'i'          => array(),
+		'u'          => array(),
+		'ul'         => array(),
+		'ol'         => array(),
+		'li'         => array(),
+		'h2'         => array(),
+		'h3'         => array(),
+		'h4'         => array(),
+		'h5'         => array(),
+		'blockquote' => array(),
+		'a'          => array( 'href' => true ),
+		'img'        => array(
+			'src' => true,
+			'alt' => true,
+		),
+	);
+	$html = preg_replace( '#<(script|style)\b[^>]*>.*?</\1>#is', '', $html );
+	$html = wp_kses( $html, $keep );
+	$html = preg_replace( '#<p>\s*(&nbsp;|\s)*</p>#i', '', $html );
+	$html = preg_replace( '/[ \t]*\n\s*/', "\n", $html );
+	return trim( (string) $html );
+}
+
 function rfaheya_slim_product( $p ) {
 	$pick = function ( $a, $keys ) {
 		return array_intersect_key( (array) $a, array_flip( $keys ) );
@@ -1630,8 +1838,8 @@ function rfaheya_slim_product( $p ) {
 		'slug'              => isset( $p['slug'] ) ? $p['slug'] : '',
 		'type'              => isset( $p['type'] ) ? $p['type'] : '',
 		'parent'            => isset( $p['parent'] ) ? (int) $p['parent'] : 0,
-		'short_description' => isset( $p['short_description'] ) ? $p['short_description'] : '',
-		'description'       => isset( $p['description'] ) ? $p['description'] : '',
+		'short_description' => isset( $p['short_description'] ) ? rfaheya_clean_html( $p['short_description'] ) : '',
+		'description'       => isset( $p['description'] ) ? rfaheya_clean_html( $p['description'] ) : '',
 		'prices'            => $pick( isset( $p['prices'] ) ? $p['prices'] : array(), array( 'price', 'regular_price', 'sale_price', 'price_range', 'currency_minor_unit' ) ),
 		'images'            => array_map(
 			function ( $i ) use ( $pick ) {
@@ -1823,7 +2031,21 @@ function rfaheya_bootstrap() {
 	}
 	// Only the fields the storefront reads (src/api/woo.ts): about a third of the size.
 	$products   = array_map( 'rfaheya_slim_product', $products );
-	$variations = array_map( 'rfaheya_slim_product', $variations );
+	// The storefront reads only a variation's price and stock (its size comes from the parent):
+	// the rest would be a third of the page's weight.
+	$variations = array_map(
+		function ( $v ) {
+			$v = (array) $v;
+			$p = isset( $v['prices'] ) ? (array) $v['prices'] : array();
+			return array(
+				'id'          => isset( $v['id'] ) ? (int) $v['id'] : 0,
+				'parent'      => isset( $v['parent'] ) ? (int) $v['parent'] : 0,
+				'prices'      => array_intersect_key( $p, array_flip( array( 'price', 'regular_price', 'currency_minor_unit' ) ) ),
+				'is_in_stock' => ! empty( $v['is_in_stock'] ),
+			);
+		},
+		$variations
+	);
 	$data = array(
 		'v'          => RFAHEYA_DATA_VERSION,
 		'settings'   => rfaheya_settings_data(),
@@ -1931,22 +2153,56 @@ function rfaheya_storefront_shell() {
 		$html = str_replace( '</head>', '<link rel="icon" href="' . esc_url( get_site_icon_url( 32 ) ) . '" sizes="32x32"><link rel="icon" href="' . esc_url( get_site_icon_url( 192 ) ) . '" sizes="192x192"><link rel="apple-touch-icon" href="' . esc_url( get_site_icon_url( 180 ) ) . '"></head>', $html );
 	}
 	// The dashboard logo shows from the first paint (no swap once the settings arrive).
-	$logo = rfaheya_logo_url();
+	$logo = rfaheya_logo_prepared()['url'];
 	if ( $logo ) {
 		$html = str_replace( '<head>', '<head><script>window.__rfLogo=' . wp_json_encode( $logo, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . '</script><link rel="preload" as="image" href="' . esc_url( $logo ) . '">', $html );
 	}
 	if ( $data ) {
-		$html = str_replace( '<head>', '<head><script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script>', $html );
+		// At the end of the page: the first screen (and its picture) starts before this is read.
+		// The storefront's module runs only once the whole page is read, so it is there in time.
+		$html = str_replace( '</body>', '<script>window.__rfBoot=Promise.resolve(' . wp_json_encode( $data, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ')</script></body>', $html );
 	}
 	// Start the LCP image before the storefront module has parsed the catalogue.
 	$path = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH );
 	$slider = rfaheya_hero_slider_data( rfaheya_options()['slider'] );
+	$data_logo_hm = max( 28, min( 70, (int) ( rfaheya_options()['home']['logo_height_mobile'] ?? 48 ) ) );
 	if ( '/' === $path && ! empty( $slider['enabled'] ) ) {
 		// The slider's first picture, when one is chosen in the dashboard.
-		if ( ! empty( $slider['slides'][0]['image'] ) ) {
-			$html = str_replace( '</head>', '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $slider['slides'][0]['image'] ) . '"></head>', $html );
+		// The same files the slider picks (phone picture on phones), so nothing is fetched twice.
+		$first  = $slider['slides'][0];
+		$filled = count(
+			array_filter(
+				$slider['slides'],
+				function ( $s ) {
+					return $s['image'] || trim( $s['title'] );
+				}
+			)
+		);
+		// For the phone's first-screen picture shown before the storefront starts (index.html).
+		$own = array( 'n' => $filled ? $filled : 3 );
+		if ( ! empty( $first['image'] ) ) {
+			$own['img'] = $first['mobile'] ? $first['mobile'] : $first['image'];
+			$own['set'] = $first['mobile'] ? '' : $first['srcset'];
+		}
+		if ( ! empty( $slider['intro'] ) ) {
+			$own = 1; // the opening animation shows first
+		}
+		$html = str_replace( '<head>', '<head><script>window.__rfOwnSlides=' . wp_json_encode( $own, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES ) . ';window.__rfLogoHm=' . (int) $data_logo_hm . '</script>', $html );
+		if ( ! empty( $first['image'] ) ) {
+			$tags  = '';
+			$media = $first['mobile'] ? ' media="(min-width: 768px)"' : '';
+			$tags .= '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $first['image'] ) . '"' . $media;
+			if ( $first['srcset'] ) {
+				$tags .= ' imagesrcset="' . esc_attr( $first['srcset'] ) . '" imagesizes="(min-width: 1024px) 66vw, 100vw"';
+			}
+			$tags .= '>';
+			if ( $first['mobile'] ) {
+				$tags .= '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $first['mobile'] ) . '" media="(max-width: 767px)">';
+			}
+			$html = str_replace( '<head>', '<head>' . $tags, $html );
 		}
 	} elseif ( '/' === $path ) {
+		$html = str_replace( '<head>', '<head><script>window.__rfOwnSlides=1</script>', $html );
 		$hero = isset( $data['settings']['home']['hero']['image'] ) ? $data['settings']['home']['hero']['image'] : '';
 		$srcset = isset( $data['settings']['home']['hero']['srcset'] ) ? $data['settings']['home']['hero']['srcset'] : '';
 		$hero = $hero ? $hero : '/assets/hero-XWCSYKce.webp';
@@ -5364,6 +5620,7 @@ function rfaheya_seo_for( $path, $data ) {
 			$out['description'] = $about ? $about : $desc;
 			$out['image']       = $image ? $image : $out['image'];
 			$out['type']        = 'product';
+			$out['preload']     = $product['images'][0] ?? null; // the gallery's first picture
 			$crumbs[]           = array( 'Shop', home_url( '/shop' ) );
 			$crumbs[]           = array( $product['name'], $url );
 			$item = array(
@@ -5455,6 +5712,14 @@ function rfaheya_seo_apply( $html, $path, $data ) {
 	$head .= '<meta property="og:url" content="' . esc_url( $canon ) . '">';
 	if ( $seo['image'] ) {
 		$head .= '<meta property="og:image" content="' . esc_url( $seo['image'] ) . '"><meta name="twitter:card" content="summary_large_image">';
+	}
+	// The product page's main picture starts before the storefront has started.
+	if ( ! empty( $seo['preload']['src'] ) ) {
+		$head .= '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( $seo['preload']['src'] ) . '"';
+		if ( ! empty( $seo['preload']['srcset'] ) ) {
+			$head .= ' imagesrcset="' . esc_attr( $seo['preload']['srcset'] ) . '" imagesizes="(min-width: 1024px) 55vw, 100vw"';
+		}
+		$head .= '>';
 	}
 	foreach ( $seo['jsonld'] as $ld ) {
 		$head .= '<script type="application/ld+json">' . wp_json_encode( array_filter( $ld, fn( $v ) => null !== $v ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>';

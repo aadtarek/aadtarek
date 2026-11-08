@@ -38,7 +38,9 @@ export function ExploreFamilies() {
                 style={{ background: TINTS[f.slug]?.tint }}
               >
                 <img
-                  src={f.image}
+                  src={f.imageSm ?? f.image}
+                  srcSet={f.imageSm && f.imageSm !== f.image ? `${f.imageSm} ${i === 0 ? 516 : 368}w, ${f.image} ${i === 0 ? 1032 : 736}w` : undefined}
+                  sizes={i === 0 ? '(min-width: 1024px) 36vw, 100vw' : '(min-width: 1024px) 26vw, 50vw'}
                   alt=""
                   loading="lazy"
                   className="size-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.05]"

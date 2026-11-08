@@ -37,9 +37,12 @@ export interface StoreSettings {
     hero?: Partial<Record<'eyebrow' | 'title' | 'text' | 'image' | 'srcset', string>>
     /** Logo chosen in the dashboard (URL), empty for the built-in one */
     logo?: string
+    logoReady?: boolean
+    logoColor?: string
+    logoDark?: boolean
     logoSize?: { desktop?: number; mobile?: number; footer?: number }
   }
-  heroSlider?: { enabled?: boolean; interval?: number; slides?: Partial<import('../config').HeroSlide>[] }
+  heroSlider?: { enabled?: boolean; interval?: number; intro?: boolean; slides?: Partial<import('../config').HeroSlide>[] }
   bundle?: { enabled?: boolean; title?: string; text?: string; size?: string; count?: number; price?: number }
   shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number; orderMin?: number }
   loyalty?: Partial<{ enabled: boolean; earn: number; value: number; min: number; welcome: boolean; welcomePercent: number }>
@@ -158,13 +161,34 @@ export async function fetchStoreSettings(): Promise<StoreSettings> {
   return settings
 }
 
+const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', ndash: '–', mdash: '—', hellip: '…', rsquo: '’', lsquo: '‘', rdquo: '”', ldquo: '“', times: '×', eacute: 'é' }
+let decoder: HTMLTextAreaElement | null = null
+
+/** One HTML entity as text (named ones outside the short list are read by the browser, once each). */
+function entity(m: string, code: string): string {
+  if (code[0] === '#') {
+    const n = code[1] === 'x' || code[1] === 'X' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10)
+    return Number.isFinite(n) && n > 0 && n < 0x110000 ? String.fromCodePoint(n) : m
+  }
+  if (code in ENTITIES) return ENTITIES[code]
+  if (typeof document === 'undefined') return m
+  decoder ??= document.createElement('textarea')
+  decoder.innerHTML = m
+  ENTITIES[code] = decoder.value
+  return decoder.value
+}
+
+/** Text of a bit of WordPress HTML (quick: no HTML parser for every product on start-up). */
 export function stripHtml(html: string): string {
   if (!html) return ''
-  if (typeof DOMParser !== 'undefined') {
-    const doc = new DOMParser().parseFromString(html, 'text/html')
-    return (doc.body.textContent ?? '').replace(/\s+/g, ' ').trim()
-  }
-  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+  return html
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/<\/?(p|div|br|li|ul|ol|h[1-6]|tr|td|th|table|section|blockquote)\b[^>]*>/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(#x?[0-9a-f]+|[a-z][a-z0-9]*);/gi, entity)
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 /** Store API money values are integer strings in minor units. */

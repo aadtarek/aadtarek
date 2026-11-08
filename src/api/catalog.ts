@@ -153,7 +153,10 @@ function applyLoaded(revs: Review[], vids: WearVideo[], settings: StoreSettings,
     if (!c) continue
     family.name = stripHtml(c.name) || family.name
     family.tagline = stripHtml(c.description) || family.tagline
-    if (c.image?.src) family.image = c.image.src
+    if (c.image?.src) {
+      family.image = c.image.src
+      family.imageSm = undefined
+    }
   }
 }
 

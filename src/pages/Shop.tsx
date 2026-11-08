@@ -290,7 +290,7 @@ export function Shop() {
                     </li>
                   )}
                   <li>
-                    <ProductCard product={p} />
+                    <ProductCard product={p} priority={i < 4} />
                   </li>
                 </Fragment>
               ))}

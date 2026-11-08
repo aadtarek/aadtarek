@@ -1868,3 +1868,9 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
     animation: none;
   }
 }
+
+/* Sections below the first screen: skipped by layout and paint until they come near. */
+.rf-cv {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 700px;
+}

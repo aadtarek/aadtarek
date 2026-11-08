@@ -76,7 +76,15 @@ export const DEFAULT_HOME = {
 
 /** `__rfLogo`: the dashboard logo, put in the page by WordPress so it shows from the first paint. */
 const bootLogo = typeof window !== 'undefined' ? ((window as { __rfLogo?: unknown }).__rfLogo ?? '') : ''
-export const HOME = { announcements: [...DEFAULT_HOME.announcements], hero: { ...DEFAULT_HOME.hero }, logo: typeof bootLogo === 'string' ? bootLogo : '' }
+export const HOME = {
+  announcements: [...DEFAULT_HOME.announcements],
+  hero: { ...DEFAULT_HOME.hero },
+  logo: typeof bootLogo === 'string' ? bootLogo : '',
+  /** WordPress already trimmed the logo and read its colour (no work in the browser). */
+  logoReady: false,
+  logoColor: '',
+  logoDark: false,
+}
 
 /**
  * "Build your bundle": any `count` bottles of `size` for `price`.
@@ -89,6 +97,8 @@ export interface HeroSlide {
   mobile: string
   /** Optional narrow picture shown while the slide is closed (computers) */
   closed?: string
+  /** Sizes of the phone picture for the browser to choose from */
+  mobileSrcset?: string
   eyebrow: string
   title: string
   text: string
@@ -104,6 +114,8 @@ export const HERO_SLIDER = {
   enabled: true,
   /** Seconds per slide */
   interval: 6,
+  /** The “Speak your scent” opening on the first visit (off by default: it costs PageSpeed) */
+  intro: false,
   slides: [] as HeroSlide[],
 }
 
@@ -191,6 +203,9 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (lines.length) HOME.announcements = lines
     merge(HOME.hero, home.hero)
     if (typeof home.logo === 'string') HOME.logo = home.logo.trim()
+    if (typeof home.logoReady === 'boolean') HOME.logoReady = home.logoReady
+    if (typeof home.logoColor === 'string') HOME.logoColor = home.logoColor
+    if (typeof home.logoDark === 'boolean') HOME.logoDark = home.logoDark
     const size = home.logoSize
     if (size) {
       if (Number(size.desktop) > 0) LOGO_SIZE.desktop = Number(size.desktop)
@@ -238,6 +253,7 @@ export function applyStoreSettings(settings: StoreSettings) {
   if (hs) {
     if (typeof hs.enabled === 'boolean') HERO_SLIDER.enabled = hs.enabled
     if (Number(hs.interval) >= 2) HERO_SLIDER.interval = Number(hs.interval)
+    if (typeof hs.intro === 'boolean') HERO_SLIDER.intro = hs.intro
     if (Array.isArray(hs.slides))
       HERO_SLIDER.slides = hs.slides.map((x) => ({
         image: x.image ?? '',

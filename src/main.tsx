@@ -39,22 +39,29 @@ const fail = (e: unknown) => root.render(<Splash error={e instanceof Error ? e.m
 
 // The hash-router preview keeps the path after "#".
 const path = import.meta.env.VITE_HASH_ROUTER ? window.location.hash.replace(/^#/, '') || '/' : window.location.pathname
-// The journal's posts download alongside, so its first render already has them.
-if (isWoo && /^\/journal\/?$/.test(path)) fetchPosts().catch(() => undefined)
-// The storefront shows straight away (with a short placeholder, App.tsx); the pages follow once the products are in.
-container.setAttribute('data-app', '')
-root.render(<App />)
-if (isWoo && !window.__rfBoot && restoreCatalog()) {
-  // A returning visitor: the shop shows from the browser's copy right away; the fresh catalogue
-  // replaces it once downloaded (a failed download keeps the copy).
-  preloadRoute(path)
-    .catch(() => undefined)
-    .then(markCatalogReady)
-  loadCatalog()
-    .then(markCatalogReady)
-    .catch(() => undefined)
-} else {
-  Promise.all([loadCatalog(), preloadRoute(path).catch(() => undefined)])
-    .then(markCatalogReady)
-    .catch(fail)
+function start() {
+  // The journal's posts download alongside, so its first render already has them.
+  if (isWoo && /^\/journal\/?$/.test(path)) fetchPosts().catch(() => undefined)
+  // The storefront shows straight away (with a short placeholder, App.tsx); the pages follow once the products are in.
+  container.setAttribute('data-app', '')
+  root.render(<App />)
+  if (isWoo && !window.__rfBoot && restoreCatalog()) {
+    // A returning visitor: the shop shows from the browser's copy right away; the fresh catalogue
+    // replaces it once downloaded (a failed download keeps the copy).
+    preloadRoute(path)
+      .catch(() => undefined)
+      .then(markCatalogReady)
+    loadCatalog()
+      .then(markCatalogReady)
+      .catch(() => undefined)
+  } else {
+    Promise.all([loadCatalog(), preloadRoute(path).catch(() => undefined)])
+      .then(markCatalogReady)
+      .catch(fail)
+  }
 }
+
+// The shop data (window.__rfBoot) is at the end of the page: wait until the page is read
+// (this file can be started early, before the first screen is drawn — see vite.config.ts).
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true })
+else start()

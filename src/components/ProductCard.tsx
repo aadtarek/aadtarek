@@ -18,7 +18,8 @@ import { haptic, heartBurst } from '../lib/fx'
  * tags (the store's WooCommerce tags, else who it's for / family / occasion / season),
  * key notes with their names, the sizes, Add to cart and the 5 ml sample.
  */
-export function ProductCard({ product, badge = product.badge }: { product: Product; badge?: string }) {
+/** `priority`: one of the first cards on screen — its picture loads first, not lazily. */
+export function ProductCard({ product, badge = product.badge, priority = false }: { product: Product; badge?: string; priority?: boolean }) {
   const cart = useCart()
   const wishlist = useWishlist()
   const wished = wishlist.has(product.id)
@@ -45,7 +46,8 @@ export function ProductCard({ product, badge = product.badge }: { product: Produ
             alt={main.alt}
             width={400}
             height={320}
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : undefined}
             decoding="async"
             draggable={false}
             className="size-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover/card:scale-[1.04]"

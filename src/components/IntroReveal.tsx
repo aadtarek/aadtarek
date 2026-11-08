@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
+import { HERO_SLIDER } from '../config'
+import { hideShell } from '../lib/shell'
 import { heroSlides } from './HeroSlider'
 
 type Phase = 'enter' | 'words' | 'frame' | 'full' | 'leave' | 'done'
@@ -9,7 +11,7 @@ const SEEN = 'rfaheya.introSeen'
 
 /** Once per visit, on the home page, unless the visitor prefers less motion. */
 function shouldPlay(path: string) {
-  if (path !== '/') return false
+  if (path !== '/' || !HERO_SLIDER.intro) return false
   try {
     if (sessionStorage.getItem(SEEN)) return false
     sessionStorage.setItem(SEEN, '1')
@@ -33,6 +35,7 @@ export function IntroReveal() {
 
   useEffect(() => {
     if (phase === 'done') return
+    hideShell()
     document.documentElement.style.overflow = 'hidden'
     return () => {
       document.documentElement.style.overflow = ''

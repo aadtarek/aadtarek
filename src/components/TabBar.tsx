@@ -55,7 +55,7 @@ export function TabBar() {
       const on = bar.current?.querySelector<HTMLElement>('[data-current="true"]')
       setLens((prev) => (on ? { x: on.offsetLeft, w: on.offsetWidth, glide: prev !== null } : null))
     }
-    measure()
+    // Measured by the observer once the page is laid out (no forced layout on start-up).
     const observer = new ResizeObserver(measure)
     if (bar.current) observer.observe(bar.current)
     return () => observer.disconnect()

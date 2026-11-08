@@ -77,8 +77,12 @@ export function Footer({ showCta = true, compact = false }: { showCta?: boolean;
     )
   return (
     <>
-      {showCta && <CtaBanner />}
-      <footer className="bg-footer">
+      {showCta && (
+        <div className="rf-cv" style={{ containIntrinsicSize: 'auto 420px' }}>
+          <CtaBanner />
+        </div>
+      )}
+      <footer className="rf-cv bg-footer" style={{ containIntrinsicSize: 'auto 900px' }}>
       <div className="rf-on-black">
         <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-[45px]">
           <div className="h-px bg-line-strong/50" />

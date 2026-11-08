@@ -18,7 +18,8 @@ export function useSlidingPill<T extends HTMLElement>(active: unknown) {
       const on = group.querySelector<HTMLElement>('[aria-checked="true"]')
       setBox((prev) => (on ? { x: on.offsetLeft, y: on.offsetTop, w: on.offsetWidth, h: on.offsetHeight, glide: prev !== null } : null))
     }
-    measure()
+    // The observer measures once the page is laid out (before it is drawn), so the first
+    // render doesn't force an extra layout of the whole page.
     const observer = new ResizeObserver(measure)
     observer.observe(group)
     return () => observer.disconnect()

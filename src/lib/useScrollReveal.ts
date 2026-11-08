@@ -23,18 +23,27 @@ export function useScrollReveal(root: RefObject<HTMLElement | null>, route: stri
         observer.unobserve(target)
       })
     }, { threshold: 0.08, rootMargin: '0px 0px -4% 0px' })
-    const inView = (target: Element) => {
-      const box = target.getBoundingClientRect()
-      return box.top < window.innerHeight && box.bottom > 0
-    }
+    // Where each one is when it first appears, read by the browser with its own layout
+    // (measuring every section here would force extra layouts while the page starts).
+    const firstSight = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        firstSight.unobserve(entry.target)
+        if (entry.isIntersecting) return
+        entry.target.classList.add('scroll-reveal')
+        observer.observe(entry.target)
+      })
+    })
     let started = false
     const track = (target: Element) => {
       if (tracked.has(target)) return
       tracked.add(target)
       // Cards that mount later (filters, more products) fade in even when on screen.
-      if (target.classList.contains('rf-card') ? !started && inView(target) : inView(target)) return
-      target.classList.add('scroll-reveal')
-      observer.observe(target)
+      if (started && target.classList.contains('rf-card')) {
+        target.classList.add('scroll-reveal')
+        observer.observe(target)
+        return
+      }
+      firstSight.observe(target)
     }
     const scan = () => {
       element.querySelectorAll('section').forEach((section) => {
@@ -48,6 +57,7 @@ export function useScrollReveal(root: RefObject<HTMLElement | null>, route: stri
     mutations.observe(element, { childList: true, subtree: true })
     const clear = () => {
       observer.disconnect()
+      firstSight.disconnect()
       mutations.disconnect()
       tracked.forEach((target) => {
         target.classList.remove('scroll-reveal', 'reveal-visible')

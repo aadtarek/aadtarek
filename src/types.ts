@@ -114,6 +114,8 @@ export interface FragranceFamily {
   tagline: string
   keywords: string[]
   image: string
+  /** A smaller copy of the built-in picture (phones) */
+  imageSm?: string
 }
 
 export interface Review {
