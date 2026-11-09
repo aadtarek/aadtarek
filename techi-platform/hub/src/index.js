@@ -5,12 +5,13 @@
 import fs from "node:fs";
 import http from "node:http";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
 import { WebSocketServer, WebSocket } from "ws";
 import { simDriver } from "./drivers/sim.js";
 
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
-const CFG_PATH = process.env.TECHI_CONFIG || new URL("../devices.json", import.meta.url).pathname;
-const EXAMPLE = new URL("../devices.example.json", import.meta.url).pathname;
+const CFG_PATH = process.env.TECHI_CONFIG || fileURLToPath(new URL("../devices.json", import.meta.url));
+const EXAMPLE = fileURLToPath(new URL("../devices.example.json", import.meta.url));
 const cfg = JSON.parse(fs.readFileSync(fs.existsSync(CFG_PATH) ? CFG_PATH : EXAMPLE, "utf8"));
 const SIM = process.env.TECHI_SIM === "1";
 const TOKEN = process.env.TECHI_TOKEN || cfg.hub.token;
