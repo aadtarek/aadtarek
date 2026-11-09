@@ -113,7 +113,7 @@ export default function MyHome() {
   const [conn, setConn] = useState(() => read("techi-hub-conn", { mode: "relay", relayUrl: "", hubId: "", lanUrl: "http://techi-hub.local:8787", token: "" }));
   const root = useRef(null);
   const set = (k) => (e) => setConn((x) => { const n = { ...x, [k]: e.target.value }; return n; });
-  const connect = (e) => { e.preventDefault(); const { token, ...rest } = conn; write("techi-hub-conn", rest); open(conn); };
+  const connect = (e) => { e.preventDefault(); const clean = { ...conn, token: conn.token.replace(/^TOKEN:\s*/i, "").replace(/\s+/g, ""), lanUrl: conn.lanUrl.trim(), relayUrl: conn.relayUrl.trim(), hubId: conn.hubId.trim() }; const { token, ...rest } = clean; write("techi-hub-conn", rest); open(clean); };
 
   /* the 3D apartment mirrors the real home */
   useEffect(() => { const h = getHome(); if (!h || !h.mirror) return; Object.values(devices).forEach((d) => d.role3d && h.mirror(d.role3d, d.state)); }, [devices]);
@@ -144,7 +144,7 @@ export default function MyHome() {
           ) : (
             <label className="fld"><span>{c.lanUrl}</span><input dir="ltr" value={conn.lanUrl} onChange={set("lanUrl")} /></label>
           )}
-          <label className="fld"><span>{c.token}</span><input dir="ltr" type="password" autoComplete="current-password" value={conn.token} onChange={set("token")} /></label>
+          <label className="fld"><span>{c.token}</span><input dir="ltr" type="text" autoComplete="off" spellCheck="false" autoCapitalize="off" value={conn.token} onChange={set("token")} /></label>
           {["bad", "failed", "offline"].includes(status) && <p className="co-fail" role="alert">{c[status]}</p>}
           <button className="btn btn-white" type="submit" disabled={status === "connecting"}>{status === "connecting" ? c.connecting : c.go}</button>
           <p className="mh-hint">{c.hint}</p>
