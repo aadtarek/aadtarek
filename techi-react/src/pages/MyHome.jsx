@@ -113,7 +113,7 @@ export default function MyHome() {
   const [conn, setConn] = useState(() => read("techi-hub-conn", { mode: "relay", relayUrl: "", hubId: "", lanUrl: "http://techi-hub.local:8787", token: "" }));
   const root = useRef(null);
   const set = (k) => (e) => setConn((x) => { const n = { ...x, [k]: e.target.value }; return n; });
-  const connect = (e) => { e.preventDefault(); const clean = { ...conn, token: conn.token.replace(/^TOKEN:\s*/i, "").replace(/\s+/g, ""), lanUrl: conn.lanUrl.trim(), relayUrl: conn.relayUrl.trim(), hubId: conn.hubId.trim() }; const { token, ...rest } = clean; write("techi-hub-conn", rest); open(clean); };
+  const connect = (e) => { e.preventDefault(); const clean = { ...conn, token: conn.token.replace(/^\s*TOKEN:/i, "").replace(/[^A-Za-z0-9_\-]/g, ""), lanUrl: conn.lanUrl.replace(/[^\x21-\x7e]/g, ""), relayUrl: conn.relayUrl.trim(), hubId: conn.hubId.trim() }; const { token, ...rest } = clean; write("techi-hub-conn", rest); open(clean); };
 
   /* the 3D apartment mirrors the real home */
   useEffect(() => { const h = getHome(); if (!h || !h.mirror) return; Object.values(devices).forEach((d) => d.role3d && h.mirror(d.role3d, d.state)); }, [devices]);
