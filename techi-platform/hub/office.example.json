@@ -1,0 +1,11 @@
+{
+  "hub": { "name": "المكتب", "port": 8787, "token": "اكتب-هنا-كود-طويل-من-عندك" },
+  "devices": [
+    { "id": "office_gang1", "name": { "ar": "نور المكتب 1", "en": "Office light 1" }, "room": "living", "type": "light", "driver": "tuya",
+      "address": { "id": "DEVICE_ID", "key": "LOCAL_KEY", "ip": "192.168.1.XX", "version": "3.3" }, "map": { "on": "1" }, "role3d": "light_living" },
+    { "id": "office_gang2", "name": { "ar": "نور المكتب 2", "en": "Office light 2" }, "room": "living", "type": "light", "driver": "tuya",
+      "address": { "id": "DEVICE_ID", "key": "LOCAL_KEY", "ip": "192.168.1.XX", "version": "3.3" }, "map": { "on": "2" } }
+  ],
+  "automations": [],
+  "scenes": []
+}
