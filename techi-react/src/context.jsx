@@ -13,7 +13,7 @@ const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
 
 export function AppProvider({ children }) {
   /* ---------- language ---------- */
-  const [lang, setLangState] = useState(() => read("techi-lang-v", "ar"));
+  const [lang, setLangState] = useState(() => read("techi-lang", "en"));
   const t = useCallback((k) => I18N[lang][k], [lang]);
   const fields = useMemo(() => L(lang), [lang]);
   const dir = lang === "en" ? -1 : 1;
@@ -21,7 +21,7 @@ export function AppProvider({ children }) {
     document.documentElement.lang = lang;
     document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
     window.TECHI_LANG = lang;
-    write("techi-lang-v", lang);
+    write("techi-lang", lang);
     const h = getHome();
     if (h && h.setLang) h.setLang(lang);
   }, [lang]);

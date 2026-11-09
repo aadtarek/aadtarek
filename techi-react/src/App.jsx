@@ -34,6 +34,7 @@ export default function App() {
   return (
     <>
       <MeshBG />
+      <div className="grain" aria-hidden="true" />
       <Cursor />
       <Preloader onReady={() => setReady(true)} />
       <Transition />

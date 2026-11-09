@@ -160,3 +160,41 @@ export function HeroApp() {
     </section>
   );
 }
+
+/* ---------- ROOM: unseen-style architectural 3D room in Techi navy ---------- */
+const RC = {
+  en: { k: "A SMART HOME STUDIO · CAIRO", s: "Living smart,", a: "a home that gets you.", go: "Shop devices", tour: "3D home tour", scroll: "Scroll" },
+  ar: { k: "استوديو البيوت الذكية · القاهرة", s: "Living smart,", a: "بيت بيفهمك.", go: "تسوّق الأجهزة", tour: "جولة في البيت 3D", scroll: "انزل" },
+};
+export function HeroRoom() {
+  const { lang } = useApp();
+  const c = RC[lang];
+  const host = useRef(null), root = useRef(null);
+  const [on, setOn] = useState(false);
+  useEffect(() => {
+    let room = null;
+    import("../lib/room3d.js").then(({ createRoom }) => { room = createRoom(host.current); });
+    const sc = () => { if (room) room.scroll = Math.min(1, scrollY / innerHeight); };
+    addEventListener("scroll", sc, { passive: true });
+    const t = setTimeout(() => setOn(true), 350);
+    return () => { clearTimeout(t); removeEventListener("scroll", sc); room && room.destroy(); };
+  }, []);
+  const words = (s) => s.split(" ").map((w, i) => <span className="w" key={i}><span>{w}</span></span>);
+  return (
+    <section className={"hr" + (on ? " in" : "")} ref={root}>
+      <div className="hr-gl" ref={host} aria-hidden="true" />
+      <div className="hr-vign" aria-hidden="true" />
+      <div className="hr-copy">
+        <div className="hr-k">{c.k}</div>
+        <h1>
+          <span className="hr-s chrome" dir="ltr">{words(c.s)}</span>
+          <span className="hr-a">{words(c.a)}</span>
+        </h1>
+        <TLink className="hr-go" to="/shop">{c.go} <Icon name="diag" /></TLink>
+      </div>
+      <div className="hr-bl"><TLink className="hr-round" to="/experience" aria-label={c.tour}>•••••</TLink><TLink className="hr-pill" to="/experience">{c.tour}</TLink></div>
+      <div className="hr-bc" dir="ltr">TECHI <i>◎</i> HOME</div>
+      <div className="hr-br" dir="ltr">©2026</div>
+    </section>
+  );
+}

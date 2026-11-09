@@ -91,7 +91,7 @@ export function Header({ onMenu }) {
   return (
     <header className={"hdr" + (hide ? " hide" : "")}>
       <div className="wrap">
-        <TLink to="/" aria-label="Techi"><img className="logo" src="/img/logo-white.png" alt="Techi" /></TLink>
+        <TLink to="/" aria-label="Techi"><img className="logo" src="/img/logo-full-navy.png" alt="Techi" /></TLink>
         <nav className="capsule" ref={cap} aria-label="Menu">
           <span className="pill" ref={pill} />
           {NAV.map(([to, k, r]) => <TLink key={to} to={to} className={rk === r ? "on" : ""}>{t(k)}</TLink>)}
@@ -190,7 +190,7 @@ export function Footer() {
     <footer className="foot">
       <div className="wrap">
         <div className="fg">
-          <div><img src="/img/logo-white.png" alt="Techi" style={{ height: 28, width: "auto", marginBottom: 18 }} /><p className="fp">{t("foot_p")}</p></div>
+          <div><img src="/img/logo-full-navy.png" alt="Techi" style={{ height: 34, width: "auto", marginBottom: 18 }} /><p className="fp">{t("foot_p")}</p></div>
           <div><h5>{t("nav_shop")}</h5>{["screens", "switches", "security", "voice"].map((k) => <TLink key={k} to={"/shop/" + k}>{t("cats")[k]}</TLink>)}</div>
           <div><h5>Techi</h5><TLink to="/bundles">{t("nav_bundles")}</TLink><TLink to="/experience">{t("nav_xp")}</TLink><TLink to="/about">{t("nav_about")}</TLink></div>
           <div><h5>{t("foot_contact")}</h5><a href={waLink("Techi")} target="_blank" rel="noopener">WhatsApp</a><a href="https://techi-eg.com/" target="_blank" rel="noopener">techi-eg.com</a></div>

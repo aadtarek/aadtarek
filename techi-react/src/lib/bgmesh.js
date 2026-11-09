@@ -35,8 +35,8 @@ const dot=(()=>{const c=document.createElement("canvas");c.width=c.height=64;con
 const pGeo=new THREE.BufferGeometry();const pArr=new Float32Array(nodes.length*3),sArr=new Float32Array(nodes.length),aArr=new Float32Array(nodes.length);
 nodes.forEach((n,i)=>{sArr[i]=n.size;aArr[i]=n.logo?1:0;});
 pGeo.setAttribute("position",new THREE.BufferAttribute(pArr,3));pGeo.setAttribute("size",new THREE.BufferAttribute(sArr,1));pGeo.setAttribute("alpha",new THREE.BufferAttribute(aArr,1));
-const U={uTex:{value:dot},uPx:{value:1},uCol:{value:new THREE.Color("#DCE8FF")},uWarm:{value:new THREE.Color("#FFD49A")},uLux:{value:0},uDim:{value:1}};
-const pMat=new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+const U={uTex:{value:dot},uPx:{value:1},uCol:{value:new THREE.Color("#011738")},uWarm:{value:new THREE.Color("#FFD49A")},uLux:{value:0},uDim:{value:1}};
+const pMat=new THREE.ShaderMaterial({uniforms:U,transparent:true,depthWrite:false,blending:THREE.NormalBlending,
   vertexShader:`attribute float size;attribute float alpha;varying float vA;varying float vD;uniform float uPx;
     void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;vD=clamp((-mv.z-7.)/7.,0.,1.);vA=alpha;gl_PointSize=size*uPx*(10./-mv.z);}`,
   fragmentShader:`uniform sampler2D uTex;uniform vec3 uCol;uniform vec3 uWarm;uniform float uLux;uniform float uDim;varying float vA;varying float vD;
@@ -45,15 +45,15 @@ const points=new THREE.Points(pGeo,pMat);inner.add(points);
 
 /* --- lines --- */
 function lineSet(filter){const list=edges.filter(filter);const geo=new THREE.BufferGeometry();geo.setAttribute("position",new THREE.BufferAttribute(new Float32Array(list.length*6),3));
-  const mat=new THREE.LineBasicMaterial({color:0x9CC0FF,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});const l=new THREE.LineSegments(geo,mat);inner.add(l);return{list,geo,mat,l};}
+  const mat=new THREE.LineBasicMaterial({color:0x011738,transparent:true,opacity:0,depthWrite:false});const l=new THREE.LineSegments(geo,mat);inner.add(l);return{list,geo,mat,l};}
 const logoL=lineSet(e=>e[2]===1), meshL=lineSet(e=>e[2]===0);
 function writeLines(set){const a=set.geo.attributes.position.array;set.list.forEach(([i,j],k)=>{const p=pos[i],q=pos[j];a.set([p.x,p.y,p.z,q.x,q.y,q.z],k*6);});set.geo.attributes.position.needsUpdate=true;}
 
 /* --- pulses: packets travelling along the mesh --- */
 const PN=60;const puGeo=new THREE.BufferGeometry();const puArr=new Float32Array(PN*3),puS=new Float32Array(PN).fill(7),puA=new Float32Array(PN);
 puGeo.setAttribute("position",new THREE.BufferAttribute(puArr,3));puGeo.setAttribute("size",new THREE.BufferAttribute(puS,1));puGeo.setAttribute("alpha",new THREE.BufferAttribute(puA,1));
-const PU={...U,uCol:{value:new THREE.Color("#FFFFFF")}};
-const puMat=new THREE.ShaderMaterial({uniforms:PU,vertexShader:pMat.vertexShader,fragmentShader:pMat.fragmentShader,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});
+const PU={...U,uCol:{value:new THREE.Color("#3D6BFF")}};
+const puMat=new THREE.ShaderMaterial({uniforms:PU,vertexShader:pMat.vertexShader,fragmentShader:pMat.fragmentShader,transparent:true,depthWrite:false});
 inner.add(new THREE.Points(puGeo,puMat));
 const pulses=Array.from({length:PN},()=>({e:edges[(Math.random()*edges.length)|0],t:Math.random(),sp:.3+Math.random()*.7}));
 
@@ -72,7 +72,7 @@ function frame(now){
   if(m!==lastM){const e=m<.5?4*m*m*m:1-Math.pow(-2*m+2,3)/2;
     nodes.forEach((n,i)=>{pos[i].lerpVectors(n.flat,n.sph,e);pArr[i*3]=pos[i].x;pArr[i*3+1]=pos[i].y;pArr[i*3+2]=pos[i].z;if(!n.logo)aArr[i]=Math.min(1,e*1.2)*.9;});
     pGeo.attributes.position.needsUpdate=true;pGeo.attributes.alpha.needsUpdate=true;writeLines(logoL);writeLines(meshL);lastM=m;}
-  logoL.mat.opacity=(.55-.25*m)*api.dim;meshL.mat.opacity=.22*m*api.dim;
+  logoL.mat.opacity=(.5-.25*m)*api.dim;meshL.mat.opacity=.16*m*api.dim;
   U.uLux.value=api.lux;U.uDim.value=api.dim;PU.uLux.value=api.lux;PU.uDim.value=api.dim;
   if(!reduce)rot+=dt*.07*api.spin*m;
   tiltX+=(api.my*.25-tiltX)*.04;tiltY+=(api.mx*.35-tiltY)*.04;
