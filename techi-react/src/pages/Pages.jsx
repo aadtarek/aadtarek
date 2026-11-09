@@ -5,7 +5,8 @@ import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "../components/Icons.jsx";
 import { AddButton, BT, BundleGrid, Finale, Frame3D, Money, ProductCard, Split, Suites, TLink, Tag } from "../components/ui.jsx";
 import { CAT_KEYS, D3MAP, P, SHOP, byId, catLink, fmt, img, off, pad, reduceMotion, src, waLink } from "../lib/util.js";
-import { ScrollTrigger, bgPlace, bgTo, gsap, reveals } from "../lib/motion.js";
+import { ScrollTrigger, bgPlace, bgTo, flipIn, gsap, reveals } from "../lib/motion.js";
+import H3D from "../components/H3D.jsx";
 import { getHome } from "../lib/home3d.js";
 
 gsap.registerPlugin(Flip);
@@ -31,41 +32,42 @@ function PHead({ tag, h, p, count }) {
   );
 }
 
-/* ---------------- SHOP ---------------- */
+/* ---------------- SHOP: same look as the home "Products" section ---------------- */
 export function Shop() {
   const { t } = useApp();
   const { cat } = useParams();
   const [c, setC] = useState(cat && CAT_KEYS.includes(cat) ? cat : "all");
   const [q, setQ] = useState("");
-  const [sort, setSort] = useState("pop");
-  const grid = useRef(null), chips = useRef(null), pill = useRef(null), flipState = useRef(null);
-  const root = usePage((el) => { if (!reduceMotion()) gsap.from(el.querySelectorAll("#shopGrid .pcard"), { y: 80, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.05, delay: 0.5 }); });
+  const grid = useRef(null);
+  const root = usePage((el) => { if (!reduceMotion()) flipIn(el.querySelector("#shopGrid"), { now: true, stagger: 0.04 }); });
   const order = SHOP.map((p) => p.id);
   const list = SHOP.filter((p) => (c === "all" || p.cat === c) && (!q || (p.ar + " " + p.en + " " + p.variant + " " + p.variantEn).toLowerCase().includes(q.toLowerCase())))
-    .sort((A, B) => (sort === "lo" ? A.sale - B.sale : sort === "hi" ? B.sale - A.sale : sort === "off" ? off(B) - off(A) : order.indexOf(A.id) - order.indexOf(B.id)));
-  const capture = () => { if (!reduceMotion() && grid.current) flipState.current = Flip.getState(grid.current.querySelectorAll(".pcard")); };
+    .sort((A, B) => order.indexOf(A.id) - order.indexOf(B.id));
+  const first = useRef(true);
   useLayoutEffect(() => {
-    const on = chips.current.querySelector("button.on"); if (on && pill.current) { pill.current.style.left = on.offsetLeft + "px"; pill.current.style.width = on.offsetWidth + "px"; }
-    if (flipState.current) { Flip.from(flipState.current, { duration: 0.8, ease: "expo.inOut", scale: true, absolute: true, stagger: 0.015, onEnter: (els) => gsap.fromTo(els, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.6 }) }); flipState.current = null; }
-  }, [c, q, sort]);
+    if (first.current) { first.current = false; return; }
+    if (!reduceMotion() && grid.current) flipIn(grid.current, { now: true, stagger: 0.04 });
+  }, [c]);
   const counts = Object.fromEntries(CAT_KEYS.map((k) => [k, P.filter((p) => p.cat === k).length]));
+  const pickCat = (k) => { setC(k); window.history.replaceState(null, "", k === "all" ? "/shop" : "/shop/" + k); };
   return (
-    <div ref={root}>
-      <PHead tag={t("shop_tag")} h={t("shop_h")} p={t("shop_p")} count={`${pad(P.length)} ${t("pieces")}`} />
-      <section className="wrap" style={{ paddingBottom: 40 }}>
-        <div className="toolbar">
-          <div className="chips" ref={chips}>
-            <span className="pill" ref={pill} />
-            <button className={c === "all" ? "on" : ""} onClick={() => { capture(); setC("all"); window.history.replaceState(null, "", "/shop"); }}>{t("all")}<sup className="num">{P.length}</sup></button>
-            {CAT_KEYS.map((k) => <button key={k} className={c === k ? "on" : ""} onClick={() => { capture(); setC(k); window.history.replaceState(null, "", "/shop/" + k); }}><Icon name={CAT_ICON[k]} />{t("cats")[k]}<sup className="num">{counts[k]}</sup></button>)}
+    <div ref={root} className="shop2">
+      <section className="sec2" id="prods">
+        <div className="wrap">
+          <div className="head2">
+            <div><Tag>{t("p_tag")}</Tag><H3D text={t("p_h")} /><p>{t("p_p")}</p></div>
+            <span className="count num">{pad(list.length)} {t("pieces")}</span>
           </div>
-          <div className="tsearch">
-            <input type="search" placeholder={t("search")} aria-label={t("search")} value={q} onChange={(e) => { capture(); setQ(e.target.value); }} />
-            <select aria-label="sort" value={sort} onChange={(e) => { capture(); setSort(e.target.value); }}>{t("sort").map((s, i) => <option key={i} value={["pop", "lo", "hi", "off"][i]}>{s}</option>)}</select>
+          <div className="tabs-row">
+            <div className="tabs" role="tablist">
+              <button role="tab" aria-selected={c === "all"} className={c === "all" ? "on" : ""} onClick={() => pickCat("all")}>{t("all")}<sup className="num">{P.length}</sup></button>
+              {CAT_KEYS.map((k) => <button key={k} role="tab" aria-selected={c === k} className={c === k ? "on" : ""} onClick={() => pickCat(k)}><Icon name={CAT_ICON[k]} />{t("cats")[k]}<sup className="num">{counts[k]}</sup></button>)}
+            </div>
+            <label className="tsearch2"><Icon name="target" /><input type="search" placeholder={t("search")} aria-label={t("search")} value={q} onChange={(e) => setQ(e.target.value)} /></label>
           </div>
+          <div className="pgrid" id="shopGrid" ref={grid}>{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>
+          {!list.length && <p className="empty">{t("empty")}</p>}
         </div>
-        <div className="pgrid" id="shopGrid" ref={grid}>{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>
-        {!list.length && <p className="empty">{t("empty")}</p>}
       </section>
     </div>
   );

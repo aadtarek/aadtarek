@@ -21,25 +21,63 @@ export function MeshBG() {
   return <canvas id="bg" ref={cv} aria-hidden="true" />;
 }
 
-/* ---------- preloader: the logo's network unfolds into the globe ---------- */
+/* ---------- preloader: you arrive at a Techi smart door — code, fingerprint, unlock, the door opens into the site ---------- */
+const PRE = {
+  en: { lock: "LOCKED", ver: "VERIFYING", ok: "WELCOME HOME", hint: "Techi Smart Lock · Front door" },
+  ar: { lock: "مقفول", ver: "جاري التحقق", ok: "أهلاً بيك في البيت", hint: "قفل Techi الذكي · الباب الرئيسي" },
+};
 export function Preloader({ onReady }) {
-  const { bg } = useApp();
-  const el = useRef(null), num = useRef(null);
+  const { bg, lang } = useApp();
+  const c = PRE[lang] || PRE.en;
+  const el = useRef(null), num = useRef(null), stat = useRef(null);
   useEffect(() => {
-    const b = bg.current;
-    if (!b || reduceMotion()) { if (b) b.morph = 1; onReady(); el.current && el.current.remove(); return; }
-    b.morph = 0; b.dim = 0; b.g.position.set(0, 0, 0); b.g.scale.setScalar(innerWidth < 700 ? 0.7 : 0.9);
+    const b = bg.current; if (b) { b.morph = 1; b.dim = 0.55; }
+    const root = el.current;
+    if (reduceMotion()) { onReady(); root.style.display = "none"; return; }
+    const q = (s) => root.querySelectorAll(s);
     const o = { v: 0 };
-    const tl = gsap.timeline()
-      .to(b, { dim: 1, duration: 1, ease: "power2.out" })
-      .to(o, { v: 100, duration: 1.8, ease: "power2.inOut", onUpdate: () => { if (num.current) num.current.textContent = String(Math.round(o.v)).padStart(3, "0"); } }, 0)
-      .to(el.current.querySelector(".pre-in"), { opacity: 0, y: -20, duration: 0.5, ease: "power3.in" }, "+=.1")
-      .to(b, { morph: 1, duration: 2.2, ease: "power2.inOut" }, "-=.2")
-      .add(() => onReady(), "-=1.4")
-      .to(el.current, { opacity: 0, duration: 0.8, onComplete: () => el.current && (el.current.style.display = "none") }, "<");
+    const keys = [...q(".pl-keys i")], order = [4, 1, 8, 6, 3, 10];
+    const ring = root.querySelector(".pl-ring circle.p");
+    const tl = gsap.timeline({ defaults: { ease: "expo.out" } })
+      .from(q(".pl-logo, .pl-hint"), { opacity: 0, y: 16, duration: 1, stagger: 0.1 })
+      .from(root.querySelector(".pl-lock"), { opacity: 0, y: 40, scale: 0.92, duration: 1.2 }, 0.1)
+      .to(o, { v: 100, duration: 2.2, ease: "power2.inOut", onUpdate: () => {
+        if (num.current) num.current.textContent = String(Math.round(o.v)).padStart(3, "0");
+        ring && (ring.style.strokeDashoffset = String(302 * (1 - o.v / 100)));
+        const n = Math.min(order.length, Math.floor((o.v / 100) * (order.length + 0.6)));
+        keys.forEach((k, i) => k.classList.toggle("on", order.indexOf(i) > -1 && order.indexOf(i) < n));
+      } }, 0.5)
+      .add(() => { stat.current && (stat.current.textContent = c.ver); }, 0.7)
+      .add(() => { root.classList.add("ok"); stat.current && (stat.current.textContent = c.ok); }, 2.75)
+      .to(root.querySelector(".pl-lock"), { scale: 1.06, duration: 0.18, ease: "power2.out", yoyo: true, repeat: 1 }, 2.75)
+      .to(q(".pl-ui"), { opacity: 0, scale: 0.96, duration: 0.6, ease: "power3.in" }, 3.4)
+      .add(() => onReady(), 3.7)
+      .to(root.querySelector(".pl-glow"), { opacity: 1, scaleX: 1, duration: 0.9, ease: "power2.out" }, 3.75)
+      .to(root.querySelector(".pl-door.l"), { rotateY: -105, duration: 1.8, ease: "expo.inOut" }, 3.8)
+      .to(root.querySelector(".pl-door.r"), { rotateY: 105, duration: 1.8, ease: "expo.inOut" }, 3.8)
+      .to(root.querySelector(".pl-glow"), { opacity: 0, duration: 1 }, 4.6)
+      .add(() => { root.style.display = "none"; }, 5.6);
     return () => tl.kill();
   }, []); // eslint-disable-line
-  return <div className="pre" ref={el} aria-hidden="true"><div className="pre-in"><span className="pre-l">TECHI · ZIGBEE MESH</span><span className="pre-n num" ref={num}>000</span></div></div>;
+  return (
+    <div className="pre pl" ref={el} aria-hidden="true">
+      <div className="pl-door l"><i className="pl-handle" /></div>
+      <div className="pl-door r"><i className="pl-handle" /></div>
+      <div className="pl-glow" />
+      <div className="pl-ui">
+        <img className="pl-logo" src="/img/logo-full-white.png" alt="" />
+        <div className="pl-lock">
+          <span className="pl-led" />
+          <div className="pl-keys">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div>
+          <svg className="pl-ring" viewBox="0 0 110 110"><circle cx="55" cy="55" r="48" className="b" /><circle cx="55" cy="55" r="48" className="p" /></svg>
+          <svg className="pl-fp" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"><path d="M7 10.5a5 5 0 0 1 10 0v2.5" /><path d="M9.5 11a2.5 2.5 0 0 1 5 0v3c0 2-1 3.5-2.5 4.5" /><path d="M12 11v3.5c0 1.6-.8 3-2 4" /><path d="M4.5 9a8 8 0 0 1 15 0" /><path d="M17 15.5c-.2 1.8-1 3.4-2.2 4.6" /></svg>
+          <svg className="pl-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 12.5l4 4 8-9" /></svg>
+        </div>
+        <div className="pl-meta"><span className="pl-stat" ref={stat}>{c.lock}</span><span className="pl-n num" ref={num}>000</span></div>
+        <span className="pl-hint">{c.hint}</span>
+      </div>
+    </div>
+  );
 }
 
 export const Transition = () => <div className="tr" id="tr" aria-hidden="true"><i className="t1" /><i className="t2" /><b /></div>;
@@ -66,6 +104,7 @@ export function Header({ onMenu }) {
   const { pathname } = useLocation();
   const cap = useRef(null), pill = useRef(null);
   const [hide, setHide] = useState(false);
+  const [solid, setSolid] = useState(false);
   const [clock, setClock] = useState("");
   const rk = routeKey(pathname);
   useLayoutEffect(() => {
@@ -81,7 +120,13 @@ export function Header({ onMenu }) {
     return () => ro.disconnect();
   }, [rk, lang]);
   useEffect(() => {
-    let last = 0; const f = () => { const y = scrollY; setHide(y > last && y > 300); last = y; };
+    let last = scrollY, acc = 0;
+    const f = () => {
+      const y = scrollY, d = y - last; last = y;
+      acc = Math.sign(d) === Math.sign(acc) ? acc + d : d; // accumulate in one direction to avoid jitter
+      setSolid(y > 40);
+      if (y < 120) setHide(false); else if (acc > 14) setHide(true); else if (acc < -10) setHide(false);
+    };
     addEventListener("scroll", f, { passive: true });
     const tick = () => { try { setClock("CAIRO " + new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Cairo", hour: "2-digit", minute: "2-digit" }).format(new Date())); } catch (e) {} };
     tick(); const iv = setInterval(tick, 20000);
@@ -89,7 +134,7 @@ export function Header({ onMenu }) {
   }, []);
   const count = cart.reduce((a, i) => a + i.qty, 0);
   return (
-    <header className={"hdr" + (hide ? " hide" : "")}>
+    <header className={"hdr" + (hide ? " hide" : "") + (solid ? " solid" : "")}>
       <div className="wrap">
         <TLink to="/" aria-label="Techi"><img className="logo" src="/img/logo-full-navy.png" alt="Techi" /></TLink>
         <nav className="capsule" ref={cap} aria-label="Menu">

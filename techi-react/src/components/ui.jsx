@@ -4,9 +4,7 @@ import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "./Icons.jsx";
 import { D3MAP, byId, fmt, img, isFine, off, pad, reduceMotion, waLink } from "../lib/util.js";
 import { getHome } from "../lib/home3d.js";
-import { createTitle3D } from "../lib/devices3d.js";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import fontUrl from "three/examples/fonts/helvetiker_bold.typeface.json?url";
 
 /* link that plays the page transition */
 export function TLink({ to, children, onClick, ...rest }) {
@@ -47,9 +45,9 @@ export function ProductCard({ p }) {
   const [done, setDone] = useState(false);
   const o = off(p), alt = p.imgs.length > 1, inCart = cart.some((i) => i.id === p.id), out = p.inStock === false;
   return (
-    <article className={"pcard" + (alt ? " has-alt" : "")} data-id={p.id} data-cat={p.cat} data-tilt="9">
-      <TLink className="pc-media" to={"/product/" + p.id} data-cursor={t("view")} data-z="36">
-        {o > 0 && <span className="pc-off num" data-z="30">−{o}%</span>}<span className="pc-glare" />
+    <article className={"pcard" + (alt ? " has-alt" : "")} data-id={p.id} data-cat={p.cat}>
+      <TLink className="pc-media" to={"/product/" + p.id}>
+        {o > 0 && <span className="pc-off num">−{o}%</span>}
         <img className="main" src={img(p)} alt={f.nm(p)} loading="lazy" />
         {alt && <img className="alt" src={img(p, 1)} alt="" loading="lazy" />}
       </TLink>
@@ -57,7 +55,7 @@ export function ProductCard({ p }) {
         <span className="pc-cat"><Icon name={CAT_ICON[p.cat]} />{t("cats")[p.cat]}</span>
         <h3><TLink to={"/product/" + p.id}>{f.nm(p)}</TLink></h3>
         <span className="pc-var">{f.vr(p)}</span>
-        <div className="pc-foot" data-z="22">
+        <div className="pc-foot">
           <div className="pc-price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
           <button className={"pc-add" + (done ? " done" : "") + (inCart && !done ? " in" : "")} disabled={out} aria-label={t("add") + ": " + f.nm(p)}
             onClick={(e) => { addToCart(p.id, 1, e.currentTarget); setDone(true); setTimeout(() => setDone(false), 1400); }}>
@@ -96,8 +94,58 @@ export function BundleCard({ p, big, best }) {
     </article>
   );
 }
-export function BundleGrid({ list }) {
-  return <div className="bgrid">{list.map((p, i) => <BundleCard key={p.id} p={p} big={i === 0} best={i === 0} />)}</div>;
+export function BundleGrid({ list }) { return <BundleShowcase list={list} />; }
+
+const ITEM_IC = [[/lock|قفل/i, "shield"], [/panel|screen|show|شاش|بانل/i, "screen"], [/switch|مفتاح|سويتش/i, "switch"], [/sensor|حساس|motion|gas|غاز/i, "target"], [/echo|alexa|اليكسا|إيكو/i, "voice"], [/curtain|ستار/i, "stack"], [/valve|محبس|water|مياه/i, "bolt"], [/socket|بريز|فيشة/i, "bolt"], [/ir|remote|ريموت/i, "app"], [/install|تركيب/i, "install"], [/warranty|ضمان/i, "shield"]];
+const itemIcon = (n) => (ITEM_IC.find(([r]) => r.test(n)) || [0, "check"])[1];
+
+/* bundles: pick a bundle from the list, see everything inside it */
+export function BundleShowcase({ list }) {
+  const { t, f } = useApp();
+  const [i, setI] = useState(0);
+  const stage = useRef(null);
+  const p = list[i] || list[0];
+  const items = f.its(p) || [], pct = off(p), saved = p.reg - p.sale;
+  const count = items.reduce((a, [, q]) => a + (q || 0), 0);
+  useEffect(() => {
+    if (reduceMotion() || !stage.current) return;
+    const el = stage.current;
+    gsap.fromTo(el.querySelector(".bs-media img"), { opacity: 0, scale: 0.92, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.9, ease: "expo.out" });
+    gsap.fromTo(el.querySelectorAll(".bs-info>*"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out", stagger: 0.05 });
+    gsap.fromTo(el.querySelectorAll(".bs-chip"), { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.5, ease: "back.out(2)", stagger: 0.03, delay: 0.15 });
+    gsap.fromTo(el.querySelector(".bs-meter i"), { scaleX: 0 }, { scaleX: p.sale / p.reg, duration: 1.1, ease: "expo.out", delay: 0.2 });
+  }, [i]); // eslint-disable-line
+  return (
+    <div className="bshow">
+      <div className="bs-list" role="tablist">
+        {list.map((b, k) => (
+          <button key={b.id} role="tab" aria-selected={k === i} className={k === i ? "on" : ""} onClick={() => setI(k)} onMouseEnter={() => isFine() && setI(k)}>
+            <span className="bs-i num">{pad(k + 1)}</span>
+            <span className="bs-n"><b>{f.nm(b)}</b><small>{f.vr(b)}</small></span>
+            <span className="bs-p num"><Money n={b.sale} /></span>
+          </button>
+        ))}
+      </div>
+      <div className="bs-stage" ref={stage}>
+        <TLink className="bs-media" to={"/product/" + p.id}>
+          <img src={img(p)} alt={f.nm(p)} key={p.id} />
+          <span className="bs-badges">{i === 0 && <span className="bs-best">{t("b_best")}</span>}{pct > 0 && <span className="bs-off num">−{pct}%</span>}</span>
+        </TLink>
+        <div className="bs-info">
+          <span className="bs-var">{f.vr(p)}{count > 0 && <> · <b className="num">{count}</b> {t("pieces")}</>}</span>
+          <h3>{f.nm(p)}</h3>
+          <p>{f.pt(p)}</p>
+          <div className="bs-items">{items.map(([n, q], k) => <span className="bs-chip" key={k}><Icon name={itemIcon(n)} />{n}{q ? <b className="num">×{q}</b> : null}</span>)}</div>
+          <div className="bs-price">
+            <div><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
+            {saved > 0 && <span className="bs-saved">{t("save")} <b className="num"><Money n={saved} /></b></span>}
+            <span className="bs-meter"><i /></span>
+          </div>
+          <div className="bs-acts"><AddButton id={p.id} className="btn btn-white"><Icon name="plus" />{t("add_bundle")}</AddButton><TLink className="btn btn-line" to={"/product/" + p.id}>{t("details")}</TLink></div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function Suites({ list }) {
@@ -127,28 +175,15 @@ export function Suites({ list }) {
 
 export function Finale() {
   const { t } = useApp();
-  const host = useRef(null);
-  const [is3d, set3d] = useState(false);
-  useEffect(() => {
-    let title = null, st = null;
-    if (!reduceMotion()) {
-      title = createTitle3D(host.current, fontUrl);
-      if (title) {
-        set3d(true);
-        st = ScrollTrigger.create({ trigger: host.current, start: "top bottom", end: "top 45%", scrub: 0.8, onUpdate: (x) => (title.progress = x.progress) });
-      }
-    }
-    return () => { st && st.kill(); title && title.destroy(); };
-  }, []);
   return (
-    <section className="finale" id="finale">
+    <section className="finale fin2" id="finale">
       <div className="wrap">
-        <div className={"giant3d" + (is3d ? " on" : "")} ref={host} aria-hidden="true" />
-        {!is3d && <div className="giant">TECHI</div>}
-        <div className="row">
-          <Split text={t("fin_h")} />
-          <div className="addr"><Icon name="pin" /><div><b>{t("fin_addr")}</b><span>{t("fin_addr2")}</span></div></div>
-          <a className="btn btn-white" href={waLink(t("wa_hi"))} target="_blank" rel="noopener" data-magnetic=""><Icon name="wa" /><BT>{t("wa")}</BT></a>
+        <div className="fin-card">
+          <div className="fin-l"><span className="fin-k"><i className="led" />Value Mall · New Cairo</span><Split text={t("fin_h")} /></div>
+          <div className="fin-r">
+            <div className="addr"><Icon name="pin" /><div><b>{t("fin_addr")}</b><span>{t("fin_addr2")}</span></div></div>
+            <a className="btn btn-white" href={waLink(t("wa_hi"))} target="_blank" rel="noopener" data-magnetic=""><Icon name="wa" /><BT>{t("wa")}</BT></a>
+          </div>
         </div>
       </div>
     </section>
