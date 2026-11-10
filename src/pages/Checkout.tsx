@@ -6,7 +6,7 @@ import { isWoo, money } from '../api/wp'
 import { Field, TextInput } from '../components/Field'
 import { OfferBar } from '../components/OfferBar'
 import { PointsPanel } from '../components/PointsPanel'
-import { CONTACT, GOVERNORATES, LOYALTY, ORDER_MIN, SPEND_OFFER, shippingCost } from '../config'
+import { CONTACT, GOVERNORATES, LOYALTY, ORDER_MIN, shippingCost } from '../config'
 import { formatPrice } from '../lib/format'
 import { confetti, haptic } from '../lib/fx'
 import { useAccount } from '../store/account'
@@ -410,20 +410,12 @@ export function Checkout() {
               <dt className="text-muted">Subtotal</dt>
               <dd>{formatPrice(itemsTotal)}</dd>
             </div>
-            {discount > 0 && (
-              <div className="flex justify-between text-gold">
-                <dt>Bundle discount</dt>
-                <dd>−{formatPrice(discount)}</dd>
+            {cart.offerLines.map((l) => (
+              <div key={l.id} className="flex justify-between gap-3 font-medium text-gold">
+                <dt>{l.name}</dt>
+                <dd className="shrink-0">−{formatPrice(l.amount)}</dd>
               </div>
-            )}
-            {offerDiscount > 0 && (
-              <div className="flex justify-between font-medium text-gold">
-                <dt>
-                  {SPEND_OFFER.percent}% off over {formatPrice(SPEND_OFFER.min)}
-                </dt>
-                <dd>−{formatPrice(offerDiscount)}</dd>
-              </div>
-            )}
+            ))}
             {rewards.coupons.map((c) => (
               <div key={c.code} className="flex items-center justify-between gap-2 text-[#55662a]">
                 <dt className="flex items-center gap-1.5">

@@ -120,6 +120,21 @@ export const HERO_SLIDER = {
 }
 
 /**
+ * Cart offers running now (Products → Offers & discounts in WordPress): buy X get Y, any X for
+ * a price, quantity discounts, spend X save Y, free gifts, free shipping. Shown on the product
+ * page; WordPress works them out in the cart.
+ */
+export const OFFERS: { label: string; note: string; products: number[]; sizes: string[]; categories: string[] }[] = []
+
+/** The offers that cover a product (and the sizes they're limited to, if any). */
+export function offersFor(product: { id: number; categories: string[] }) {
+  const cats = product.categories.map((c) => c.toLowerCase())
+  return OFFERS.filter(
+    (o) => (o.products.length === 0 || o.products.includes(product.id)) && (o.categories.length === 0 || o.categories.some((c) => cats.includes(c.toLowerCase()))),
+  )
+}
+
+/**
  * Bundles: the more full bottles in the cart, the bigger the discount (samples don't count).
  * With WordPress: Settings → Rfaheya Store → Orders & offers → Bundle.
  */
@@ -265,6 +280,12 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (typeof l.welcome === 'boolean') LOYALTY.welcome = l.welcome
     if (Number(l.welcomePercent) >= 0) LOYALTY.welcomePercent = Number(l.welcomePercent)
   }
+  if (Array.isArray(settings.offers))
+    OFFERS.splice(
+      0,
+      OFFERS.length,
+      ...settings.offers.map((o) => ({ label: String(o.label ?? ''), note: String(o.note ?? ''), products: (o.products ?? []).map(Number), sizes: (o.sizes ?? []).map(String), categories: (o.categories ?? []).map(String) })),
+    )
   const hs = settings.heroSlider
   if (hs) {
     if (typeof hs.enabled === 'boolean') HERO_SLIDER.enabled = hs.enabled

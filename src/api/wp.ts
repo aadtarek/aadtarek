@@ -43,6 +43,7 @@ export interface StoreSettings {
     logoSize?: { desktop?: number; mobile?: number; footer?: number }
   }
   heroSlider?: { enabled?: boolean; interval?: number; intro?: boolean; slides?: Partial<import('../config').HeroSlide>[] }
+  offers?: { label: string; note?: string; products: number[]; sizes: string[]; categories: string[] }[]
   bundle?: { enabled?: boolean; title?: string; text?: string; tiers?: { count: number; percent: number }[] }
   shipping?: { freeShipping?: boolean; freeMin?: number; offer?: boolean; offerMin?: number; offerPercent?: number; orderMin?: number }
   loyalty?: Partial<{ enabled: boolean; earn: number; value: number; min: number; welcome: boolean; welcomePercent: number }>

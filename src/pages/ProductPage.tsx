@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronLeft, ChevronRight, Heart, Minus, Play, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Heart, Minus, Play, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck, Gift } from 'lucide-react'
 import { Deferred } from '../components/Deferred'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -26,7 +26,7 @@ import { addWithFlight } from '../lib/addToCart'
 import { haptic } from '../lib/fx'
 import { Stars } from '../components/Stars'
 import { VideoModal } from '../components/WearVideos'
-import { LOYALTY, pointsFor } from '../config'
+import { LOYALTY, pointsFor, offersFor } from '../config'
 import { dimensions } from '../data/standard'
 import { formatPrice } from '../lib/format'
 import { profileChips } from '../lib/profile'
@@ -159,6 +159,7 @@ function ProductDetails({ product }: { product: Product }) {
           )}
 
           {product.inspiredBy && <InspiredBy product={product} />}
+          <ProductOffers product={product} />
 
           <p className="mt-6 text-[11px] font-semibold tracking-[0.18em] text-muted uppercase">Size</p>
           <div
@@ -417,6 +418,26 @@ function Gallery({ product, videos, onVideo, wished, onWish }: { product: Produc
 }
 
 // ---------------------------------------------------------------- blocks
+
+/** The cart offers that cover this product (buy 1 get 1, any 3 for…, free gift…): worked out in the cart. */
+function ProductOffers({ product }: { product: Product }) {
+  const offers = offersFor(product)
+  if (!offers.length) return null
+  return (
+    <ul className="mt-4 space-y-2">
+      {offers.map((o, i) => (
+        <li key={i} className="flex items-start gap-3 rounded-[18px] border border-[#f0d9b0] bg-[#fdf6ea] px-4 py-3">
+          <Gift className="mt-0.5 size-[18px] shrink-0 text-[#b8741a]" strokeWidth={1.6} />
+          <span className="min-w-0 text-[13.5px] leading-snug">
+            <strong className="font-semibold text-[#7a4d0e]">{o.label}</strong>
+            {o.sizes.length > 0 && <span className="text-[#9a7a4a]"> · {o.sizes.join(', ')}</span>}
+            {o.note && <span className="mt-0.5 block text-[12.5px] text-ink-soft">{o.note}</span>}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
 
 /** The original this fragrance is inspired by: its picture with its name beside it. */
 function InspiredBy({ product }: { product: Product }) {
