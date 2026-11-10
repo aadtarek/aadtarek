@@ -153,7 +153,7 @@ export const BUNDLE = {
 
 /** A full bottle's size (e.g. "50 ML"): sizes above 10 ML; samples and non-bottle choices are not. */
 export const isBottleSize = (size: string) => {
-  const m = size.match(/(\d+(?:\.\d+)?)\s*ml/i)
+  const m = size.replace(/مل+ي?/g, 'ml').match(/(\d+(?:\.\d+)?)\s*ml/i)
   return !!m && parseFloat(m[1]) > 10
 }
 

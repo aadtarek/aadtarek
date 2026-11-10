@@ -3669,8 +3669,28 @@ function rfaheya_auth_page() {
 // ==================================================================== WooCommerce
 
 /** "a 30 ML" / "30-ml" / "30ml" -> "30ml" */
+/**
+ * A size as plain text: sizes saved by translated (WPML) products come URL-encoded
+ * (“100-%d9%85%d9%84”) and in Arabic (“50 مل”); both read as “100 ml”.
+ */
+function rfaheya_size_normal( $size ) {
+	$size = rawurldecode( (string) $size );
+	$size = str_replace( array( 'مللي', 'ملي', 'ملل', 'مل' ), 'ml', $size );
+	$size = strtr( $size, array( '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4', '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9' ) );
+	return trim( preg_replace( '/(\d)\s*-\s*(ml)\b/i', '$1 $2', $size ) );
+}
+
 function rfaheya_size_key( $size ) {
-	return strtolower( preg_replace( '/[\s_-]+/', '', (string) $size ) );
+	return strtolower( preg_replace( '/[\s_-]+/', '', rfaheya_size_normal( $size ) ) );
+}
+
+/** How a size is shown in the dashboard: “100 ML”. */
+function rfaheya_size_label( $size ) {
+	$size = rfaheya_size_normal( $size );
+	if ( preg_match( '/^(\d+(?:\.\d+)?)\s*ml$/i', $size, $m ) ) {
+		return $m[1] . ' ML';
+	}
+	return ucwords( str_replace( '-', ' ', $size ) );
 }
 
 /**
@@ -3721,7 +3741,7 @@ function rfaheya_bundle_discount( $cart ) {
 			continue; // a free gift from an offer
 		}
 		// A full bottle: a size in ML above 10 (5 / 10 ML samples, boxes and wraps are not).
-		if ( ! preg_match( '/(\d+(?:\.\d+)?)\s*-?\s*ml/i', rfaheya_cart_item_size( $item ), $m ) || (float) $m[1] <= 10 ) {
+		if ( ! preg_match( '/(\d+(?:\.\d+)?)\s*-?\s*ml/i', rfaheya_size_normal( rfaheya_cart_item_size( $item ) ), $m ) || (float) $m[1] <= 10 ) {
 			continue;
 		}
 		$bottles += (int) $item['quantity'];
@@ -6074,7 +6094,7 @@ function rfaheya_all_sizes() {
 	foreach ( array( 'pa_size', 'size' ) as $tax ) {
 		if ( taxonomy_exists( $tax ) ) {
 			foreach ( get_terms( array( 'taxonomy' => $tax, 'hide_empty' => false ) ) as $term ) {
-				$sizes[ rfaheya_size_key( $term->name ) ] = $term->name;
+				$sizes[ rfaheya_size_key( $term->name ) ] = rfaheya_size_label( $term->name );
 			}
 		}
 	}
@@ -6082,10 +6102,9 @@ function rfaheya_all_sizes() {
 	global $wpdb;
 	$values = $wpdb->get_col( "SELECT DISTINCT meta_value FROM {$wpdb->postmeta} WHERE meta_key IN ('attribute_size','attribute_pa_size') AND meta_value <> '' LIMIT 200" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	foreach ( $values as $v ) {
-		$name = ucwords( str_replace( '-', ' ', $v ) );
-		$name = preg_replace( '/\bml\b/i', 'ML', $name );
-		if ( ! isset( $sizes[ rfaheya_size_key( $name ) ] ) ) {
-			$sizes[ rfaheya_size_key( $name ) ] = $name;
+		$key = rfaheya_size_key( $v );
+		if ( '' !== $key && ! isset( $sizes[ $key ] ) ) {
+			$sizes[ $key ] = rfaheya_size_label( $v );
 		}
 	}
 	uasort( $sizes, fn( $a, $b ) => (float) $a <=> (float) $b ?: strcmp( $a, $b ) );
