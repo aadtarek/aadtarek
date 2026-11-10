@@ -85,9 +85,9 @@ export const seasonOptions: Option<Season>[] = [
 ]
 
 export const presenceOptions: Option<Presence>[] = [
-  { value: 'soft', label: 'Soft', description: 'Close to the skin — noticed only by those near you.', image: pic('more-moments') },
-  { value: 'balanced', label: 'Balanced', description: 'Noticeable but never overwhelming.', image: pic('more-preferences') },
-  { value: 'bold', label: 'Bold', description: 'A confident trail that fills the room.', image: pic('more-match') },
+  { value: 'soft', label: 'Soft', description: 'Close to the skin — noticed only by those near you.', image: pic('pres-soft') },
+  { value: 'balanced', label: 'Balanced', description: 'Noticeable but never overwhelming.', image: pic('pres-balanced') },
+  { value: 'bold', label: 'Bold', description: 'A confident trail that fills the room.', image: pic('pres-bold') },
 ]
 
 export const longevityOptions: (Option<Longevity> & { hours: string })[] = [
@@ -97,7 +97,7 @@ export const longevityOptions: (Option<Longevity> & { hours: string })[] = [
 ]
 
 /** The big photo beside each question (desktop). */
-export const panels = [pic('landing-hero'), pic('occ-date'), pic('style-oriental'), pic('note-rose'), pic('season-autumn'), pic('more-style'), pic('long-eternal')]
+export const panels = [pic('panel-for'), pic('panel-occasion'), pic('panel-style'), pic('panel-notes'), pic('panel-season'), pic('panel-presence'), pic('panel-longevity')]
 
 export const landing = {
   hero: pic('landing-hero'),

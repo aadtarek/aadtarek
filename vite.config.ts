@@ -115,7 +115,7 @@ const ROUTE_IMAGES: [string, [string, string?][]][] = [
   ['^/contact', [['src/assets/standard-page/why.webp']]],
   ['^/faqs', [['src/assets/about/value-1.webp']]],
   ['^/wishlist', [['src/assets/headers/wishlist.webp']]],
-  ['^/collections/?$', [['src/assets/standard/background-800.webp', '(max-width: 1023px)']]],
+  ['^/collections/?$', [['src/assets/collections/perfume-lab.webp', '(max-width: 1023px)']]],
   ['^/journal/?$', [['src/assets/headers/journal-1200.webp']]],
   ['^/track-order', [['src/assets/about/value-3.webp']]],
   ['^/account', [['src/assets/about/value-2.webp']]],

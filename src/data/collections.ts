@@ -1,10 +1,13 @@
 import type { Product } from '../types'
 import perfumeLab from '../assets/standard/background.webp'
-import perfumeLabCard from '../assets/standard/background-800.webp'
 import ledger from '../assets/finder/for-men.webp'
 import serenity from '../assets/finder/for-women.webp'
 import discovery from '../assets/finder/more-preferences.webp'
 import gifts from '../assets/finder/landing-cta.webp'
+
+// The cards on the Collections page (the name and line are part of the picture).
+const card = import.meta.glob<string>('../assets/collections/*.webp', { eager: true, import: 'default' })
+const cardOf = (slug: string) => ({ card: card[`../assets/collections/${slug}.webp`], cardMobile: card[`../assets/collections/${slug}-m.webp`] })
 
 export interface Collection {
   slug: string
@@ -13,8 +16,10 @@ export interface Collection {
   tagline: string
   description: string
   image: string
-  /** A lighter 800 × 500 copy for the cards (16:10), when the picture is large */
+  /** The card on the Collections page, 16:10 (the name and line are part of the picture) */
   card?: string
+  /** The same card for phones, 5:4 */
+  cardMobile?: string
   /** 'list' shows matching products; the others render an interactive builder. */
   kind: 'list' | 'discovery' | 'gift'
   includes?: (p: Product) => boolean
@@ -30,7 +35,7 @@ export const collections: Collection[] = [
     description:
       'Our inspired collection: familiar fragrances re-composed with quality materials and high concentration, each with its own Rfaheya signature.',
     image: perfumeLab,
-    card: perfumeLabCard,
+    ...cardOf('perfume-lab'),
     kind: 'list',
     includes: () => true,
   },
@@ -41,6 +46,7 @@ export const collections: Collection[] = [
     tagline: 'Confident. Refined. Yours.',
     description: 'Fragrances composed for men — from crisp office freshness to deep evening warmth. Unisex scents included.',
     image: ledger,
+    ...cardOf('ledger'),
     kind: 'list',
     includes: (p) => p.profile.gender !== 'women',
   },
@@ -51,6 +57,7 @@ export const collections: Collection[] = [
     tagline: 'Elegant. Soft. Captivating.',
     description: 'Fragrances composed for women — expressive florals and warm, addictive signatures. Unisex scents included.',
     image: serenity,
+    ...cardOf('serenity'),
     kind: 'list',
     includes: (p) => p.profile.gender !== 'men',
   },
@@ -61,6 +68,7 @@ export const collections: Collection[] = [
     tagline: 'Build your own set of 10 or 20 samples.',
     description: 'Choose the scents you’re curious about, live with them for a few days, then commit to your favorite full bottle.',
     image: discovery,
+    ...cardOf('discovery-sets'),
     kind: 'discovery',
   },
   {
@@ -70,6 +78,7 @@ export const collections: Collection[] = [
     tagline: 'A scent to remember you by.',
     description: 'Fill a box with any fragrances you like, each in its own size, add a personal message, and we’ll wrap it as a gift.',
     image: gifts,
+    ...cardOf('gift-boxes'),
     kind: 'gift',
   },
 ]
