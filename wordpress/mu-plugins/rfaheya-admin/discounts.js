@@ -25,7 +25,12 @@
       })
       box.appendChild(chip)
     })
-    box.hidden = ticked.length === 0
+    if (!ticked.length) {
+      var empty = document.createElement('span')
+      empty.className = 'rfd-picked-empty'
+      empty.textContent = 'No products chosen yet. Tick one below.'
+      box.appendChild(empty)
+    }
   }
   function wireProducts(block) {
     var search = block.querySelector('.rfd-search')

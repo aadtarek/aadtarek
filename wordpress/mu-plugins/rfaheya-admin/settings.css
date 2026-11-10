@@ -869,8 +869,32 @@
   border-radius: 10px;
   object-fit: cover;
 }
-.rfd-product input {
-  accent-color: var(--rfs-gold);
+.rfs .rfd-product input[type='checkbox'] {
+  flex: none;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 2px solid #cdbfa9;
+  border-radius: 6px;
+  background: #fff center / 14px no-repeat;
+  box-shadow: none;
+  transition: none;
+  cursor: pointer;
+}
+.rfs .rfd-product input[type='checkbox']::before {
+  content: none !important;
+  display: none !important;
+}
+.rfs .rfd-product input[type='checkbox']:checked {
+  border-color: var(--rfs-gold);
+  background-color: var(--rfs-gold);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8.5l3.2 3L13 4.5' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.rfs .rfd-product input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--rfs-gold);
+  outline-offset: 2px;
 }
 .rfd-product:has(input:checked) {
   background: #fbf1df;
@@ -1317,8 +1341,14 @@ details.rfs-collapsible.is-target {
 .rfd-picked {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
+  min-height: 32px;
   margin-bottom: 10px;
+}
+.rfd-picked-empty {
+  color: var(--rfs-muted);
+  font-size: 12.5px;
 }
 .rfd-pick {
   display: inline-flex;
