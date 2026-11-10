@@ -97,6 +97,7 @@ function rfaheya_fields() {
 			'enabled' => array( 'Show the bundle section on the home page and apply its discount', 'yes', 'yesno' ),
 			'title'   => array( 'Title', 'Build your bundle.', 'text' ),
 			'text'    => array( 'Text', 'Pick any fragrances in any size — the more you add, the more you save.', 'textarea' ),
+			'stack'   => array( 'Adds up with other discounts — off: when the order also fits an offer or “spend more, save more”, it gets only the biggest discount', 'no', 'yesno' ),
 			'tiers'   => array( 'Discount by number of bottles — one per line, “bottles = discount %”. Counts every full bottle in the cart (any fragrance, any size; 5–10 ML samples don’t count). The highest step reached applies.', "2 = 5\n3 = 10\n4 = 15\n5 = 20", 'textarea' ),
 		),
 		'loyalty'  => array(
@@ -106,6 +107,7 @@ function rfaheya_fields() {
 			'min'             => array( 'Fewest points a customer can use at once', '200', 'text' ),
 			'welcome_enabled' => array( 'Welcome discount: a discount on the first order (with an animated pop-up) for customers who sign in', 'yes', 'yesno' ),
 			'welcome_percent' => array( 'Welcome discount (%)', '5', 'text' ),
+			'welcome_stack'   => array( 'Welcome / first-order discount adds up with other discounts — off: the order gets either it or the other discount, whichever is bigger', 'yes', 'yesno' ),
 		),
 		'gift'     => array(
 			'enabled' => array( 'Charge gift packaging on gift boxes', 'yes', 'yesno' ),
@@ -120,6 +122,7 @@ function rfaheya_fields() {
 			'offer_enabled' => array( 'Spend more, save more: a discount plus free shipping (anywhere) from a higher amount, shown on the same bar', 'yes', 'yesno' ),
 			'offer_min'     => array( 'Discount + free shipping from (EGP)', '2500', 'text' ),
 			'offer_percent' => array( 'Discount (%)', '20', 'text' ),
+			'offer_stack'   => array( 'Spend more, save more adds up with other discounts — off: the order gets only the biggest discount', 'no', 'yesno' ),
 			'order_min'     => array( 'Minimum order (EGP) — the smallest basket that can be ordered; 0 for none', '300', 'text' ),
 		),
 	);
@@ -3737,8 +3740,8 @@ function rfaheya_bundle_discount( $cart ) {
 	$bottles = 0;
 	$amount  = 0.0;
 	foreach ( $cart->get_cart() as $item ) {
-		if ( ! empty( $item['rfaheya_gift'] ) ) {
-			continue; // a free gift from an offer
+		if ( ! empty( $item['rfaheya_gift'] ) || ( function_exists( 'rfaheya_on_sale_only' ) && rfaheya_on_sale_only( $item['data'] ?? null ) ) ) {
+			continue; // a free gift from an offer, or a bottle on a sale that takes no other discount
 		}
 		// A full bottle: a size in ML above 10 (5 / 10 ML samples, boxes and wraps are not).
 		if ( ! preg_match( '/(\d+(?:\.\d+)?)\s*-?\s*ml/i', rfaheya_size_normal( rfaheya_cart_item_size( $item ) ), $m ) || (float) $m[1] <= 10 ) {
@@ -3819,8 +3822,7 @@ add_filter(
 			$amount += isset( $line['line_subtotal'] ) ? (float) $line['line_subtotal'] : 0;
 		}
 		if ( function_exists( 'WC' ) && WC()->cart ) {
-			$best    = rfaheya_cart_best_discount( WC()->cart );
-			$amount -= $best ? $best[1] : 0;
+			$amount -= rfaheya_cart_discount_total( WC()->cart );
 		}
 		$free = array_filter(
 			$rates,
@@ -5704,10 +5706,29 @@ function rfaheya_cart_offers( $kinds = null ) {
 }
 
 /** Bottle by bottle, the cart lines an offer covers: array( array( 'price' => …, 'key' => … ) ). Free gifts never count. */
+/** Whether a product is on a sale (price offer) set not to take other discounts on top. */
+function rfaheya_on_sale_only( $product ) {
+	static $cache = array();
+	if ( ! $product instanceof WC_Product ) {
+		return false;
+	}
+	$id = $product->get_id();
+	if ( ! isset( $cache[ $id ] ) ) {
+		$cache[ $id ] = false;
+		foreach ( rfaheya_discount_rules() as $rule ) {
+			if ( empty( $rule['stack'] ) && in_array( $rule['kind'], array( 'percent', 'amount', 'fixed' ), true ) && rfaheya_rule_live( $rule ) && rfaheya_rule_covers( $rule, $product ) ) {
+				$cache[ $id ] = true;
+				break;
+			}
+		}
+	}
+	return $cache[ $id ];
+}
+
 function rfaheya_offer_units( $cart, $rule, $prefix = '' ) {
 	$units = array();
 	foreach ( $cart->get_cart() as $key => $item ) {
-		if ( ! empty( $item['rfaheya_gift'] ) || empty( $item['data'] ) || ! rfaheya_rule_covers( $rule, $item['data'], $prefix ) ) {
+		if ( ! empty( $item['rfaheya_gift'] ) || empty( $item['data'] ) || rfaheya_on_sale_only( $item['data'] ) || ! rfaheya_rule_covers( $rule, $item['data'], $prefix ) ) {
 			continue;
 		}
 		$qty   = max( 0, (int) $item['quantity'] );
@@ -5826,48 +5847,89 @@ function rfaheya_offer_label( $rule ) {
 }
 
 /*
- * Money-off discounts do not add up: the bundle discount, the spend-more offer and every cart offer
- * (buy X get Y, any X for a price, more bottles less each, spend X save Y) are worked out, and only
- * the biggest one goes on the order. Gifts, free shipping and product sale prices are not touched.
+ * How money-off discounts go together. Each one (the bundle discount, spend more save more, the
+ * first-order discount and every cart offer) either adds up with the others or not: the ones that
+ * add up are given together, one that doesn't is given alone, and the order gets whichever comes
+ * to more. Gifts, free shipping and sale prices have their own switch (see the offer page).
  */
 function rfaheya_cart_discount_choices( $cart ) {
+	$o       = rfaheya_options();
 	$choices = array();
 	$bundle  = rfaheya_bundle_discount( $cart );
 	if ( $bundle > 0 ) {
-		$choices[] = array( 'Bundle discount', $bundle );
+		$choices[] = array( 'Bundle discount', $bundle, 'yes' === ( $o['bundle']['stack'] ?? 'no' ) );
 	}
 	$spend = rfaheya_offer_discount( rfaheya_offer_base( $cart ) );
 	if ( $spend > 0 ) {
-		$o         = rfaheya_options()['shipping'];
-		$choices[] = array( sprintf( '%s%% off orders over %s EGP', rfaheya_number( $o['offer_percent'] ), number_format( (float) $o['offer_min'] ) ), $spend );
+		$choices[] = array( sprintf( '%s%% off orders over %s EGP', rfaheya_number( $o['shipping']['offer_percent'] ), number_format( (float) $o['shipping']['offer_min'] ) ), $spend, 'yes' === ( $o['shipping']['offer_stack'] ?? 'no' ) );
 	}
 	foreach ( rfaheya_cart_offers( array( 'bogo', 'set_price', 'qty_tiers', 'spend' ) ) as $rule ) {
 		$amount = rfaheya_offer_amount( $cart, $rule );
 		if ( $amount > 0 ) {
-			$choices[] = array( rfaheya_offer_label( $rule ), $amount );
+			$choices[] = array( rfaheya_offer_label( $rule ), $amount, ! empty( $rule['stack'] ) );
+		}
+	}
+	// The first-order discount competes only when it is set not to add up (otherwise it comes on top).
+	if ( ! rfaheya_welcome_stacks() && function_exists( 'rfaheya_guest_welcome_percent' ) ) {
+		$percent = rfaheya_guest_welcome_percent();
+		$off     = round( rfaheya_offer_base( $cart ) * $percent / 100 );
+		if ( $off > 0 ) {
+			$choices[] = array( sprintf( 'First order · %s%% off', rfaheya_number( $percent ) ), $off, false );
 		}
 	}
 	return $choices;
 }
 
-function rfaheya_cart_best_discount( $cart ) {
-	$best = null;
-	foreach ( rfaheya_cart_discount_choices( $cart ) as $choice ) {
-		if ( ! $best || $choice[1] > $best[1] ) {
-			$best = $choice;
+function rfaheya_welcome_stacks() {
+	return 'no' !== ( rfaheya_options()['loyalty']['welcome_stack'] ?? 'yes' );
+}
+
+/** The discounts the order actually gets: [ [ name, amount ], … ]. */
+function rfaheya_cart_applied_discounts( $cart ) {
+	$choices = rfaheya_cart_discount_choices( $cart );
+	$sets    = array();
+	$together = array_values( array_filter( $choices, fn( $c ) => $c[2] ) );
+	if ( $together ) {
+		$sets[] = $together;
+	}
+	foreach ( $choices as $c ) {
+		if ( ! $c[2] ) {
+			$sets[] = array( $c );
+		}
+	}
+	$best = array();
+	$most = 0;
+	foreach ( $sets as $set ) {
+		$sum = array_sum( array_column( $set, 1 ) );
+		if ( $sum > $most ) {
+			$most = $sum;
+			$best = $set;
 		}
 	}
 	return $best;
 }
 
+/** The money the order's discounts take off (kept for the free-shipping and minimum-order checks). */
+function rfaheya_cart_discount_total( $cart ) {
+	return array_sum( array_column( rfaheya_cart_applied_discounts( $cart ), 1 ) );
+}
+
 add_action(
 	'woocommerce_cart_calculate_fees',
 	function ( $cart ) {
-		$best                          = rfaheya_cart_best_discount( $cart );
-		$GLOBALS['rfaheya_cart_off'] = $best ? $best[1] : 0;
-		if ( $best ) {
-			$cart->add_fee( $best[0], -$best[1], false );
+		$names = array();
+		$total = 0;
+		foreach ( rfaheya_cart_applied_discounts( $cart ) as $d ) {
+			// Two discounts with the same name would merge: the second gets a number.
+			$name = $d[0];
+			for ( $n = 2; isset( $names[ $name ] ); $n++ ) {
+				$name = $d[0] . ' ' . $n;
+			}
+			$names[ $name ] = true;
+			$total         += $d[1];
+			$cart->add_fee( $name, -$d[1], false );
 		}
+		$GLOBALS['rfaheya_cart_off'] = $total;
 	},
 	10
 );
@@ -5895,7 +5957,7 @@ add_action(
 					$have = $key;
 				}
 			}
-			$ok = rfaheya_offer_qualifies( $cart, $rule );
+			$ok = rfaheya_offer_qualifies( $cart, $rule ) && ( ! empty( $rule['stack'] ) || ! rfaheya_cart_applied_discounts( $cart ) );
 			if ( $ok && ! $have ) {
 				$gift = wc_get_product( (int) $rule['gift'] );
 				if ( $gift && $gift->is_purchasable() && $gift->is_in_stock() ) {
@@ -5958,7 +6020,7 @@ add_filter(
 			return $rates;
 		}
 		foreach ( rfaheya_cart_offers( 'free_shipping' ) as $rule ) {
-			if ( ! rfaheya_offer_qualifies( WC()->cart, $rule ) ) {
+			if ( ! rfaheya_offer_qualifies( WC()->cart, $rule ) || ( empty( $rule['stack'] ) && rfaheya_cart_applied_discounts( WC()->cart ) ) ) {
 				continue;
 			}
 			foreach ( $rates as $rate ) {
@@ -6042,6 +6104,7 @@ function rfaheya_clean_offer( $r, $id = '' ) {
 		'name'           => sanitize_text_field( $r['name'] ?? '' ),
 		'note'           => sanitize_text_field( $r['note'] ?? '' ),
 		'enabled'        => ! empty( $r['enabled'] ),
+		'stack'          => ! empty( $r['stack'] ),
 		'kind'           => $kind,
 		'value'          => max( 0, (float) ( $r['value'] ?? 0 ) ),
 		'value_type'     => 'amount' === ( $r['value_type'] ?? '' ) ? 'amount' : 'percent',
@@ -6261,6 +6324,7 @@ function rfaheya_discount_card( $n, $rule, $products, $sizes, $cats, $gifts ) {
 			'name'      => '',
 			'note'      => '',
 			'enabled'   => true,
+			'stack'     => false,
 			'kind'      => 'percent',
 			'value'     => '',
 			'value_type' => 'percent',
@@ -6364,6 +6428,13 @@ function rfaheya_discount_card( $n, $rule, $products, $sizes, $cats, $gifts ) {
 					<input type="date" name="<?php echo $f( 'end' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $rule['end'] ); ?>" aria-label="Until">
 				</div>
 			</div>
+			<div class="rfs-field rfs-wide rfd-stack">
+				<label class="rfs-switch"><input type="checkbox" name="<?php echo $f( 'stack' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( ! empty( $rule['stack'] ) ); ?>><span class="rfs-track" aria-hidden="true"></span><span class="rfs-switch-text">
+					<strong data-kinds="bogo set_price qty_tiers spend">Adds up with other discounts</strong><small data-kinds="bogo set_price qty_tiers spend">On: given together with the other discounts that are on too. Off: when the order fits several, it gets only the biggest one.</small>
+					<strong data-kinds="percent amount fixed">Bottles on this sale also get other discounts</strong><small data-kinds="percent amount fixed">On: the bundle discount and cart offers apply on top of the sale price. Off: sale bottles get the sale price only.</small>
+					<strong data-kinds="gift free_shipping">Also given when the order gets a discount</strong><small data-kinds="gift free_shipping">On: given with any discount. Off: given only to orders with no other discount.</small>
+				</span></label>
+			</div>
 			<div class="rfs-field" data-kinds="bogo set_price qty_tiers spend gift free_shipping">
 				<span class="rfs-label">Line on the product page <small class="rfs-help">(optional, e.g. “Buy 1 get 1 free — this week only”)</small></span>
 				<input type="text" name="<?php echo $f( 'note' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $rule['note'] ); ?>">
@@ -6412,6 +6483,7 @@ function rfaheya_offer_summary( $rule ) {
 	$cats     = count( (array) ( $rule['categories'] ?? array() ) );
 	$parts[]  = $sizes ? implode( ', ', $sizes ) : 'every size';
 	$parts[]  = $products ? $products . ( 1 === $products ? ' product' : ' products' ) : ( $cats ? $cats . ( 1 === $cats ? ' category' : ' categories' ) : 'every product' );
+	$parts[] = ! empty( $rule['stack'] ) ? 'adds up with other discounts' : 'not with other discounts';
 	return implode( ' · ', $parts );
 }
 
@@ -6508,7 +6580,7 @@ function rfaheya_discounts_page() {
 			<div>
 				<p class="rfs-eyebrow">Rfaheya · Products</p>
 				<h1>Offers &amp; discounts</h1>
-				<p>All your offers in one place. Add one, edit it any time, switch it off and on, or copy it for next time. Discounts never add up: when an order fits several (offers, the bundle discount, spend more save more), it gets only the biggest one. Free gifts and free shipping still come on top.</p>
+				<p>All your offers in one place. Add one, edit it any time, switch it off and on, or copy it for next time. Each offer has an “adds up with other discounts” switch (the bundle, spend more save more and first-order discounts have theirs in Settings): the ones that add up are given together, the others alone, and the order gets whichever comes to more.</p>
 			</div>
 			<a class="rfs-btn" href="<?php echo esc_url( rfaheya_offers_url( array( 'view' => 'edit' ) ) ); ?>"><span class="dashicons dashicons-plus-alt2"></span> Add an offer</a>
 		</header>
@@ -6881,8 +6953,7 @@ add_action(
 		if ( $min <= 0 || ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
 			return;
 		}
-		$best   = rfaheya_cart_best_discount( WC()->cart );
-		$amount = rfaheya_offer_base( WC()->cart ) - ( $best ? $best[1] : 0 );
+		$amount = rfaheya_offer_base( WC()->cart ) - rfaheya_cart_discount_total( WC()->cart );
 		if ( $amount < $min ) {
 			wc_add_notice( sprintf( 'The minimum order is %s EGP. Add %s EGP more to order.', number_format( $min ), number_format( ceil( $min - $amount ) ) ), 'error' );
 		}
@@ -6924,7 +6995,7 @@ function rfaheya_guest_welcome_percent() {
 add_action(
 	'woocommerce_cart_calculate_fees',
 	function ( $cart ) {
-		$percent = rfaheya_guest_welcome_percent();
+		$percent = rfaheya_welcome_stacks() ? rfaheya_guest_welcome_percent() : 0;
 		if ( $percent <= 0 ) {
 			return;
 		}
