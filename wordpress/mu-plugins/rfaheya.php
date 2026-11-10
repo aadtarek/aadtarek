@@ -6021,61 +6021,146 @@ add_action(
 	}
 );
 
+/** One offer from the edit form, cleaned (its id kept, or a new one). */
+function rfaheya_clean_offer( $r, $id = '' ) {
+	$ids   = fn( $v ) => array_values( array_unique( array_filter( array_map( 'absint', (array) $v ) ) ) );
+	$texts = fn( $v ) => array_values( array_unique( array_filter( array_map( 'sanitize_text_field', (array) $v ) ) ) );
+	$date  = fn( $v ) => preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $v ) ? (string) $v : '';
+	$kind  = isset( rfaheya_offer_kinds()[ $r['kind'] ?? '' ] ) ? $r['kind'] : 'percent';
+	return array(
+		'id'             => preg_match( '/^[a-z0-9]{6,20}$/i', (string) $id ) ? $id : strtolower( wp_generate_password( 10, false ) ),
+		'name'           => sanitize_text_field( $r['name'] ?? '' ),
+		'note'           => sanitize_text_field( $r['note'] ?? '' ),
+		'enabled'        => ! empty( $r['enabled'] ),
+		'kind'           => $kind,
+		'value'          => max( 0, (float) ( $r['value'] ?? 0 ) ),
+		'value_type'     => 'amount' === ( $r['value_type'] ?? '' ) ? 'amount' : 'percent',
+		'buy'            => max( 0, (int) ( $r['buy'] ?? 0 ) ),
+		'get'            => max( 0, (int) ( $r['get'] ?? 0 ) ),
+		'get_off'        => min( 100, max( 0, (float) ( $r['get_off'] ?? 100 ) ) ),
+		'get_other'      => ! empty( $r['get_other'] ),
+		'limit'          => max( 0, (int) ( $r['limit'] ?? 0 ) ),
+		'tiers'          => sanitize_textarea_field( $r['tiers'] ?? '' ),
+		'min_spend'      => max( 0, (float) ( $r['min_spend'] ?? 0 ) ),
+		'min_qty'        => max( 0, (int) ( $r['min_qty'] ?? 0 ) ),
+		'gift'           => absint( $r['gift'] ?? 0 ),
+		'products'       => $ids( $r['products'] ?? array() ),
+		'sizes'          => $texts( $r['sizes'] ?? array() ),
+		'categories'     => $ids( $r['categories'] ?? array() ),
+		'get_products'   => $ids( $r['get_products'] ?? array() ),
+		'get_sizes'      => $texts( $r['get_sizes'] ?? array() ),
+		'get_categories' => $ids( $r['get_categories'] ?? array() ),
+		'start'          => $date( $r['start'] ?? '' ),
+		'end'            => $date( $r['end'] ?? '' ),
+	);
+}
+
+/** Saves the list of offers and refreshes everything that shows prices. */
+function rfaheya_store_offers( $rules ) {
+	// Older offers saved before they had an id get one now (edit / delete find them by it).
+	foreach ( $rules as $i => $rule ) {
+		if ( empty( $rule['id'] ) ) {
+			$rules[ $i ]['id'] = strtolower( wp_generate_password( 10, false ) );
+		}
+	}
+	update_option( RFAHEYA_DISCOUNTS, array_values( $rules ), false );
+	rfaheya_schedule_rule_refresh();
+	if ( function_exists( 'wc_delete_product_transients' ) ) {
+		wc_delete_product_transients();
+	}
+	delete_transient( 'rfaheya_bootstrap' );
+	rfaheya_purge_page_cache();
+}
+
+/** The offers, each with an id (older ones get theirs saved). */
+function rfaheya_offers_with_ids() {
+	$rules = rfaheya_discount_rules();
+	foreach ( $rules as $rule ) {
+		if ( empty( $rule['id'] ) ) {
+			rfaheya_store_offers( $rules );
+			return rfaheya_discount_rules();
+		}
+	}
+	return $rules;
+}
+
+function rfaheya_offers_url( $args = array() ) {
+	return add_query_arg( array_merge( array( 'post_type' => 'product', 'page' => 'rfaheya-discounts' ), $args ), admin_url( 'edit.php' ) );
+}
+
+// Save one offer (new or edited).
 add_action(
-	'admin_post_rfaheya_save_discounts',
+	'admin_post_rfaheya_save_offer',
 	function () {
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_die( 'Sorry, you are not allowed to change discounts.' );
+			wp_die( 'Sorry, you are not allowed to change offers.' );
 		}
-		check_admin_referer( 'rfaheya_save_discounts' );
-		$input = isset( $_POST['rules'] ) && is_array( $_POST['rules'] ) ? wp_unslash( $_POST['rules'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned below
-		$rules = array();
-		$ids   = fn( $v ) => array_values( array_unique( array_filter( array_map( 'absint', (array) $v ) ) ) );
-		$texts = fn( $v ) => array_values( array_unique( array_filter( array_map( 'sanitize_text_field', (array) $v ) ) ) );
-		foreach ( $input as $r ) {
-			if ( ! is_array( $r ) || ! empty( $r['delete'] ) ) {
-				continue;
+		check_admin_referer( 'rfaheya_save_offer' );
+		$input = isset( $_POST['offer'] ) && is_array( $_POST['offer'] ) ? wp_unslash( $_POST['offer'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned in rfaheya_clean_offer
+		$id    = isset( $_POST['offer_id'] ) ? sanitize_key( wp_unslash( $_POST['offer_id'] ) ) : '';
+		$offer = rfaheya_clean_offer( $input, $id );
+		$rules = rfaheya_offers_with_ids();
+		$found = false;
+		foreach ( $rules as $i => $rule ) {
+			if ( $rule['id'] === $offer['id'] ) {
+				$rules[ $i ] = $offer;
+				$found       = true;
 			}
-			$date    = fn( $v ) => preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) $v ) ? (string) $v : '';
-			$kind    = isset( rfaheya_offer_kinds()[ $r['kind'] ?? '' ] ) ? $r['kind'] : 'percent';
-			$rules[] = array(
-				'id'             => preg_match( '/^[a-z0-9]{6,20}$/i', (string) ( $r['id'] ?? '' ) ) ? $r['id'] : strtolower( wp_generate_password( 10, false ) ),
-				'name'           => sanitize_text_field( $r['name'] ?? '' ),
-				'note'           => sanitize_text_field( $r['note'] ?? '' ),
-				'enabled'        => ! empty( $r['enabled'] ),
-				'kind'           => $kind,
-				'value'          => max( 0, (float) ( $r['value'] ?? 0 ) ),
-				'value_type'     => 'amount' === ( $r['value_type'] ?? '' ) ? 'amount' : 'percent',
-				'buy'            => max( 0, (int) ( $r['buy'] ?? 0 ) ),
-				'get'            => max( 0, (int) ( $r['get'] ?? 0 ) ),
-				'get_off'        => min( 100, max( 0, (float) ( $r['get_off'] ?? 100 ) ) ),
-				'get_other'      => ! empty( $r['get_other'] ),
-				'limit'          => max( 0, (int) ( $r['limit'] ?? 0 ) ),
-				'tiers'          => sanitize_textarea_field( $r['tiers'] ?? '' ),
-				'min_spend'      => max( 0, (float) ( $r['min_spend'] ?? 0 ) ),
-				'min_qty'        => max( 0, (int) ( $r['min_qty'] ?? 0 ) ),
-				'gift'           => absint( $r['gift'] ?? 0 ),
-				'products'       => $ids( $r['products'] ?? array() ),
-				'sizes'          => $texts( $r['sizes'] ?? array() ),
-				'categories'     => $ids( $r['categories'] ?? array() ),
-				'get_products'   => $ids( $r['get_products'] ?? array() ),
-				'get_sizes'      => $texts( $r['get_sizes'] ?? array() ),
-				'get_categories' => $ids( $r['get_categories'] ?? array() ),
-				'start'          => $date( $r['start'] ?? '' ),
-				'end'            => $date( $r['end'] ?? '' ),
-			);
 		}
-		update_option( RFAHEYA_DISCOUNTS, $rules, false );
-		rfaheya_schedule_rule_refresh();
-		if ( function_exists( 'wc_delete_product_transients' ) ) {
-			wc_delete_product_transients();
+		if ( ! $found ) {
+			$rules[] = $offer;
 		}
-		delete_transient( 'rfaheya_bootstrap' );
-		rfaheya_purge_page_cache();
-		wp_safe_redirect( add_query_arg( array( 'post_type' => 'product', 'page' => 'rfaheya-discounts', 'saved' => '1' ), admin_url( 'edit.php' ) ) );
+		rfaheya_store_offers( $rules );
+		wp_safe_redirect( rfaheya_offers_url( array( 'saved' => $offer['id'] ) ) );
 		exit;
 	}
 );
+
+// Delete, switch on / off, or duplicate an offer from the list.
+add_action(
+	'admin_post_rfaheya_offer_action',
+	function () {
+		$id   = isset( $_GET['offer'] ) ? sanitize_key( wp_unslash( $_GET['offer'] ) ) : '';
+		$what = isset( $_GET['do'] ) ? sanitize_key( wp_unslash( $_GET['do'] ) ) : '';
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! $id ) {
+			wp_die( 'Sorry, you are not allowed to change offers.' );
+		}
+		check_admin_referer( 'rfaheya_offer_' . $what . '_' . $id );
+		$rules = rfaheya_offers_with_ids();
+		$out   = array();
+		$note  = '';
+		foreach ( $rules as $rule ) {
+			if ( $rule['id'] !== $id ) {
+				$out[] = $rule;
+				continue;
+			}
+			if ( 'delete' === $what ) {
+				$note = 'deleted';
+				continue;
+			}
+			if ( 'toggle' === $what ) {
+				$rule['enabled'] = empty( $rule['enabled'] );
+				$note            = $rule['enabled'] ? 'on' : 'off';
+			}
+			$out[] = $rule;
+			if ( 'duplicate' === $what ) {
+				$copy            = $rule;
+				$copy['id']      = strtolower( wp_generate_password( 10, false ) );
+				$copy['name']    = trim( ( $rule['name'] ? $rule['name'] : rfaheya_offer_label( $rule ) ) . ' (copy)' );
+				$copy['enabled'] = false;
+				$out[]           = $copy;
+				$note            = 'copied';
+			}
+		}
+		rfaheya_store_offers( $out );
+		wp_safe_redirect( rfaheya_offers_url( array( 'done' => $note ) ) );
+		exit;
+	}
+);
+
+function rfaheya_offer_action_url( $id, $what ) {
+	return wp_nonce_url( admin_url( 'admin-post.php?action=rfaheya_offer_action&do=' . $what . '&offer=' . rawurlencode( $id ) ), 'rfaheya_offer_' . $what . '_' . $id );
+}
 
 add_action(
 	'admin_enqueue_scripts',
@@ -6140,9 +6225,14 @@ function rfaheya_discount_scope( $n, $rule, $products, $sizes, $cats, $prefix, $
 		<div class="rfs-field rfs-wide">
 			<span class="rfs-label">Products <small class="rfs-help">(none ticked = every product)</small></span>
 			<div class="rfd-products">
+				<div class="rfd-picked" aria-live="polite"></div>
 				<div class="rfd-tools"><input type="search" class="rfd-search" placeholder="Search products…" aria-label="Search products"><button type="button" class="rfd-all">Tick all shown</button><button type="button" class="rfd-none">Clear</button><span class="rfd-count"></span></div>
 				<div class="rfd-list">
-					<?php foreach ( $products as $p ) : ?>
+					<?php
+					// The ticked ones first.
+					usort( $products, fn( $a, $b ) => (int) in_array( (int) $b->ID, $picked, true ) <=> (int) in_array( (int) $a->ID, $picked, true ) );
+					foreach ( $products as $p ) :
+						?>
 						<label class="rfd-product" data-name="<?php echo esc_attr( strtolower( get_the_title( $p ) ) ); ?>"><input type="checkbox" name="<?php echo esc_attr( $n . '[' . $prefix . 'products][]' ); ?>" value="<?php echo esc_attr( $p->ID ); ?>" <?php checked( in_array( (int) $p->ID, $picked, true ) ); ?>><?php echo get_the_post_thumbnail( $p->ID, array( 40, 40 ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><span><?php echo esc_html( get_the_title( $p ) ); ?></span></label>
 					<?php endforeach; ?>
 				</div>
@@ -6153,8 +6243,7 @@ function rfaheya_discount_scope( $n, $rule, $products, $sizes, $cats, $prefix, $
 }
 
 /** One offer's card (also the blank template for "Add an offer"). */
-function rfaheya_discount_card( $i, $rule, $products, $sizes, $cats, $gifts ) {
-	$n    = 'rules[' . $i . ']';
+function rfaheya_discount_card( $n, $rule, $products, $sizes, $cats, $gifts ) {
 	$rule = wp_parse_args(
 		$rule,
 		array(
@@ -6182,15 +6271,13 @@ function rfaheya_discount_card( $i, $rule, $products, $sizes, $cats, $gifts ) {
 	$kinds = rfaheya_offer_kinds();
 	$f     = fn( $key ) => esc_attr( $n . '[' . $key . ']' );
 	?>
-	<div class="rfs-card rfd-rule" data-index="<?php echo esc_attr( $i ); ?>" data-kind="<?php echo esc_attr( $rule['kind'] ); ?>">
-		<input type="hidden" name="<?php echo $f( 'id' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $rule['id'] ); ?>">
+	<div class="rfs-card rfd-rule" data-kind="<?php echo esc_attr( $rule['kind'] ); ?>">
 		<div class="rfd-head">
 			<input type="text" class="rfd-name" name="<?php echo $f( 'name' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="<?php echo esc_attr( $rule['name'] ); ?>" placeholder="Offer name, e.g. Buy 1 get 1 free on 100 ml (shown in the cart)" aria-label="Offer name">
 			<span class="rfd-state <?php echo $live ? 'is-live' : ''; ?>"><?php echo $live ? 'Running now' : ( empty( $rule['enabled'] ) ? 'Off' : 'Not running now' ); ?></span>
 			<label class="rfs-switch rfd-switch"><input type="checkbox" name="<?php echo $f( 'enabled' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="1" <?php checked( ! empty( $rule['enabled'] ) ); ?>><span class="rfs-track" aria-hidden="true"></span><span class="rfs-switch-text"><strong>On</strong></span></label>
-			<button type="button" class="rfd-delete" title="Delete this offer">Delete</button>
-			<input type="hidden" class="rfd-deleted" name="<?php echo $f( 'delete' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" value="">
 		</div>
+		<p class="rfd-step">1 · What kind of offer?</p>
 
 		<div class="rfd-kinds" role="radiogroup" aria-label="Kind of offer">
 			<?php foreach ( $kinds as $id => $k ) : ?>
@@ -6198,6 +6285,7 @@ function rfaheya_discount_card( $i, $rule, $products, $sizes, $cats, $gifts ) {
 			<?php endforeach; ?>
 		</div>
 
+		<p class="rfd-step">2 · The details</p>
 		<div class="rfs-grid rfd-grid">
 			<div class="rfs-field" data-kinds="percent amount fixed">
 				<span class="rfs-label" data-text-percent="Discount (%)" data-text-amount="EGP off each bottle" data-text-fixed="New price (EGP)">Discount</span>
@@ -6272,6 +6360,7 @@ function rfaheya_discount_card( $i, $rule, $products, $sizes, $cats, $gifts ) {
 			</div>
 		</div>
 
+		<p class="rfd-step">3 · On which bottles?</p>
 		<?php
 		rfaheya_discount_scope( $n, $rule, $products, $sizes, $cats, '', 'Which bottles' );
 		echo '<div class="rfd-get-scope" data-kinds="bogo">';
@@ -6282,64 +6371,176 @@ function rfaheya_discount_card( $i, $rule, $products, $sizes, $cats, $gifts ) {
 	<?php
 }
 
+/** One line describing an offer, e.g. “Buy 1 get 1 free · 100 ML · 3 products”. */
+function rfaheya_offer_summary( $rule ) {
+	$parts = array();
+	switch ( $rule['kind'] ) {
+		case 'percent':
+			$parts[] = rfaheya_number( $rule['value'] ) . '% off';
+			break;
+		case 'amount':
+			$parts[] = number_format( (float) $rule['value'] ) . ' EGP off each';
+			break;
+		case 'fixed':
+			$parts[] = 'Sells at ' . number_format( (float) $rule['value'] ) . ' EGP';
+			break;
+		case 'qty_tiers':
+			$parts[] = implode( ', ', array_map( fn( $t ) => $t[0] . ' = ' . rfaheya_number( $t[1] ) . '%', rfaheya_rule_tiers( $rule ) ) );
+			break;
+		case 'gift':
+			$gift    = wc_get_product( (int) ( $rule['gift'] ?? 0 ) );
+			$parts[] = 'Gift: ' . ( $gift ? $gift->get_name() : '—' ) . ( (float) ( $rule['min_spend'] ?? 0 ) > 0 ? ' from ' . number_format( (float) $rule['min_spend'] ) . ' EGP' : '' );
+			break;
+		case 'free_shipping':
+			$parts[] = 'Free shipping' . ( (float) ( $rule['min_spend'] ?? 0 ) > 0 ? ' from ' . number_format( (float) $rule['min_spend'] ) . ' EGP' : '' );
+			break;
+		default:
+			$parts[] = rfaheya_offer_label( array_merge( $rule, array( 'name' => '' ) ) );
+	}
+	$sizes    = array_map( 'rfaheya_size_label', (array) ( $rule['sizes'] ?? array() ) );
+	$products = count( (array) ( $rule['products'] ?? array() ) );
+	$cats     = count( (array) ( $rule['categories'] ?? array() ) );
+	$parts[]  = $sizes ? implode( ', ', $sizes ) : 'every size';
+	$parts[]  = $products ? $products . ( 1 === $products ? ' product' : ' products' ) : ( $cats ? $cats . ( 1 === $cats ? ' category' : ' categories' ) : 'every product' );
+	return implode( ' · ', $parts );
+}
+
+/** Off / Running / Starts on … / Ended on …: array( text, css class ). */
+function rfaheya_offer_status( $rule ) {
+	if ( empty( $rule['enabled'] ) ) {
+		return array( 'Off', 'is-off' );
+	}
+	$now = current_time( 'timestamp' ); // phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+	if ( ! empty( $rule['start'] ) && $now < strtotime( $rule['start'] . ' 00:00:00' ) ) {
+		return array( 'Starts ' . date_i18n( 'j M Y', strtotime( $rule['start'] ) ), 'is-soon' );
+	}
+	if ( ! empty( $rule['end'] ) && $now > strtotime( $rule['end'] . ' 23:59:59' ) ) {
+		return array( 'Ended ' . date_i18n( 'j M Y', strtotime( $rule['end'] ) ), 'is-ended' );
+	}
+	return rfaheya_rule_live( $rule ) ? array( 'Running', 'is-live' ) : array( 'Incomplete', 'is-ended' );
+}
+
 function rfaheya_discounts_page() {
 	if ( ! current_user_can( 'manage_woocommerce' ) ) {
 		return;
 	}
-	$products = rfaheya_one_language( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) );
-	$sizes    = rfaheya_all_sizes();
-	$cats     = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false ) );
-	$cats     = is_wp_error( $cats ) ? array() : array_values( array_filter( $cats, fn( $c ) => 'uncategorized' !== $c->slug ) );
-	// Gift choices: each product, or each of its sizes.
-	$gifts = array();
-	foreach ( $products as $p ) {
-		$product = wc_get_product( $p->ID );
-		if ( ! $product ) {
-			continue;
-		}
-		if ( $product->is_type( 'variable' ) ) {
-			foreach ( $product->get_children() as $vid ) {
-				$v = wc_get_product( $vid );
-				if ( $v ) {
-					$gifts[ $vid ] = get_the_title( $p ) . ' — ' . implode( ', ', array_filter( array_map( 'strval', $v->get_variation_attributes( false ) ) ) );
-				}
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- read-only screens
+	$view  = isset( $_GET['view'] ) ? sanitize_key( wp_unslash( $_GET['view'] ) ) : '';
+	$id    = isset( $_GET['offer'] ) ? sanitize_key( wp_unslash( $_GET['offer'] ) ) : '';
+	$saved = isset( $_GET['saved'] ) ? sanitize_key( wp_unslash( $_GET['saved'] ) ) : '';
+	$done  = isset( $_GET['done'] ) ? sanitize_key( wp_unslash( $_GET['done'] ) ) : '';
+	// phpcs:enable
+	$rules = rfaheya_offers_with_ids();
+	$kinds = rfaheya_offer_kinds();
+
+	if ( 'edit' === $view ) {
+		$rule = array();
+		foreach ( $rules as $r ) {
+			if ( $r['id'] === $id ) {
+				$rule = $r;
 			}
-		} else {
-			$gifts[ $p->ID ] = get_the_title( $p );
 		}
+		$products = rfaheya_one_language( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) );
+		$sizes    = rfaheya_all_sizes();
+		$cats     = get_terms( array( 'taxonomy' => 'product_cat', 'hide_empty' => false ) );
+		$cats     = is_wp_error( $cats ) ? array() : array_values( array_filter( $cats, fn( $c ) => 'uncategorized' !== $c->slug ) );
+		$gifts    = array();
+		foreach ( $products as $p ) {
+			$product = wc_get_product( $p->ID );
+			if ( ! $product ) {
+				continue;
+			}
+			if ( $product->is_type( 'variable' ) ) {
+				foreach ( $product->get_children() as $vid ) {
+					$v = wc_get_product( $vid );
+					if ( $v ) {
+						$gifts[ $vid ] = get_the_title( $p ) . ' — ' . implode( ', ', array_map( 'rfaheya_size_label', array_filter( array_map( 'strval', $v->get_variation_attributes( false ) ) ) ) );
+					}
+				}
+			} else {
+				$gifts[ $p->ID ] = get_the_title( $p );
+			}
+		}
+		?>
+		<div class="wrap rfs rfd">
+			<p class="rfd-back"><a href="<?php echo esc_url( rfaheya_offers_url() ); ?>">← All offers</a></p>
+			<header class="rfs-hero">
+				<div>
+					<p class="rfs-eyebrow">Rfaheya · Offers</p>
+					<h1><?php echo $rule ? esc_html( $rule['name'] ? $rule['name'] : rfaheya_offer_label( $rule ) ) : 'Add an offer'; ?></h1>
+					<p>Choose the kind of offer, fill in its details, then pick the bottles it's for. Save, and it's live on the store.</p>
+				</div>
+			</header>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rfs-form rfd-form">
+				<input type="hidden" name="action" value="rfaheya_save_offer">
+				<input type="hidden" name="offer_id" value="<?php echo esc_attr( $rule['id'] ?? '' ); ?>">
+				<?php wp_nonce_field( 'rfaheya_save_offer' ); ?>
+				<div class="rfd-rules"><?php rfaheya_discount_card( 'offer', $rule, $products, $sizes, $cats, $gifts ); ?></div>
+				<div class="rfs-savebar">
+					<a class="rfd-cancel" href="<?php echo esc_url( rfaheya_offers_url() ); ?>">Cancel</a>
+					<button type="submit" class="rfs-btn">Save offer</button>
+				</div>
+			</form>
+		</div>
+		<?php
+		return;
 	}
-	$rules = rfaheya_discount_rules();
-	$saved = isset( $_GET['saved'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+	$messages = array(
+		'deleted' => 'Offer deleted.',
+		'on'      => 'Offer switched on.',
+		'off'     => 'Offer switched off.',
+		'copied'  => 'Copy made — it is off until you switch it on.',
+	);
 	?>
 	<div class="wrap rfs rfd">
-		<header class="rfs-hero">
+		<header class="rfs-hero rfd-list-hero">
 			<div>
 				<p class="rfs-eyebrow">Rfaheya · Products</p>
 				<h1>Offers &amp; discounts</h1>
-				<p>Every kind of offer, on any products, sizes and categories, with optional dates: % or EGP off, a fixed price, buy X get Y, any X for a price, quantity discounts, spend X save Y, a free gift and free shipping. Price offers show on the store with the old price struck through (the bigger one wins when two fit); cart offers show as their own line in the cart and checkout, and add up.</p>
+				<p>All your offers in one place. Add one, edit it any time, switch it off and on, or copy it for next time.</p>
 			</div>
+			<a class="rfs-btn" href="<?php echo esc_url( rfaheya_offers_url( array( 'view' => 'edit' ) ) ); ?>"><span class="dashicons dashicons-plus-alt2"></span> Add an offer</a>
 		</header>
-		<?php if ( $saved ) : ?>
-			<div class="rfs-toast" role="status"><span class="dashicons dashicons-yes-alt"></span> Saved — the offers are live on the store.</div>
+		<?php if ( $saved || isset( $messages[ $done ] ) ) : ?>
+			<div class="rfs-toast" role="status"><span class="dashicons dashicons-yes-alt"></span> <?php echo esc_html( $saved ? 'Offer saved — it is live on the store.' : $messages[ $done ] ); ?></div>
 		<?php endif; ?>
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rfs-form rfd-form">
-			<input type="hidden" name="action" value="rfaheya_save_discounts">
-			<?php wp_nonce_field( 'rfaheya_save_discounts' ); ?>
-			<div class="rfd-rules">
-				<?php
-				foreach ( $rules as $i => $rule ) {
-					rfaheya_discount_card( $i, $rule, $products, $sizes, $cats, $gifts );
-				}
-				?>
+		<?php if ( ! $rules ) : ?>
+			<div class="rfs-card rfd-empty-state">
+				<h2>No offers yet</h2>
+				<p>Buy 1 get 1 free, any 3 for a price, % off a size, a free gift over an amount, free shipping… all from here.</p>
+				<a class="rfs-btn" href="<?php echo esc_url( rfaheya_offers_url( array( 'view' => 'edit' ) ) ); ?>">Add your first offer</a>
 			</div>
-			<p class="rfd-empty" <?php echo $rules ? 'hidden' : ''; ?>>No offers yet. Add your first one.</p>
-			<button type="button" class="rfs-btn rfs-btn-ghost rfd-add"><span class="dashicons dashicons-plus-alt2"></span> Add an offer</button>
-			<template id="rfd-template"><?php rfaheya_discount_card( '__i__', array(), $products, $sizes, $cats, $gifts ); ?></template>
-			<div class="rfs-savebar">
-				<span>Offers change on the store as soon as you save.</span>
-				<button type="submit" class="rfs-btn">Save offers</button>
+		<?php else : ?>
+			<div class="rfs-card rfd-table-card">
+				<table class="rfd-table">
+					<thead><tr><th>Offer</th><th>Kind</th><th>Dates</th><th>Status</th><th><span class="screen-reader-text">Actions</span></th></tr></thead>
+					<tbody>
+						<?php
+						foreach ( $rules as $rule ) :
+							list( $status, $class ) = rfaheya_offer_status( $rule );
+							$edit                   = rfaheya_offers_url( array( 'view' => 'edit', 'offer' => $rule['id'] ) );
+							?>
+							<tr class="<?php echo $saved === $rule['id'] ? 'is-just-saved' : ''; ?>">
+								<td>
+									<a class="rfd-title" href="<?php echo esc_url( $edit ); ?>"><?php echo esc_html( $rule['name'] ? $rule['name'] : rfaheya_offer_label( $rule ) ); ?></a>
+									<span class="rfd-sub"><?php echo esc_html( rfaheya_offer_summary( $rule ) ); ?></span>
+								</td>
+								<td><span class="rfd-kind-tag"><?php echo esc_html( $kinds[ $rule['kind'] ][0] ?? $rule['kind'] ); ?></span></td>
+								<td class="rfd-dates-cell"><?php echo esc_html( $rule['start'] || $rule['end'] ? ( $rule['start'] ? date_i18n( 'j M', strtotime( $rule['start'] ) ) : '…' ) . ' → ' . ( $rule['end'] ? date_i18n( 'j M Y', strtotime( $rule['end'] ) ) : '…' ) : 'Always' ); ?></td>
+								<td><a class="rfd-status <?php echo esc_attr( $class ); ?>" href="<?php echo esc_url( rfaheya_offer_action_url( $rule['id'], 'toggle' ) ); ?>" title="<?php echo empty( $rule['enabled'] ) ? 'Switch on' : 'Switch off'; ?>"><i></i><?php echo esc_html( $status ); ?></a></td>
+								<td class="rfd-actions">
+									<a href="<?php echo esc_url( $edit ); ?>">Edit</a>
+									<a href="<?php echo esc_url( rfaheya_offer_action_url( $rule['id'], 'duplicate' ) ); ?>">Copy</a>
+									<a class="rfd-del" href="<?php echo esc_url( rfaheya_offer_action_url( $rule['id'], 'delete' ) ); ?>" onclick="return confirm('Delete this offer?')">Delete</a>
+								</td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
 			</div>
-		</form>
+			<p class="rfd-foot">Price offers (% off, EGP off, fixed price) show on the store with the old price struck through — when two fit the same bottle, the bigger one wins. Cart offers show as their own line in the cart and checkout, and add up. Tap a status to switch an offer on or off.</p>
+		<?php endif; ?>
 	</div>
 	<?php
 }
