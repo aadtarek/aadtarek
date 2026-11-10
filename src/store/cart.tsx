@@ -385,18 +385,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<CartContextValue>(() => {
     const subtotal = backend.lines.reduce((n, l) => n + l.lineTotal, 0)
-    const discount = backend.discount ?? bundleDiscount(backend.lines.map((l) => ({ size: l.variation.size, price: l.variation.price, quantity: l.quantity })))
+    // Discounts don't add up: the demo cart keeps the bigger of the bundle and the spend-more offer.
+    const bundleOff = bundleDiscount(backend.lines.map((l) => ({ size: l.variation.size, price: l.variation.price, quantity: l.quantity })))
+    const spendOff = spendDiscount(subtotal)
+    const discount = backend.discount ?? (bundleOff >= spendOff ? bundleOff : 0)
+    const demoSpend = bundleOff >= spendOff ? 0 : spendOff
     return {
       lines: backend.lines,
       count: backend.lines.reduce((n, l) => n + l.quantity, 0),
       subtotal,
       discount,
-      offerDiscount: backend.offerDiscount ?? spendDiscount(subtotal - discount),
+      offerDiscount: backend.offerDiscount ?? demoSpend,
       offerLines:
         backend.offerLines ??
         [
           { id: 'bundle-discount', name: 'Bundle discount', amount: discount },
-          { id: 'spend', name: `${SPEND_OFFER.percent}% off over ${SPEND_OFFER.min.toLocaleString('en-US')} EGP`, amount: spendDiscount(subtotal - discount) },
+          { id: 'spend', name: `${SPEND_OFFER.percent}% off over ${SPEND_OFFER.min.toLocaleString('en-US')} EGP`, amount: demoSpend },
         ].filter((l) => l.amount > 0),
       add,
       addMany,

@@ -3756,13 +3756,13 @@ function rfaheya_bundle_discount( $cart ) {
 	return $percent > 0 ? round( $amount * $percent / 100 ) : 0;
 }
 
-/** The cart's merchandise before coupons, after the bundle discount (what the offers bar measures). */
+/** The cart's merchandise before coupons and discounts (what the offers bar measures; discounts don't add up). */
 function rfaheya_offer_base( $cart ) {
 	$amount = 0.0;
 	foreach ( $cart->get_cart() as $item ) {
 		$amount += isset( $item['line_subtotal'] ) ? (float) $item['line_subtotal'] : 0;
 	}
-	return max( 0, $amount - rfaheya_bundle_discount( $cart ) );
+	return max( 0, $amount );
 }
 
 /** Spend more, save more (Settings → Rfaheya Store): the discount for an amount, 0 below the minimum. */
@@ -3775,21 +3775,6 @@ function rfaheya_offer_discount( $amount ) {
 	}
 	return round( $amount * $percent / 100 );
 }
-
-add_action(
-	'woocommerce_cart_calculate_fees',
-	function ( $cart ) {
-		$discount = rfaheya_bundle_discount( $cart );
-		if ( $discount > 0 ) {
-			$cart->add_fee( 'Bundle discount', -$discount, false );
-		}
-		$offer = rfaheya_offer_discount( rfaheya_offer_base( $cart ) );
-		if ( $offer > 0 ) {
-			$o = rfaheya_options()['shipping'];
-			$cart->add_fee( sprintf( '%s%% off orders over %s EGP', rfaheya_number( $o['offer_percent'] ), number_format( (float) $o['offer_min'] ) ), -$offer, false );
-		}
-	}
-);
 
 function rfaheya_number( $n ) {
 	return rtrim( rtrim( number_format( (float) $n, 2, '.', '' ), '0' ), '.' );
@@ -3828,13 +3813,14 @@ add_filter(
 			return $rates;
 		}
 		$state  = isset( $package['destination']['state'] ) ? strtoupper( (string) $package['destination']['state'] ) : '';
-		// Before coupons (welcome / points discounts don't take free shipping away), after the bundle discount.
+		// Before coupons (welcome / points discounts don't take free shipping away), after the one discount the order gets.
 		$amount = 0.0;
 		foreach ( isset( $package['contents'] ) ? (array) $package['contents'] : array() as $line ) {
 			$amount += isset( $line['line_subtotal'] ) ? (float) $line['line_subtotal'] : 0;
 		}
 		if ( function_exists( 'WC' ) && WC()->cart ) {
-			$amount -= rfaheya_bundle_discount( WC()->cart );
+			$best    = rfaheya_cart_best_discount( WC()->cart );
+			$amount -= $best ? $best[1] : 0;
 		}
 		$free = array_filter(
 			$rates,
@@ -5839,27 +5825,51 @@ function rfaheya_offer_label( $rule ) {
 	return 'Offer';
 }
 
-// The cart offers as discount lines (after the bundle discount and the spend-more offer).
+/*
+ * Money-off discounts do not add up: the bundle discount, the spend-more offer and every cart offer
+ * (buy X get Y, any X for a price, more bottles less each, spend X save Y) are worked out, and only
+ * the biggest one goes on the order. Gifts, free shipping and product sale prices are not touched.
+ */
+function rfaheya_cart_discount_choices( $cart ) {
+	$choices = array();
+	$bundle  = rfaheya_bundle_discount( $cart );
+	if ( $bundle > 0 ) {
+		$choices[] = array( 'Bundle discount', $bundle );
+	}
+	$spend = rfaheya_offer_discount( rfaheya_offer_base( $cart ) );
+	if ( $spend > 0 ) {
+		$o         = rfaheya_options()['shipping'];
+		$choices[] = array( sprintf( '%s%% off orders over %s EGP', rfaheya_number( $o['offer_percent'] ), number_format( (float) $o['offer_min'] ) ), $spend );
+	}
+	foreach ( rfaheya_cart_offers( array( 'bogo', 'set_price', 'qty_tiers', 'spend' ) ) as $rule ) {
+		$amount = rfaheya_offer_amount( $cart, $rule );
+		if ( $amount > 0 ) {
+			$choices[] = array( rfaheya_offer_label( $rule ), $amount );
+		}
+	}
+	return $choices;
+}
+
+function rfaheya_cart_best_discount( $cart ) {
+	$best = null;
+	foreach ( rfaheya_cart_discount_choices( $cart ) as $choice ) {
+		if ( ! $best || $choice[1] > $best[1] ) {
+			$best = $choice;
+		}
+	}
+	return $best;
+}
+
 add_action(
 	'woocommerce_cart_calculate_fees',
 	function ( $cart ) {
-		$names = array();
-		foreach ( rfaheya_cart_offers( array( 'bogo', 'set_price', 'qty_tiers', 'spend' ) ) as $rule ) {
-			$amount = rfaheya_offer_amount( $cart, $rule );
-			if ( $amount <= 0 ) {
-				continue;
-			}
-			// Two offers with the same name would merge: the second gets a number.
-			$name = rfaheya_offer_label( $rule );
-			$base = $name;
-			for ( $n = 2; isset( $names[ $name ] ); $n++ ) {
-				$name = $base . ' ' . $n;
-			}
-			$names[ $name ] = true;
-			$cart->add_fee( $name, -$amount, false );
+		$best                          = rfaheya_cart_best_discount( $cart );
+		$GLOBALS['rfaheya_cart_off'] = $best ? $best[1] : 0;
+		if ( $best ) {
+			$cart->add_fee( $best[0], -$best[1], false );
 		}
 	},
-	20
+	10
 );
 
 // Free gifts: put in the cart when it qualifies (at 0), taken out when it no longer does.
@@ -6498,7 +6508,7 @@ function rfaheya_discounts_page() {
 			<div>
 				<p class="rfs-eyebrow">Rfaheya · Products</p>
 				<h1>Offers &amp; discounts</h1>
-				<p>All your offers in one place. Add one, edit it any time, switch it off and on, or copy it for next time.</p>
+				<p>All your offers in one place. Add one, edit it any time, switch it off and on, or copy it for next time. Discounts never add up: when an order fits several (offers, the bundle discount, spend more save more), it gets only the biggest one. Free gifts and free shipping still come on top.</p>
 			</div>
 			<a class="rfs-btn" href="<?php echo esc_url( rfaheya_offers_url( array( 'view' => 'edit' ) ) ); ?>"><span class="dashicons dashicons-plus-alt2"></span> Add an offer</a>
 		</header>
@@ -6871,7 +6881,8 @@ add_action(
 		if ( $min <= 0 || ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
 			return;
 		}
-		$amount = rfaheya_offer_base( WC()->cart );
+		$best   = rfaheya_cart_best_discount( WC()->cart );
+		$amount = rfaheya_offer_base( WC()->cart ) - ( $best ? $best[1] : 0 );
 		if ( $amount < $min ) {
 			wc_add_notice( sprintf( 'The minimum order is %s EGP. Add %s EGP more to order.', number_format( $min ), number_format( ceil( $min - $amount ) ) ), 'error' );
 		}
@@ -6917,7 +6928,7 @@ add_action(
 		if ( $percent <= 0 ) {
 			return;
 		}
-		$base = rfaheya_offer_base( $cart ) - rfaheya_offer_discount( rfaheya_offer_base( $cart ) );
+		$base = rfaheya_offer_base( $cart ) - (float) ( $GLOBALS['rfaheya_cart_off'] ?? 0 );
 		$off  = round( max( 0, $base ) * $percent / 100 );
 		if ( $off > 0 ) {
 			$cart->add_fee( sprintf( 'First order · %s%% off', rfaheya_number( $percent ) ), -$off, false );
