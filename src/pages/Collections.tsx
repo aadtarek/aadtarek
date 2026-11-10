@@ -24,36 +24,56 @@ export function CollectionsIndex() {
         </p>
       </PageHeader>
       <ul className="container-x mt-6 grid grid-cols-2 gap-2.5 lg:mt-8 lg:grid-cols-6 lg:gap-4">
-        {collections.map((c, i) => (
-          <li key={c.slug} className={i === 0 ? 'col-span-2 lg:col-span-3' : i === 1 ? 'lg:col-span-3' : 'lg:col-span-2'}>
-            <Link
-              to={`/collections/${c.slug}`}
-              aria-label={`${c.label} — ${c.tagline}`}
-              className="group relative block overflow-hidden rounded-[22px] bg-[#1c120b] lg:rounded-[28px]"
-            >
-              {c.card ? (
-                // The name and line are part of the picture: the phone card is 5:4, the wide one 16:10.
+        {collections.map((c, i) =>
+          c.card ? (
+            // A card picked in the dashboard: the name and line are part of the picture
+            // (the phone card is 5:4, the wide one 16:10).
+            <li key={c.slug} className={i === 0 ? 'col-span-2 lg:col-span-3' : i === 1 ? 'lg:col-span-3' : 'lg:col-span-2'}>
+              <Link
+                to={`/collections/${c.slug}`}
+                aria-label={`${c.label} — ${c.tagline}`}
+                className="group relative block overflow-hidden rounded-[22px] bg-[#1c120b] lg:rounded-[28px]"
+              >
                 <picture>
                   {c.cardMobile && i > 0 && <source media="(max-width: 1023px)" srcSet={c.cardMobile} />}
                   <img
                     src={c.card}
                     alt=""
-                    width={417}
-                    height={261}
                     loading={i === 0 ? undefined : 'lazy'}
                     decoding="async"
                     className={`w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 ${i === 0 || !c.cardMobile ? 'aspect-[16/10]' : 'aspect-[5/4] lg:aspect-[16/10]'}`}
                   />
                 </picture>
-              ) : (
-                <img src={c.image} alt="" loading="lazy" decoding="async" className="aspect-[16/10] w-full object-cover" />
-              )}
-              <span className="absolute right-2.5 bottom-2.5 grid size-[30px] place-items-center rounded-full bg-olive text-on-accent shadow-[0_8px_20px_-8px_rgba(0,0,0,0.5)] transition group-hover:translate-x-0.5 lg:right-3.5 lg:bottom-3.5 lg:size-[38px]">
-                <ArrowRight className="size-4" strokeWidth={1.6} />
-              </span>
-            </Link>
-          </li>
-        ))}
+                <span className="absolute right-2.5 bottom-2.5 grid size-[30px] place-items-center rounded-full bg-olive text-on-accent shadow-[0_8px_20px_-8px_rgba(0,0,0,0.5)] transition group-hover:translate-x-0.5 lg:right-3.5 lg:bottom-3.5 lg:size-[38px]">
+                  <ArrowRight className="size-4" strokeWidth={1.6} />
+                </span>
+              </Link>
+            </li>
+          ) : (
+            <li key={c.slug} className={i < 2 ? 'col-span-2 lg:col-span-3' : i === 2 ? 'col-span-2 lg:col-span-2' : 'lg:col-span-2'}>
+              <Link to={`/collections/${c.slug}`} className="group relative block overflow-hidden rounded-[22px] bg-[#1c120b] lg:rounded-[28px]">
+                <img
+                  src={c.smallCard ?? c.image}
+                  srcSet={c.smallCard ? `${c.smallCard} 800w, ${c.image} 1018w` : undefined}
+                  sizes="(min-width: 1024px) 50vw, 100vw"
+                  alt=""
+                  loading={i === 0 ? undefined : 'lazy'}
+                  decoding="async"
+                  className={`w-full object-cover transition-transform duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 ${i < 3 ? 'aspect-[16/10]' : 'aspect-[4/5] lg:aspect-[16/10]'}`}
+                />
+                <span className="absolute inset-x-2 bottom-2 flex items-center gap-2.5 rounded-2xl bg-white/85 py-2.5 pr-2 pl-3.5 text-[#14110d] backdrop-blur-xl lg:inset-x-3 lg:bottom-3 lg:rounded-[20px] lg:py-3 lg:pr-3 lg:pl-[18px]">
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-serif text-[20px] leading-none lg:text-[28px]">{c.name}</span>
+                    <span className={`mt-1 truncate text-[12px] text-[#7b6e5b] ${i < 3 ? 'block' : 'hidden lg:block'}`}>{c.tagline}</span>
+                  </span>
+                  <span className="grid size-[30px] shrink-0 place-items-center rounded-full bg-olive text-on-accent transition group-hover:translate-x-0.5 lg:size-[38px]">
+                    <ArrowRight className="size-4" strokeWidth={1.6} />
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ),
+        )}
       </ul>
     </div>
   )

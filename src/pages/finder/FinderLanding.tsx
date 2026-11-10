@@ -1,6 +1,7 @@
 import { ArrowRight, Clock, Sparkles, Target } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { landing, STEPS, TOTAL_STEPS } from '../../finder/data'
+import { SITE_IMAGES, siteImage } from '../../config'
 import heroSmall from '../../assets/finder/landing-hero-1024.webp'
 import forMen from '../../assets/finder/for-men.webp'
 import forWomen from '../../assets/finder/for-women.webp'
@@ -27,7 +28,7 @@ export function FinderLanding() {
       <section className="relative overflow-hidden rounded-[28px] bg-[#1c120b] lg:rounded-[36px]">
         <img
           src={landing.hero}
-          srcSet={`${heroSmall} 1024w, ${landing.hero} 2048w`}
+          srcSet={SITE_IMAGES.finder_hero ? undefined : `${heroSmall} 1024w, ${landing.hero} 2048w`}
           sizes="100vw"
           width={2048}
           height={1092}
@@ -71,9 +72,9 @@ export function FinderLanding() {
         </div>
         <ul className="mt-7 grid grid-cols-3 gap-2.5 lg:gap-4">
           {[
-            { label: 'Men', image: forMen },
-            { label: 'Women', image: forWomen },
-            { label: 'Unisex', image: forUnisex },
+            { label: 'Men', image: siteImage('for_men', forMen) },
+            { label: 'Women', image: siteImage('for_women', forWomen) },
+            { label: 'Unisex', image: siteImage('for_unisex', forUnisex) },
           ].map((c) => (
             <li key={c.label}>
               <Link to="/finder/quiz" className="group relative block aspect-[3/4] overflow-hidden rounded-[22px] bg-[#1c120b] sm:aspect-[4/3] lg:rounded-[28px]">

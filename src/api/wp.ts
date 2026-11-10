@@ -42,6 +42,8 @@ export interface StoreSettings {
     logoDark?: boolean
     logoSize?: { desktop?: number; mobile?: number; footer?: number }
   }
+  /** Site images chosen in Settings → Site images: key => URL */
+  images?: Record<string, string>
   heroSlider?: { enabled?: boolean; interval?: number; intro?: boolean; slides?: Partial<import('../config').HeroSlide>[] }
   offers?: { label: string; note?: string; products: number[]; sizes: string[]; categories: string[] }[]
   bundle?: { enabled?: boolean; title?: string; text?: string; tiers?: { count: number; percent: number }[] }

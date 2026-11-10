@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { SITE_IMAGES, siteImage } from '../config'
 import heroBg from '../assets/standard-page/hero.webp'
 import heroMobile from '../assets/standard-page/m-hero.webp'
 import whyBg from '../assets/standard-page/why.webp'
@@ -44,8 +45,8 @@ export function OurStandard() {
       {/* ---------- Hero ---------- */}
       <section aria-labelledby="standard-hero-title" className="relative overflow-hidden rounded-[28px] bg-[#1c120b] lg:rounded-[36px]">
         <picture>
-          <source media="(max-width: 767px)" srcSet={heroMobile} />
-          <img src={heroBg} alt="" fetchPriority="high" className="absolute inset-0 size-full object-cover object-[70%_center]" />
+          <source media="(max-width: 767px)" srcSet={siteImage('standard_hero_m', SITE_IMAGES.standard_hero ? siteImage('standard_hero', heroBg) : heroMobile)} />
+          <img src={siteImage('standard_hero', heroBg)} alt="" fetchPriority="high" className="absolute inset-0 size-full object-cover object-[70%_center]" />
         </picture>
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-[#140c07]/90 via-[#140c07]/35 to-transparent md:bg-gradient-to-r md:from-[#140c07]/85 md:via-[#140c07]/40" />
         <div className="relative flex min-h-[600px] flex-col justify-end px-6 pt-40 pb-8 md:min-h-[640px] md:justify-center md:px-14 md:py-16">

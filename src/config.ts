@@ -218,7 +218,15 @@ export function bundleDiscount(lines: { size: string; price: number; quantity: n
 }
 
 /** Applies the WordPress settings (called once before the app renders). */
+/** Pictures chosen in the dashboard (Settings → Site images), by key; empty keeps the built-in one. */
+export const SITE_IMAGES: Record<string, string> = {}
+/** A dashboard picture, or the built-in one. */
+export const siteImage = (key: string, fallback: string) => SITE_IMAGES[key] || fallback
+
 export function applyStoreSettings(settings: StoreSettings) {
+  if (settings.images && typeof settings.images === 'object') {
+    for (const [k, v] of Object.entries(settings.images)) if (typeof v === 'string' && v) SITE_IMAGES[k] = v
+  }
   const merge = <T extends Record<string, string>>(target: T, overrides?: Partial<Record<string, string>>) => {
     for (const key of Object.keys(target) as (keyof T)[]) {
       const value = overrides?.[key as string]

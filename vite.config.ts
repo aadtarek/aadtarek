@@ -108,14 +108,15 @@ function preloadFirstSlide(): Plugin {
  * Each page's largest picture (its header image), started from index.html while the
  * storefront's code is still downloading: [path pattern, [picture, media query?][]].
  */
-const ROUTE_IMAGES: [string, [string, string?][]][] = [
+const ROUTE_IMAGES: [string, [string, string?, string?][]][] = [
   ['^/about/?$', [['src/assets/about/hero-mobile.webp', '(max-width: 767px)'], ['src/assets/about/hero.webp', '(min-width: 768px)']]],
-  ['^/our-standard', [['src/assets/standard-page/m-hero.webp', '(max-width: 767px)'], ['src/assets/standard-page/hero.webp', '(min-width: 768px)']]],
+  // The third item: the dashboard picture (Settings → Site images) used instead, when one is chosen.
+  ['^/our-standard', [['src/assets/standard-page/m-hero.webp', '(max-width: 767px)', 'standard_hero_m'], ['src/assets/standard-page/hero.webp', '(min-width: 768px)', 'standard_hero']]],
   ['^/reviews', [['src/assets/reviews/vanilla-oud.webp']]],
   ['^/contact', [['src/assets/standard-page/why.webp']]],
   ['^/faqs', [['src/assets/about/value-1.webp']]],
   ['^/wishlist', [['src/assets/headers/wishlist.webp']]],
-  ['^/collections/?$', [['src/assets/collections/perfume-lab.webp', '(max-width: 1023px)']]],
+  ['^/collections/?$', [['src/assets/standard/background-800.webp', '(max-width: 1023px)', 'col_perfume_lab']]],
   ['^/journal/?$', [['src/assets/headers/journal-1200.webp']]],
   ['^/track-order', [['src/assets/about/value-3.webp']]],
   ['^/account', [['src/assets/about/value-2.webp']]],
@@ -143,13 +144,13 @@ function preloadRouteImages(): Plugin {
         const fonts = assets
           .filter((c) => /roboto-latin-wght-normal-[\w-]+\.woff2$/.test(c.fileName))
           .map((c) => ({ tag: 'link', injectTo: 'head' as const, attrs: { rel: 'preload', as: 'font', type: 'font/woff2', crossorigin: '', href: base + c.fileName } }))
-        const table = ROUTE_IMAGES.map(([re, list]) => [re, list.map(([src, media]) => [url(src), media ?? '']).filter(([u]) => u)])
+        const table = ROUTE_IMAGES.map(([re, list]) => [re, list.map(([src, media, key]) => [url(src), media ?? '', key ?? '']).filter(([u]) => u)])
         return [
           ...fonts,
           {
             tag: 'script',
             injectTo: 'head',
-            children: `(function(){var p=location.pathname,t=${JSON.stringify(table)};for(var i=0;i<t.length;i++)if(new RegExp(t[i][0]).test(p)){t[i][1].forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as='image';l.href=x[0];if(x[1])l.media=x[1];l.setAttribute('fetchpriority','high');document.head.appendChild(l)});break}})()`,
+            children: `(function(){var p=location.pathname,t=${JSON.stringify(table)},s=(window.__rfSettings||{}).images||{};for(var i=0;i<t.length;i++)if(new RegExp(t[i][0]).test(p)){t[i][1].forEach(function(x){var l=document.createElement('link');l.rel='preload';l.as='image';l.href=(x[2]&&s[x[2]])||x[0];if(x[1])l.media=x[1];l.setAttribute('fetchpriority','high');document.head.appendChild(l)});break}})()`,
           },
         ]
       },

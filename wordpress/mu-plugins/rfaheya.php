@@ -125,8 +125,146 @@ function rfaheya_fields() {
 			'offer_stack'   => array( 'Spend more, save more adds up with other discounts — off: the order gets only the biggest discount', 'no', 'yesno' ),
 			'order_min'     => array( 'Minimum order (EGP) — the smallest basket that can be ordered; 0 for none', '300', 'text' ),
 		),
+		'images'   => rfaheya_image_fields(),
 	);
 }
+
+/**
+ * Site images (Settings → Rfaheya Store → Site images): key => array( label, file name it is
+ * picked up from in the media library the first time, size sent to the storefront ).
+ * An empty field keeps the storefront's built-in picture.
+ */
+function rfaheya_site_images() {
+	$c = 'Collections page card';
+	return array(
+		'col_perfume_lab'      => array( "$c — Perfume Lab (computers, 834 × 522)", 'perfume-lab.webp', 'full' ),
+		'col_perfume_lab_m'    => array( "$c — Perfume Lab (phones, 436 × 348)", 'perfume-lab-Mobile.webp', 'full' ),
+		'col_ledger'           => array( "$c — Ledger (computers)", 'ledger.webp', 'full' ),
+		'col_ledger_m'         => array( "$c — Ledger (phones)", 'ledger-Mobile.webp', 'full' ),
+		'col_serenity'         => array( "$c — Serenity (computers)", 'serenity.webp', 'full' ),
+		'col_serenity_m'       => array( "$c — Serenity (phones)", 'serenityMobile.webp', 'full' ),
+		'col_discovery_sets'   => array( "$c — Discovery Sets (computers)", 'discovery-sets.webp', 'full' ),
+		'col_discovery_sets_m' => array( "$c — Discovery Sets (phones)", 'discovery-sets-Mobile.webp', 'full' ),
+		'col_gift_boxes'       => array( "$c — Gift Boxes (computers)", 'gift-boxes.webp', 'full' ),
+		'col_gift_boxes_m'     => array( "$c — Gift Boxes (phones)", 'gift-boxes.Mobile.webp', 'full' ),
+		'colhero_perfume_lab'    => array( 'Collection page banner — Perfume Lab (no text on it, 1600 × 700)', '', 'large' ),
+		'colhero_ledger'         => array( 'Collection page banner — Ledger', '', 'large' ),
+		'colhero_serenity'       => array( 'Collection page banner — Serenity', '', 'large' ),
+		'colhero_discovery_sets' => array( 'Collection page banner — Discovery Sets', '', 'large' ),
+		'colhero_gift_boxes'     => array( 'Collection page banner — Gift Boxes', '', 'large' ),
+		'standard_hero'        => array( 'Our Standard banner (computers, 1284 × 640)', 'Our-Standard.webp', 'full' ),
+		'standard_hero_m'      => array( 'Our Standard banner (phones, 358 × 600)', 'ﺑﺎﻧﺮ-Our-Standard-—-ﻣﻮﺑﺎﻳﻞ.webp', 'full' ),
+		'finder_hero'          => array( 'Finder start page — big picture (2048 × 1092)', '', 'large' ),
+		'finder_cta'           => array( 'Finder start page — picture by the button', '', 'medium_large' ),
+		'finder_card_style'    => array( 'Finder start page — card “Your style”', '', 'medium_large' ),
+		'finder_card_moments'  => array( 'Finder start page — card “Your moments”', '', 'medium_large' ),
+		'finder_card_prefs'    => array( 'Finder start page — card “Your preferences”', '', 'medium_large' ),
+		'finder_card_match'    => array( 'Finder start page — card “Your match”', '', 'medium_large' ),
+		'panel_for'            => array( 'Finder — big picture beside question 1 “For you” (1100 × 1880)', 'For-You.webp', 'large' ),
+		'panel_occasion'       => array( 'Finder — beside question 2 “Occasion”', 'Occasion.webp', 'large' ),
+		'panel_style'          => array( 'Finder — beside question 3 “Scent style”', 'Scent-Style.webp', 'large' ),
+		'panel_notes'          => array( 'Finder — beside question 4 “Notes”', 'Notes.webp', 'large' ),
+		'panel_season'         => array( 'Finder — beside question 5 “Season”', 'Season.webp', 'large' ),
+		'panel_presence'       => array( 'Finder — beside question 6 “Presence”', 'Presence.webp', 'large' ),
+		'panel_longevity'      => array( 'Finder — beside question 7 “Longevity”', 'Longevity-FINDER.webp', 'large' ),
+		'for_men'              => array( 'Finder — Men', 'MEN.webp', 'medium_large' ),
+		'for_women'            => array( 'Finder — Women', 'WOMEN.webp', 'medium_large' ),
+		'for_unisex'           => array( 'Finder — Unisex', 'UNISEX.webp', 'medium_large' ),
+		'occ_everyday'         => array( 'Finder — Everyday', 'EVERYDAY.webp', 'medium_large' ),
+		'occ_work'             => array( 'Finder — Work', 'WORK.webp', 'medium_large' ),
+		'occ_date'             => array( 'Finder — Date night', 'DATE-NIGHT.webp', 'medium_large' ),
+		'occ_special'          => array( 'Finder — Special occasions', 'Special-occasion.webp', 'medium_large' ),
+		'occ_club'             => array( 'Finder — Club vibe', 'CLUB-VIBE.webp', 'medium_large' ),
+		'style_fresh'          => array( 'Finder — Fresh & clean', 'fresh.webp', 'medium_large' ),
+		'style_oriental'       => array( 'Finder — Warm & oriental', 'warm.webp', 'medium_large' ),
+		'style_floral'         => array( 'Finder — Floral & expressive', 'floral-1.webp', 'medium_large' ),
+		'style_fruity'         => array( 'Finder — Fruity & juicy', 'Fruity-Juicy.webp', 'medium_large' ),
+		'style_sweet'          => array( 'Finder — Sweet & addictive', 'Sweet-Addictive.webp', 'medium_large' ),
+		'note_citrus'          => array( 'Finder note — Citrus', '', 'medium_large' ),
+		'note_aquatic'         => array( 'Finder note — Aquatic', '', 'medium_large' ),
+		'note_woods'           => array( 'Finder note — Woods', '', 'medium_large' ),
+		'note_floral'          => array( 'Finder note — Floral', '', 'medium_large' ),
+		'note_fruity'          => array( 'Finder note — Fruity', '', 'medium_large' ),
+		'note_musk'            => array( 'Finder note — Musk', '', 'medium_large' ),
+		'note_vanilla'         => array( 'Finder note — Vanilla', '', 'medium_large' ),
+		'note_caramel'         => array( 'Finder note — Caramel', '', 'medium_large' ),
+		'note_tonka'           => array( 'Finder note — Tonka', '', 'medium_large' ),
+		'note_oud'             => array( 'Finder note — Oud', '', 'medium_large' ),
+		'note_incense'         => array( 'Finder note — Incense', '', 'medium_large' ),
+		'note_leather'         => array( 'Finder note — Leather', '', 'medium_large' ),
+		'note_rose'            => array( 'Finder note — Rose', '', 'medium_large' ),
+		'note_jasmine'         => array( 'Finder note — Jasmine', '', 'medium_large' ),
+		'note_amber'           => array( 'Finder note — Amber', '', 'medium_large' ),
+		'season_spring'        => array( 'Finder — Spring', 'SPRING.webp', 'medium_large' ),
+		'season_summer'        => array( 'Finder — Summer', 'SUMMER.webp', 'medium_large' ),
+		'season_autumn'        => array( 'Finder — Autumn', 'Autumn.webp', 'medium_large' ),
+		'season_winter'        => array( 'Finder — Winter', 'Winter.webp', 'medium_large' ),
+		'season_all'           => array( 'Finder — All year', 'ALL-YEAR.webp', 'medium_large' ),
+		'pres_soft'            => array( 'Finder — Soft', 'soft.webp', 'medium_large' ),
+		'pres_balanced'        => array( 'Finder — Balanced', 'balanced.webp', 'medium_large' ),
+		'pres_bold'            => array( 'Finder — Bold', 'bold.webp', 'medium_large' ),
+		'long_standard'        => array( 'Finder — Moderate (up to 6 hours)', 'Moderate.webp', 'medium_large' ),
+		'long_extended'        => array( 'Finder — Extended (up to 8 hours)', 'Extended.webp', 'medium_large' ),
+		'long_eternal'         => array( 'Finder — Eternal (12+ hours)', 'Eternal.webp', 'medium_large' ),
+	);
+}
+
+function rfaheya_image_fields() {
+	$out = array();
+	foreach ( rfaheya_site_images() as $key => $img ) {
+		$out[ $key ] = array( $img[0], '', 'image' );
+	}
+	return $out;
+}
+
+/** The chosen site images for the storefront: key => URL (only the ones chosen). */
+function rfaheya_site_images_data() {
+	$o   = rfaheya_options()['images'];
+	$out = array();
+	foreach ( rfaheya_site_images() as $key => $img ) {
+		$id = (int) ( $o[ $key ] ?? 0 );
+		if ( $id ) {
+			// A smaller copy WordPress made (falls back to the original when there is none).
+			$url = wp_get_attachment_image_url( $id, $img[2] );
+			if ( $url ) {
+				$out[ $key ] = (string) $url;
+			}
+		}
+	}
+	return (object) $out;
+}
+
+/*
+ * The first time, the site images already in the media library are filled in by their file
+ * names (so nothing has to be picked by hand); after that the fields are yours.
+ */
+add_action(
+	'admin_init',
+	function () {
+		if ( get_option( 'rfaheya_images_seeded' ) || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		global $wpdb;
+		$saved = get_option( RFAHEYA_OPTION, array() );
+		$saved = is_array( $saved ) ? $saved : array();
+		$found = 0;
+		foreach ( rfaheya_site_images() as $key => $img ) {
+			if ( '' === $img[1] || ! empty( $saved['images'][ $key ] ) ) {
+				continue;
+			}
+			$like = '%/' . $wpdb->esc_like( $img[1] );
+			$id   = (int) $wpdb->get_var( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND ( meta_value LIKE %s OR meta_value = %s ) ORDER BY post_id DESC LIMIT 1", $like, $img[1] ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			if ( $id ) {
+				$saved['images'][ $key ] = (string) $id;
+				++$found;
+			}
+		}
+		if ( $found ) {
+			update_option( RFAHEYA_OPTION, $saved );
+			update_option( 'rfaheya_images_seeded', time(), false );
+		}
+	}
+);
 
 function rfaheya_group_title( $group ) {
 	$titles = array(
@@ -136,6 +274,7 @@ function rfaheya_group_title( $group ) {
 		'bundle'  => 'Bundle (home page bundle builder; the discount is applied in the cart)',
 		'slider'  => 'Home hero slider (up to four slides, each with your own image and text; they open like an accordion. A slide shows when it has an image or a title; with none filled in, three built-in slides show)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
+		'images'  => 'Site images (an empty field keeps the built-in picture; WordPress’s smaller copy is used, so pages stay fast)',
 		'shipping' => 'Free shipping & spend-more offer (the bar on the product page, cart and checkout; applied in the WooCommerce cart and shipping rates)',
 		'gift'     => 'Gift boxes (customers fill a box with any fragrances; a hidden “Gift box” product carries the packaging price)',
 		'loyalty'  => 'Loyalty points & welcome discount (points are added when an order is marked Completed; a customer’s points can be changed on their user profile)',
@@ -185,6 +324,7 @@ function rfaheya_settings_tabs() {
 		'offers'   => array( 'Orders & offers', 'dashicons-tag', 'Minimum order, free shipping, the spend-more offer and the bundle.', array( 'shipping', 'bundle' ) ),
 		'gifts'    => array( 'Gift boxes', 'dashicons-heart', 'Packaging prices for the gift boxes customers build.', array( 'gift' ) ),
 		'loyalty'  => array( 'Loyalty', 'dashicons-awards', 'Points and the first-order welcome discount.', array( 'loyalty' ) ),
+		'images'   => array( 'Site images', 'dashicons-format-gallery', 'The pictures on the Collections page, Our Standard and the Rfaheya Finder.', array( 'images' ) ),
 		'signin'   => array( 'Sign in', 'dashicons-admin-users', 'Google and Facebook sign-in buttons.', array( 'login' ) ),
 		'tools'    => array( 'Tools', 'dashicons-admin-tools', 'Starter content and store health.', array() ),
 	);
@@ -203,6 +343,27 @@ function rfaheya_settings_section( $group, $key ) {
 	}
 	if ( 'slider' === $group ) {
 		return preg_match( '/^slide_(\d)_/', $key, $m ) ? 'Slide ' . $m[1] : 'Hero slider';
+	}
+	if ( 'images' === $group ) {
+		$sections = array(
+			'col_'     => 'Collections page',
+			'colhero_' => 'Collection page banners',
+			'standard' => 'Our Standard',
+			'finder_'  => 'Finder start page',
+			'panel_'   => 'Finder — the big picture beside each question',
+			'for_'     => 'Finder — who it’s for',
+			'occ_'     => 'Finder — occasion',
+			'style_'   => 'Finder — scent style',
+			'note_'    => 'Finder — notes',
+			'season_'  => 'Finder — season',
+			'pres_'    => 'Finder — presence',
+			'long_'    => 'Finder — longevity',
+		);
+		foreach ( $sections as $prefix => $title ) {
+			if ( 0 === strpos( $key, $prefix ) ) {
+				return $title;
+			}
+		}
 	}
 	$titles = array(
 		'contact'  => 'Contact details',
@@ -1755,6 +1916,7 @@ function rfaheya_settings_data() {
 			'gift'         => rfaheya_gift_box_data(),
 			'offers'       => rfaheya_offers_data(),
 			'heroSlider'   => rfaheya_hero_slider_data( $o['slider'] ),
+			'images'       => rfaheya_site_images_data(),
 			'loyalty'      => rfaheya_loyalty(),
 			'shipping'     => array(
 				'freeShipping' => 'no' !== $o['shipping']['free_enabled'],
