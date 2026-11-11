@@ -5,7 +5,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-11 · v6.6 Lake Town in the dashboard');
+define('CHEOPS_BUILD', '2026-11-11 · v6.7 Lake Town office photos only');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);

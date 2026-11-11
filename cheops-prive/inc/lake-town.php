@@ -22,10 +22,11 @@ function cheops_lake_town_defaults() {
             ['label' => 'The MarQ Gardens', 'time' => '6 Min', 'image' => $maps . 'map-marq-gardens.svg'],
             ['label' => 'MV 1', 'time' => '5 Min', 'image' => $maps . 'map-mv1.svg'],
         ],
+        // Office interiors only, no people; clinic units use the same photos.
         'office_covers' => [$ref . '2025/12/LT-Bus-1-scaled.jpg', $ref . '2025/12/LT-Bus-2-scaled.jpg', $ref . '2025/12/LT-Bus-3-scaled.jpg', $ref . '2025/12/LTB4.jpg'],
-        'office_photos' => [$ref . '2025/11/LT--scaled.webp', $ref . '2025/12/LTB3.jpg', $ref . '2025/12/LTB4.jpg', $ref . '2025/12/LT-Bus-2-scaled.jpg', $ref . '2025/12/LT-Bus-3-scaled.jpg', $ref . '2025/11/LT46-scaled.jpg', $ref . '2025/11/LT44-scaled.jpg'],
-        'clinic_covers' => [$ref . '2025/11/LT-Med-Mu1-scaled.jpg', $ref . '2025/11/LTBM1.jpg', $ref . '2025/11/LT-Med-3.jpg', $ref . '2025/11/LT-Med-2.jpg'],
-        'clinic_photos' => [$ref . '2025/11/LT--scaled.webp', $ref . '2025/11/LTBM1.jpg', $ref . '2025/11/LTBM2.jpg', $ref . '2025/11/LTM3.jpg', $ref . '2025/11/LTM4.jpg', $ref . '2025/11/LT-Med-2.jpg', $ref . '2025/11/LT-Med-3.jpg', $ref . '2025/11/LT-Med-4.jpg', $ref . '2025/11/LT46-scaled.jpg', $ref . '2025/11/LT44-scaled.jpg'],
+        'office_photos' => [$ref . '2025/12/LTB3.jpg', $ref . '2025/12/LTB4.jpg', $ref . '2025/12/LT-Bus-1-scaled.jpg', $ref . '2025/12/LT-Bus-2-scaled.jpg', $ref . '2025/12/LT-Bus-3-scaled.jpg'],
+        'clinic_covers' => [$ref . '2025/12/LT-Bus-1-scaled.jpg', $ref . '2025/12/LT-Bus-2-scaled.jpg', $ref . '2025/12/LT-Bus-3-scaled.jpg', $ref . '2025/12/LTB4.jpg'],
+        'clinic_photos' => [$ref . '2025/12/LTB3.jpg', $ref . '2025/12/LTB4.jpg', $ref . '2025/12/LT-Bus-1-scaled.jpg', $ref . '2025/12/LT-Bus-2-scaled.jpg', $ref . '2025/12/LT-Bus-3-scaled.jpg'],
         'plans' => [
             ['label' => 'Lake Town Building A', 'units' => 'A-321 - A-325', 'image' => $own . '1.38.32-PM.png'],
             ['label' => 'Lake Town Building C', 'units' => 'C-301 - C-304', 'image' => $own . '1.38.46-PM.png'],
@@ -184,6 +185,20 @@ add_action('init', static function () {
     wp_schedule_single_event(time() + 60, 'cheops_lake_town_import_event');
 }, 40);
 
+/** One-time: take photos with people (and the mall, courtyard and sign shots) out of saved lists; clinics use the office photos. */
+add_action('init', static function () {
+    if (get_option('cheops_lake_town_offices_only')) return;
+    update_option('cheops_lake_town_offices_only', 1, true);
+    $saved = get_option('cheops_lake_town');
+    if (!is_array($saved)) return;
+    $keep = static function ($list) { return array_values(array_filter((array) $list, static function ($u) { return !preg_match('/(LT-+scaled|LT46|LT44|LTBM|LTM\d|LT-Med)/i', basename((string) $u)); })); };
+    foreach (['office_covers', 'office_photos'] as $k) if (isset($saved[$k])) $saved[$k] = $keep($saved[$k]);
+    if (isset($saved['office_covers'])) $saved['clinic_covers'] = $saved['office_covers'];
+    if (isset($saved['office_photos'])) $saved['clinic_photos'] = $saved['office_photos'];
+    update_option('cheops_lake_town', $saved, false);
+    if (function_exists('cheops_bump_content_version')) cheops_bump_content_version();
+}, 35);
+
 /** Lake Town units are by Lake View Development; filled in once where no developer is set. */
 add_action('init', static function () {
     if (get_option('cheops_lake_town_developer_v1')) return;
@@ -214,7 +229,7 @@ function cheops_lake_town_admin_page() {
     $lists = [
         'office_covers' => ['Office covers', 'Main photo of each office unit (they take turns by unit number) and on its card in listings.'],
         'office_photos' => ['Office photos', 'More photos shown on every office unit page.'],
-        'clinic_covers' => ['Clinic covers', 'Main photo of each clinic unit (building A).'],
+        'clinic_covers' => ['Clinic covers', 'Main photo of each clinic unit (building A). Office photos for now.'],
         'clinic_photos' => ['Clinic photos', 'More photos shown on every clinic unit page.'],
     ];
     ?>
