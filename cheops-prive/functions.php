@@ -5,7 +5,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-11 · v6.3 type pills');
+define('CHEOPS_BUILD', '2026-11-11 · v6.4 map locations');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);
@@ -2379,15 +2379,16 @@ function cheops_project_options_html() {
 
 function cheops_project_map_coords($title,$city='') {
     $key=sanitize_title($title);
+    // Checked against OpenStreetMap and Nawy listings (November 2026).
     $known=[
-        'mountain-view-lvls'=>[31.0750,28.5450],
-        'mountain-view-aliva-fields-park'=>[30.0305,31.6845],
-        'mountain-view-aliva-river-park'=>[30.0210,31.6700],
-        'mountain-view-1-1-the-park'=>[30.0120,31.6575],
-        'the-marq-gardens'=>[30.0400,31.5650],
-        'the-water-marq'=>[30.0290,31.6030],
-        'solana-east'=>[30.0260,31.5340],
-        'lake-town'=>[30.1435,31.6260],
+        'mountain-view-lvls'=>[31.0722,28.2358],               // Ras El Hekma, km 179
+        'mountain-view-aliva-fields-park'=>[30.0484,31.6737],
+        'mountain-view-aliva-river-park'=>[30.0474,31.6667],
+        'mountain-view-1-1-the-park'=>[30.0511,31.5032],       // next to Mountain View 1, North Investors
+        'the-marq-gardens'=>[30.0735,31.5887],
+        'the-water-marq'=>[30.0101,31.5102],
+        'solana-east'=>[29.9780,31.5376],
+        'lake-town'=>[30.0259,31.5402],                        // Lake Town Mall, Lake View Residence
     ];
     if(isset($known[$key])) return $known[$key];
     $base=[
