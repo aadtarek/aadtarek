@@ -7,32 +7,3 @@
 
 /* 2. Big photos open from a framed window to full size while scrolling. */
 .cm-open{will-change:clip-path}
-
-/* 3. Home services: full-screen panels that slide over one another. */
-#office-choices.cm-stack{overflow:clip!important}
-#office-choices.cm-stack .office-choice-grid{display:block!important}
-#office-choices.cm-stack .office-choice{opacity:1!important;transform:none!important;position:sticky!important;top:4vh;height:92vh!important;min-height:0!important;margin:0 0 6vh!important;padding:5vw!important;border-radius:30px!important;display:flex!important;flex-direction:column;justify-content:flex-end;transform-origin:50% 0;rotate:none!important}
-#office-choices.cm-stack .office-choice:last-child{margin-bottom:0!important}
-#office-choices.cm-stack .office-choice::after{content:"";position:absolute;inset:0;z-index:5;background:#000;opacity:var(--cm-dim,0);pointer-events:none;border-radius:inherit}
-#office-choices.cm-stack .office-choice h2{font-size:clamp(72px,9.4vw,156px)!important;line-height:.92!important;letter-spacing:-.035em}
-#office-choices.cm-stack .office-choice p{font-size:clamp(17px,1.35vw,22px)!important;max-width:620px}
-#office-choices.cm-stack .office-choice .eyebrow{font-size:12px!important;letter-spacing:.3em}
-#office-choices.cm-stack .office-choice .cm-glare{display:none}
-#office-choices.cm-stack .office-choice::before{scale:var(--cm-zoom,1.08)}
-
-/* 4. Home destinations: a large typographic list; the photo follows the pointer. */
-#projects.cm-list .cheops-city-links{display:none!important}
-.cm-dest{margin-top:42px;border-bottom:1px solid rgba(20,19,17,.14)}
-.cm-dest a{display:flex;align-items:baseline;justify-content:space-between;gap:24px;padding:clamp(18px,2vw,30px) 0;border-top:1px solid rgba(20,19,17,.14);color:#141311;text-decoration:none;transition:opacity .5s ease}
-.cm-dest strong{font-family:"Romie",Georgia,serif;font-weight:400;font-size:clamp(56px,6.6vw,112px);line-height:1;letter-spacing:-.03em;text-transform:capitalize;transition:translate .8s cubic-bezier(.16,1,.3,1),color .5s ease}
-.cm-dest small{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#7c7368;white-space:nowrap}
-.cm-dest:hover a{opacity:.25}
-.cm-dest a:hover,.cm-dest a:focus-visible{opacity:1}
-.cm-dest a:hover strong,.cm-dest a:focus-visible strong{translate:2.4vw 0;color:#a8854b}
-html[dir="rtl"] .cm-dest a:hover strong,html[dir="rtl"] .cm-dest a:focus-visible strong{translate:-2.4vw 0}
-html[dir="rtl"] .cm-dest strong{letter-spacing:0}
-.cm-float{position:fixed;left:0;top:0;width:330px;height:420px;border-radius:18px;overflow:hidden;pointer-events:none;z-index:60;opacity:0;transition:opacity .45s ease}
-.cm-float.cm-on{opacity:1}
-.cm-float i{position:absolute;inset:0;background-size:cover;background-position:center;clip-path:inset(100% 0 0 0);scale:1.25;transition:clip-path .9s cubic-bezier(.77,0,.18,1),scale 1.4s cubic-bezier(.16,1,.3,1)}
-.cm-float i.cm-on{clip-path:inset(0 0 0 0);scale:1}
-.cm-float b{position:absolute;left:18px;bottom:16px;z-index:3;color:#fff;font:500 11px/1 "Neue Montreal",sans-serif;letter-spacing:.28em}
