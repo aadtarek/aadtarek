@@ -21,3 +21,25 @@
 .sp-developer-card img{width:150px;height:150px;object-fit:contain;background:#fff;border-radius:14px;padding:10px;mix-blend-mode:multiply}
 .sp-developer-card h3{font-family:"Romie",Georgia,serif;font-weight:400;font-size:26px;margin:4px 0 10px}
 @media(max-width:640px){.sp-developer-card{grid-template-columns:1fr;gap:16px;padding:20px}.sp-developer-card img{width:110px;height:110px}.sp-brand img{height:42px}.sp-gallery.is-single{grid-template-rows:330px!important}}
+.sp-brand a{color:inherit;text-decoration:none}
+.sp-brand img.sp-brand-project{height:34px;max-width:170px;mix-blend-mode:normal}
+.sp-breadcrumbs a{color:inherit}
+.sp-mini-row a{color:inherit;text-decoration:underline;text-decoration-color:rgba(0,0,0,.2);text-underline-offset:3px}
+.sp-all-units,.sp-map-link{display:inline-flex;margin-top:16px;font:600 11px/1 "Neue Montreal",Arial,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--gold);padding-bottom:6px}
+/* Lake Town: location map with a tab per destination. */
+.sp-lt-map-media{border:1px solid var(--line);border-radius:22px;background:#fff;padding:clamp(10px,2vw,26px);overflow:hidden}
+.sp-lt-map-media img{display:block;width:100%;height:auto}
+.sp-lt-map-media img[hidden]{display:none}
+.sp-lt-map-tabs{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.sp-lt-map-tabs button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 18px;border:1px solid var(--line);border-radius:16px;background:var(--soft);color:var(--ink);cursor:pointer;font:inherit;transition:background-color .3s ease,color .3s ease}
+.sp-lt-map-tabs button strong{font-weight:400;font-size:15px}
+.sp-lt-map-tabs button span{font:600 10px/1 "Neue Montreal",Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.sp-lt-map-tabs button[aria-selected="true"]{background:#141311;color:#fff;border-color:#141311}
+.sp-lt-map-note{margin:12px 0 0;color:var(--muted);font-size:13px}
+/* Project pin on a live map. */
+#spPinMap{height:380px;border-radius:22px;overflow:hidden;border:1px solid var(--line);z-index:0}
+@media(max-width:640px){#spPinMap{height:300px}.sp-lt-map-tabs button{flex:1 1 45%}}
+.sp-brand img.sp-brand-project{filter:brightness(0)}
+/* A long, thin building plan scrolls sideways at a readable height. */
+.sp-plan-full.is-strip>a{overflow-x:auto}
+.sp-plan-full.is-strip img{height:clamp(150px,22vw,230px);width:auto;max-width:none;max-height:none}

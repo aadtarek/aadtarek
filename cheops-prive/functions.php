@@ -5,7 +5,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-11 · v6.4 map locations');
+define('CHEOPS_BUILD', '2026-11-11 · v6.5 Lake Town units, logo intro');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);
@@ -1296,15 +1296,7 @@ function cheops_render_unit_card($post_id) {
     $deal_label = cheops_listing_types()[$deal] ?? 'For Sale';
     $status = cheops_unit_status($post_id);
     if ($status === 'leased' && stripos((string) $label, 'leased') !== false) $label = '';
-    $img = get_the_post_thumbnail_url($post_id,'large');
-    if(!$img){
-        $ids=array_filter(array_map('absint',explode(',',(string)get_post_meta($post_id,'_cheops_gallery_ids',true))));
-        if($ids) $img=wp_get_attachment_image_url(reset($ids),'large');
-    }
-    if(!$img && function_exists('cheops_portfolio_asset_url')){
-        $asset=get_post_meta($post_id,'_cheops_portfolio_cover',true);
-        if($asset) $img=cheops_portfolio_asset_url($asset);
-    }
+    $img = cheops_unit_cover_url($post_id);
     echo '<article class="pcard reveal cheops-unit-card" data-beds="'.esc_attr($beds).'" data-loc="'.esc_attr($loc).'" data-price="'.esc_attr((int)$price).'" data-type="'.esc_attr($type).'" data-deal="'.esc_attr($deal).'" data-status="'.esc_attr($status).'" data-project="'.esc_attr($project).'">';
     echo '<a href="'.esc_url($url).'" class="zoom cheops-card-media" data-cursor="View property" style="position:relative;aspect-ratio:4/3;display:block;overflow:hidden;background:#ded9d1">';
     if($img) echo '<img alt="'.esc_attr($title).'" loading="lazy" decoding="async" src="'.esc_url(cheops_img_variant($img,800)).'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">';
@@ -1508,7 +1500,7 @@ function cheops_render_project_row($pid,$city,$n=1) {
     $price=get_post_meta($pid,'_cheops_project_start_price',true);
     $units=get_post_meta($pid,'_cheops_project_units',true);
     $link=get_post_meta($pid,'_cheops_project_link',true);
-    if(!$link) $link=home_url('/properties/?loc='.rawurlencode($city->name));
+    if(!$link) $link=add_query_arg('project',rawurlencode(get_post_field('post_title',$pid)),home_url('/properties/'));
     $desc=get_the_excerpt($pid);
     if(!$desc) $desc=wp_trim_words(wp_strip_all_tags(get_post_field('post_content',$pid)),32);
     $reverse=($n%2===0);
@@ -2365,6 +2357,7 @@ add_action('admin_post_cheops_import_lake_town_units', 'cheops_import_lake_town_
 require_once get_template_directory() . '/inc/portfolio-aug26-import.php';
 require_once get_template_directory() . '/inc/service-pages.php';
 require_once get_template_directory() . '/inc/articles.php';
+require_once get_template_directory() . '/inc/lake-town.php';
 if (is_admin()) require_once get_template_directory() . '/inc/i18n-admin.php';
 
 

@@ -34,15 +34,15 @@
 <!-- CHEOPS VIDEO PRELOADER: added without changing existing page content -->
 <div aria-label="Loading" id="cheops-video-preloader">
 <video id="cheops-preloader-video" muted playsinline preload="auto" aria-hidden="true"
-  data-desktop-src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/72bcbd3c625e.mp4' ); ?>"
-  data-mobile-src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/72bcbd3c625e.mp4' ); ?>"></video>
+  data-desktop-src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/intro-logo-desktop.mp4' ); ?>"
+  data-mobile-src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/intro-logo-mobile.mp4' ); ?>"></video>
 </div>
 <script id="cheops-preloader-script">
 (function(){
   var preloader=document.getElementById('cheops-video-preloader');
   var video=document.getElementById('cheops-preloader-video');
   if(!preloader||!video)return;
-  var sessionKey='cheops_preloader_seen_v11';
+  var sessionKey='cheops_preloader_seen_v12';
   try{
     if(sessionStorage.getItem(sessionKey)){preloader.remove();return;}
     sessionStorage.setItem(sessionKey,'1');
@@ -62,7 +62,8 @@
   var src=mobile?video.dataset.mobileSrc:video.dataset.desktopSrc;
   if(!src){closePreloader();return;}
 
-  video.addEventListener('ended',closePreloader,{once:true});
+  // Hold the finished logo for a beat before fading out.
+  video.addEventListener('ended',function(){setTimeout(closePreloader,400);},{once:true});
   video.addEventListener('error',closePreloader,{once:true});
   video.src=src;
   video.load();

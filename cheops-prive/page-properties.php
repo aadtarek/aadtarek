@@ -28,7 +28,7 @@
 <!-- CHEOPS VIDEO PRELOADER: added without changing existing page content -->
 <div aria-label="Loading" id="cheops-video-preloader">
 <video id="cheops-preloader-video" muted="" playsinline="" preload="none">
-<source src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/72bcbd3c625e.mp4' ); ?>" type="video/mp4"/>
+<source src="<?php echo esc_url( get_template_directory_uri() . '/assets/generated/intro-logo-desktop.mp4' ); ?>" type="video/mp4"/>
 </video>
 </div>
 <div id="pre">
