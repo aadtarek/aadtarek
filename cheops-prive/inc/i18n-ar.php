@@ -330,6 +330,7 @@ return [
         'Floor Plan' => 'مخطط الوحدة',
         'Master Plan' => 'المخطط العام',
         'All' => 'الكل',
+        'How to get to Lake Town?' => 'إزاي توصل لليك تاون؟',
         'Location Map' => 'خريطة الموقع',
         'How to get to the bustling commercial mall?' => 'إزاي توصل للمول التجاري؟',
         'South 90 St.' => 'جنوب شارع التسعين',

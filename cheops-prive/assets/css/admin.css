@@ -1,0 +1,76 @@
+/* Cheops Privé dashboard: a calmer, modern wp-admin in the site's palette. */
+:root{--cp-ink:#141311;--cp-ink-2:#24221f;--cp-gold:#c9ad78;--cp-gold-2:#a8854b;--cp-paper:#f6f4f0;--cp-line:#e8e2d8;--cp-muted:#77716a;--cp-r:14px}
+body.wp-admin{background:var(--cp-paper);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;color:#1d1b18}
+#wpcontent,#wpfooter{background:var(--cp-paper)}
+
+/* Top bar and side menu */
+#wpadminbar{background:var(--cp-ink)}
+#adminmenuback,#adminmenuwrap,#adminmenu{background:var(--cp-ink)}
+#adminmenu a{color:#d8d2c8}
+#adminmenu div.wp-menu-image:before{color:#9a9389}
+#adminmenu li.menu-top:hover,#adminmenu li.opensub>a.menu-top,#adminmenu li>a.menu-top:focus{background:var(--cp-ink-2);color:#fff}
+#adminmenu li.menu-top:hover div.wp-menu-image:before{color:var(--cp-gold)}
+#adminmenu li.wp-has-current-submenu a.wp-has-current-submenu,#adminmenu li.current a.menu-top{background:var(--cp-gold-2);color:#fff}
+#adminmenu li.wp-has-current-submenu div.wp-menu-image:before,#adminmenu li.current div.wp-menu-image:before{color:#fff}
+#adminmenu .wp-submenu,#adminmenu .wp-has-current-submenu .wp-submenu,#adminmenu .wp-has-current-submenu.opensub .wp-submenu{background:#1d1b19}
+#adminmenu .wp-submenu a{color:#bdb6aa}
+#adminmenu .wp-submenu a:hover,#adminmenu .wp-submenu a:focus,#adminmenu .wp-submenu li.current a{color:var(--cp-gold)}
+#adminmenu .awaiting-mod,#adminmenu .update-plugins{background:var(--cp-gold-2)}
+#collapse-button{color:#9a9389}
+
+/* Headings and cards */
+.wrap h1,.wrap .wp-heading-inline{font-weight:600;letter-spacing:-.01em;color:var(--cp-ink)}
+.postbox,.card,.stuffbox,#dashboard-widgets .postbox,.welcome-panel{border:1px solid var(--cp-line);border-radius:var(--cp-r);box-shadow:0 1px 2px rgba(20,19,17,.04),0 10px 28px -22px rgba(20,19,17,.25);overflow:hidden}
+.postbox .postbox-header{border-bottom-color:var(--cp-line)}
+.postbox .hndle,.postbox h2.hndle{font-weight:600}
+.wp-list-table{border:1px solid var(--cp-line);border-radius:var(--cp-r);overflow:hidden;box-shadow:0 10px 28px -24px rgba(20,19,17,.3)}
+.wp-list-table thead th,.wp-list-table tfoot th{background:#fbfaf7;border-color:var(--cp-line);font-weight:600}
+.striped>tbody>:nth-child(odd){background:#fcfbf9}
+.wp-list-table tr:hover td{background:#faf7f1}
+.wp-list-table a{color:var(--cp-ink)}
+.wp-list-table a:hover{color:var(--cp-gold-2)}
+.wp-list-table .row-title{font-weight:600}
+.subsubsub a .count,.subsubsub a.current .count{color:var(--cp-muted)}
+.subsubsub a.current{color:var(--cp-ink)}
+.notice,div.updated,div.error{border-radius:12px;box-shadow:none;border:1px solid var(--cp-line);border-left-width:4px}
+.notice-success,div.updated{border-left-color:#5c8a5a}
+
+/* Buttons and fields */
+.wp-core-ui .button,.wp-core-ui .button-secondary{border-radius:999px;border-color:#d9d2c6;color:var(--cp-ink);background:#fff;padding:0 14px;min-height:32px;transition:border-color .2s,background-color .2s}
+.wp-core-ui .button:hover,.wp-core-ui .button-secondary:hover{border-color:var(--cp-gold-2);color:var(--cp-ink);background:#fff}
+.wp-core-ui .button-primary,.wp-core-ui .page-title-action,.wrap .page-title-action{border-radius:999px;background:var(--cp-ink);border-color:var(--cp-ink);color:#fff;text-shadow:none;box-shadow:none}
+.wp-core-ui .button-primary:hover,.wp-core-ui .button-primary:focus,.wrap .page-title-action:hover{background:var(--cp-gold-2);border-color:var(--cp-gold-2);color:#fff}
+.wrap .page-title-action{padding:6px 16px;top:-2px}
+input[type=text],input[type=url],input[type=email],input[type=number],input[type=search],input[type=password],input[type=date],textarea,select{border-radius:10px;border-color:#d9d2c6}
+input[type=text]:focus,input[type=url]:focus,input[type=email]:focus,input[type=number]:focus,input[type=search]:focus,textarea:focus,select:focus{border-color:var(--cp-gold-2);box-shadow:0 0 0 1px var(--cp-gold-2)}
+
+/* Properties → Lake Town */
+.cheops-lt{max-width:1180px}
+.cheops-lt-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:18px 0 22px;padding:30px;border-radius:22px;background:linear-gradient(135deg,#171615,#2b2823);color:#fff}
+.cheops-lt-head h1{color:#fff;font-size:32px;margin:0 0 6px;padding:0}
+.cheops-lt-head p{margin:0;color:#cfc8bc;font-size:14px}
+.cheops-lt-card{background:#fff;border:1px solid var(--cp-line);border-radius:18px;padding:22px 24px;margin:0 0 18px}
+.cheops-lt-card h2{margin:0 0 4px;font-size:17px}
+.cheops-lt-hint{margin:0 0 16px;color:var(--cp-muted)}
+.cheops-lt-thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:14px;min-height:20px}
+.cheops-lt-thumbs figure{position:relative;margin:0;aspect-ratio:4/3;border-radius:12px;overflow:hidden;background:#eee;cursor:grab}
+.cheops-lt-thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.cheops-lt-remove{position:absolute;top:6px;right:6px;width:26px;height:26px;border:0;border-radius:50%;background:rgba(20,19,17,.78);color:#fff;font-size:16px;line-height:1;cursor:pointer}
+.cheops-lt-plans{display:grid;gap:12px;margin-bottom:14px}
+.cheops-lt-plan{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:center;padding:12px;border:1px solid var(--cp-line);border-radius:14px;background:#fcfbf9}
+.cheops-lt-preview{aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:#fff;border:1px solid var(--cp-line);display:grid;place-items:center}
+.cheops-lt-preview img{width:100%;height:100%;object-fit:contain}
+.cheops-lt-plan-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.cheops-lt-plan-fields label,.cheops-lt-fields label,.cheops-lt-view label{display:block}
+.cheops-lt-plan-fields span,.cheops-lt-fields span,.cheops-lt-view span{display:block;font-weight:600;margin-bottom:6px}
+.cheops-lt-plan-fields input,.cheops-lt-fields input,.cheops-lt-view input{width:100%}
+.cheops-lt-row-actions{grid-column:1/-1;display:flex;gap:14px;align-items:center}
+.cheops-lt-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:12px 0 18px}
+.cheops-lt-fields small{display:block;color:var(--cp-muted);margin-top:6px}
+.cheops-lt-views{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.cheops-lt-view{display:grid;gap:10px;padding:12px;border:1px solid var(--cp-line);border-radius:14px;background:#fcfbf9}
+.cheops-lt-actions{position:sticky;bottom:12px;z-index:5;display:flex;justify-content:flex-end;padding:12px 16px;margin:0 0 18px;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border:1px solid var(--cp-line);border-radius:18px;box-shadow:0 12px 30px -18px rgba(20,19,17,.35)}
+.cheops-lt-import{display:flex;align-items:center;justify-content:space-between;gap:20px}
+@media(max-width:782px){.cheops-lt-head{flex-direction:column;align-items:flex-start}.cheops-lt-plan,.cheops-lt-plan-fields,.cheops-lt-fields{grid-template-columns:1fr}.cheops-lt-import{flex-direction:column;align-items:flex-start}}
+.cheops-lt-actions{align-items:center;justify-content:space-between}
+.cheops-lt-actions span{color:var(--cp-muted)}

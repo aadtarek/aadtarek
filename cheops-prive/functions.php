@@ -5,7 +5,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-11 · v6.5 Lake Town units, logo intro');
+define('CHEOPS_BUILD', '2026-11-11 · v6.6 Lake Town in the dashboard');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);
@@ -1201,6 +1201,10 @@ JS
     );
 }
 add_action('admin_enqueue_scripts','cheops_unit_admin_assets');
+// Dashboard look (assets/css/admin.css) on every admin screen.
+add_action('admin_enqueue_scripts', static function () {
+    wp_enqueue_style('cheops-admin', get_template_directory_uri() . '/assets/css/admin.css', [], cheops_asset_ver('assets/css/admin.css'));
+});
 
 function cheops_admin_branding_css() {
     $screen = function_exists('get_current_screen') ? get_current_screen() : null;
@@ -1262,7 +1266,8 @@ function cheops_unit_columns($cols) {
 add_filter('manage_cheops_unit_posts_columns','cheops_unit_columns');
 function cheops_unit_column_content($col,$post_id){
     if($col==='cheops_thumb'){
-        $thumb=get_the_post_thumbnail($post_id,[76,56],['style'=>'width:76px;height:56px;object-fit:cover;border-radius:8px']);
+        $cover=function_exists('cheops_unit_cover_url') ? cheops_unit_cover_url($post_id,'thumbnail') : '';
+        $thumb=$cover ? '<img src="'.esc_url($cover).'" alt="" style="width:76px;height:56px;object-fit:cover;border-radius:8px">' : get_the_post_thumbnail($post_id,[76,56],['style'=>'width:76px;height:56px;object-fit:cover;border-radius:8px']);
         if(!$thumb && function_exists('cheops_portfolio_asset_url')){
             $asset=get_post_meta($post_id,'_cheops_portfolio_cover',true);
             if($asset) $thumb='<img src="'.esc_url(cheops_portfolio_asset_url($asset)).'" alt="" style="width:76px;height:56px;object-fit:cover;border-radius:8px">';

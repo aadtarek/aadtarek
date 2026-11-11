@@ -40,6 +40,3 @@
 #spPinMap{height:380px;border-radius:22px;overflow:hidden;border:1px solid var(--line);z-index:0}
 @media(max-width:640px){#spPinMap{height:300px}.sp-lt-map-tabs button{flex:1 1 45%}}
 .sp-brand img.sp-brand-project{filter:brightness(0)}
-/* A long, thin building plan scrolls sideways at a readable height. */
-.sp-plan-full.is-strip>a{overflow-x:auto}
-.sp-plan-full.is-strip img{height:clamp(150px,22vw,230px);width:auto;max-width:none;max-height:none}
