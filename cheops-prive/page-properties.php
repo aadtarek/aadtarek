@@ -103,11 +103,12 @@
         <button class="eyebrow" style="background:none;border:0;cursor:pointer;color:inherit;opacity:.7" type="reset">Reset</button>
       </div>
     </form>
-    <div class="quick-grid" aria-label="Browse by property type">
-      <button class="quick-card" type="button" data-quick-type="Apartment"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/portfolio/project-mv-11-park-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Apartments</span><span class="qmeta">Urban residences →</span></button>
-      <button class="quick-card" type="button" data-quick-type="Villa"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/portfolio/project-water-marq-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Villas</span><span class="qmeta">Private living →</span></button>
-      <button class="quick-card" type="button" data-quick-type="Office"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/office-buy-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Offices</span><span class="qmeta">Business addresses →</span></button>
-      <button class="quick-card" type="button" data-quick-type="Clinic"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/office-rent-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Clinics</span><span class="qmeta">Medical suites →</span></button>
+    <div class="quick-pills" role="group" aria-label="Browse by property type">
+      <button class="quick-pill is-on" type="button" data-quick-type="" aria-pressed="true">All</button>
+      <button class="quick-pill" type="button" data-quick-type="Apartment" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h14v17"/><path d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2"/><path d="M10 21v-3h4v3"/></svg>Apartments</button>
+      <button class="quick-pill" type="button" data-quick-type="Villa" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/><path d="M17 7V4h2v5"/></svg>Villas</button>
+      <button class="quick-pill" type="button" data-quick-type="Office" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V3h10v18"/><path d="M15 8h4v13"/><path d="M8 7h4M8 11h4M8 15h4"/><path d="M3 21h18"/></svg>Offices</button>
+      <button class="quick-pill" type="button" data-quick-type="Clinic" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z"/><path d="M12 10v6M9 13h6"/><path d="M9 6V3h6v3"/></svg>Clinics</button>
     </div>
   </div>
 </section>
@@ -351,7 +352,9 @@ document.querySelectorAll('[data-quick-type]').forEach(btn=>{
     const fm=document.querySelector('#property-search form[data-search]');
     if(!fm)return;
     fm.querySelector('[name="type"]').value=btn.dataset.quickType||'';
-    filter({deal:fm.querySelector('[name="deal"]').value,type:btn.dataset.quickType||'',loc:fm.querySelector('[name="loc"]').value,project:fm.querySelector('[name="project"]').value,beds:fm.querySelector('[name="beds"]').value,min:fm.querySelector('[name="min"]').value,max:fm.querySelector('[name="max"]').value});
+    const v=n=>(fm.querySelector('[name="'+n+'"]')||{}).value||'';
+    filter({deal:v('deal'),type:btn.dataset.quickType||'',loc:v('loc'),project:v('project'),beds:v('beds'),min:v('min'),max:v('max')});
+    document.querySelectorAll('[data-quick-type]').forEach(b=>{const on=b===btn;b.classList.toggle('is-on',on);b.setAttribute('aria-pressed',on?'true':'false');});
     document.getElementById('properties').scrollIntoView({behavior:'smooth',block:'start'});
   });
 });

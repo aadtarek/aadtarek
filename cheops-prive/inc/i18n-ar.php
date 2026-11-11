@@ -329,6 +329,7 @@ return [
         'Plans' => 'المخططات',
         'Floor Plan' => 'مخطط الوحدة',
         'Master Plan' => 'المخطط العام',
+        'All' => 'الكل',
         'View all →' => 'عرض الكل',
         'Unit Number' => 'رقم الوحدة',
         'About the developer' => 'عن المطور',

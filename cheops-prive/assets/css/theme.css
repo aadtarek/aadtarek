@@ -784,12 +784,11 @@ form.search:not(#cm-a):not(#cm-b)>div:not(.fields) :is(button,.btn){height:100%;
 }
 @media(max-width:480px){form.search:not(#cm-a):not(#cm-b) .fields{grid-template-columns:1fr!important}}
 
-/* Properties page: browse-by-type cards as a photo grid. */
-.quick-grid:not(#cm-a) .quick-card{position:relative;overflow:hidden;isolation:isolate;min-height:clamp(240px,24vw,340px);padding:24px!important;display:flex!important;flex-direction:column;justify-content:flex-end;align-items:flex-start;text-align:start;border:0!important;border-radius:24px!important;background:#171615!important;color:#fff!important}
-.quick-grid:not(#cm-a) .quick-card .qimg{position:absolute;inset:0;z-index:-2;background-size:cover;background-position:center;transition:scale 1.4s cubic-bezier(.16,1,.3,1)}
-.quick-grid:not(#cm-a) .quick-card::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(10,9,8,0) 35%,rgba(10,9,8,.72) 100%)}
-.quick-grid:not(#cm-a) .quick-card:hover .qimg{scale:1.06}
-.quick-grid:not(#cm-a) .quick-card .qtitle{color:#fff!important;font-size:clamp(28px,2.4vw,38px)!important;margin:0!important}
-.quick-grid:not(#cm-a) .quick-card .qmeta{color:rgba(255,255,255,.78)!important;margin-top:8px!important}
-.quick-grid:not(#cm-a) .quick-card.active,.quick-grid:not(#cm-a) .quick-card[aria-pressed="true"]{outline:2px solid #c9ad78;outline-offset:3px}
-@media(max-width:640px){.quick-grid:not(#cm-a){grid-template-columns:1fr 1fr!important;gap:10px!important}.quick-grid:not(#cm-a) .quick-card{min-height:190px;padding:16px!important;border-radius:18px!important}.quick-grid:not(#cm-a) .quick-card .qtitle{font-size:24px!important}.quick-grid:not(#cm-a) .quick-card .qmeta{font-size:9px!important}}
+/* Properties page: browse-by-type pills. */
+.quick-pills{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.quick-pill{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 24px;border:1px solid rgba(20,19,17,.16);border-radius:999px;background:transparent;color:#5d5850;font:400 16px/1 "Neue Montreal",Arial,sans-serif;cursor:pointer;transition:background-color .3s ease,color .3s ease,border-color .3s ease}
+.quick-pill svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.quick-pill:hover{border-color:rgba(20,19,17,.4);color:#141311}
+.quick-pill.is-on{background:#141311;border-color:#141311;color:#fff}
+.quick-pill:focus-visible{outline:2px solid #c9ad78;outline-offset:2px}
+@media(max-width:640px){.quick-pills{flex-wrap:nowrap;overflow-x:auto;margin-inline:-20px;padding:0 20px 4px;scrollbar-width:none}.quick-pills::-webkit-scrollbar{display:none}.quick-pill{height:46px;padding:0 18px;font-size:15px;flex:none}}
