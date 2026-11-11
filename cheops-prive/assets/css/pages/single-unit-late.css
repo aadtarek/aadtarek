@@ -42,3 +42,10 @@
 .sp-brand img.sp-brand-project{filter:brightness(0)}
 /* Fewer than five photos: the last ones stretch so no tile is left empty. */
 @media(min-width:981px){.sp-gallery>a:nth-child(4):last-of-type{grid-column:span 2}.sp-gallery>a:nth-child(3):last-of-type{grid-row:1/3}.sp-gallery>a:nth-child(2):last-of-type{grid-row:1/3;grid-column:span 2}}
+/* Rooms and project story. */
+.sp-rooms-layout{margin:0 0 18px;color:var(--muted);font-size:15px}
+.sp-story-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sp-story-grid article{padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--soft)}
+.sp-story-grid h3{font-family:"Romie",Georgia,serif;font-weight:400;font-size:22px;margin:0 0 10px}
+.sp-story-grid p{margin:0;color:var(--muted);line-height:1.7;font-size:14px}
+@media(max-width:640px){.sp-story-grid{grid-template-columns:1fr}}

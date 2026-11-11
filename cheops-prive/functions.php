@@ -5,7 +5,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-11 · v6.7 Lake Town office photos only');
+define('CHEOPS_BUILD', '2026-11-11 · v6.8 The MarQ Gardens units');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);
@@ -2363,6 +2363,7 @@ require_once get_template_directory() . '/inc/portfolio-aug26-import.php';
 require_once get_template_directory() . '/inc/service-pages.php';
 require_once get_template_directory() . '/inc/articles.php';
 require_once get_template_directory() . '/inc/lake-town.php';
+require_once get_template_directory() . '/inc/marq-gardens.php';
 if (is_admin()) require_once get_template_directory() . '/inc/i18n-admin.php';
 
 

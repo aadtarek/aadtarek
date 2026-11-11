@@ -133,7 +133,6 @@ function cheops_unit_cover_url($post_id, $size = 'large') {
 /** Location map with a tab per destination; the first view shows Lake Town itself. */
 function cheops_render_lake_town_map($kit) {
     if (!$kit['map']) return;
-    $ar = function_exists('cheops_is_ar') && cheops_is_ar();
     echo '<section class="sp-section sp-lt-map" id="location"><h2>Location Map</h2>';
     if ($kit['map_title']) echo '<p class="sp-lt-map-note">' . esc_html($kit['map_title']) . '</p>';
     echo '<div class="sp-lt-map-media">';
@@ -146,7 +145,7 @@ function cheops_render_lake_town_map($kit) {
         echo '<button type="button" role="tab" aria-selected="false" data-view="' . (int) $i . '"><strong>' . esc_html($view['label'] ?? '') . '</strong><span>' . esc_html($view['time'] ?? '') . '</span></button>';
     }
     echo '</div>';
-    if ($kit['google_maps']) echo '<a class="sp-map-link" href="' . esc_url($kit['google_maps']) . '" target="_blank" rel="noopener">' . esc_html($ar ? 'افتح في خرائط جوجل ↗' : 'Open in Google Maps ↗') . '</a>';
+    if ($kit['google_maps']) echo '<a class="sp-map-link" href="' . esc_url($kit['google_maps']) . '" target="_blank" rel="noopener">' . 'Open in Google Maps ↗' . '</a>';
     echo '</section>';
     echo "<script>(function(){var s=document.currentScript.previousElementSibling,imgs=s.querySelectorAll('.sp-lt-map-media img'),tabs=s.querySelectorAll('.sp-lt-map-tabs button');tabs.forEach(function(t){t.addEventListener('click',function(){var v=t.getAttribute('aria-selected')==='true'?'0':t.dataset.view;tabs.forEach(function(b){b.setAttribute('aria-selected',b===t&&v!=='0'?'true':'false');});imgs.forEach(function(im){im.hidden=im.dataset.view!==v;});});});})();</script>";
 }
