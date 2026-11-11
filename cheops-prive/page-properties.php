@@ -88,14 +88,14 @@
   <div class="wrap">
     <div class="collection-head">
       <div><p class="eyebrow gold">Refine your search</p><h2 class="d d-lg reveal" style="margin:18px 0 0"><span class="rl"><span>Start with what matters.</span></span></h2></div>
-      <p style="max-width:390px;font-size:.792rem;line-height:1.75;color:var(--muted);margin:0">Filter by destination, property type, bedrooms and budget. Availability and final pricing are confirmed privately.</p>
+      <p style="max-width:390px;font-size:.792rem;line-height:1.75;color:var(--muted);margin:0">Filter by destination, project, listing and property type. Availability and details are confirmed privately.</p>
     </div>
     <form class="search light" data-search="" style="margin-top:38px">
       <div class="fields">
         <div class="field"><label>Search by</label><select name="loc"><option value="">Location, compound or developer</option><?php cheops_taxonomy_options_html('unit_location',['New Cairo','Mostakbal City','New Capital','North Coast','Ain Sokhna','Sheikh Zayed']); ?></select></div>
         <div class="field"><label>Project</label><select name="project"><option value="">Any project</option><?php cheops_project_options_html(); ?></select></div>
         <div class="field"><label>Listing</label><select name="deal"><option value="">Sale or Rent</option><option value="sale">For Sale</option><option value="rent">For Rent</option></select></div><div class="field"><label>Property type</label><select name="type"><option value="">Any type</option><?php cheops_taxonomy_options_html('unit_type',['Apartment','Villa','Townhouse','Twinhouse','Duplex','Penthouse','Chalet','Office','Clinic','Retail']); ?></select></div>
-        <div class="field"><label>Bedrooms</label><select name="beds"><option value="">Any</option><option value="1">1+</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option><option value="5">5+</option></select></div>
+        
         <?php if (cheops_show_unit_prices()): ?><div class="field"><label>Price range (EGP)</label><div style="display:flex;gap:10px"><input inputmode="numeric" name="min" placeholder="Min"/><input inputmode="numeric" name="max" placeholder="Max"/></div></div><?php endif; ?>
       </div>
       <div style="margin-top:22px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
@@ -104,10 +104,10 @@
       </div>
     </form>
     <div class="quick-grid" aria-label="Browse by property type">
-      <button class="quick-card" type="button" data-quick-type="Apartment"><span class="qicon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4h14v17"/><path d="M8 8h2M14 8h2M8 12h2M14 12h2M8 16h2M14 16h2"/><path d="M10 21v-3h4v3"/></svg></span><span class="qtitle">Apartments</span><span class="qmeta">Urban residences →</span></button>
-      <button class="quick-card" type="button" data-quick-type="Villa"><span class="qicon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/><path d="M17 7V4h2v5"/></svg></span><span class="qtitle">Villas</span><span class="qmeta">Private living →</span></button>
-      <button class="quick-card" type="button" data-quick-type="Office"><span class="qicon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V3h10v18"/><path d="M15 8h4v13"/><path d="M8 7h4M8 11h4M8 15h4M17 12h0M17 16h0"/><path d="M3 21h18"/></svg></span><span class="qtitle">Offices</span><span class="qmeta">Business addresses →</span></button>
-      <button class="quick-card" type="button" data-quick-type="Clinic"><span class="qicon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v14H4z"/><path d="M12 10v6M9 13h6"/><path d="M9 6V3h6v3"/></svg></span><span class="qtitle">Clinics</span><span class="qmeta">Medical suites →</span></button>
+      <button class="quick-card" type="button" data-quick-type="Apartment"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/portfolio/project-mv-11-park-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Apartments</span><span class="qmeta">Urban residences →</span></button>
+      <button class="quick-card" type="button" data-quick-type="Villa"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/portfolio/project-water-marq-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Villas</span><span class="qmeta">Private living →</span></button>
+      <button class="quick-card" type="button" data-quick-type="Office"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/office-buy-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Offices</span><span class="qmeta">Business addresses →</span></button>
+      <button class="quick-card" type="button" data-quick-type="Clinic"><span class="qimg" style="background-image:url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/office-rent-800.jpg'); ?>')" aria-hidden="true"></span><span class="qtitle">Clinics</span><span class="qmeta">Medical suites →</span></button>
     </div>
   </div>
 </section>
@@ -253,7 +253,7 @@
 </footer>
 <?php cheops_print_motion_scripts(); ?>
 <script>
-const MAP = [{"name": "LVLS", "destination": "New Cairo", "statement": "A north-east corner address, quiet and elevated above the city.", "price": "EGP 7.4M", "units": "218"}, {"name": "Aliva Fields Park", "destination": "Shorouk City", "statement": "Wide green fields and quiet courtyards, close to the water.", "price": "EGP 5.9M", "units": "164"}, {"name": "The Gardens", "destination": "New Cairo", "statement": "Landscaped living just minutes from AUC, by MarQ.", "price": "EGP 11.2M", "units": "76"}, {"name": "Solana", "destination": "New Cairo", "statement": "An eastern address by Ora, built for calm, everyday living.", "price": "EGP 6.3M", "units": "142"}];
+const MAP = [{"name": "LVLS", "destination": "New Cairo", "statement": "A north-east corner address, quiet and elevated above the city.", "units": "218"}, {"name": "Aliva Fields Park", "destination": "Shorouk City", "statement": "Wide green fields and quiet courtyards, close to the water.", "units": "164"}, {"name": "The Gardens", "destination": "New Cairo", "statement": "Landscaped living just minutes from AUC, by MarQ.", "units": "76"}, {"name": "Solana", "destination": "New Cairo", "statement": "An eastern address by Ora, built for calm, everyday living.", "units": "142"}];
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* Legacy preloader disabled by WordPress theme */

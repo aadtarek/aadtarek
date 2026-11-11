@@ -3,3 +3,21 @@
 @media(max-width:980px){.sp-layout{grid-template-columns:1fr}.sp-side{position:static}.sp-gallery{grid-template-columns:1.4fr .8fr;grid-template-rows:220px 220px}.sp-gallery>a:nth-child(n+4){display:none}.sp-spec-grid{grid-template-columns:repeat(2,1fr)}.sp-related-grid{grid-template-columns:1fr 1fr}.sp-plan-images{grid-template-columns:1fr}}
 @media(max-width:640px){.sp-wrap{width:min(100% - 24px,1280px)}.sp-page{padding-top:96px}.sp-gallery{grid-template-columns:1fr;grid-template-rows:330px}.sp-gallery>a:first-child{grid-row:auto}.sp-gallery>a:not(:first-child){display:none}.sp-layout{padding-top:34px;gap:30px}.sp-title{font-size:34px}.sp-spec-grid{grid-template-columns:1fr 1fr}.sp-details{grid-template-columns:1fr}.sp-cta{grid-template-columns:1fr}.sp-related-grid{grid-template-columns:1fr}.sp-plan-card{grid-template-columns:1fr}.sp-related{padding:54px 0}.sp-related h2{font-size:31px}}
 
+
+/* One photo fills the gallery instead of leaving empty tiles beside it. */
+.sp-gallery.is-single{grid-template-columns:1fr!important;grid-template-rows:min(62vh,560px)!important}
+.sp-gallery.is-single>a:first-child{grid-row:auto}
+.sp-gallery.is-single .sp-gallery-more{display:none}
+/* Project name and developer logo above the unit title. */
+.sp-brand{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:22px 0 4px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.sp-brand span{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--muted);font-family:"Neue Montreal",Arial,sans-serif}
+.sp-brand img{height:54px;width:auto;max-width:150px;object-fit:contain;mix-blend-mode:multiply}
+/* Floor plan and master plan at full width. */
+.sp-plan-full>a{display:block;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff;color:inherit;text-decoration:none}
+.sp-plan-full img{width:100%;display:block;max-height:78vh;object-fit:contain;background:#fff}
+.sp-plan-full>a div{padding:14px 18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-top:1px solid var(--line);font-family:"Neue Montreal",Arial,sans-serif}
+/* About the developer. */
+.sp-developer-card{display:grid;grid-template-columns:150px 1fr;gap:28px;align-items:start;padding:26px;border:1px solid var(--line);border-radius:18px;background:var(--soft)}
+.sp-developer-card img{width:150px;height:150px;object-fit:contain;background:#fff;border-radius:14px;padding:10px;mix-blend-mode:multiply}
+.sp-developer-card h3{font-family:"Romie",Georgia,serif;font-weight:400;font-size:26px;margin:4px 0 10px}
+@media(max-width:640px){.sp-developer-card{grid-template-columns:1fr;gap:16px;padding:20px}.sp-developer-card img{width:110px;height:110px}.sp-brand img{height:42px}.sp-gallery.is-single{grid-template-rows:330px!important}}

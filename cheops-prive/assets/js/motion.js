@@ -34,12 +34,6 @@
     img.addEventListener('error', done, { once: true });
   });
 
-  /* Gold labels shimmer (only plain ones, not those sitting on a coloured pill). */
-  doc.querySelectorAll('.eyebrow.gold').forEach(function (el) {
-    var bg = getComputedStyle(el).backgroundColor;
-    if (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') el.classList.add('cm-shine');
-  });
-
   /* Numbers count up when they appear: project figures and city counts. */
   var counters = [].slice.call(doc.querySelectorAll('.cheops-project-copy dd, .cheops-city-hero-meta span, [data-cm-count]'));
   counters = counters.filter(function (el) { return el.children.length === 0 && /\d/.test(el.textContent); });
@@ -92,37 +86,6 @@
   /* Map pins drop in the first time only; later selections swap icons without replaying it. */
   var map = doc.querySelector('.cheops-project-map');
   if (map) onView([map], function () { setTimeout(function () { map.classList.add('cm-map-done'); }, 4000); }, '300px 0px 0px 0px');
-
-  /* Home: selected properties glide sideways while scrolling (wide screens). */
-  var grid = body.classList.contains('home') && doc.getElementById('propGrid');
-  var canClip = window.CSS && CSS.supports && CSS.supports('overflow', 'clip');
-  if (grid && wide() && canClip && grid.children.length > 3) {
-    // A clipping (not scrolling) section lets the pinned row stick.
-    var holder = grid.closest('section');
-    if (holder && getComputedStyle(holder).overflow !== 'visible') holder.style.setProperty('overflow', 'clip', 'important');
-    var wrap = doc.createElement('div'), sticky = doc.createElement('div');
-    wrap.className = 'cm-hscroll';
-    sticky.className = 'cm-hscroll-sticky';
-    grid.parentNode.insertBefore(wrap, grid);
-    wrap.appendChild(sticky);
-    sticky.appendChild(grid);
-    var distance = 0;
-    var measure = function () {
-      distance = Math.max(0, grid.scrollWidth - sticky.clientWidth);
-      wrap.style.height = (window.innerHeight + distance) + 'px';
-      move();
-    };
-    var move = function () {
-      var r = wrap.getBoundingClientRect(), span = wrap.offsetHeight - window.innerHeight;
-      var p = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0;
-      grid.style.transform = 'translate3d(' + ((rtl ? 1 : -1) * p * distance).toFixed(1) + 'px,0,0)';
-    };
-    var raf = false;
-    addEventListener('scroll', function () { if (!raf) { raf = true; requestAnimationFrame(function () { raf = false; move(); }); } }, { passive: true });
-    addEventListener('resize', measure);
-    addEventListener('load', measure);
-    measure();
-  }
 
   /* Gold reading bar at the top of every page. */
   var bar = doc.createElement('div');

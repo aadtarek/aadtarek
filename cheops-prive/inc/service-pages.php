@@ -49,7 +49,7 @@ function cheops_service_pages() {
                 ['Office space', 'Fitted and core-and-shell offices for companies moving to or expanding in New Cairo.'],
                 ['Clinic units', 'Medical units in serviced buildings with parking and easy patient access.'],
                 ['Residential rentals', 'Apartments and villas, furnished or unfurnished, in established compounds.'],
-                ['Rental pricing', 'For owners: a rent range based on comparable leases and current demand.'],
+                ['Rental pricing', 'Determining the rental value of administrative units based on their area, location, nature of business activity, lease term, and prevailing market conditions.'],
                 ['Tenant screening', 'Company or personal background, intended use and payment reliability checked before an offer is accepted.'],
                 ['Contract and handover', 'Lease drafting, inventory, meter readings and a clean handover on the first day.'],
             ],

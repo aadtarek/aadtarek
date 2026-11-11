@@ -100,7 +100,7 @@
 
   /* 3. Cards rise through a curtain, one after another along each row. */
   var cards = [].slice.call(doc.querySelectorAll('.pcard, .cheops-insight-card, .svc, .val, .sp-related-card, .cheops-city-link, .office-choice, .contact-quick-card')).filter(function (c) {
-    return below(c) && !c.closest('.cm-hscroll, .cm-stack, .cm-list');
+    return below(c) && !c.closest('.cm-stack, .cm-list');
   });
   cards.forEach(function (c) {
     var sibs = c.parentNode ? [].slice.call(c.parentNode.children) : [c];

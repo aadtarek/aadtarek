@@ -144,7 +144,7 @@
 <div class="fields">
 <div class="field"><label>Search by</label><select name="loc"><option value="">Location, compound or developer</option><?php cheops_taxonomy_options_html('unit_location',['New Cairo','Mostakbal City','New Capital','North Coast','Ain Sokhna','Sheikh Zayed']); ?></select></div>
 <div class="field"><label>Listing</label><select name="deal"><option value="">Sale or Rent</option><option value="sale">For Sale</option><option value="rent">For Rent</option></select></div><div class="field"><label>Property type</label><select name="type"><option value="">Any type</option><?php cheops_taxonomy_options_html('unit_type',['Apartment','Villa','Townhouse','Twinhouse','Duplex','Penthouse','Chalet','Office','Clinic','Retail']); ?></select></div>
-<div class="field"><label>Bedrooms</label><select name="beds"><option value="">Any</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5+</option></select></div>
+
 <?php if (cheops_show_unit_prices()): ?><div class="field"><label>Price range (EGP)</label><div style="display:flex;gap:10px"><input inputmode="numeric" name="min" placeholder="Min"/><input inputmode="numeric" name="max" placeholder="Max"/></div></div><?php endif; ?>
 </div>
 <div class="search-actions" style="margin-top:14px;display:flex;align-items:center;gap:16px">
@@ -235,7 +235,7 @@ if (!is_wp_error($cheops_home_cities) && $cheops_home_cities) :
 <div class="fields">
 <div class="field"><label>Search by</label><select name="loc"><option value="">Location, compound or developer</option><?php cheops_taxonomy_options_html('unit_location',['New Cairo','Mostakbal City','New Capital','North Coast','Ain Sokhna','Sheikh Zayed']); ?></select></div>
 <div class="field"><label>Listing</label><select name="deal"><option value="">Sale or Rent</option><option value="sale">For Sale</option><option value="rent">For Rent</option></select></div><div class="field"><label>Property type</label><select name="type"><option value="">Any type</option><?php cheops_taxonomy_options_html('unit_type',['Apartment','Villa','Townhouse','Twinhouse','Duplex','Penthouse','Chalet','Office','Clinic','Retail']); ?></select></div>
-<div class="field"><label>Bedrooms</label><select name="beds"><option value="">Any</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5+</option></select></div>
+
 <?php if (cheops_show_unit_prices()): ?><div class="field"><label>Price range (EGP)</label><div style="display:flex;gap:10px"><input inputmode="numeric" name="min" placeholder="Min"/><input inputmode="numeric" name="max" placeholder="Max"/></div></div><?php endif; ?>
 </div>
 <div class="search-actions" style="margin-top:14px;display:flex;align-items:center;gap:16px">
@@ -361,7 +361,7 @@ if ($cheops_home_map_items) :
             <p class="eyebrow gold" id="mDest"><?php echo esc_html($cheops_home_map_first['dest']); ?></p>
             <h3 class="d d-md" id="mName"><?php echo esc_html($cheops_home_map_first['name']); ?></h3>
             <p id="mStatement"><?php echo esc_html($cheops_home_map_first['statement']); ?></p>
-            <dl><div><dt>Starting price</dt><dd class="d" id="mPrice"><?php echo esc_html($cheops_home_map_first['price']); ?></dd></div><div><dt>Available units</dt><dd class="d" id="mUnits"><?php echo esc_html($cheops_home_map_first['units']); ?></dd></div></dl>
+            <dl><?php if (cheops_show_unit_prices()): ?><div><dt>Starting price</dt><dd class="d" id="mPrice"><?php echo esc_html($cheops_home_map_first['price']); ?></dd></div><?php endif; ?><div><dt>Available units</dt><dd class="d" id="mUnits"><?php echo esc_html($cheops_home_map_first['units']); ?></dd></div></dl>
             <a class="link-arrow" id="mLink" href="<?php echo esc_url($cheops_home_map_first['link']); ?>">View project units <span class="ar">→</span></a>
           </div>
         </div>
@@ -375,7 +375,7 @@ if ($cheops_home_map_items) :
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
         function icon(on){return L.divIcon({className:'cheops-map-icon',html:'<span class="cheops-pin'+(on?' active':'')+'"><i></i></span>',iconSize:[26,26],iconAnchor:[13,26]});}
         var markers=[];
-        function select(i,fly){var p=data[i];if(!p)return;document.getElementById('mDest').textContent=p.dest;document.getElementById('mName').textContent=p.name;document.getElementById('mStatement').textContent=p.statement;document.getElementById('mPrice').textContent=p.price;document.getElementById('mUnits').textContent=p.units;document.getElementById('mLink').href=p.link;markers.forEach(function(m,n){m.setIcon(icon(n===i));});if(fly)map.flyTo(p.coords,p.dest==='North Coast'?10:12,{duration:1.05});}
+        function select(i,fly){var p=data[i];if(!p)return;document.getElementById('mDest').textContent=p.dest;document.getElementById('mName').textContent=p.name;document.getElementById('mStatement').textContent=p.statement;var mp=document.getElementById('mPrice');if(mp)mp.textContent=p.price;document.getElementById('mUnits').textContent=p.units;document.getElementById('mLink').href=p.link;markers.forEach(function(m,n){m.setIcon(icon(n===i));});if(fly)map.flyTo(p.coords,p.dest==='North Coast'?10:12,{duration:1.05});}
         data.forEach(function(p,i){var m=L.marker(p.coords,{icon:icon(i===0),title:p.name,keyboard:true}).addTo(map).bindTooltip(p.name,{direction:'top',offset:[0,-20],className:'cheops-tooltip'});m.on('click',function(){select(i,false);});markers.push(m)});
         map.fitBounds(L.latLngBounds(data.map(function(p){return p.coords})),{padding:[44,44],maxZoom:9});select(0,false);
         var fix=function(){try{map.invalidateSize(true)}catch(e){}};[50,300,900].forEach(function(t){setTimeout(fix,t)});addEventListener('resize',fix);
@@ -456,7 +456,7 @@ if ($cheops_home_map_items) :
 </footer>
 <?php cheops_print_motion_scripts(); ?>
 <script>
-const MAP = [{"name": "Mountain View LVLS", "destination": "New Cairo", "statement": "Panoramic sea views from a gated community elevated up to +45 meters above sea level.", "price": "EGP 7.4M", "units": "218"}, {"name": "LAKE TOWN", "destination": "Shorouk City", "statement": "A refined destination designed around elevated business and lifestyle experiences.", "price": "EGP 5.9M", "units": "164"}, {"name": "Mountain View Aliva", "destination": "New Cairo", "statement": "A city built around interaction, connectivity and being present in every moment.", "price": "EGP 11.2M", "units": "76"}, {"name": "The MarQ Gardens", "destination": "New Cairo", "statement": "Where serenity meets sophistication, blending modern living with lush green spaces.", "price": "EGP 6.3M", "units": "142"}];
+const MAP = [{"name": "Mountain View LVLS", "destination": "New Cairo", "statement": "Panoramic sea views from a gated community elevated up to +45 meters above sea level.", "units": "218"}, {"name": "LAKE TOWN", "destination": "Shorouk City", "statement": "A refined destination designed around elevated business and lifestyle experiences.", "units": "164"}, {"name": "Mountain View Aliva", "destination": "New Cairo", "statement": "A city built around interaction, connectivity and being present in every moment.", "units": "76"}, {"name": "The MarQ Gardens", "destination": "New Cairo", "statement": "Where serenity meets sophistication, blending modern living with lush green spaces.", "units": "142"}];
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* Legacy preloader disabled by WordPress theme */

@@ -5,10 +5,11 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-01 · v6 section motion');
+define('CHEOPS_BUILD', '2026-11-11 · v6.1 filters, units, no prices');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);
+    update_option('cheops_content_version', (int) get_option('cheops_content_version', 1) + 1, true);
     do_action('litespeed_purge_all');
 }, 99);
 
@@ -498,8 +499,19 @@ function cheops_developer_logo_numbers() {
     return range(10, 21);
 }
 
+/** A small copy bundled in assets/logos (400px WebP) when there is one, else the original upload. */
+function cheops_bundled_logo($name, $fallback) {
+    return is_file(get_template_directory() . '/assets/logos/' . $name . '.webp') ? get_template_directory_uri() . '/assets/logos/' . $name . '.webp' : $fallback;
+}
 function cheops_developer_logo_url($n) {
-    return 'https://cheopsprive.com/wp-content/uploads/2026/09/' . (int) $n . '-2.png?v=20260924d';
+    return cheops_bundled_logo('n-' . (int) $n, 'https://cheopsprive.com/wp-content/uploads/2026/09/' . (int) $n . '-2.png?v=20260924d');
+}
+/** Business tenants band, in order: numbered uploads plus named ones. */
+function cheops_tenant_logo_urls() {
+    $urls = [];
+    foreach (range(25, 29) as $n) $urls[] = cheops_developer_logo_url($n);
+    $urls[] = cheops_bundled_logo('t-extra', 'https://cheopsprive.com/wp-content/uploads/2026/11/extra.png');
+    return $urls;
 }
 
 /**
@@ -511,8 +523,9 @@ function cheops_developer_logo_url($n) {
 /** The eight developer logos (Our Developers band), in order. */
 function cheops_developer_logo_files() {
     $base = 'https://cheopsprive.com/wp-content/uploads/2026/10/';
-    return ['d-35' => $base . '35.png', 'd-36' => $base . '36.png', 'd-37' => $base . '37.png', 'd-38' => $base . '38.png',
-            'd-39' => $base . '39.png', 'd-40' => $base . '40.png', 'd-41' => $base . '41.png', 'd-w-residence' => $base . 'w-residence.png'];
+    $files = [];
+    foreach (['35', '36', '37', '38', '39', '40', '41', 'w-residence'] as $name) $files['d-' . $name] = cheops_bundled_logo('d-' . $name, $base . $name . '.png');
+    return $files;
 }
 
 function cheops_logo_groups() {
@@ -831,7 +844,7 @@ function cheops_rent_periods() {
 function cheops_finishing_options() {
     return [
         '' => 'Not specified',
-        'core-shell' => 'Core & Shell',
+        'core-shell' => 'Core and Shell',
         'semi-finished' => 'Semi-finished',
         'finished' => 'Finished',
         'fully-finished' => 'Fully Finished',
@@ -910,9 +923,11 @@ function cheops_srcset($url) {
 
 /** srcset/sizes attributes for a full-width hero image (empty when no copies exist). */
 function cheops_hero_img_attrs($url, $preload = false) {
+    // The hero is the first thing seen, so cache plugins (LiteSpeed) must not lazy-load it.
+    $eager = $preload ? '' : ' loading="eager" data-no-lazy="1" data-skip-lazy="1"';
     $set = cheops_srcset($url);
-    if (!$set) return '';
-    return $preload ? ' imagesrcset="' . esc_attr($set) . '" imagesizes="100vw"' : ' srcset="' . esc_attr($set) . '" sizes="100vw"';
+    if (!$set) return $eager;
+    return $preload ? ' imagesrcset="' . esc_attr($set) . '" imagesizes="100vw"' : ' srcset="' . esc_attr($set) . '" sizes="100vw"' . $eager;
 }
 
 function cheops_intro_video_enabled() {
@@ -930,11 +945,40 @@ function cheops_show_unit_prices() {
     return (bool) get_theme_mod('cheops_show_unit_prices', false);
 }
 
-// With prices hidden, "Price:" lines written into a unit's description are left out too.
+// With prices hidden, money written into a unit's description is left out too: plain
+// "Price:" / "Maintenance:" lines, and imported paragraphs with payment plans, promotions
+// or the internal portfolio source note.
+function cheops_strip_unit_prices($content) {
+    $money = '/EGP|USD|US\$|\$\s?\d|ج\.م|جنيه|دولار|\bprice\b|down ?payment|remaining balance|maintenance|installment|payment (?:plan|schedule)|promotion|due date|Source:|السعر|مقدم|قسط|صيانة/iu';
+    $content = preg_replace_callback('#<p\b[^>]*>.*?</p>#isu', static function ($m) use ($money) {
+        return preg_match($money, wp_strip_all_tags($m[0])) ? '' : $m[0];
+    }, $content);
+    return preg_replace('/^[ \t]*(?:Price|Rent|Maintenance|Down payment|Installment|Remaining balance|Due date|السعر|الإيجار|الصيانة|المقدم)[ \t]*:[^\n]*\n?/miu', '', $content);
+}
 add_filter('the_content', static function ($content) {
-    if (cheops_show_unit_prices() || get_post_type() !== 'cheops_unit') return $content;
-    return preg_replace('/^[ \t]*(?:Price|Rent|السعر|الإيجار)[ \t]*:[^\n]*\n?/miu', '', $content);
+    if (get_post_type() !== 'cheops_unit') return $content;
+    // The reference/project/area block repeats the unit facts and the source line is an internal note.
+    $content = preg_replace('#<p\b[^>]*>\s*(?:<strong>Reference:</strong>|<em>Source:).*?</p>#isu', '', $content);
+    return cheops_show_unit_prices() ? $content : cheops_strip_unit_prices($content);
 }, 5);
+
+/** Developer logo: the "Logo URL" set on the developer (Properties → Developers), else the bundled logo for that name. */
+function cheops_developer_logo_for($term) {
+    $custom = trim((string) get_term_meta($term->term_id, 'cheops_logo', true));
+    if ($custom) return $custom;
+    $files = cheops_developer_logo_files();
+    $name = strtolower($term->name);
+    foreach (['mountain view' => 'd-35', 'marq' => 'd-36', 'emaar' => 'd-37', 'lmd' => 'd-38', 'landmark' => 'd-38', 'marakez' => 'd-39', 'lakeview' => 'd-40', 'lake view' => 'd-40', 'ora' => 'd-41', 'w residence' => 'd-w-residence'] as $needle => $key) {
+        if (preg_match('/\b' . preg_quote($needle, '/') . '\b/', $name)) return $files[$key] ?? '';
+    }
+    return '';
+}
+add_action('unit_developer_edit_form_fields', static function ($term) {
+    echo '<tr class="form-field"><th scope="row"><label for="cheops_logo">Logo URL</label></th><td><input name="cheops_logo" id="cheops_logo" type="url" value="' . esc_attr(get_term_meta($term->term_id, 'cheops_logo', true)) . '"><p class="description">Optional. Paste the logo link from the Media Library; leave empty to use the built-in logo. The Description above appears on unit pages under "About the developer".</p></td></tr>';
+});
+add_action('edited_unit_developer', static function ($term_id) {
+    if (isset($_POST['cheops_logo']) && current_user_can('manage_categories')) update_term_meta($term_id, 'cheops_logo', esc_url_raw(wp_unslash($_POST['cheops_logo'])));
+});
 
 /** What a unit card shows where the price goes. */
 function cheops_unit_card_price($post_id) {
@@ -1385,7 +1429,7 @@ function cheops_project_details_box($post) {
         '_cheops_project_start_price'=>'Starting price',
         '_cheops_project_units'=>'Available units',
         '_cheops_project_link'=>'Project link (optional)',
-        '_cheops_project_lat'=>'Map latitude (optional)',
+        '_cheops_project_lat'=>'Map latitude (optional; you can paste "30.0123, 31.4567" from Google Maps here)',
         '_cheops_project_lng'=>'Map longitude (optional)',
     ];
     echo '<div class="cheops-admin-grid">';
@@ -1401,6 +1445,11 @@ function cheops_save_project($post_id){
     if (!current_user_can('edit_post',$post_id)) return;
     foreach(['_cheops_project_type','_cheops_project_start_price','_cheops_project_units','_cheops_project_link','_cheops_project_lat','_cheops_project_lng'] as $key){
         if(isset($_POST[$key])) update_post_meta($post_id,$key,sanitize_text_field(wp_unslash($_POST[$key])));
+    }
+    $pair = explode(',', (string) get_post_meta($post_id,'_cheops_project_lat',true));
+    if (count($pair) === 2 && is_numeric(trim($pair[0])) && is_numeric(trim($pair[1]))) {
+        update_post_meta($post_id,'_cheops_project_lat',trim($pair[0]));
+        update_post_meta($post_id,'_cheops_project_lng',trim($pair[1]));
     }
 }
 add_action('save_post_cheops_project','cheops_save_project');
@@ -1465,7 +1514,7 @@ function cheops_render_project_row($pid,$city,$n=1) {
     $reverse=($n%2===0);
     echo '<article class="proj reveal cheops-project-dynamic cheops-city-project-row">';
     if(!$reverse) echo '<a class="zoom" data-cursor="View project" href="'.esc_url($link).'" style="position:relative;min-height:460px"><img src="'.esc_url($img).'" alt="'.esc_attr(get_the_title($pid).' in '.$city->name).'" loading="lazy" /></a>';
-    echo '<div class="cheops-project-copy'.($reverse?' is-reverse':'').'"><p class="eyebrow gold">Project '.str_pad((string)$n,2,'0',STR_PAD_LEFT).'</p><h3 class="d">'.esc_html(get_the_title($pid)).'</h3><p class="cheops-project-desc">'.esc_html($desc).'</p><dl><div><dt class="meta">Location</dt><dd>'.esc_html($city->name).'</dd></div><div><dt class="meta">Property type</dt><dd>'.esc_html($type ?: 'Mixed use').'</dd></div><div><dt class="meta">Starting price</dt><dd class="d">'.esc_html($price ?: 'On request').'</dd></div><div><dt class="meta">Available units</dt><dd class="d">'.esc_html($units ?: '—').'</dd></div></dl><a class="link-arrow" href="'.esc_url($link).'">Explore project <span class="ar">→</span></a></div>';
+    echo '<div class="cheops-project-copy'.($reverse?' is-reverse':'').'"><p class="eyebrow gold">Project '.str_pad((string)$n,2,'0',STR_PAD_LEFT).'</p><h3 class="d">'.esc_html(get_the_title($pid)).'</h3><p class="cheops-project-desc">'.esc_html($desc).'</p><dl><div><dt class="meta">Location</dt><dd>'.esc_html($city->name).'</dd></div><div><dt class="meta">Property type</dt><dd>'.esc_html($type ?: 'Mixed use').'</dd></div>'.(cheops_show_unit_prices() ? '<div><dt class="meta">Starting price</dt><dd class="d">'.esc_html($price ?: 'On request').'</dd></div>' : '').'<div><dt class="meta">Available units</dt><dd class="d">'.esc_html($units ?: '—').'</dd></div></dl><a class="link-arrow" href="'.esc_url($link).'">Explore project <span class="ar">→</span></a></div>';
     if($reverse) echo '<a class="zoom" data-cursor="View project" href="'.esc_url($link).'" style="position:relative;min-height:460px"><img src="'.esc_url($img).'" alt="'.esc_attr(get_the_title($pid).' in '.$city->name).'" loading="lazy" /></a>';
     echo '</article>';
 }
@@ -2366,6 +2415,8 @@ function cheops_bump_content_version($post_id = 0) {
 }
 add_action('save_post', 'cheops_bump_content_version');
 add_action('deleted_post', 'cheops_bump_content_version');
+// Customizer switches such as "Show unit prices" change cached sections too.
+add_action('customize_save_after', static function () { cheops_bump_content_version(); });
 add_action('trashed_post', 'cheops_bump_content_version');
 add_action('untrashed_post', 'cheops_bump_content_version');
 add_action('created_project_city', function () { cheops_bump_content_version(); });
@@ -2399,7 +2450,7 @@ function cheops_project_map_items() {
 function cheops_project_map_items_uncached() {
     $items=[];
     $q=new WP_Query(['post_type'=>'cheops_project','post_status'=>'publish','posts_per_page'=>-1,'orderby'=>['menu_order'=>'ASC','title'=>'ASC']]);
-    while($q->have_posts()){ $q->the_post(); $pid=get_the_ID(); $title=get_the_title();
+    while($q->have_posts()){ $q->the_post(); $pid=get_the_ID(); $title=get_post_field('post_title',$pid);
         $terms=get_the_terms($pid,'project_city'); $city=($terms && !is_wp_error($terms))?$terms[0]->name:'';
         $desc=get_the_excerpt(); if(!$desc) $desc=wp_trim_words(wp_strip_all_tags(get_post_field('post_content',$pid)),28);
         $unit_ids=get_posts(['post_type'=>'cheops_unit','post_status'=>'publish','posts_per_page'=>-1,'fields'=>'ids','meta_key'=>'_cheops_project','meta_value'=>$title]);
@@ -2408,7 +2459,7 @@ function cheops_project_map_items_uncached() {
         $items[]=[
             'name'=>cheops_clean_dashes($title),'dest'=>$city ?: 'Project','coords'=>$coords,
             'statement'=>$desc ?: 'Explore the available residences and private opportunities in this project.',
-            'price'=>get_post_meta($pid,'_cheops_project_start_price',true) ?: 'On request',
+            'price'=>cheops_show_unit_prices() ? (get_post_meta($pid,'_cheops_project_start_price',true) ?: 'On request') : '',
             'units'=>(string)$real_units,
             'link'=>add_query_arg('project',$title,home_url('/properties/')),
         ];
@@ -2430,7 +2481,7 @@ function cheops_render_project_map_section() {
             <p class="eyebrow gold" id="mDest"><?php echo esc_html($first['dest']); ?></p>
             <h3 class="d d-md" id="mName"><?php echo esc_html($first['name']); ?></h3>
             <p id="mStatement"><?php echo esc_html($first['statement']); ?></p>
-            <dl><div><dt>Starting price</dt><dd class="d" id="mPrice"><?php echo esc_html($first['price']); ?></dd></div><div><dt>Available units</dt><dd class="d" id="mUnits"><?php echo esc_html($first['units']); ?></dd></div></dl>
+            <dl><?php if (cheops_show_unit_prices()): ?><div><dt>Starting price</dt><dd class="d" id="mPrice"><?php echo esc_html($first['price']); ?></dd></div><?php endif; ?><div><dt>Available units</dt><dd class="d" id="mUnits"><?php echo esc_html($first['units']); ?></dd></div></dl>
             <a class="link-arrow" id="mLink" href="<?php echo esc_url($first['link']); ?>">View project units <span class="ar">→</span></a>
           </div>
         </div>
@@ -2444,7 +2495,7 @@ function cheops_render_project_map_section() {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
         function icon(on){return L.divIcon({className:'cheops-map-icon',html:'<span class="cheops-pin'+(on?' active':'')+'"><i></i></span>',iconSize:[26,26],iconAnchor:[13,26]});}
         var markers=[];
-        function select(i,fly){var p=data[i];if(!p)return;document.getElementById('mDest').textContent=p.dest;document.getElementById('mName').textContent=p.name;document.getElementById('mStatement').textContent=p.statement;document.getElementById('mPrice').textContent=p.price;document.getElementById('mUnits').textContent=p.units;document.getElementById('mLink').href=p.link;markers.forEach(function(m,n){m.setIcon(icon(n===i));});if(fly)map.flyTo(p.coords,p.dest==='North Coast'?10:12,{duration:1.05});}
+        function select(i,fly){var p=data[i];if(!p)return;document.getElementById('mDest').textContent=p.dest;document.getElementById('mName').textContent=p.name;document.getElementById('mStatement').textContent=p.statement;var mp=document.getElementById('mPrice');if(mp)mp.textContent=p.price;document.getElementById('mUnits').textContent=p.units;document.getElementById('mLink').href=p.link;markers.forEach(function(m,n){m.setIcon(icon(n===i));});if(fly)map.flyTo(p.coords,p.dest==='North Coast'?10:12,{duration:1.05});}
         data.forEach(function(p,i){var m=L.marker(p.coords,{icon:icon(i===0),title:p.name,keyboard:true}).addTo(map).bindTooltip(p.name,{direction:'top',offset:[0,-20],className:'cheops-tooltip'});m.on('click',function(){select(i,false);window.location.href=p.link});markers.push(m)});
         map.fitBounds(L.latLngBounds(data.map(function(p){return p.coords})),{padding:[44,44],maxZoom:9});select(0,false);
         var fix=function(){try{map.invalidateSize(true)}catch(e){}};[50,300,900].forEach(function(t){setTimeout(fix,t)});addEventListener('resize',fix);
@@ -2460,7 +2511,7 @@ function cheops_render_project_map_section() {
  */
 function cheops_render_logo_band($kind='tenants') {
     if ($kind === 'tenants') {
-        $numbers = range(25, 29);
+        $numbers = cheops_tenant_logo_urls();
         $title = 'Our Business Tenants';
         $label = 'Business tenant logo';
     } else {
@@ -2476,7 +2527,7 @@ function cheops_render_logo_band($kind='tenants') {
     for($copy=0;$copy<($static?1:2);$copy++){
         echo '<div class="cheops-logo-set"'.($copy?' aria-hidden="true"':'').'>';
         foreach($numbers as $i){
-            $src = $kind === 'tenants' ? cheops_developer_logo_url($i) : cheops_logo_url($i);
+            $src = $kind === 'tenants' ? $i : cheops_logo_url($i);
             if ($src) echo '<span class="cheops-logo-item"><img src="'.esc_url($src).'" alt="'.esc_attr($copy?'':$label).'" loading="lazy" decoding="async"></span>';
         }
         echo '</div>';

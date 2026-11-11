@@ -25,7 +25,7 @@ $maintenance=get_post_meta($id,'_cheops_maintenance',true);
 $due=get_post_meta($id,'_cheops_due_date',true);
 $map=get_post_meta($id,'_cheops_map_url',true);
 $video=get_post_meta($id,'_cheops_video_url',true);
-$finish_key=get_post_meta($id,'_cheops_finishing',true); $finish=cheops_finishing_options()[$finish_key] ?? '';
+$finish_key=get_post_meta($id,'_cheops_finishing',true); $finish=$finish_key ? (cheops_finishing_options()[$finish_key] ?? '') : cheops_finishing_options()['core-shell'];
 $sale_key=get_post_meta($id,'_cheops_sale_type',true); $sale_type=cheops_sale_type_options()[$sale_key] ?? '';
 $selected=get_post_meta($id,'_cheops_amenities_selected',true); if(!is_array($selected))$selected=[];
 $custom=array_filter(array_map('trim',explode(',',(string)get_post_meta($id,'_cheops_amenities',true))));
@@ -40,7 +40,7 @@ $masterplan_asset=get_post_meta($id,'_cheops_masterplan_asset',true);
 $gallery_urls=[];
 foreach($gallery as $gid){$u=wp_get_attachment_image_url($gid,'full');if($u)$gallery_urls[]=$u;}
 if(function_exists('cheops_portfolio_asset_url')){
-    foreach([$portfolio_cover_asset,$masterplan_asset,$floorplan_asset] as $asset){
+    foreach([$portfolio_cover_asset] as $asset){
         if($asset){$u=cheops_portfolio_asset_url($asset);if($u)$gallery_urls[]=$u;}
     }
 }
@@ -49,6 +49,9 @@ $floorplan_url=$floorplan ? wp_get_attachment_image_url($floorplan,'full') : (($
 $masterplan_url=$masterplan ? wp_get_attachment_image_url($masterplan,'full') : (($masterplan_asset && function_exists('cheops_portfolio_asset_url')) ? cheops_portfolio_asset_url($masterplan_asset) : '');
 $price_text=cheops_unit_price_text($id);
 $is_leased=cheops_unit_status($id)==='leased';
+$dev_term=null; $dev_terms=get_the_terms($id,'unit_developer'); if($dev_terms && !is_wp_error($dev_terms)) $dev_term=$dev_terms[0];
+$dev_logo=$dev_term ? cheops_developer_logo_for($dev_term) : '';
+$dev_about=$dev_term ? trim(term_description($dev_term)) : '';
 if($is_leased || !cheops_show_unit_prices()){ $payment=$down=$installment=$remaining=$maintenance=$due=''; }
 ?><!doctype html><html <?php language_attributes(); ?>><head><meta charset="<?php bloginfo('charset'); ?>"><meta name="viewport" content="width=device-width,initial-scale=1"><?php cheops_page_css('single-unit'); ?>
 <?php wp_head(); ?>
@@ -57,7 +60,7 @@ if($is_leased || !cheops_show_unit_prices()){ $payment=$down=$installment=$remai
 <div class="sp-wrap">
   <nav class="sp-breadcrumbs" aria-label="Breadcrumb"><a href="<?php echo esc_url(home_url('/')); ?>">Home</a><span>›</span><a href="<?php echo esc_url(home_url('/properties/')); ?>">Properties</a><?php if($loc): ?><span>›</span><span><?php echo esc_html($loc); ?></span><?php endif; ?><span>›</span><b><?php the_title(); ?></b></nav>
   <?php if($gallery_urls): ?>
-  <section class="sp-gallery" id="propertyGallery">
+  <section class="sp-gallery<?php echo count($gallery_urls)===1?' is-single':''; ?>" id="propertyGallery">
     <?php foreach(array_slice($gallery_urls,0,5) as $index=>$media_url): ?><a href="<?php echo esc_url($media_url); ?>" class="sp-gallery-item" data-index="<?php echo esc_attr($index); ?>"><?php if($index===0): ?><img src="<?php echo esc_url($media_url); ?>"<?php echo cheops_srcset($media_url) ? ' srcset="'.esc_attr(cheops_srcset($media_url)).'" sizes="(max-width: 900px) 100vw, 60vw"' : ''; ?> fetchpriority="high" alt="<?php the_title_attribute(); ?>"><?php else: ?><img src="<?php echo esc_url(cheops_img_variant($media_url, 800)); ?>" loading="lazy" decoding="async" alt="<?php the_title_attribute(); ?>"><?php endif; ?></a><?php endforeach; ?>
     <button class="sp-gallery-more" type="button" id="openGallery">▦ View all <?php echo count($gallery_urls); ?> photos</button>
   </section>
@@ -66,9 +69,11 @@ if($is_leased || !cheops_show_unit_prices()){ $payment=$down=$installment=$remai
   <div class="sp-layout">
     <article>
       <div><span class="sp-badge"><?php echo esc_html($deal_label); ?></span> <span class="sp-badge"><?php echo esc_html($type); ?></span> <span class="sp-badge cheops-status-badge is-<?php echo esc_attr(cheops_unit_status($id)); ?>"><?php echo esc_html(cheops_unit_status_label($id)); ?></span></div>
+      <?php if($dev_logo): ?><div class="sp-brand"><?php if($project): ?><span><?php echo esc_html($project); ?></span><?php endif; ?><img src="<?php echo esc_url($dev_logo); ?>" alt="<?php echo esc_attr($dev); ?>" loading="lazy" decoding="async"></div><?php endif; ?>
       <h1 class="sp-title"><?php the_title(); ?></h1>
       <div class="sp-location"><?php echo esc_html(implode(' · ',array_filter([$project,$loc,$dev]))); ?></div>
       <div class="sp-summary"><div class="sp-spec-grid">
+        <?php if($reference): ?><div class="sp-spec"><small>Unit Number</small><strong><?php echo esc_html($reference); ?></strong></div><?php endif; ?>
         <?php if($type): ?><div class="sp-spec"><small>Property Type</small><strong><?php echo esc_html($type); ?></strong></div><?php endif; ?>
         <?php if($area): ?><div class="sp-spec"><small>Area</small><strong><?php echo esc_html($area); ?> m²</strong></div><?php endif; ?>
         <?php if($beds): ?><div class="sp-spec"><small>Bedrooms</small><strong><?php echo esc_html($beds); ?></strong></div><?php endif; ?>
@@ -87,18 +92,20 @@ if($is_leased || !cheops_show_unit_prices()){ $payment=$down=$installment=$remai
 
       <section class="sp-section"><h2>About <?php echo esc_html($type); ?></h2><div class="sp-copy"><?php if(trim(get_the_content())){the_content();}else{ ?><p><?php echo esc_html(sprintf('%s %s in %s%s%s.', $type, strtolower($deal_label), $project ?: $loc, $area?' with '.$area.' m²':'', $beds?' and '.$beds.' bedrooms':'')); ?></p><?php } ?></div></section>
 
-      <?php if($floorplan_url || $masterplan_url): ?><section class="sp-section"><h2>Plans</h2><div class="sp-plan-images"><?php foreach([['Floor Plan',$floorplan_url],['Unit Location',$masterplan_url]] as $plan): if(!$plan[1])continue; ?><a class="sp-plan-image sp-plan-lightbox" href="<?php echo esc_url($plan[1]); ?>"><img src="<?php echo esc_url($plan[1]); ?>" alt="<?php echo esc_attr($plan[0]); ?>"><div><?php echo esc_html($plan[0]); ?> ↗</div></a><?php endforeach; ?></div></section><?php endif; ?>
+      <?php foreach([['Floor Plan',$floorplan_url],['Master Plan',$masterplan_url]] as $plan): if(!$plan[1])continue; ?><section class="sp-section sp-plan-full"><h2><?php echo esc_html($plan[0]); ?></h2><a class="sp-plan-lightbox" href="<?php echo esc_url($plan[1]); ?>"><img src="<?php echo esc_url($plan[1]); ?>" alt="<?php echo esc_attr($plan[0].' · '.get_the_title()); ?>" loading="lazy" decoding="async"><div><?php echo esc_html($plan[0]); ?> ↗</div></a></section><?php endforeach; ?>
+
+      <?php if($dev_term): ?><section class="sp-section sp-developer"><h2>About the developer</h2><div class="sp-developer-card"><?php if($dev_logo): ?><img src="<?php echo esc_url($dev_logo); ?>" alt="<?php echo esc_attr($dev); ?>" loading="lazy" decoding="async"><?php endif; ?><div><h3><?php echo esc_html($dev); ?></h3><?php if($dev_about): ?><div class="sp-copy"><?php echo wp_kses_post(wpautop($dev_about)); ?></div><?php elseif($project): ?><p class="sp-copy"><?php echo esc_html(cheops_is_ar() ? 'مطور مشروع ' . $project . '.' : 'Developer of ' . $project . '.'); ?></p><?php endif; ?></div></div></section><?php endif; ?>
 
       <?php if($map): ?><section class="sp-section"><h2>Location</h2><a class="sp-map" href="<?php echo esc_url($map); ?>" target="_blank" rel="noopener"><span><small class="sp-eyebrow">View on map</small><br><b><?php echo esc_html($loc ?: $project); ?></b></span><span>↗</span></a></section><?php endif; ?>
     </article>
 
     <aside class="sp-side"><div class="sp-contact">
       <div class="sp-contact-label"><?php echo esc_html($deal_label); ?> · <?php echo esc_html($type); ?></div>
-      <?php if(!cheops_show_unit_prices() && !$is_leased): ?><div class="sp-price">Price on request</div><div class="sp-price-sub">Contact us for pricing and availability.</div><?php else: ?><div class="sp-price"><?php echo esc_html($price_text); ?></div>
+      <?php if(!cheops_show_unit_prices() || $is_leased): ?><div class="sp-price"><?php echo $is_leased ? 'Leased' : 'Interested in this unit?'; ?></div><div class="sp-price-sub">Our team will share availability and details privately.</div><?php else: ?><div class="sp-price"><?php echo esc_html($price_text); ?></div>
       <?php if($deal==='rent'): ?><div class="sp-price-sub">Rental amount · <?php echo esc_html(cheops_rent_periods()[$period] ?? 'Monthly'); ?></div><?php else: ?><div class="sp-price-sub">Final availability and terms are confirmed privately.</div><?php endif; endif; ?>
       <div class="sp-cta"><a class="sp-btn" href="<?php echo esc_url(cheops_phone_url()); ?>">Call us</a><a class="sp-btn alt" href="<?php echo esc_url(cheops_whatsapp_url(cheops_whatsapp_unit_message($id))); ?>" target="_blank" rel="noopener">WhatsApp</a></div>
       <div class="sp-mini">
-        <?php foreach([['Reference',$reference],['Project',$project],['Location',$loc],['Developer',$dev]] as $row): if(!$row[1])continue; ?><div class="sp-mini-row"><span><?php echo esc_html($row[0]); ?></span><strong><?php echo esc_html($row[1]); ?></strong></div><?php endforeach; ?>
+        <?php foreach([['Unit Number',$reference],['Project',$project],['Location',$loc],['Developer',$dev]] as $row): if(!$row[1])continue; ?><div class="sp-mini-row"><span><?php echo esc_html($row[0]); ?></span><strong><?php echo esc_html($row[1]); ?></strong></div><?php endforeach; ?>
       </div>
     </div></aside>
   </div>
@@ -106,10 +113,15 @@ if($is_leased || !cheops_show_unit_prices()){ $payment=$down=$installment=$remai
 
 <section class="sp-related"><div class="sp-wrap"><div class="sp-related-head"><div><span class="sp-eyebrow">Explore more</span><h2>Suggested properties</h2></div><a href="<?php echo esc_url(home_url('/properties/')); ?>" style="color:inherit;text-decoration:none;font-size:11px">View all →</a></div><div class="sp-related-grid">
 <?php
-$tax_query=[];
-if($loc){$terms=get_the_terms($id,'unit_location'); if($terms&&!is_wp_error($terms))$tax_query[]=['taxonomy'=>'unit_location','field'=>'term_id','terms'=>[$terms[0]->term_id]];}
-$rq=new WP_Query(['post_type'=>'cheops_unit','post_status'=>'publish','posts_per_page'=>3,'post__not_in'=>[$id],'tax_query'=>$tax_query]);
-if(!$rq->have_posts())$rq=new WP_Query(['post_type'=>'cheops_unit','post_status'=>'publish','posts_per_page'=>3,'post__not_in'=>[$id]]);
+$related=[];
+$base=['post_type'=>'cheops_unit','post_status'=>'publish','posts_per_page'=>3,'fields'=>'ids','no_found_rows'=>true];
+$type_terms=get_the_terms($id,'unit_type'); $loc_terms=get_the_terms($id,'unit_location');
+$tries=[];
+if($project) $tries[]=['meta_key'=>'_cheops_project','meta_value'=>$project];
+if($type_terms&&!is_wp_error($type_terms)) $tries[]=['tax_query'=>[['taxonomy'=>'unit_type','field'=>'term_id','terms'=>[$type_terms[0]->term_id]]]];
+if($loc_terms&&!is_wp_error($loc_terms)) $tries[]=['tax_query'=>[['taxonomy'=>'unit_location','field'=>'term_id','terms'=>[$loc_terms[0]->term_id]]]];
+foreach($tries as $t){ if(count($related)>=3) break; $related=array_merge($related,get_posts(array_merge($base,$t,['post__not_in'=>array_merge([$id],$related),'posts_per_page'=>3-count($related)]))); }
+$rq=new WP_Query(['post_type'=>'cheops_unit','post__in'=>$related ?: [0],'orderby'=>'post__in','posts_per_page'=>3]);
 while($rq->have_posts()):$rq->the_post();$rid=get_the_ID();$rimg=get_the_post_thumbnail_url($rid,'medium_large');
 if(!$rimg && function_exists('cheops_portfolio_asset_url')){$rasset=get_post_meta($rid,'_cheops_portfolio_cover',true);if($rasset)$rimg=cheops_portfolio_asset_url($rasset);}
 ?><a class="sp-related-card" href="<?php the_permalink(); ?>"><?php if($rimg): ?><img src="<?php echo esc_url(cheops_img_variant($rimg, 800)); ?>" loading="lazy" decoding="async" alt="<?php the_title_attribute(); ?>"><?php endif; ?><div class="sp-related-card-body"><h3><?php the_title(); ?></h3><p><?php echo esc_html(implode(' · ',array_filter([cheops_first_term_name($rid,'unit_type',''),cheops_first_term_name($rid,'unit_location','')]))); ?></p><div class="rprice"><?php echo esc_html(cheops_unit_card_price($rid)); ?></div></div></a><?php endwhile;wp_reset_postdata(); ?>
