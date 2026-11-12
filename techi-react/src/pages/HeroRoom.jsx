@@ -21,7 +21,7 @@ const SCN = [["home", "arrive"], ["morning", "sun"], ["movie", "screen"], ["nigh
 const stateTxt = (c, k, v) => (k === "curtains" ? (v ? c.st.open : c.st.closed) : k === "lock" ? (v ? c.st.locked : c.st.unlocked) : v ? c.st.on : c.st.off);
 
 export default function HeroRoom() {
-  const { lang } = useApp();
+  const { lang, theme } = useApp();
   const c = RC[lang];
   const host = useRef(null), roomRef = useRef(null), tip = useRef(null);
   const [on, setOn] = useState(false);
@@ -32,7 +32,7 @@ export default function HeroRoom() {
     let room = null, offs = [], alive = true;
     import("../lib/room3d.js").then(({ createRoom }) => {
       if (!alive) return;
-      room = createRoom(host.current, { rtl: lang === "ar" }); roomRef.current = room;
+      room = createRoom(host.current, { rtl: lang === "ar", night: document.documentElement.dataset.theme === "dark" }); roomRef.current = room;
       if (!room) return;
       offs.push(room.onChange((s) => setSt(s)));
       offs.push(room.onHover((d, x, y) => { setHov(d); if (tip.current && d) tip.current.style.transform = `translate(${x}px,${y}px)`; }));
@@ -43,12 +43,13 @@ export default function HeroRoom() {
     const t = setTimeout(() => setOn(true), 350);
     return () => { alive = false; clearTimeout(t); removeEventListener("scroll", sc); offs.forEach((f) => f()); room && room.destroy(); roomRef.current = null; };
   }, []);
+  useEffect(() => { if (roomRef.current) roomRef.current.themeNight = theme === "dark"; }, [theme]);
   const toggle = (k) => { roomRef.current && roomRef.current.toggle(k); setScene(null); };
   const runScene = (k) => { roomRef.current && roomRef.current.scene(k); setScene(k); };
   const words = (s) => s.split(" ").flatMap((w, i) => [i ? " " : null, <span className="w" key={i}><span>{w}</span></span>]);
   const n = st ? DEV.filter(([k]) => (k === "lock" ? false : st[k])).length : 0;
   return (
-    <section className={"hr hr2" + (on ? " in" : "") + (st && st.night ? " dark" : "")}>
+    <section className={"hr hr2" + (on ? " in" : "") + ((st && st.night) || theme === "dark" ? " dark" : "")}>
       <div className="hr-gl" ref={host} />
       <div className="hr-vign" aria-hidden="true" />
       <div className="hr-copy">

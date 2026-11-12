@@ -90,7 +90,7 @@ export function Cursor() {
 
 /* ---------- header ---------- */
 export function Header({ onMenu }) {
-  const { t, lang, setLang, cart, setCartOpen } = useApp();
+  const { t, lang, setLang, theme, toggleTheme, cart, setCartOpen } = useApp();
   const { pathname } = useLocation();
   const cap = useRef(null), pill = useRef(null);
   const [hide, setHide] = useState(false);
@@ -133,6 +133,7 @@ export function Header({ onMenu }) {
         </nav>
         <div className="hdr-end">
           <span className="clock num">{clock}</span>
+          <button className="icon-btn theme-btn" aria-label={theme === "dark" ? "Light mode" : "Dark mode"} aria-pressed={theme === "dark"} onClick={toggleTheme}><Icon name={theme === "dark" ? "sun" : "moon"} /></button>
           <button className="icon-btn lang-btn" aria-label={t("lang_label")} onClick={() => setLang(lang === "en" ? "ar" : "en")}>{t("lang")}</button>
           <button className="icon-btn" id="cartBtn" onClick={() => setCartOpen(true)}><Icon name="bag" /><span className="hide-sm">{t("cart")}</span><span className="cart-count num" id="cartCount">{count}</span></button>
           <button className="icon-btn menu-btn" aria-label={t("menu")} onClick={onMenu}><Icon name="menu" /></button>

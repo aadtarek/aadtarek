@@ -197,6 +197,7 @@ export function createRoom(host, opts = {}) {
   const S = { night: false, lights: false, lamp: false, curtains: false, tv: false, speaker: false, ac: false, lock: true, vacuum: false };
   const A = { night: 0, lights: 0, lamp: 0, curtains: 0, tv: 0, speaker: 0, ac: 0, door: 0, vac: 0, wake: 0 };
   let woke = false;
+  if (opts.night) { S.night = true; A.night = 1; }
   const subs = new Set(), hovers = new Set();
   const emit = () => subs.forEach((f) => f({ ...S }));
   const set = (k, v) => { if (!(k in S) || S[k] === v) return; S[k] = v; emit(); };
@@ -303,6 +304,7 @@ export function createRoom(host, opts = {}) {
 
   return {
     get state() { return { ...S }; },
+    set themeNight(v) { set("night", !!v); }, // dark mode switches the room to night (scenes can still change it)
     set scroll(v) { scroll = v; },
     set: (k, v) => set(k, v),
     toggle: (k) => set(k, !S[k]),

@@ -27,7 +27,22 @@ export function AppProvider({ children }) {
     if (h && h.setLang) h.setLang(lang);
   }, [lang]);
 
-  /* ---------- shared refs: mesh background + smooth scroll ---------- */
+  /* ---------- theme: light / dark (follows the system until the visitor picks one) ---------- */
+  const sysDark = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: dark)").matches;
+  const [themePick, setThemePick] = useState(() => read("techi-theme", null));
+  const [sys, setSys] = useState(sysDark);
+  const theme = themePick || (sys ? "dark" : "light");
+  useEffect(() => {
+    const m = matchMedia("(prefers-color-scheme: dark)"), f = (e) => setSys(e.matches);
+    m.addEventListener("change", f); return () => m.removeEventListener("change", f);
+  }, []);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = theme === "dark" ? "#060E20" : "#EEF2F8";
+  }, [theme]);
+  const toggleTheme = useCallback(() => setThemePick((cur) => { const next = (cur || (sysDark() ? "dark" : "light")) === "dark" ? "light" : "dark"; write("techi-theme", next); return next; }), []);
+
+  /* ---------- shared refs: smooth scroll ---------- */
   const lenis = useRef(null);
 
   /* ---------- toasts ---------- */
@@ -107,6 +122,6 @@ export function AppProvider({ children }) {
   const go = useCallback((to) => { setCartOpen(false); wipe(() => navigate(to)); }, [wipe, navigate]);
   const setLang = useCallback((l) => wipe(() => setLangState(l)), [wipe]);
 
-  const value = { lang, setLang, t, f: fields, dir, lenis, toast, toasts, cart, setQty, clearCart, addToCart, cartOpen, setCartOpen, go, catalogV };
+  const value = { lang, setLang, theme, toggleTheme, t, f: fields, dir, lenis, toast, toasts, cart, setQty, clearCart, addToCart, cartOpen, setCartOpen, go, catalogV };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
