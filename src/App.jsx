@@ -49,7 +49,7 @@ const gcal = () => {
     action: 'TEMPLATE',
     text: `${W.groom} & ${W.bride}'s Wedding 💍`,
     dates: '20261226/20261227',
-    location: W.venue,
+    location: `${W.venue}, ${W.area}`,
     details: `We can't wait to celebrate with you!\n${W.mapsUrl}`,
   })
   return `https://calendar.google.com/calendar/render?${p}`
@@ -60,7 +60,7 @@ const downloadIcs = () => {
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//wedding//EN', 'BEGIN:VEVENT',
     'UID:ahmed-mariam-20261226', 'DTSTAMP:20261101T000000Z',
     'DTSTART;VALUE=DATE:20261226', 'DTEND;VALUE=DATE:20261227',
-    `SUMMARY:${W.groom} & ${W.bride}'s Wedding`, `LOCATION:${W.venue}`,
+    `SUMMARY:${W.groom} & ${W.bride}'s Wedding`, `LOCATION:${W.venue} - Obour`,
     `DESCRIPTION:${W.mapsUrl}`, 'END:VEVENT', 'END:VCALENDAR',
   ].join('\r\n')
   const a = document.createElement('a')
@@ -192,10 +192,19 @@ export default function App() {
             <p className="card-kicker">The celebration will be held at</p>
             <p className="venue-name foil">{W.venue}</p>
             <p className="venue-ar">{W.venueAr}</p>
-            <Divider />
-            <a className="btn" href={W.mapsUrl} target="_blank" rel="noreferrer">
+            <p className="venue-area">{W.area}</p>
+            <a className="map-frame" href={W.mapsUrl} target="_blank" rel="noopener noreferrer" aria-label="Open in Google Maps">
+              <iframe title="map" src={W.mapsEmbed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" tabIndex={-1} />
+            </a>
+            <a className="btn" href={W.mapsUrl} target="_blank" rel="noopener noreferrer">
               <span>Open in Maps · افتح الخريطة</span>
             </a>
+            <Divider />
+            <p className="card-kicker">Dress code</p>
+            <p className="dress"><span className="foil">{W.dressCode}</span> · <span className="ar">{W.dressCodeAr}</span></p>
+            <div className="swatches" aria-hidden="true">
+              {['#f6c1cf', '#c9e4f6', '#d8f0c8', '#fbe39a', '#d9c8f5', '#ffcfa8'].map((c, i) => <i key={i} style={{ background: c, '--i': i }} />)}
+            </div>
           </Tilt>
         </section>
 

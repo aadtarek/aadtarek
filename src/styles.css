@@ -294,6 +294,15 @@ section, footer {
 @keyframes drop { 0%, 100% { transform: rotate(-45deg) translate(0, 0); } 50% { transform: rotate(-45deg) translate(4px, -4px); } }
 @keyframes wave { from { transform: scale(0.4); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
 
+.venue-area { font-family: var(--caps); font-size: 12px; letter-spacing: 0.25em; color: var(--muted); margin-bottom: 14px; }
+.map-frame { display: block; position: relative; width: 100%; height: 190px; margin-bottom: 18px; border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 0 1px var(--line), 0 12px 30px -14px rgba(120, 85, 20, 0.45); }
+.map-frame iframe { width: 100%; height: 100%; border: 0; pointer-events: none; filter: sepia(0.35) saturate(0.85) brightness(1.03); }
+.map-frame::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 0 6px rgba(255, 253, 248, 0.85), inset 0 0 0 7px var(--line); pointer-events: none; }
+.dress { font-family: var(--caps); font-size: 20px; letter-spacing: 0.08em; margin-top: 4px; }
+.dress .ar { font-family: var(--ar); font-size: 22px; color: var(--gold-deep); letter-spacing: 0; }
+.swatches { display: flex; gap: 8px; justify-content: center; margin-top: 12px; }
+.swatches i { width: 18px; height: 18px; border-radius: 50%; box-shadow: 0 0 0 2px #fffdf8, 0 0 0 3px var(--line); animation: floaty 3s ease-in-out infinite; animation-delay: calc(var(--i) * 0.2s); }
+
 /* buttons */
 .btn {
   position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 16px 30px; border-radius: 999px;
