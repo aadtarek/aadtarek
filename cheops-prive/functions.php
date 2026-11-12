@@ -5,7 +5,7 @@ require_once get_template_directory() . '/inc/i18n.php';
 
 /* Bump on every release. A new build empties the LiteSpeed page cache once, so cached
    pages never point at combined CSS/JS files the cache plugin has already deleted. */
-define('CHEOPS_BUILD', '2026-11-12 · v6.11 LVLS, clean units');
+define('CHEOPS_BUILD', '2026-11-12 · v6.12 unit rooms from reference pages');
 add_action('init', static function () {
     if (get_option('cheops_build_seen') === CHEOPS_BUILD) return;
     update_option('cheops_build_seen', CHEOPS_BUILD, true);
@@ -2365,6 +2365,7 @@ require_once get_template_directory() . '/inc/articles.php';
 require_once get_template_directory() . '/inc/lake-town.php';
 require_once get_template_directory() . '/inc/marq-gardens.php';
 require_once get_template_directory() . '/inc/lvls.php';
+require_once get_template_directory() . '/inc/unit-rooms-data.php';
 if (is_admin()) require_once get_template_directory() . '/inc/i18n-admin.php';
 
 
