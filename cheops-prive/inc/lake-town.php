@@ -17,11 +17,13 @@ function cheops_lake_town_defaults() {
         'google_maps' => 'https://www.google.com/maps?q=30.0259,31.5402',
         'map_views' => [
             ['label' => 'Lake Town', 'time' => '', 'image' => $maps . 'map-main.svg'],
+            // Roads and landmarks only. South 90 St. time is from the Lake Town page; the others are drive estimates.
             ['label' => 'South 90 St.', 'time' => '3 Min', 'image' => $maps . 'map-south-90.svg'],
-            ['label' => 'MV Hyde Park', 'time' => '3 Min', 'image' => $maps . 'map-hyde-park.svg'],
-            ['label' => 'The MarQ Gardens', 'time' => '6 Min', 'image' => $maps . 'map-marq-gardens.svg'],
-            ['label' => 'MV 1', 'time' => '5 Min', 'image' => $maps . 'map-mv1.svg'],
+            ['label' => 'AUC', 'time' => '10 Min', 'image' => ''],
+            ['label' => 'Cairo Airport', 'time' => '30 Min', 'image' => ''],
+            ['label' => 'New Capital', 'time' => '30 Min', 'image' => ''],
         ],
+        'features' => ['24/7 Security', 'Elevators', 'Wi-Fi'],
         // Office interiors only, no people; clinic units use the same photos.
         'office_covers' => [$ref . '2025/12/LT-Bus-1-scaled.jpg', $ref . '2025/12/LT-Bus-2-scaled.jpg', $ref . '2025/12/LT-Bus-3-scaled.jpg', $ref . '2025/12/LTB4.jpg'],
         'office_photos' => [$ref . '2025/12/LTB3.jpg', $ref . '2025/12/LTB4.jpg', $ref . '2025/12/LT-Bus-1-scaled.jpg', $ref . '2025/12/LT-Bus-2-scaled.jpg', $ref . '2025/12/LT-Bus-3-scaled.jpg'],
@@ -103,8 +105,15 @@ function cheops_lake_town_kit($post_id) {
         'intro' => (string) $s['intro'],
         'map_title' => (string) $s['map_title'],
         'google_maps' => (string) $s['google_maps'],
-        'map' => array_values(array_filter((array) $s['map_views'], static function ($v) { return !empty($v['image']); })),
+        'map' => cheops_map_views((array) $s['map_views']),
+        'features' => array_values(array_filter(array_map('trim', (array) ($s['features'] ?? [])))),
     ];
+}
+
+/** Map views with a name; the first one must have a drawing (the main view). */
+function cheops_map_views($views) {
+    $views = array_values(array_filter($views, static function ($v) { return !empty($v['label']) || !empty($v['image']); }));
+    return ($views && !empty($views[0]['image'])) ? $views : [];
 }
 
 /** Stock photos the old Lake Town importer attached; Lake Town photos replace them. */
@@ -137,12 +146,15 @@ function cheops_render_lake_town_map($kit) {
     if ($kit['map_title']) echo '<p class="sp-lt-map-note">' . esc_html($kit['map_title']) . '</p>';
     echo '<div class="sp-lt-map-media">';
     foreach ($kit['map'] as $i => $view) {
+        if (empty($view['image'])) continue;
         echo '<img src="' . esc_url($view['image']) . '" alt="' . esc_attr('Lake Town · ' . ($view['label'] ?? '')) . '"' . ($i ? ' hidden loading="lazy"' : '') . ' decoding="async" data-view="' . (int) $i . '">';
     }
     echo '</div><div class="sp-lt-map-tabs" role="tablist">';
     foreach ($kit['map'] as $i => $view) {
         if (!$i) continue;
-        echo '<button type="button" role="tab" aria-selected="false" data-view="' . (int) $i . '"><strong>' . esc_html($view['label'] ?? '') . '</strong><span>' . esc_html($view['time'] ?? '') . '</span></button>';
+        $inner = '<strong>' . esc_html($view['label'] ?? '') . '</strong><span>' . esc_html($view['time'] ?? '') . '</span>';
+        // A destination with its own drawing switches the map; the others just show the drive time.
+        echo !empty($view['image']) ? '<button type="button" role="tab" aria-selected="false" data-view="' . (int) $i . '">' . $inner . '</button>' : '<div class="sp-lt-map-stop">' . $inner . '</div>';
     }
     echo '</div>';
     if ($kit['google_maps']) echo '<a class="sp-map-link" href="' . esc_url($kit['google_maps']) . '" target="_blank" rel="noopener">' . 'Open in Google Maps ↗' . '</a>';
@@ -264,12 +276,12 @@ function cheops_lake_town_admin_page() {
             <label><span>Google Maps link</span><input type="url" name="lt[google_maps]" value="<?php echo esc_attr($s['google_maps']); ?>"><small>Open Lake Town in Google Maps, press Share, copy the link and paste it here.</small></label>
           </div>
           <div class="cheops-lt-views">
-            <?php foreach (array_values((array) $s['map_views']) as $i => $v): ?>
+            <?php foreach (array_values(array_merge((array) $s['map_views'], [['label' => '', 'time' => '', 'image' => ''], ['label' => '', 'time' => '', 'image' => '']])) as $i => $v): ?>
             <div class="cheops-lt-view"><div class="cheops-lt-preview"><?php if (!empty($v['image'])): ?><img src="<?php echo esc_url($v['image']); ?>" alt=""><?php endif; ?></div>
               <label><span><?php echo $i ? 'Destination' : 'Main view'; ?></span><input type="text" name="lt[map_views][<?php echo (int) $i; ?>][label]" value="<?php echo esc_attr($v['label'] ?? ''); ?>"></label>
               <?php if ($i): ?><label><span>Drive time</span><input type="text" name="lt[map_views][<?php echo (int) $i; ?>][time]" value="<?php echo esc_attr($v['time'] ?? ''); ?>"></label><?php endif; ?>
               <input type="hidden" class="cheops-lt-image" name="lt[map_views][<?php echo (int) $i; ?>][image]" value="<?php echo esc_attr($v['image'] ?? ''); ?>">
-              <button type="button" class="button cheops-lt-pick">Change map</button></div>
+              <button type="button" class="button cheops-lt-pick"><?php echo $i ? 'Map drawing (optional)' : 'Change map'; ?></button></div>
             <?php endforeach; ?>
           </div>
         </section>
@@ -277,6 +289,7 @@ function cheops_lake_town_admin_page() {
         <section class="cheops-lt-card"><h2>About Lake Town</h2>
           <textarea name="lt[intro]" rows="4" class="large-text"><?php echo esc_textarea($s['intro']); ?></textarea></section>
 
+        <section class="cheops-lt-card"><h2>Features</h2><p class="cheops-lt-hint">One per line, for example 24/7 Security, Elevators, Wi-Fi. Shown under Amenities on every unit.</p><textarea name="lt[features]" rows="6" class="large-text"><?php echo esc_textarea(implode("\n", (array) ($s['features'] ?? []))); ?></textarea></section>
         <div class="cheops-lt-actions"><span>Changes show on every Lake Town unit after you save.</span><button class="button button-primary" type="submit">Save changes</button></div>
 
       </form>
@@ -324,7 +337,11 @@ add_action('admin_post_cheops_lake_town_save', static function () {
         'map_views' => [], 'plans' => [],
     ];
     foreach (['office_covers', 'office_photos', 'clinic_covers', 'clinic_photos'] as $key) $out[$key] = $urls($in[$key] ?? '');
-    foreach ((array) ($in['map_views'] ?? []) as $v) $out['map_views'][] = ['label' => sanitize_text_field($v['label'] ?? ''), 'time' => sanitize_text_field($v['time'] ?? ''), 'image' => esc_url_raw($v['image'] ?? '')];
+    foreach ((array) ($in['map_views'] ?? []) as $v) {
+        $row = ['label' => sanitize_text_field($v['label'] ?? ''), 'time' => sanitize_text_field($v['time'] ?? ''), 'image' => esc_url_raw($v['image'] ?? '')];
+        if ($row['label'] !== '' || $row['image'] !== '') $out['map_views'][] = $row;
+    }
+    $out['features'] = array_values(array_filter(array_map('sanitize_text_field', preg_split('/\r?\n/', (string) ($in['features'] ?? '')))));
     foreach ((array) ($in['plans'] ?? []) as $p) {
         $row = ['label' => sanitize_text_field($p['label'] ?? ''), 'units' => sanitize_text_field($p['units'] ?? ''), 'image' => esc_url_raw($p['image'] ?? '')];
         if ($row['image'] || $row['units']) $out['plans'][] = $row;
@@ -344,3 +361,17 @@ add_action('admin_post_cheops_lake_town_import', static function () {
     wp_safe_redirect(admin_url('edit.php?post_type=cheops_unit&page=cheops-lake-town&imported=' . $copied . '&failed=' . $failed));
     exit;
 });
+
+/** One-time: compound destinations on the location map become roads and landmarks, if the saved tabs are still the old ones. */
+add_action('init', static function () {
+    if (get_option('cheops_lake_town_roads_v1')) return;
+    update_option('cheops_lake_town_roads_v1', 1, true);
+    $saved = get_option('cheops_lake_town');
+    if (!is_array($saved) || empty($saved['map_views'])) return;
+    $labels = array_map(static function ($v) { return $v['label'] ?? ''; }, (array) $saved['map_views']);
+    if (!array_intersect($labels, ['MV Hyde Park', 'The MarQ Gardens', 'MV 1', 'MV i City']) || count($labels) !== 5) return;
+    $defaults = cheops_lake_town_defaults();
+    $saved['map_views'] = $defaults['map_views'];
+    update_option('cheops_lake_town', $saved, false);
+    if (function_exists('cheops_bump_content_version')) cheops_bump_content_version();
+}, 36);

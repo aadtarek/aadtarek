@@ -20,11 +20,13 @@ function cheops_mqg_defaults() {
         'google_maps' => 'https://www.google.com/maps?q=30.0735,31.5887',
         'map_views' => [
             ['label' => 'The MarQ Gardens', 'time' => '', 'image' => $u . 'map-main.svg'],
+            // Roads and landmarks only. Suez Road and Ring Road times are from the MarQ page; the others are drive estimates.
             ['label' => 'Suez Road', 'time' => '5 Min', 'image' => $u . 'map-suez.svg'],
-            ['label' => 'MV i City', 'time' => '6 Min', 'image' => $u . 'map-mv-icity.svg'],
             ['label' => 'Ring Road', 'time' => '4 Min', 'image' => $u . 'map-ring-road.svg'],
-            ['label' => 'MV 1', 'time' => '8 Min', 'image' => $u . 'map-mv1.svg'],
+            ['label' => 'Cairo Airport', 'time' => '30 Min', 'image' => ''],
+            ['label' => 'New Capital', 'time' => '25 Min', 'image' => ''],
         ],
+        'features' => ['24/7 Security', 'Gated Community', 'Community Center', 'Fitness Facilities', 'Sports Courts', 'Yoga Pavilion', '1.5 km MarQ Walk', 'Landscaped Gardens'],
         'sections' => [
             ['title' => 'Your Home, Your Identity', 'text' => 'We take pride in being the first personally-branded residence, offering a truly unique living experience that blends luxury with individuality. Each home is personalized with your initials and thoughtfully designed to complement your style and taste, ensuring a living space that is as distinctive as you are.'],
             ['title' => 'The MarQ Walk', 'text' => 'Featuring a 1.5 km scenic path that encircles the community, offering the perfect space for running, walking, and cycling, ideal for those seeking an active lifestyle in a serene setting. This path is designed to reduce car dependence, encouraging more sustainable, pedestrian-friendly transport options and fostering a sense of community connection.'],
@@ -53,7 +55,8 @@ function cheops_mqg_kit($post_id) {
         'intro' => (string) $s['intro'],
         'map_title' => (string) $s['map_title'],
         'google_maps' => (string) $s['google_maps'],
-        'map' => array_values(array_filter((array) $s['map_views'], static function ($v) { return !empty($v['image']); })),
+        'map' => cheops_map_views((array) $s['map_views']),
+        'features' => array_values(array_filter(array_map('trim', (array) ($s['features'] ?? [])))),
         'sections' => array_values(array_filter((array) $s['sections'], static function ($r) { return !empty($r['title']) || !empty($r['text']); })),
         'services' => array_values(array_filter(array_map('trim', (array) $s['services']))),
     ];
@@ -161,12 +164,12 @@ function cheops_mqg_admin_page() {
             <label><span>Google Maps link</span><input type="url" name="mq[google_maps]" value="<?php echo esc_attr($s['google_maps']); ?>"></label>
           </div>
           <div class="cheops-lt-views">
-            <?php foreach (array_values((array) $s['map_views']) as $i => $v): ?>
+            <?php foreach (array_values(array_merge((array) $s['map_views'], [['label' => '', 'time' => '', 'image' => ''], ['label' => '', 'time' => '', 'image' => '']])) as $i => $v): ?>
             <div class="cheops-lt-view"><div class="cheops-lt-preview"><?php if (!empty($v['image'])): ?><img src="<?php echo esc_url($v['image']); ?>" alt=""><?php endif; ?></div>
               <label><span><?php echo $i ? 'Destination' : 'Main view'; ?></span><input type="text" name="mq[map_views][<?php echo (int) $i; ?>][label]" value="<?php echo esc_attr($v['label'] ?? ''); ?>"></label>
               <?php if ($i): ?><label><span>Drive time</span><input type="text" name="mq[map_views][<?php echo (int) $i; ?>][time]" value="<?php echo esc_attr($v['time'] ?? ''); ?>"></label><?php endif; ?>
               <input type="hidden" class="cheops-lt-image" name="mq[map_views][<?php echo (int) $i; ?>][image]" value="<?php echo esc_attr($v['image'] ?? ''); ?>">
-              <button type="button" class="button cheops-lt-pick">Change map</button></div>
+              <button type="button" class="button cheops-lt-pick"><?php echo $i ? 'Map drawing (optional)' : 'Change map'; ?></button></div>
             <?php endforeach; ?>
           </div>
         </section>
@@ -178,6 +181,7 @@ function cheops_mqg_admin_page() {
           <?php endforeach; ?>
         </section>
         <section class="cheops-lt-card"><h2>On-Demand Services</h2><p class="cheops-lt-hint">One per line.</p><textarea name="mq[services]" rows="6" class="large-text"><?php echo esc_textarea(implode("\n", (array) $s['services'])); ?></textarea></section>
+        <section class="cheops-lt-card"><h2>Features</h2><p class="cheops-lt-hint">One per line, for example 24/7 Security, Elevators, Wi-Fi. Shown under Amenities on every unit.</p><textarea name="mq[features]" rows="6" class="large-text"><?php echo esc_textarea(implode("\n", (array) ($s['features'] ?? []))); ?></textarea></section>
         <div class="cheops-lt-actions"><span>Changes show on every MarQ Gardens unit after you save.</span><button class="button button-primary" type="submit">Save changes</button></div>
       </form>
     </div>
@@ -207,7 +211,11 @@ add_action('admin_post_cheops_mqg_save', static function () {
         'map_views' => [], 'sections' => [],
         'services' => array_values(array_filter(array_map('sanitize_text_field', preg_split('/\r?\n/', (string) ($in['services'] ?? ''))))),
     ];
-    foreach ((array) ($in['map_views'] ?? []) as $v) $out['map_views'][] = ['label' => sanitize_text_field($v['label'] ?? ''), 'time' => sanitize_text_field($v['time'] ?? ''), 'image' => esc_url_raw($v['image'] ?? '')];
+    foreach ((array) ($in['map_views'] ?? []) as $v) {
+        $row = ['label' => sanitize_text_field($v['label'] ?? ''), 'time' => sanitize_text_field($v['time'] ?? ''), 'image' => esc_url_raw($v['image'] ?? '')];
+        if ($row['label'] !== '' || $row['image'] !== '') $out['map_views'][] = $row;
+    }
+    $out['features'] = array_values(array_filter(array_map('sanitize_text_field', preg_split('/\r?\n/', (string) ($in['features'] ?? '')))));
     foreach ((array) ($in['sections'] ?? []) as $r) {
         $row = ['title' => sanitize_text_field($r['title'] ?? ''), 'text' => sanitize_textarea_field($r['text'] ?? '')];
         if ($row['title'] !== '' || $row['text'] !== '') $out['sections'][] = $row;
@@ -218,3 +226,17 @@ add_action('admin_post_cheops_mqg_save', static function () {
     wp_safe_redirect(admin_url('edit.php?post_type=cheops_unit&page=cheops-marq-gardens&saved=1'));
     exit;
 });
+
+/** One-time: compound destinations on the location map become roads and landmarks, if the saved tabs are still the old ones. */
+add_action('init', static function () {
+    if (get_option('cheops_marq_gardens_roads_v1')) return;
+    update_option('cheops_marq_gardens_roads_v1', 1, true);
+    $saved = get_option('cheops_marq_gardens');
+    if (!is_array($saved) || empty($saved['map_views'])) return;
+    $labels = array_map(static function ($v) { return $v['label'] ?? ''; }, (array) $saved['map_views']);
+    if (!array_intersect($labels, ['MV Hyde Park', 'The MarQ Gardens', 'MV 1', 'MV i City']) || count($labels) !== 5) return;
+    $defaults = cheops_mqg_defaults();
+    $saved['map_views'] = $defaults['map_views'];
+    update_option('cheops_marq_gardens', $saved, false);
+    if (function_exists('cheops_bump_content_version')) cheops_bump_content_version();
+}, 36);

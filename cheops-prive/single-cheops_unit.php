@@ -53,6 +53,7 @@ if($kit){
 $mq=function_exists('cheops_mqg_kit') ? cheops_mqg_kit($id) : null;
 if($mq) $gallery_urls=array_merge($gallery_urls,$mq['photos']);
 $ckit=$kit ?: $mq; // community material: logo, intro and location map
+if($ckit && !empty($ckit['features'])) $amenities=array_values(array_unique(array_merge($amenities,$ckit['features'])));
 $layout=get_post_meta($id,'_cheops_layout',true);
 $rooms=function_exists('cheops_unit_rooms') ? cheops_unit_rooms($id) : [];
 $gallery_urls=array_values(array_unique(array_filter($gallery_urls)));
