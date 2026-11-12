@@ -27,7 +27,7 @@ ar:{
   ab_big:"بنختار أجهزة TYSH وAmazon اللي شغالة على Tuya وZigbee 3.0، وبنركّبها ونظبطها لحد ما بيتك كله يبقى في أبلكيشن واحد.",
   facts:[["الشوروم","Value Mall، التجمع الخامس، القاهرة الجديدة"],["التركيب","تركيب احترافي على نفس العلب، ونظبط معاك الأبلكيشن وAlexa."],["الضمان","باقة السويتشات والحساسات عليها ضمان 5 سنين."],["المنصة","Tuya · Zigbee 3.0 · Alexa · Google Home"]],
   cart_empty:"السلة لسه فاضية.",cart_empty_p:"ابدأ بأي جهاز، وكل حاجة بتتربط ببعض بعدين.",saved:"وفّرت",total:"الإجمالي",order_on_wa:"اطلب على واتساب",remove:"شيل",
-  order_hi:"أهلاً Techi، عايز أطلب:",order_total:"الإجمالي",added_toast:"اتضاف للسلة",now:"Techi Home · دلوقتي",
+  order_hi:"أهلاً Techi، عايز أطلب:",order_total:"الإجمالي",now:"Techi Home · دلوقتي",
   foot_p:"أجهزة البيت الذكي بتركيب احترافي. Value Mall، التجمع الخامس، القاهرة الجديدة.",foot_contact:"تواصل",zoom:"زووم",menu:"القائمة",close:"اقفل"
 },
 en:{
@@ -57,6 +57,6 @@ en:{
   ab_big:"We pick TYSH and Amazon devices that run on Tuya and Zigbee 3.0, then install and tune them until your whole home lives in one app.",
   facts:[["Showroom","Value Mall, Fifth Settlement, New Cairo"],["Installation","Professional install in your existing wall boxes, with the app and Alexa set up for you."],["Warranty","The switches & sensors package carries a 5-year warranty."],["Platform","Tuya · Zigbee 3.0 · Alexa · Google Home"]],
   cart_empty:"Your cart is empty.",cart_empty_p:"Start with any device; everything links together later.",saved:"You save",total:"Total",order_on_wa:"Order on WhatsApp",remove:"Remove",
-  order_hi:"Hi Techi, I'd like to order:",order_total:"Total",added_toast:"Added to cart",now:"Techi Home · now",
+  order_hi:"Hi Techi, I'd like to order:",order_total:"Total",now:"Techi Home · now",
   foot_p:"Smart-home devices, professionally installed. Value Mall, Fifth Settlement, New Cairo.",foot_contact:"Contact",zoom:"Zoom",menu:"Menu",close:"Close"
 }};

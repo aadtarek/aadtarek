@@ -56,6 +56,7 @@ export function AppProvider({ children }) {
   /* ---------- cart ---------- */
   const [cart, setCart] = useState(() => read("techi-cart", []).filter((i) => byId[i.id]));
   const [cartOpen, setCartOpen] = useState(false);
+  const openTimer = useRef(null);
   useEffect(() => write("techi-cart", cart), [cart]);
   const flyToCart = useCallback((fromEl, p) => {
     if (reduceMotion() || !fromEl) return;
@@ -75,9 +76,11 @@ export function AppProvider({ children }) {
     setCart((c) => { const it = c.find((i) => i.id === id); return it ? c.map((i) => (i.id === id ? { ...i, qty: i.qty + qty } : i)) : [...c, { id, qty }]; });
     const p = byId[id];
     flyToCart(fromEl, p);
-    toast(I18N[lang].added_toast, fields.nm(p), img(p));
     gsap.fromTo("#cartCount", { scale: 1 }, { scale: 1.5, duration: 0.2, yoyo: true, repeat: 1 });
-  }, [flyToCart, toast, lang, fields]);
+    // the drawer opens by itself once the product has flown into the cart icon
+    clearTimeout(openTimer.current);
+    openTimer.current = setTimeout(() => setCartOpen(true), reduceMotion() ? 0 : 850);
+  }, [flyToCart]);
   const clearCart = useCallback(() => setCart([]), []);
 
   /* live prices & stock from WooCommerce (Store API on the same domain) */
