@@ -5,20 +5,11 @@ import { useApp } from "../context.jsx";
 import { Icon } from "./Icons.jsx";
 import { BT, TLink } from "./ui.jsx";
 import { byId, fmt, img, isFine, pad, reduceMotion, waLink } from "../lib/util.js";
-import { createBG } from "../lib/bgmesh.js";
 
 const NAV = [["/", "nav_home", "home"], ["/shop", "nav_shop", "shop"], ["/bundles", "nav_bundles", "bundles"], ["/experience", "nav_xp", "experience"], ["/about", "nav_about", "about"], ["/my-home", "nav_myhome", "my-home"]];
 export function routeKey(pathname) {
   if (pathname.startsWith("/product/")) { const p = byId[+pathname.split("/")[2]]; return p && p.cat === "bundles" ? "bundles" : "shop"; }
   const k = pathname.split("/")[1]; return k || "home";
-}
-
-/* ---------- living mesh background ---------- */
-export function MeshBG() {
-  const { bg } = useApp();
-  const cv = useRef(null);
-  useEffect(() => { if (!bg.current) bg.current = createBG(cv.current); }, [bg]);
-  return <canvas id="bg" ref={cv} aria-hidden="true" />;
 }
 
 /* ---------- preloader: you arrive at a Techi smart door — code, fingerprint, unlock, the door opens into the site ---------- */
@@ -27,11 +18,10 @@ const PRE = {
   ar: { lock: "مقفول", ver: "جاري التحقق", ok: "أهلاً بيك في البيت", hint: "قفل Techi الذكي · الباب الرئيسي" },
 };
 export function Preloader({ onReady }) {
-  const { bg, lang } = useApp();
+  const { lang } = useApp();
   const c = PRE[lang] || PRE.en;
   const el = useRef(null), num = useRef(null), stat = useRef(null);
   useEffect(() => {
-    const b = bg.current; if (b) { b.morph = 1; b.dim = 0.55; }
     const root = el.current;
     if (reduceMotion()) { onReady(); root.style.display = "none"; return; }
     const q = (s) => root.querySelectorAll(s);

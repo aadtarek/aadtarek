@@ -5,19 +5,17 @@ import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "../components/Icons.jsx";
 import { AddButton, BT, BundleShowcase, Finale, Frame3D, Money, ProductCard, Split, TLink, Tag } from "../components/ui.jsx";
 import { CAT_KEYS, D3MAP, P, SHOP, byId, catLink, fmt, img, off, pad, reduceMotion, src, waLink } from "../lib/util.js";
-import { ScrollTrigger, bgPlace, bgTo, flipIn, gsap, reveals } from "../lib/motion.js";
+import { ScrollTrigger, flipIn, gsap, reveals } from "../lib/motion.js";
 import H3D from "../components/H3D.jsx";
 import { getHome } from "../lib/home3d.js";
 
 gsap.registerPlugin(Flip);
 
-/* every inner page: reveals + globe parked in a corner */
+/* every inner page: scroll reveals */
 function usePage(extra) {
-  const { bg, dir } = useApp();
+  const { dir } = useApp();
   const root = useRef(null);
   useLayoutEffect(() => {
-    const B = bg.current; const mob = innerWidth < 900;
-    if (B) { bgPlace(B, 0.62 * -dir, 0.15, mob ? 0.55 : 0.75); bgTo(B, { dim: 0.55 }); }
     const ctx = gsap.context(() => { reveals(root.current, dir); extra && extra(root.current); }, root.current);
     requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => ctx.revert();

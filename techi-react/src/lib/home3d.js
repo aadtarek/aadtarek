@@ -562,7 +562,7 @@ const ROOMS=[
  {id:"entrance",n:4,name:["المدخل","Entrance"],anchor:[-4.2,1.2,2.8],cam:[-1.1,2.15,3.6],look:[-5.7,1.2,2.4],rect:[-6,1,1.6,4],devices:["lock","motion"]},
 ];
 const roomById=Object.fromEntries(ROOMS.map(r=>[r.id,r]));
-let tour=false,room=null,hoverRoom=null,focusDev=null;const roomListeners=[];
+let tour=false,room=null,hoverRoom=null;const roomListeners=[];
 const emitRoom=()=>roomListeners.forEach(f=>f({room:room&&room.id,hover:hoverRoom&&hoverRoom.id}));
 ROOMS.forEach(r=>{const [x0,x1,z0,z1]=r.rect;
   const m=new THREE.Mesh(new THREE.PlaneGeometry(x1-x0,z1-z0),new THREE.MeshBasicMaterial({color:0x9CC0FF,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
@@ -629,7 +629,7 @@ function tourOverview(dur){room=null;pendingLock=false;pinNumbers();freeControls
 function pinNumbers(){D.forEach(q=>{const i=room?room.devices.indexOf(q.id):-1;q.el.querySelector("i").textContent=i>=0?i+1:q.n;});}
 function enterRoom(id,dur=1.9){const r=roomById[id];if(!r)return;room=r;pinNumbers();hoverRoom=null;clearTimeout(limitTimer);freeControls();
   flyTo(new THREE.Vector3(...r.cam),new THREE.Vector3(...r.look),dur);pendingLock=true;emitRoom();}
-function focusDevice(id){focusDev=id;const p=byId[id];D.forEach(q=>q.el.classList.toggle("hl",q.id===id));if(p)pulseAt(p.v);}
+function focusDevice(id){const p=byId[id];D.forEach(q=>q.el.classList.toggle("hl",q.id===id));if(p)pulseAt(p.v);}
 R.domElement.addEventListener("pointermove",e=>{if(!tour||room)return;const r=R.domElement.getBoundingClientRect();ndc.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);
   ray.setFromCamera(ndc,camera);const hit=ray.intersectObjects(ROOMS.map(x=>x.floor),false)[0];const nr=hit?roomById[hit.object.userData.room]:null;
   if(nr!==hoverRoom){hoverRoom=nr;R.domElement.style.cursor=nr?"pointer":"grab";emitRoom();}

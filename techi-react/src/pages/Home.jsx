@@ -3,7 +3,7 @@ import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "../components/Icons.jsx";
 import { BT, BundleShowcase, Finale, Frame3D, ProductCard, TLink, Tag } from "../components/ui.jsx";
 import { CAT_IMG, CAT_KEYS, P, byId, catLink, img, pad, reduceMotion } from "../lib/util.js";
-import { ScrollTrigger, bgPlace, bgTo, flipIn, gsap, reveals } from "../lib/motion.js";
+import { ScrollTrigger, flipIn, gsap, reveals } from "../lib/motion.js";
 import H3D from "../components/H3D.jsx";
 import HeroRoom from "./HeroRoom.jsx";
 
@@ -11,7 +11,7 @@ const TABS = ["all", "screens", "switches", "security", "voice"];
 const FEATURED = [231855, 231759, 231737, 231916, 231689, 231686, 231925, 231940];
 
 export default function Home() {
-  const { t, dir, bg } = useApp();
+  const { t, dir } = useApp();
   const root = useRef(null), grid = useRef(null);
   const [tab, setTab] = useState("all");
   const bundles = P.filter((p) => p.cat === "bundles");
@@ -19,22 +19,9 @@ export default function Home() {
   const shown = (tab === "all" ? FEATURED.map((id) => byId[id]) : devices.filter((p) => p.cat === tab)).slice(0, 8);
 
   useLayoutEffect(() => {
-    const el = root.current, B = bg.current, reduce = reduceMotion(), mob = innerWidth < 900, s = dir;
+    const el = root.current, reduce = reduceMotion();
     const ctx = gsap.context(() => {
       reveals(el, dir);
-      if (B) {
-        const heroPos = () => { bgPlace(B, mob ? 0 : -0.5 * s, mob ? 0.25 : 0.05, mob ? 0.6 : 0.95); bgTo(B, { dim: 0.7 }); };
-        heroPos();
-        if (!reduce) {
-          const stops = [
-            ["#prods", () => { bgPlace(B, 0.7 * s, -0.2, 0.6); bgTo(B, { dim: 0.25 }); }],
-            ["#xp", () => { bgPlace(B, -0.6 * s, 0.1, 0.7); bgTo(B, { dim: 0.3 }); }],
-            ["#bundles", () => { bgPlace(B, 0.65 * s, 0.2, 0.6); bgTo(B, { dim: 0.25 }); }],
-            ["#finale", () => { bgPlace(B, 0, 0.1, mob ? 0.9 : 1.2); bgTo(B, { dim: 0.8 }); }],
-          ];
-          stops.forEach(([sel, fn], i) => ScrollTrigger.create({ trigger: sel, start: "top 65%", onEnter: fn, onLeaveBack: i ? stops[i - 1][1] : heroPos }));
-        }
-      }
       if (reduce) return;
       flipIn(el.querySelector(".cats"), { rotY: -70, stagger: 0.06 });
       flipIn(el.querySelector("#ritual"), { rotY: 60, stagger: 0.12 });
@@ -42,7 +29,7 @@ export default function Home() {
       items.forEach((it, i) => gsap.to(it.querySelector(".bar"), { scaleX: 1, duration: 1.2, ease: "expo.inOut", delay: i * 0.2, scrollTrigger: { trigger: rit, start: "top 80%" }, onComplete: () => it.classList.add("on") }));
     }, el);
     requestAnimationFrame(() => ScrollTrigger.refresh());
-    return () => { ctx.revert(); if (B) B.lux = 0; };
+    return () => ctx.revert();
   }, []); // eslint-disable-line
 
   /* product grid re-enters when the tab changes */

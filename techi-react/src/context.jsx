@@ -28,7 +28,6 @@ export function AppProvider({ children }) {
   }, [lang]);
 
   /* ---------- shared refs: mesh background + smooth scroll ---------- */
-  const bg = useRef(null);
   const lenis = useRef(null);
 
   /* ---------- toasts ---------- */
@@ -63,7 +62,6 @@ export function AppProvider({ children }) {
     flyToCart(fromEl, p);
     toast(I18N[lang].added_toast, fields.nm(p), img(p));
     gsap.fromTo("#cartCount", { scale: 1 }, { scale: 1.5, duration: 0.2, yoyo: true, repeat: 1 });
-    if (bg.current && !reduceMotion()) gsap.fromTo(bg.current, { spin: 6 }, { spin: 1, duration: 2, ease: "power3.out" });
   }, [flyToCart, toast, lang, fields]);
   const clearCart = useCallback(() => setCart([]), []);
 
@@ -109,6 +107,6 @@ export function AppProvider({ children }) {
   const go = useCallback((to) => { setCartOpen(false); wipe(() => navigate(to)); }, [wipe, navigate]);
   const setLang = useCallback((l) => wipe(() => setLangState(l)), [wipe]);
 
-  const value = { lang, setLang, t, f: fields, dir, bg, lenis, toast, toasts, cart, setQty, clearCart, addToCart, cartOpen, setCartOpen, go, catalogV };
+  const value = { lang, setLang, t, f: fields, dir, lenis, toast, toasts, cart, setQty, clearCart, addToCart, cartOpen, setCartOpen, go, catalogV };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

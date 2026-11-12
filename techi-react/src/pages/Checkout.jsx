@@ -6,7 +6,6 @@ import { BT, Money, TLink, Tag } from "../components/ui.jsx";
 import { GOV_CODES } from "../data/i18n2.js";
 import { WooError, placeOrder } from "../lib/woo.js";
 import { byId, fmt, img, reduceMotion, waLink } from "../lib/util.js";
-import { bgPlace, bgTo } from "../lib/motion.js";
 
 const PHONE = /^01[0-25]\d{8}$/;
 const read = (k, d) => { try { return JSON.parse(sessionStorage.getItem(k)) ?? d; } catch (e) { return d; } };
@@ -28,7 +27,7 @@ function Field({ id, label, error, children }) {
 }
 
 export function Checkout() {
-  const { t, f, lang, cart, setQty, clearCart, go, bg, dir } = useApp();
+  const { t, f, lang, cart, setQty, clearCart, go } = useApp();
   const root = useRef(null);
   const [form, setForm] = useState(() => read("techi-co", { first: "", last: "", phone: "", email: "", gov: 0, city: "", address: "", notes: "", install: true, pay: "cod" }));
   const [coupon, setCoupon] = useState("");
@@ -38,7 +37,6 @@ export function Checkout() {
   const set = (k) => (e) => { const v = e.target.type === "checkbox" ? e.target.checked : e.target.value; setForm((x) => { const n = { ...x, [k]: v }; write("techi-co", n); return n; }); };
 
   useLayoutEffect(() => {
-    const B = bg.current; if (B) { bgPlace(B, 0.7 * -dir, 0.3, 0.5); bgTo(B, { dim: 0.25 }); }
     if (reduceMotion()) return;
     const ctx = gsap.context(() => gsap.from(".co-col>*", { y: 40, opacity: 0, duration: 1, ease: "expo.out", stagger: 0.06, delay: 0.15 }), root);
     return () => ctx.revert();

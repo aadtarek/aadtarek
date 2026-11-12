@@ -22,7 +22,6 @@ p{margin:0}
 .split .w>span{display:inline-block;will-change:transform}
 
 /* ---------- atmosphere ---------- */
-#bg{display:block}
 @keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-4%)}60%{transform:translate(-4%,-2%)}80%{transform:translate(3%,4%)}100%{transform:translate(0,0)}}
 
 /* ---------- cursor ---------- */
@@ -284,7 +283,6 @@ body.cur-on .cur{opacity:1}
 :root[lang="en"]{}
 :root[lang="en"] h1,:root[lang="en"] h2{font-weight:600}
 :root[lang="en"] body{font-weight:400;font-size:15.5px}
-#bg{position:fixed;inset:0;width:100%!important;height:100%!important;z-index:-1;pointer-events:none}
 
 /* readout labels replace the serif italics */
 .tag{display:inline-flex;align-items:center;gap:10px;font:500 .72rem var(--mono);letter-spacing:.14em;text-transform:uppercase}

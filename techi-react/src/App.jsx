@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import { useApp } from "./context.jsx";
-import { CartDrawer, Cursor, Footer, Header, MeshBG, MobileMenu, Preloader, Toasts, Transition } from "./components/Chrome.jsx";
+import { CartDrawer, Cursor, Footer, Header, MobileMenu, Preloader, Toasts, Transition } from "./components/Chrome.jsx";
 import Home from "./pages/Home.jsx";
 import Tour from "./pages/Tour.jsx";
 import MyHome from "./pages/MyHome.jsx";
@@ -33,7 +33,6 @@ export default function App() {
 
   return (
     <>
-      <MeshBG />
       <div className="grain" aria-hidden="true" />
       <Cursor />
       <Preloader onReady={() => setReady(true)} />

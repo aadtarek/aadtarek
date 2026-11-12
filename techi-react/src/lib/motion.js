@@ -37,24 +37,6 @@ export function magnetic(root) {
   });
 }
 
-/* move the mesh globe: x,y in fractions of the half-viewport, s = scale */
-export function bgPlace(bg, x, y, s, d = 1.8) {
-  if (!bg) return;
-  const hw = bg.halfWidth();
-  const target = { x: x * hw, y: y * hw * (innerHeight / innerWidth), z: 0 };
-  if (reduceMotion()) { bg.g.position.set(target.x, target.y, 0); bg.g.scale.setScalar(s); return; }
-  gsap.to(bg.g.position, { ...target, duration: d, ease: "expo.inOut", overwrite: "auto" });
-  gsap.to(bg.g.scale, { x: s, y: s, z: s, duration: d, ease: "expo.inOut", overwrite: "auto" });
-}
-export function bgTo(bg, v, d = 1.6) {
-  if (!bg) return;
-  if (reduceMotion()) Object.assign(bg, v);
-  else gsap.to(bg, { duration: d, ease: "expo.inOut", overwrite: "auto", ...v });
-}
-
-/* ---------- 3D everywhere ---------- */
-
-/* sections swing in from depth and tilt away as they leave */
 export function depth3d(root) {
   if (reduceMotion()) return;
   root.querySelectorAll("[data-depth]").forEach((el) => {

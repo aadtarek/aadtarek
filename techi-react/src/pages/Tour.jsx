@@ -26,7 +26,7 @@ function Stacked({ text, className }) {
 }
 
 export default function Tour() {
-  const { t, f, lang, bg } = useApp();
+  const { t, f, lang } = useApp();
   const { dev } = useParams();
   const host = useRef(null), ring = useRef(null), ringFill = useRef(null), title = useRef(null), panel = useRef(null);
   const holdTween = useRef(null), busy = useRef(false);
@@ -63,13 +63,12 @@ export default function Tour() {
     h.setLang && h.setLang(lang);
     h.mount(host.current);
     h.setMode("tour");
-    if (bg.current) bg.current.dim = 0;
     const offRoom = h.onRoom(({ room, hover }) => { setRoom(room); setHover(hover); });
     const offDev = h.on((id, text) => { if (id) { setSel(id); setDid(text); } });
     let timer;
     if (dev) { const r = h.rooms.find((x) => x.devices.includes(dev)); if (r) timer = setTimeout(() => { enter(r.id); setTimeout(() => h.activate(dev, false), 2200); }, 1400); }
     if (!reduceMotion()) gsap.fromTo(h.fx, { p: 1 }, { p: 0, duration: 2.2, ease: "power3.out" });
-    return () => { clearTimeout(timer); offRoom(); offDev(); h.unmount(); document.body.classList.remove("tour-on"); if (bg.current) gsap.to(bg.current, { dim: 0.55, duration: 1 }); };
+    return () => { clearTimeout(timer); offRoom(); offDev(); h.unmount(); document.body.classList.remove("tour-on"); };
   }, []); // eslint-disable-line
 
   /* click & hold a room to enter it */
