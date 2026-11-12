@@ -1,6 +1,6 @@
 # Ahmed & Mariam · Wedding Invitation 💍
 
-React + Three.js wedding invitation: gates that open with a burst of petals, 3D roses, gold rings, glowing butterflies, fireflies that light up and fade, a lights-off neon mode, and a music box generated in the browser.
+White & gold React + Three.js wedding invitation: an envelope with a gold wax seal, 3D white roses with gold tips, gold leaf and petals falling, gold butterflies, interlocked gold rings, gold line-art flowers that draw themselves, a black & gold night mode, and a music box generated in the browser.
 
 ## Edit the details
 Everything is in `src/config.js` (names, date/time, venue, Google Maps link).
