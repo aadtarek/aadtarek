@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { fetchPrices } from "./lib/woo.js";
 import { useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
 import { I18N } from "./data/i18n.js";
@@ -66,10 +67,10 @@ export function AppProvider({ children }) {
   }, [flyToCart, toast, lang, fields]);
   const clearCart = useCallback(() => setCart([]), []);
 
-  /* live prices & stock from WooCommerce (when /api/products is configured) */
+  /* live prices & stock from WooCommerce (Store API on the same domain) */
   const [catalogV, setCatalogV] = useState(0);
   useEffect(() => {
-    fetch("/api/products").then((r) => (r.ok ? r.json() : null)).then((list) => {
+    fetchPrices().then((list) => {
       if (!Array.isArray(list)) return;
       list.forEach((x) => { const p = byId[x.id]; if (p && x.sale > 0) { p.sale = x.sale; p.reg = Math.max(x.reg, x.sale); p.inStock = x.in_stock; } });
       setCatalogV((v) => v + 1);

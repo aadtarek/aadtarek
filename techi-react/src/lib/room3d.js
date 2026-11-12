@@ -103,7 +103,7 @@ export function createRoom(host, opts = {}) {
   art.add(new THREE.Mesh(RB(1.7, 1.15, 0.05, 0.02), M("#011738", { roughness: 0.4 })));
   const artIn = new THREE.Mesh(new THREE.PlaneGeometry(1.56, 1.01), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 }));
   artIn.position.z = 0.03; art.add(artIn);
-  new THREE.TextureLoader().load("/img/logo-full-navy.png", (t) => {
+  new THREE.TextureLoader().load("/techi-img/logo-full-navy.png", (t) => {
     const c = document.createElement("canvas"); c.width = 512; c.height = 330; const x = c.getContext("2d");
     x.fillStyle = "#F4F6FA"; x.fillRect(0, 0, 512, 330); const iw = 300, ih = (iw * t.image.height) / t.image.width; x.drawImage(t.image, 106, 165 - ih / 2, iw, ih);
     const ct = new THREE.CanvasTexture(c); ct.encoding = THREE.sRGBEncoding; artIn.material.map = ct; artIn.material.needsUpdate = true;

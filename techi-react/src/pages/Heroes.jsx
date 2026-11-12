@@ -109,7 +109,7 @@ export function HeroSplit() {
           <ul className="hs-feat">{(f.ft(p) || []).map((x) => <li key={x}><Icon name="check" />{x}</li>)}</ul>
         </div>
         <TLink to={"/product/" + p.id} className="hs-card" data-tilt="6">
-          {p.imgs.map((fl, k) => <img key={fl} src={"/img/" + fl} alt={k ? "" : f.nm(p)} className={k === im ? "on" : ""} data-z="30" />)}
+          {p.imgs.map((fl, k) => <img key={fl} src={"/techi-img/" + fl} alt={k ? "" : f.nm(p)} className={k === im ? "on" : ""} data-z="30" />)}
           <span className="hs-dots">{p.imgs.map((_, k) => <i key={k} className={k === im ? "on" : ""} />)}</span>
         </TLink>
       </div>

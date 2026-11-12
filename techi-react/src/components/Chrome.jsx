@@ -65,7 +65,7 @@ export function Preloader({ onReady }) {
       <div className="pl-door r"><i className="pl-handle" /></div>
       <div className="pl-glow" />
       <div className="pl-ui">
-        <img className="pl-logo" src="/img/logo-full-white.png" alt="" />
+        <img className="pl-logo" src="/techi-img/logo-full-white.png" alt="" />
         <div className="pl-lock">
           <span className="pl-led" />
           <div className="pl-keys">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div>
@@ -136,7 +136,7 @@ export function Header({ onMenu }) {
   return (
     <header className={"hdr" + (hide ? " hide" : "") + (solid ? " solid" : "")}>
       <div className="wrap">
-        <TLink to="/" aria-label="Techi"><img className="logo" src="/img/logo-full-navy.png" alt="Techi" /></TLink>
+        <TLink to="/" aria-label="Techi"><img className="logo" src="/techi-img/logo-full-navy.png" alt="Techi" /></TLink>
         <nav className="capsule" ref={cap} aria-label="Menu">
           <span className="pill" ref={pill} />
           {NAV.map(([to, k, r]) => <TLink key={to} to={to} className={rk === r ? "on" : ""}>{t(k)}</TLink>)}
@@ -221,7 +221,7 @@ export function Toasts() {
     <div className="toasts" aria-live="polite">
       {toasts.map((x) => (
         <div key={x.id} className={"toast toast-in" + (x.alert ? " alert" : "")}>
-          <div className="ti">{x.image ? <img src={x.image} alt="" /> : x.alert ? "!" : <img src="/img/logo-navy.png" alt="" />}</div>
+          <div className="ti">{x.image ? <img src={x.image} alt="" /> : x.alert ? "!" : <img src="/techi-img/logo-navy.png" alt="" />}</div>
           <div><small>{x.title}</small><span>{x.body}</span></div>
         </div>
       ))}
@@ -235,7 +235,7 @@ export function Footer() {
     <footer className="foot">
       <div className="wrap">
         <div className="fg">
-          <div><img src="/img/logo-full-navy.png" alt="Techi" style={{ height: 34, width: "auto", marginBottom: 18 }} /><p className="fp">{t("foot_p")}</p></div>
+          <div><img src="/techi-img/logo-full-navy.png" alt="Techi" style={{ height: 34, width: "auto", marginBottom: 18 }} /><p className="fp">{t("foot_p")}</p></div>
           <div><h5>{t("nav_shop")}</h5>{["screens", "switches", "security", "voice"].map((k) => <TLink key={k} to={"/shop/" + k}>{t("cats")[k]}</TLink>)}</div>
           <div><h5>Techi</h5><TLink to="/bundles">{t("nav_bundles")}</TLink><TLink to="/experience">{t("nav_xp")}</TLink><TLink to="/about">{t("nav_about")}</TLink></div>
           <div><h5>{t("foot_contact")}</h5><a href={waLink("Techi")} target="_blank" rel="noopener">WhatsApp</a><a href="https://techi-eg.com/" target="_blank" rel="noopener">techi-eg.com</a></div>

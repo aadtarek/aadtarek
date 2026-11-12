@@ -14,7 +14,7 @@ export const FEATURED = [231855, 231759, 231737, 231916, 231689, 231686, 231925,
 
 export const fmt = (n) => n.toLocaleString("en-US");
 export const off = (p) => (p.reg > p.sale ? Math.round((1 - p.sale / p.reg) * 100) : 0);
-export const src = (f) => "/img/" + f;
+export const src = (f) => "/techi-img/" + f;
 export const img = (p, i = 0) => src(p.imgs[i] || p.imgs[0]);
 export const pad = (n) => String(n).padStart(2, "0");
 export const waLink = (s) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(s)}`;

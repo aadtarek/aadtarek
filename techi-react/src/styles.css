@@ -1490,7 +1490,7 @@ body.tour-on .hdr.solid .capsule,body.tour-on .hdr.solid .icon-btn{background:rg
 /* finale without the 3D wordmark */
 .fin2{padding:40px 0 70px}
 .fin-card{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;flex-wrap:wrap;padding:clamp(28px,4vw,56px);border-radius:32px;background:radial-gradient(120% 140% at 100% 0%,#1E4BB8 0%,#011738 55%);color:#fff;box-shadow:0 40px 90px -40px rgba(1,23,56,.6);overflow:hidden;position:relative}
-.fin-card::after{content:"";position:absolute;inset:0;background:url(/img/logo-mark-white.png) no-repeat right -60px top -60px/320px;opacity:.06;pointer-events:none}
+.fin-card::after{content:"";position:absolute;inset:0;background:url(/techi-img/logo-mark-white.png) no-repeat right -60px top -60px/320px;opacity:.06;pointer-events:none}
 :root[dir="rtl"] .fin-card::after{background-position:left -60px top -60px}
 .fin-k{display:inline-flex;gap:8px;align-items:center;font:600 .72rem var(--latin);letter-spacing:.14em;color:#9CC6FF;text-transform:uppercase;direction:ltr}
 .fin-k .led{width:7px;height:7px;border-radius:50%;background:#47D89A;box-shadow:0 0 10px #47D89A}

@@ -4,6 +4,7 @@ import { useApp } from "../context.jsx";
 import { Icon } from "../components/Icons.jsx";
 import { BT, Money, TLink, Tag } from "../components/ui.jsx";
 import { GOV_CODES } from "../data/i18n2.js";
+import { WooError, placeOrder } from "../lib/woo.js";
 import { byId, fmt, img, reduceMotion, waLink } from "../lib/util.js";
 import { bgPlace, bgTo } from "../lib/motion.js";
 
@@ -69,16 +70,18 @@ export function Checkout() {
     };
     const text = orderText(t, f, cart, form);
     try {
-      const r = await fetch("/api/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      if (r.status === 404 || r.status === 501) { write("techi-last", { mode: "wa", text }); clearCart(); go("/order/received"); return; }
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) { setFail(t("co_err")); setBusy(false); return; }
+      const data = await placeOrder({
+        items: payload.items, customer: payload.customer, coupon: payload.coupon.trim(), payment: payload.payment,
+        note: [form.install ? "يحتاج تركيب / Installation requested" : "", form.notes].filter(Boolean).join(" — "),
+      });
       write("techi-last", { mode: "ok", number: data.number || data.id, text });
       clearCart();
       if (data.payment_url) { window.location.href = data.payment_url; return; }
       go("/order/received");
     } catch (e) {
-      setFail(t("co_err")); setBusy(false);
+      // no WooCommerce on this domain (e.g. a preview deploy): fall back to WhatsApp ordering
+      if (!(e instanceof WooError) || e.code === "invalid_json" || e.status === 404) { write("techi-last", { mode: "wa", text }); clearCart(); go("/order/received"); return; }
+      setFail(e.code === "coupon" ? e.message : t("co_err") + (e.message && e.code !== "error" ? " (" + e.message.replace(/<[^>]+>/g, "") + ")" : "")); setBusy(false);
     }
   };
 
