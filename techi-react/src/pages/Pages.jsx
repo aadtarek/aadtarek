@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { Flip } from "gsap/Flip";
 import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "../components/Icons.jsx";
-import { AddButton, BT, BundleGrid, Finale, Frame3D, Money, ProductCard, Split, Suites, TLink, Tag } from "../components/ui.jsx";
+import { AddButton, BT, BundleShowcase, Finale, Frame3D, Money, ProductCard, Split, TLink, Tag } from "../components/ui.jsx";
 import { CAT_KEYS, D3MAP, P, SHOP, byId, catLink, fmt, img, off, pad, reduceMotion, src, waLink } from "../lib/util.js";
 import { ScrollTrigger, bgPlace, bgTo, flipIn, gsap, reveals } from "../lib/motion.js";
 import H3D from "../components/H3D.jsx";
@@ -81,7 +81,7 @@ export function Bundles() {
   return (
     <div ref={root}>
       <PHead tag={t("b_tag")} h={t("b_h")} p={t("b_p")} count={pad(b.length)} />
-      <section className="wrap" style={{ paddingBottom: 60 }}><BundleGrid list={b} /></section>
+      <section className="wrap" style={{ paddingBottom: 60 }}><BundleShowcase list={b} /></section>
     </div>
   );
 }

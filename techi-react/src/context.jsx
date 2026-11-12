@@ -45,7 +45,7 @@ export function AppProvider({ children }) {
   useEffect(() => write("techi-cart", cart), [cart]);
   const flyToCart = useCallback((fromEl, p) => {
     if (reduceMotion() || !fromEl) return;
-    const s = fromEl.closest(".pcard,.bcard,.spot,.co-items li,.card,.pp,.dev-card,.xp-item,.slide,.suite")?.querySelector("img") || fromEl;
+    const s = fromEl.closest(".pcard,.bs-stage,.co-items li,.pp,.dev-card,.xp-item")?.querySelector("img") || fromEl;
     const target = document.getElementById("cartBtn");
     if (!target) return;
     const a = s.getBoundingClientRect(), b = target.getBoundingClientRect();

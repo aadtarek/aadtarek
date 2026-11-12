@@ -1,47 +1,47 @@
-# Techi Smart Home — React (Vite)
+# Techi Smart Home — React storefront (headless WooCommerce)
 
-موقع Techi: React 18 + Vite + GSAP + Lenis + Three.js، عربي وإنجليزي.
+موقع Techi: React 18 + Vite + GSAP + Lenis + Three.js، إنجليزي (الأساسي) وعربي.
+الموقع بيشتغل جنب WordPress على نفس الدومين وبيكلّم WooCommerce مباشرة (Store API)، زي طريقة رفاهية.
 
 ## تشغيل على جهازك
 ```bash
 npm install
 npm run dev
 ```
+من غير WordPress، الأسعار بتيجي من `src/data/products.js`، وإتمام الطلب بيتحوّل على واتساب.
 
-## النشر على Vercel
-1. ادخل vercel.com → **Add New → Project** → اختار الريبو `aadtarek/aadtarek`.
-2. في **Root Directory** اختار `techi-react`.
-3. Vercel هيعرف إنه Vite لوحده (Build: `npm run build` · Output: `dist`) → **Deploy**.
-4. الدومين: Project → Settings → Domains → ضيف `techi-eg.com` أو `new.techi-eg.com` واتبع سجلات الـ DNS اللي هيطلبها.
+## النشر على WordPress (techi-eg.com)
+```bash
+./wordpress/pack.sh
+```
+بيطلع `techi-site.zip`: فكّه في `public_html` من File Manager وخلاص.
+الخطوات كاملة في `wordpress/techi-setup/README.txt`.
 
-`vercel.json` بيخلي أي لينك زي `/shop` أو `/product/231855` يفتح مباشرة.
+- `wordpress/wp-content/mu-plugins/techi.php` بيعرض الموقع على الدومين، ويسيب لـ WordPress:
+  `wp-admin` و`wp-json` و`my-account` وصفحات الدفع.
+- `src/lib/woo.js` بيجيب الأسعار والمخزون، ويعمل السلة والأوردر من خلال `/wp-json/wc/store/v1/`.
+- أرقام المنتجات في `src/data/products.js` هي نفس IDs المنتجات في WooCommerce.
 
 ## تعديلات مهمة
 - رقم الواتساب: `src/lib/util.js` → `WA_NUMBER`.
-- المنتجات والأسعار: `src/data/products.js`.
-- النصوص العربي والإنجليزي: `src/data/i18n.js`.
-- الصور: `public/img/`.
+- المنتجات: `src/data/products.js` · الصور: `public/techi-img/`.
+- النصوص: `src/data/i18n.js` و`src/data/i18n2.js`.
 
 ## الهيكل
-- `src/pages/` الصفحات (الرئيسية، المتجر، المنتج، الباقات، البيت 3D، عن Techi)
-- `src/components/` الهيدر، السلة، الكروت، إطار الـ 3D، الأيقونات
-- `src/lib/home3d.js` الشقة الـ 3D · `src/lib/bgmesh.js` خلفية شبكة اللوجو · `src/lib/motion.js` الأنيميشن
-
-## ربط المتجر بـ WooCommerce (WordPress)
-أرقام المنتجات في `src/data/products.js` هي نفس IDs المنتجات في WooCommerce، فالطلبات بتتسجل على نفس المنتجات.
-
-1. في WordPress: **WooCommerce → Settings → Advanced → REST API → Add key**، الصلاحية **Read/Write**.
-2. في Vercel: **Project → Settings → Environment Variables** ضيف:
-   - `WC_URL` = `https://techi-eg.com`
-   - `WC_KEY` = `ck_...`
-   - `WC_SECRET` = `cs_...`
-   - `WC_CARD_GATEWAY` (اختياري) = ID بوابة الدفع بالكارت في WooCommerce، مثلًا `paymob`
-3. اعمل **Redeploy**.
-
-بعدها:
-- `/api/checkout` بيعمل الأوردر في WooCommerce (الدفع عند الاستلام → حالة Processing، الكارت → بيحوّل العميل لصفحة الدفع).
-- `/api/products` بيجيب الأسعار والمخزون الحالية من المتجر، فأي تعديل سعر في WordPress بيظهر في الموقع.
-- المفاتيح بتفضل على السيرفر ومش بتوصل للمتصفح، والأسعار في الأوردر بتتحسب من WooCommerce نفسه.
-
-لو المتغيرات دي مش متظبطة، صفحة إتمام الطلب بتحوّل الطلب على واتساب بدل ما يضيع.
-لتجربة الـ API على جهازك: `npx vercel dev` بدل `npm run dev`.
+- `src/pages/` الصفحات:
+  - `Home` و`HeroRoom` (الأوضة الذكية في الهيرو)
+  - `Pages` (المتجر، المنتج، الباقات، عن Techi)
+  - `Tour` (البيت 3D)
+  - `Checkout`
+  - `MyHome` (التحكم في الأجهزة الحقيقية)
+- `src/components/`:
+  - `Chrome` (الهيدر، البريلودر، السلة، الفوتر)
+  - `ui` (الكروت، الباقات، إطار الـ 3D)
+  - `Icons`
+- `src/lib/`:
+  - `room3d.js` الأوضة التفاعلية في الهيرو
+  - `home3d.js` الشقة الـ 3D
+  - `bgmesh.js` خلفية الشبكة
+  - `motion.js` الأنيميشن
+  - `woo.js` WooCommerce
+- `src/styles.css` كل الستايل.

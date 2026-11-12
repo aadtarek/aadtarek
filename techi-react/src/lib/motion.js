@@ -14,24 +14,14 @@ export function reveals(root, dir = 1) {
     gsap.from(head.querySelectorAll("[data-split] .w>span"), { yPercent: 120, duration: 1.4, ease: "expo.out", stagger: 0.08, delay: 0.2 });
     gsap.from(head.querySelectorAll("[data-fade],.tag"), { y: 30, opacity: 0, duration: 1, ease: "power3.out", stagger: 0.1, delay: 0.5 });
   }
-  $$("[data-split]").filter((el) => !el.closest(".phead,.hero")).forEach((el) =>
+  $$("[data-split]").filter((el) => !el.closest(".phead")).forEach((el) =>
     gsap.from(el.querySelectorAll(".w>span"), { yPercent: 120, duration: 1.3, ease: "expo.out", stagger: 0.06, scrollTrigger: { trigger: el, start: "top 88%" } }));
-  $$("[data-fade]").filter((el) => !el.closest(".phead,#hero")).forEach((el) =>
+  $$("[data-fade]").filter((el) => !el.closest(".phead")).forEach((el) =>
     gsap.from(el, { y: 40, opacity: 0, duration: 1.2, ease: "power3.out", scrollTrigger: { trigger: el, start: "top 90%" } }));
   $$("[data-stagger]").forEach((g) =>
     gsap.from(g.children, { y: 80, opacity: 0, duration: 1.2, ease: "expo.out", stagger: 0.08, scrollTrigger: { trigger: g, start: "top 85%" } }));
   $$(".t3d-frame:not(.full)").forEach((f) =>
     gsap.from(f, { clipPath: "inset(18% 14% 18% 14% round 60px)", duration: 1.8, ease: "expo.out", scrollTrigger: { trigger: f, start: "top 85%" } }));
-  const su = root.querySelector("#suites");
-  if (su) gsap.from(su.children, { y: 120, opacity: 0, duration: 1.4, ease: "expo.out", stagger: 0.08, scrollTrigger: { trigger: su, start: "top 85%" } });
-  const fin = root.querySelector("#finale");
-  if (fin) {
-    const g = fin.querySelector(".giant");
-    gsap.from(g, { yPercent: 30, opacity: 0, duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: fin, start: "top 80%" } });
-    const mv = (e) => { const r = g.getBoundingClientRect(); g.style.setProperty("--mx", ((e.clientX - r.left) / r.width) * 100 + "%"); g.style.setProperty("--my", ((e.clientY - r.top) / r.height) * 100 + "%"); };
-    fin.addEventListener("pointermove", mv);
-    if (!isFine()) gsap.to(g, { "--mx": "100%", duration: 4, yoyo: true, repeat: -1, ease: "sine.inOut" });
-  }
   root.querySelectorAll(".sec2>.wrap,.sec>.wrap,.phead>.wrap").forEach((w) => { if (!w.closest(".co-page") && !w.hasAttribute("data-depth")) w.setAttribute("data-depth", ""); });
   depth3d(root); heads3d(root);
   requestAnimationFrame(() => tilt3d(root));

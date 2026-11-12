@@ -59,7 +59,6 @@ export default function App() {
         )}
       </main>
       <Footer />
-      <div className="hover-img" id="hoverImg" aria-hidden="true" />
       <CartDrawer />
       <Toasts />
     </>

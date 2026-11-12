@@ -9,8 +9,6 @@ export const SHOP = P.filter((p) => p.cat !== "bundles").concat(P.filter((p) => 
 export const CAT_KEYS = ["screens", "switches", "security", "voice", "bundles"];
 export const CAT_IMG = { screens: 231759, switches: 231686, security: 231855, voice: 231737, bundles: 231792 };
 export const D3MAP = { light_living: 231840, light_kitchen: 231840, light_bedroom: 231840, curtain_living: 231686, curtain_bed: 231711, ac: 231783, socket: 231689, hub: 231933, echo: 231737, panel: 231759, lock: 231855, motion: 231925, gas: 231916, valve: 231940 };
-export const GHOST = { 231855: "LOCK", 231759: "PANEL", 231737: "ECHO", 231916: "GAS", 231689: "SOCKET", 231686: "CURTAIN", 231925: "MOTION", 231940: "VALVE" };
-export const FEATURED = [231855, 231759, 231737, 231916, 231689, 231686, 231925, 231940];
 
 export const fmt = (n) => n.toLocaleString("en-US");
 export const off = (p) => (p.reg > p.sale ? Math.round((1 - p.sale / p.reg) * 100) : 0);

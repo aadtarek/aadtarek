@@ -4,7 +4,6 @@ import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "./Icons.jsx";
 import { D3MAP, byId, fmt, img, isFine, off, pad, reduceMotion, waLink } from "../lib/util.js";
 import { getHome } from "../lib/home3d.js";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 /* link that plays the page transition */
 export function TLink({ to, children, onClick, ...rest }) {
@@ -67,35 +66,6 @@ export function ProductCard({ p }) {
   );
 }
 
-/* bundle card: image, what's inside, savings, price */
-export function BundleCard({ p, big, best }) {
-  const { t, f } = useApp();
-  const items = f.its(p) || [];
-  const show = big ? items.slice(0, 8) : items.slice(0, 4);
-  const pct = off(p);
-  return (
-    <article className={"bcard" + (big ? " big" : "")} data-tilt={big ? "5" : "8"}>
-      <TLink className="bc-media" to={"/product/" + p.id} data-cursor={t("view")} data-z="40">
-        <img src={img(p)} alt={f.nm(p)} loading="lazy" />
-        <span className="bc-badges">{best && <span className="bc-best">{t("b_best")}</span>}{pct > 0 && <span className="bc-save num">{t("b_save_pct")} {pct}%</span>}</span>
-      </TLink>
-      <div className="bc-body">
-        <div className="bc-head"><span className="bc-var">{f.vr(p)}</span><h3><TLink to={"/product/" + p.id}>{f.nm(p)}</TLink></h3>{big && <p>{f.pt(p)}</p>}</div>
-        <div className="bc-inc">
-          <span className="bc-inc-l">{t("b_includes")}</span>
-          <ul>{show.map(([n, q], i) => <li key={i}><Icon name="check" /><span>{n}</span>{q ? <b className="num">×{q}</b> : null}</li>)}</ul>
-          {items.length > show.length && <span className="bc-more num">+{items.length - show.length} {t("b_more")}</span>}
-        </div>
-        <div className="bc-foot" data-z="24">
-          <div className="bc-price"><b className="num"><Money n={p.sale} /></b>{p.reg > p.sale && <s className="num">{fmt(p.reg)}</s>}</div>
-          <div className="bc-acts"><AddButton id={p.id} className="btn btn-white bc-btn"><Icon name="plus" />{t("add_bundle")}</AddButton><TLink className="btn btn-line bc-btn" to={"/product/" + p.id}>{t("details")}</TLink></div>
-        </div>
-      </div>
-    </article>
-  );
-}
-export function BundleGrid({ list }) { return <BundleShowcase list={list} />; }
-
 const ITEM_IC = [[/lock|قفل/i, "shield"], [/panel|screen|show|شاش|بانل/i, "screen"], [/switch|مفتاح|سويتش/i, "switch"], [/sensor|حساس|motion|gas|غاز/i, "target"], [/echo|alexa|اليكسا|إيكو/i, "voice"], [/curtain|ستار/i, "stack"], [/valve|محبس|water|مياه/i, "bolt"], [/socket|بريز|فيشة/i, "bolt"], [/ir|remote|ريموت/i, "app"], [/install|تركيب/i, "install"], [/warranty|ضمان/i, "shield"]];
 const itemIcon = (n) => (ITEM_IC.find(([r]) => r.test(n)) || [0, "check"])[1];
 
@@ -144,31 +114,6 @@ export function BundleShowcase({ list }) {
           <div className="bs-acts"><AddButton id={p.id} className="btn btn-white"><Icon name="plus" />{t("add_bundle")}</AddButton><TLink className="btn btn-line" to={"/product/" + p.id}>{t("details")}</TLink></div>
         </div>
       </div>
-    </div>
-  );
-}
-
-export function Suites({ list }) {
-  const { t, f } = useApp();
-  const [on, setOn] = useState(0);
-  const fine = isFine();
-  return (
-    <div className="suites" id="suites">
-      {list.map((p, i) => (
-        <article key={p.id} className={"suite" + (i === on ? " on" : "")} tabIndex={0}
-          onClick={() => setOn(i)} onKeyDown={(e) => e.key === "Enter" && setOn(i)} onMouseEnter={() => fine && setOn(i)}>
-          <div className="tab"><span className="num si">{pad(i + 1)}</span><h4>{f.nm(p)}</h4><span className="pr num">{fmt(p.sale)} {t("cur")}</span></div>
-          <div className="body">
-            <TLink className="bimg" to={"/product/" + p.id} data-cursor={t("view")}><img src={img(p)} alt={f.nm(p)} loading="lazy" /></TLink>
-            <div className="info">
-              <span className="num si">{pad(i + 1)} / {pad(list.length)}</span><h3>{f.nm(p)}</h3><span className="v">{f.vr(p)}</span><p>{f.pt(p)}</p>
-              <ul>{(f.its(p) || []).slice(0, 8).map(([n, q], k) => <li key={k}><span>{n}</span>{q ? <b className="num">× {q}</b> : null}</li>)}</ul>
-              <div className="pr-big"><b className="num"><Money n={p.sale} /></b><s className="num">{fmt(p.reg)}</s>{p.reg > p.sale && <span className="save num">{t("save")} {fmt(p.reg - p.sale)} {t("cur")}</span>}</div>
-              <div className="row-btns"><AddButton id={p.id}><Icon name="plus" /><BT>{t("add_bundle")}</BT></AddButton><TLink className="btn btn-line" to={"/product/" + p.id}><BT>{t("details")}</BT></TLink></div>
-            </div>
-          </div>
-        </article>
-      ))}
     </div>
   );
 }
