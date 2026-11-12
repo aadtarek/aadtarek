@@ -1,7 +1,9 @@
 # Techi Smart Home — React storefront (headless WooCommerce)
 
 موقع Techi: React 18 + Vite + GSAP + Lenis + Three.js، إنجليزي (الأساسي) وعربي.
-الموقع بيشتغل جنب WordPress على نفس الدومين وبيكلّم WooCommerce مباشرة (Store API)، زي طريقة رفاهية.
+بيكلّم WooCommerce مباشرة (Store API). يشتغل بطريقتين بنفس الكود:
+- جوه `public_html` جنب WordPress، زي رفاهية.
+- أو على Vercel.
 
 ## تشغيل على جهازك
 ```bash
@@ -21,6 +23,18 @@ npm run dev
   `wp-admin` و`wp-json` و`my-account` وصفحات الدفع.
 - `src/lib/woo.js` بيجيب الأسعار والمخزون، ويعمل السلة والأوردر من خلال `/wp-json/wc/store/v1/`.
 - أرقام المنتجات في `src/data/products.js` هي نفس IDs المنتجات في WooCommerce.
+
+## النشر على Vercel (نفس الربط بالظبط)
+1. vercel.com → **Add New → Project** → اختار الريبو `aadtarek/aadtarek`.
+2. **Root Directory** = `techi-react` → **Deploy** (Vercel بيعرف Vite لوحده).
+3. الدومين: Project → Settings → Domains.
+
+`vercel.json` بيحوّل أي طلب `/wp-json/...` لـ `https://techi-eg.com/wp-json/...`.
+فالموقع على Vercel بيكلّم WooCommerce كأنه على نفس الدومين: أسعار لايف وسلة وأوردرات، من غير مفاتيح.
+لو WordPress اتنقل لدومين تاني (مثلاً `shop.techi-eg.com`) غيّر السطر ده في `vercel.json`.
+
+> لو هتحط `techi-eg.com` نفسه على Vercel، لازم WordPress يتنقل الأول لساب دومين (زي `shop.techi-eg.com`).
+> وبعدين تغيّر `vercel.json` عليه، لأن الدومين الواحد مايقدرش يشاور على مكانين.
 
 ## تعديلات مهمة
 - رقم الواتساب: `src/lib/util.js` → `WA_NUMBER`.
