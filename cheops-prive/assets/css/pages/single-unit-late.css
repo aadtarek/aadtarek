@@ -47,9 +47,14 @@
 .sp-story-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .sp-story-grid article{padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--soft)}
 .sp-story-grid h3{font-family:"Romie",Georgia,serif;font-weight:400;font-size:22px;margin:0 0 10px}
-.sp-story-grid p{margin:0;color:var(--muted);line-height:1.7;font-size:14px}
+.sp-story-grid p{margin:0;color:var(--muted);line-height:1.7;font-size:14px;font-family:"Neue Montreal",Arial,sans-serif}
 @media(max-width:640px){.sp-story-grid{grid-template-columns:1fr}}
 .sp-lt-map-stop{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 18px;border:1px solid var(--line);border-radius:16px;background:var(--soft);color:var(--ink)}
 .sp-lt-map-stop strong{font-weight:400;font-size:15px}
 .sp-lt-map-stop span{font:600 10px/1 "Neue Montreal",Arial,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
 @media(max-width:640px){.sp-lt-map-stop{flex:1 1 45%}}
+.sp-plan-floors{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.sp-plan-floors>a{display:block;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff;color:inherit;text-decoration:none}
+.sp-plan-floors>a div{padding:14px 18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;border-top:1px solid var(--line);font-family:"Neue Montreal",Arial,sans-serif}
+.sp-plan-floors .sp-plan-lightbox img{aspect-ratio:4/3;object-fit:contain;background:#fff}
+@media(max-width:760px){.sp-plan-floors{grid-template-columns:1fr}}

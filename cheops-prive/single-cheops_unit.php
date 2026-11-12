@@ -39,7 +39,7 @@ $floorplan_asset=get_post_meta($id,'_cheops_floorplan_asset',true);
 $masterplan_asset=get_post_meta($id,'_cheops_masterplan_asset',true);
 $gallery_urls=[];
 foreach($gallery as $gid){$u=wp_get_attachment_image_url($gid,'full');if($u)$gallery_urls[]=$u;}
-if(function_exists('cheops_portfolio_asset_url')){
+if(!$gallery_urls && function_exists('cheops_portfolio_asset_url')){
     foreach([$portfolio_cover_asset] as $asset){
         if($asset){$u=cheops_portfolio_asset_url($asset);if($u)$gallery_urls[]=$u;}
     }
@@ -52,10 +52,15 @@ if($kit){
 }
 $mq=function_exists('cheops_mqg_kit') ? cheops_mqg_kit($id) : null;
 if($mq) $gallery_urls=array_merge($gallery_urls,$mq['photos']);
+$lv=function_exists('cheops_lvls_kit') ? cheops_lvls_kit($id) : null;
+if($lv) $gallery_urls=array_merge($gallery_urls,$lv['photos']);
+if(!$mq && $lv) $mq=$lv; // LVLS shares the MarQ story layout
 $ckit=$kit ?: $mq; // community material: logo, intro and location map
 if($ckit && !empty($ckit['features'])) $amenities=array_values(array_unique(array_merge($amenities,$ckit['features'])));
 $layout=get_post_meta($id,'_cheops_layout',true);
 $rooms=function_exists('cheops_unit_rooms') ? cheops_unit_rooms($id) : [];
+if($lv && !$layout) $layout=$lv['layout'];
+if($lv && !$rooms){ foreach(preg_split('/\r?\n/',$lv['rooms']) as $line){ $parts=array_map('trim',explode('|',$line,2)); if($parts[0]!=='') $rooms[]=[$parts[0],$parts[1]??'']; } }
 $gallery_urls=array_values(array_unique(array_filter($gallery_urls)));
 if($kit && !$reference) $reference=$kit['number'];
 $project_url=$project ? add_query_arg('project',rawurlencode($project),home_url('/properties/')) : '';
@@ -111,10 +116,10 @@ if($is_leased || !cheops_show_unit_prices()){ $payment=$down=$installment=$remai
 
       <?php if($payment || $down || $installment || $remaining || $maintenance || $due): ?><section class="sp-section"><h2><?php echo $deal==='rent'?'Rental terms':'Payment plan'; ?></h2><div class="sp-plan-card"><div><span class="sp-eyebrow"><?php echo $deal==='rent'?'Lease':'Offer'; ?></span><strong><?php echo esc_html($installment ?: $payment ?: $price_text); ?></strong><div class="sp-plan-meta"><?php if($payment): ?><span><?php echo esc_html($payment); ?></span><?php endif; ?><?php if($down): ?><span>Down payment: <?php echo esc_html($down); ?></span><?php endif; ?><?php if($remaining): ?><span>Remaining: <?php echo esc_html($remaining); ?></span><?php endif; ?><?php if($maintenance): ?><span>Maintenance: <?php echo esc_html($maintenance); ?></span><?php endif; ?><?php if($due): ?><span>Due: <?php echo esc_html($due); ?></span><?php endif; ?></div></div><a class="sp-btn" href="<?php echo esc_url(cheops_whatsapp_url(cheops_whatsapp_unit_message($id))); ?>" target="_blank" rel="noopener">Request details</a></div></section><?php endif; ?>
 
-      <section class="sp-section"><h2>About <?php echo esc_html($type); ?></h2><div class="sp-copy"><?php if($ckit && $ckit['intro']): ?><p><?php echo esc_html($ckit['intro']); ?></p><?php endif; ?><?php if(trim(get_the_content())){the_content();}elseif(!$ckit){ ?><p><?php echo esc_html(sprintf('%s %s in %s%s%s.', $type, strtolower($deal_label), $project ?: $loc, $area?' with '.$area.' m²':'', $beds?' and '.$beds.' bedrooms':'')); ?></p><?php } ?></div></section>
 
       <?php if($layout || $rooms): ?><section class="sp-section sp-rooms"><h2>Rooms</h2><?php if($layout): ?><p class="sp-rooms-layout"><?php echo esc_html($layout); ?></p><?php endif; ?><?php if($rooms): ?><div class="sp-details"><?php foreach($rooms as $r): ?><div class="sp-detail"><span><?php echo esc_html($r[0]); ?></span><strong><?php echo esc_html($r[1]); ?></strong></div><?php endforeach; ?></div><?php endif; ?></section><?php endif; ?>
 
+      <?php if($lv && $lv['plans']): ?><section class="sp-section sp-plan-full"><h2>Floor Plan</h2><div class="sp-plan-floors"><?php foreach($lv['plans'] as $fp): ?><a class="sp-plan-lightbox" href="<?php echo esc_url($fp['image']); ?>"><img src="<?php echo esc_url($fp['image']); ?>" alt="<?php echo esc_attr(($fp['label'] ?: 'Floor Plan').' · '.get_the_title()); ?>" loading="lazy" decoding="async"><div><?php echo esc_html($fp['label'] ?: 'Floor Plan'); ?> ↗</div></a><?php endforeach; ?></div></section><?php $floorplan_url=''; endif; ?>
       <?php foreach([['Floor Plan',$floorplan_url],['Master Plan',$masterplan_url]] as $plan): if(!$plan[1])continue; ?><section class="sp-section sp-plan-full"><h2><?php echo esc_html($plan[0]); ?></h2><a class="sp-plan-lightbox" href="<?php echo esc_url($plan[1]); ?>"><img src="<?php echo esc_url($plan[1]); ?>" alt="<?php echo esc_attr($plan[0].' · '.get_the_title()); ?>" loading="lazy" decoding="async"><div><?php echo esc_html($plan[0]); ?> ↗</div></a></section><?php endforeach; ?>
 
       <?php if($mq) cheops_render_mqg_story($mq); ?>

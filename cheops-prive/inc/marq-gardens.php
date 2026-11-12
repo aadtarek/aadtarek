@@ -65,7 +65,7 @@ function cheops_mqg_kit($post_id) {
 /** Project story and on-demand services on a MarQ Gardens unit page. */
 function cheops_render_mqg_story($kit) {
     if ($kit['sections']) {
-        echo '<section class="sp-section sp-story"><h2>Life at The MarQ Gardens</h2><div class="sp-story-grid">';
+        echo '<section class="sp-section sp-story"><h2>Life at ' . esc_html($kit['name'] ?? CHEOPS_MQG_PROJECT) . '</h2><div class="sp-story-grid">';
         foreach ($kit['sections'] as $r) echo '<article><h3>' . esc_html($r['title'] ?? '') . '</h3><p>' . esc_html($r['text'] ?? '') . '</p></article>';
         echo '</div></section>';
     }
