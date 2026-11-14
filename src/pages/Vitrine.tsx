@@ -87,6 +87,7 @@ function Experience({ products, phone }: { products: Product[]; phone: boolean }
   const [hover, setHover] = useState<number | null>(null)
   const [scroll, setScroll] = useState(0)
   const [look, setLook] = useState(false)
+  const [gen, setGen] = useState(0) // a new scene after the graphics card dropped the old one
   const focusRef = useRef<number | null>(null)
   const modeRef = useRef(mode)
   const flyingRef = useRef(flying)
@@ -138,6 +139,15 @@ function Experience({ products, phone }: { products: Product[]; phone: boolean }
         onHover: setHover,
         onScroll: (s) => setScroll((old) => (Math.abs(old - s) > 0.004 ? s : old)),
         onStage: setFront,
+        onLost: () => {
+          window.setTimeout(() => {
+            flyingRef.current = hall
+            setFlying(hall)
+            setMode(hall ? 'stage' : 'wall')
+            setChosen(null)
+            setGen((g) => g + 1)
+          }, 300)
+        },
         onArrive: (where) => {
           flyingRef.current = false
           setFlying(false)
@@ -157,7 +167,7 @@ function Experience({ products, phone }: { products: Product[]; phone: boolean }
       engine.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, phone])
+  }, [products, phone, gen])
 
   // Keys: on the stage the arrows turn the ring and Enter steps in; on the wall they step through
   // the bottles; Escape steps back out (bottle → wall → stage → leave).
@@ -293,7 +303,7 @@ function Experience({ products, phone }: { products: Product[]; phone: boolean }
         onPointerLeave={() => engine.current?.pointerAt(null)}
         onWheel={onWheel}
       >
-        <canvas ref={canvas} className="vx-canvas" />
+        <canvas key={gen} ref={canvas} className="vx-canvas" />
       </div>
 
       {/* The heads-up layer */}

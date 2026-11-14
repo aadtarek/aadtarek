@@ -21,11 +21,21 @@ float noise(vec3 x) {
              mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
 }`
 
+/** Clamps a colour: a NaN or an overflow in one pixel would spread through the glow and black out the frame (some graphics cards). */
+const SAFE = /* glsl */ `
+vec4 safe(vec4 c) {
+  bvec4 bad = bvec4(c.r != c.r, c.g != c.g, c.b != c.b, c.a != c.a);
+  if (any(bad)) return vec4(0.0);
+  return clamp(c, 0.0, 60.0);
+}`
+
+
 /** A person: lit from above by its spotlight, with a warm rim where the light catches the outline. */
 const personVertex = /* glsl */ `
 varying vec2 vUv;
 void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`
 const personFragment = /* glsl */ `
+${SAFE}
 uniform sampler2D uMap;
 uniform float uLight;
 uniform float uFade;
@@ -53,7 +63,7 @@ void main() {
   // A soft shimmer moving up the figure while it is in the light.
   float sweep = smoothstep(0.08, 0.0, abs(vUv.y - fract(uTime * 0.12) * 1.6 + 0.3));
   col += uWarm * sweep * 0.08 * l;
-  gl_FragColor = vec4(col, tex.a * uFade);
+  gl_FragColor = safe(vec4(col, tex.a * uFade));
 }`
 
 /** A tall cone of light from the spotlight to the floor. */
@@ -69,6 +79,7 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * world;
 }`
 const coneFragment = /* glsl */ `
+${SAFE}
 ${NOISE}
 uniform float uLight;
 uniform float uTime;
@@ -82,7 +93,7 @@ void main() {
   float fall = pow(vY, 1.3);
   float air = 0.6 + 0.4 * noise(vec3(vPos.x * 3.0, vPos.y * 2.0 - uTime * 0.3, vPos.z * 3.0 + uTime * 0.08));
   float a = edge * fall * air * uLight * 0.12;
-  gl_FragColor = vec4(uWarm * a, 1.0);
+  gl_FragColor = safe(vec4(uWarm * a, 1.0));
 }`
 
 /** The podium: dark marble, lit on top by its spotlight. */
@@ -98,6 +109,7 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * w;
 }`
 const podiumFragment = /* glsl */ `
+${SAFE}
 uniform sampler2D uMap;
 uniform float uLight;
 uniform vec3 uWarm;
@@ -116,7 +128,7 @@ void main() {
   float spec = pow(max(dot(n, h), 0.0), 60.0) * 0.6;
   float side = (1.0 - up) * 0.18;
   vec3 col = m * 0.55 * uWarm * uLight * (up * (0.25 + pool * 1.1) + side) + uWarm * spec * uLight * up + m * 0.012;
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = safe(vec4(col, 1.0));
 }`
 
 /** The floor: a dark mirror, with pools of light under the lamps and a marble grain. */
@@ -131,6 +143,7 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * w;
 }`
 const floorFragment = /* glsl */ `
+${SAFE}
 ${NOISE}
 uniform sampler2D tDiffuse;
 uniform sampler2D uMap;
@@ -139,6 +152,7 @@ uniform int uCount;
 uniform vec3 uWarm;
 uniform vec3 uOrigin;
 uniform float uLight;
+uniform float uMirror;
 varying vec4 vMirror;
 varying vec3 vPos;
 void main() {
@@ -156,10 +170,10 @@ void main() {
   // The reflection, rippled a little by the stone, fading with distance.
   vec4 uv = vMirror;
   uv.xy += (noise(vec3(p * 9.0, 0.0)) - 0.5) * 0.004 * uv.w;
-  vec3 refl = texture2DProj(tDiffuse, uv).rgb;
+  vec3 refl = uv.w > 0.001 ? texture2D(tDiffuse, uv.xy / uv.w).rgb * uMirror : vec3(0.0);
   float far = smoothstep(11.0, 2.0, length(p));
   vec3 col = m * 0.6 * uWarm * (pools + wash) * uLight + refl * 0.34 * far;
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = safe(vec4(col, 1.0));
 }`
 
 /** Dust in the air over the stage, bright where the spotlights are. */
@@ -182,17 +196,18 @@ void main() {
   }
   vec4 mv = viewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = max(1.0, uPixel * (0.006 + aSeed.z * 0.012) / -mv.z);
+  gl_PointSize = clamp(uPixel * (0.006 + aSeed.z * 0.012) / max(0.05, -mv.z), 1.0, 64.0);
   float y = fract(aSeed.y + t);
   vAlpha = (0.05 + lit * 0.95) * smoothstep(0.0, 0.1, y) * smoothstep(1.0, 0.8, y) * (0.3 + 0.7 * aSeed.x);
 }`
 const motesFragment = /* glsl */ `
+${SAFE}
 uniform vec3 uWarm;
 uniform float uLight;
 varying float vAlpha;
 void main() {
   float d = length(gl_PointCoord - 0.5);
-  gl_FragColor = vec4(uWarm * smoothstep(0.5, 0.0, d) * vAlpha * uLight * 1.4, 1.0);
+  gl_FragColor = safe(vec4(uWarm * smoothstep(0.5, 0.0, d) * vAlpha * uLight * 1.4, 1.0));
 }`
 
 /** A gold silhouette (until the dashboard has the character's photo). */
@@ -284,6 +299,7 @@ export class Stage {
           uWarm: { value: warmV },
           uOrigin: { value: origin.clone() },
           uLight: { value: 0 },
+          uMirror: { value: 1 },
         },
         vertexShader: floorVertex,
         fragmentShader: floorFragment,
@@ -304,13 +320,14 @@ export class Stage {
         uniforms: { uWarm: { value: warmV }, uLight: { value: 0 } },
         vertexShader: personVertex,
         fragmentShader: /* glsl */ `
+${SAFE}
 uniform vec3 uWarm;
 uniform float uLight;
 varying vec2 vUv;
 void main() {
   vec2 q = (vUv - vec2(0.5, 0.42)) * vec2(2.2, 1.0);
   float glow = (smoothstep(0.7, 0.0, length(q)) * 0.022 + smoothstep(0.3, 0.0, length(q)) * 0.018) * smoothstep(0.12, 0.4, vUv.y);
-  gl_FragColor = vec4(uWarm * glow * uLight, 1.0);
+  gl_FragColor = safe(vec4(uWarm * glow * uLight, 1.0));
 }`,
         depthWrite: false,
         transparent: true,
@@ -457,6 +474,12 @@ void main() {
     this.place(0)
   }
   private backMat: THREE.ShaderMaterial
+
+  /** The mirror off (a graphics card that cannot draw it): the floor keeps its pools of light. */
+  noMirror() {
+    this.mirror.onBeforeRender = () => undefined
+    this.floorMat.uniforms.uMirror.value = 0
+  }
 
   get count() {
     return this.people.length

@@ -33,6 +33,8 @@ export interface EngineEvents {
   onStage?: (index: number) => void
   /** A flight between the stage and the wall has landed */
   onArrive?: (where: 'stage' | 'wall') => void
+  /** The graphics card dropped the scene (the page builds a new one) */
+  onLost?: () => void
 }
 
 /** Where the characters' stage stands in the scene (in front of the wall, lower). */
@@ -72,6 +74,14 @@ float noise(vec3 x) {
              mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
 }`
 
+/** Clamps a colour: a NaN or an overflow in one pixel would spread through the glow and black out the frame (some graphics cards). */
+const SAFE = /* glsl */ `
+vec4 safe(vec4 c) {
+  bvec4 bad = bvec4(c.r != c.r, c.g != c.g, c.b != c.b, c.a != c.a);
+  if (any(bad)) return vec4(0.0);
+  return clamp(c, 0.0, 60.0);
+}`
+
 /** Marble lit by its niche's lamp: a spotlight pointing down, with relief taken from the stone. */
 const stoneVertex = /* glsl */ `
 attribute float aNiche;
@@ -87,6 +97,7 @@ void main() {
 }`
 
 const stoneFragment = /* glsl */ `
+${SAFE}
 uniform sampler2D uMap;
 uniform vec4 uLamps[${MAX}];
 uniform float uTint;
@@ -131,11 +142,12 @@ void main() {
   // A little light everywhere in the niche (bounced off the stone), more close to the lamp.
   float fill = lamp.w * 0.05 / (1.0 + 1.5 * d * d);
   vec3 col = albedo * (0.012 + fill + diff * spot * att * 2.6 * uWarm) + spec * spot * att * uWarm * 1.1;
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = safe(vec4(col, 1.0));
 }`
 
 /** The wall the niches are cut into: dark, polished, faintly catching the glow of the nearest lamps. */
 const wallFragment = /* glsl */ `
+${SAFE}
 uniform sampler2D uMap;
 uniform vec4 uLamps[${MAX}];
 uniform int uCount;
@@ -155,15 +167,17 @@ void main() {
   }
   vec3 v = normalize(cameraPosition - vPos);
   float sheen = pow(1.0 - max(dot(v, vec3(0.0, 0.0, 1.0)), 0.0), 3.0) * 0.04;
-  gl_FragColor = vec4(albedo * (0.02 + glow) + sheen * albedo, 1.0);
+  gl_FragColor = safe(vec4(albedo * (0.02 + glow) + sheen * albedo, 1.0));
 }`
 
 const plainVertex = /* glsl */ `
 varying vec2 vUv;
 void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`
 
+
 /** The bottle: lit from above, darker in the dark, with a streak of light crossing the glass. */
 const bottleFragment = /* glsl */ `
+${SAFE}
 uniform sampler2D uMap;
 uniform float uLight;
 uniform float uSheen;
@@ -180,7 +194,7 @@ void main() {
   float pos = mix(-0.4, 1.5, s);
   float band = smoothstep(0.13, 0.0, abs((vUv.x + vUv.y * 0.35) - pos)) * step(s, 0.55);
   col += vec3(1.0, 0.92, 0.82) * band * 0.45 * uSheen * min(uLight, 1.0);
-  gl_FragColor = vec4(col, tex.a);
+  gl_FragColor = safe(vec4(col, tex.a));
 }`
 
 /** A cone of light: brightest at its axis and near the lamp, softly moving like air. */
@@ -196,6 +210,7 @@ void main() {
   gl_Position = projectionMatrix * viewMatrix * world;
 }`
 const beamFragment = /* glsl */ `
+${SAFE}
 ${NOISE}
 uniform float uLight;
 uniform float uTime;
@@ -209,7 +224,7 @@ void main() {
   float fall = pow(vY, 1.6);
   float air = 0.65 + 0.35 * noise(vec3(vPos.x * 7.0, vPos.y * 5.0 - uTime * 0.35, vPos.z * 7.0 + uTime * 0.1));
   float a = edge * fall * air * uLight * 0.16;
-  gl_FragColor = vec4(uWarm * a, 1.0);
+  gl_FragColor = safe(vec4(uWarm * a, 1.0));
 }`
 
 /** Dust drifting in the beams (each mote knows its niche, and fades with its lamp). */
@@ -228,16 +243,17 @@ void main() {
   vec3 p = lamp.xyz + vec3(cos(t * 6.28 + aSeed.x * 20.0) * r, -0.08 - y * (${IN_H.toFixed(2)} - ${PLINTH_H.toFixed(2)} - 0.12), sin(t * 6.28 + aSeed.y * 20.0) * r * 0.8);
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = max(1.0, uPixel * (0.005 + aSeed.z * 0.009) / -mv.z);
+  gl_PointSize = clamp(uPixel * (0.005 + aSeed.z * 0.009) / max(0.05, -mv.z), 1.0, 64.0);
   vAlpha = lamp.w * smoothstep(0.0, 0.15, y) * smoothstep(1.0, 0.7, y) * (0.35 + 0.65 * aSeed.z);
 }`
 const dustFragment = /* glsl */ `
+${SAFE}
 uniform vec3 uWarm;
 varying float vAlpha;
 void main() {
   float d = length(gl_PointCoord - 0.5);
   float a = smoothstep(0.5, 0.0, d) * vAlpha;
-  gl_FragColor = vec4(uWarm * a * 1.6, 1.0);
+  gl_FragColor = safe(vec4(uWarm * a * 1.6, 1.0));
 }`
 
 /** The pane of glass in front: drops bend the image behind them, plus vignette, grain and a touch of colour fringing. */
@@ -251,6 +267,7 @@ const GlassShader = {
   },
   vertexShader: plainVertex,
   fragmentShader: /* glsl */ `
+${SAFE}
 uniform sampler2D tDiffuse;
 uniform sampler2D tDrops;
 uniform float uTime;
@@ -277,7 +294,7 @@ void main() {
   float vig = smoothstep(0.95, 0.25, length(q * vec2(1.0, 1.15)));
   col *= mix(0.35, 1.0, vig);
   col += (rand(vUv * 731.0 + fract(uTime)) - 0.5) * 0.018;
-  gl_FragColor = vec4(col, 1.0);
+  gl_FragColor = safe(vec4(col, 1.0));
 }`,
 }
 
@@ -489,6 +506,15 @@ export class VitrineEngine {
     this.renderer.toneMappingExposure = 1.05
     this.renderer.outputColorSpace = THREE.SRGBColorSpace
     this.scene.background = new THREE.Color(0x020101)
+    canvas.addEventListener(
+      'webglcontextlost',
+      (e) => {
+        e.preventDefault()
+        console.warn('[vitrine] the graphics context was lost')
+        this.events.onLost?.()
+      },
+      { once: true },
+    )
 
     this.cols = phone ? 2 : window.innerWidth >= 1280 ? 5 : 4
     this.rows = 1
@@ -1103,6 +1129,7 @@ export class VitrineEngine {
     this.drops.update(dt * 1000, this.still)
 
     this.composer.render(dt)
+    this.checkFrame(t)
     this.events.onScroll?.(this.maxScroll() > 0 ? this.scrollY / this.maxScroll() : 0)
 
     // A slow device: draw fewer pixels.
@@ -1114,6 +1141,45 @@ export class VitrineEngine {
         this.renderer.setPixelRatio(1)
         this.resize()
       }
+    }
+  }
+
+  /**
+   * Some graphics cards draw an effect wrong and the whole frame goes black. Once the stage is
+   * lit, the middle of the picture (the character in the light) is read back: while it is black,
+   * the effects are switched off one by one (mirror, glow, glass) until the picture comes back.
+   */
+  private checks = 0
+  private nextCheck = -1
+  private checkFrame(t: number) {
+    if (this.readyAt < 0 || this.checks > 3 || this.mode !== 'stage' || !this.stage || this.stage.light < 0.9) return
+    if (this.nextCheck < 0) this.nextCheck = t + 1.2
+    if (t < this.nextCheck) return
+    const gl = this.renderer.getContext()
+    const w = gl.drawingBufferWidth
+    const h = gl.drawingBufferHeight
+    // A tall strip down the middle: the spotlight, the character and its glowing podium ring.
+    const sw = 24
+    const sh = Math.max(1, Math.floor(h * 0.7))
+    const px = new Uint8Array(sw * sh * 4)
+    gl.readPixels(Math.floor(w / 2) - sw / 2, Math.floor(h * 0.15), sw, sh, gl.RGBA, gl.UNSIGNED_BYTE, px)
+    let max = 0
+    for (let i = 0; i < px.length; i += 4) max = Math.max(max, px[i], px[i + 1], px[i + 2])
+    if (max > 6) {
+      this.checks = 99 // fine
+      return
+    }
+    this.checks++
+    this.nextCheck = t + 1
+    if (this.checks === 1) {
+      console.warn('[vitrine] black frame: switching the floor mirror off')
+      this.stage.noMirror()
+    } else if (this.checks === 2) {
+      console.warn('[vitrine] black frame: switching the glow off')
+      this.bloom.enabled = false
+    } else if (this.checks === 3) {
+      console.warn('[vitrine] black frame: switching the glass off')
+      this.glass.enabled = false
     }
   }
 
