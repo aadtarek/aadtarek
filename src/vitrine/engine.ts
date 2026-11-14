@@ -15,6 +15,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
+
 export interface ShowcaseItem {
   image: string
   name: string
@@ -371,10 +372,16 @@ function labelTexture(name: string, price: string) {
   const g = c.getContext('2d')!
   g.textAlign = 'center'
   g.fillStyle = '#f6e9d4'
-  g.font = '600 34px Roboto, Arial, sans-serif'
-  g.letterSpacing = '6px'
+  // Long names and lines get a smaller size to stay on the plinth.
+  const fit = (text: string, weight: number, size: number, spacing: number) => {
+    g.letterSpacing = `${spacing}px`
+    let s = size
+    do g.font = `${weight} ${s}px Roboto, Arial, sans-serif`
+    while (g.measureText(text).width > 480 && --s > 16)
+  }
+  fit(name.toUpperCase(), 600, 34, 6)
   g.fillText(name.toUpperCase(), 256, 64)
-  g.font = '400 38px Roboto, Arial, sans-serif'
+  fit(price, 400, 38, 0)
   g.fillStyle = '#e49b2d' // Rfaheya gold
   g.fillText(price, 256, 122)
   const t = new THREE.CanvasTexture(c)
@@ -402,7 +409,13 @@ export class VitrineEngine {
   private lampUniform: { value: THREE.Vector4[] }
   private levels: number[] = [] // light in each niche (eased)
   private intro: number[] = [] // when each lamp comes on (seconds)
-  private bottles: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>[] = []
+  private bottles: (THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial> | null)[] = []
+  private content = new THREE.Group() // everything on the wall, swapped when the wall changes
+  private marble!: THREE.Texture
+  private warm = new THREE.Color(1.0, 0.74, 0.44) // Rfaheya's gold, as warm light
+  private pending: ShowcaseItem[] | null = null
+  private leaveAt = -1
+  private readyOnce = false
   private beams: THREE.ShaderMaterial[] = []
   private lampDiscs: THREE.MeshBasicMaterial[] = []
   private labels: THREE.MeshBasicMaterial[] = []
@@ -433,7 +446,7 @@ export class VitrineEngine {
     this.canvas = canvas
     this.phone = phone
     this.events = events
-    this.items = items.slice(0, MAX)
+    this.items = []
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance', alpha: false })
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phone ? 1.6 : 1.75))
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -442,31 +455,22 @@ export class VitrineEngine {
     this.scene.background = new THREE.Color(0x020101)
 
     this.cols = phone ? 2 : window.innerWidth >= 1280 ? 5 : 4
-    this.rows = Math.ceil(this.items.length / this.cols)
+    this.rows = 1
     this.camera = new THREE.PerspectiveCamera(phone ? 34 : 30, 1, 0.05, 60)
-
-    const n = this.items.length
     for (let i = 0; i < MAX; i++) this.lamps.push(new THREE.Vector4(0, 0, 0, 0))
     this.lampUniform = { value: this.lamps }
-    this.levels = Array(n).fill(0)
-    // Lamps come on from the top row down, left to right, a beat apart.
-    this.intro = this.items.map((_, i) => 0.6 + (Math.floor(i / this.cols) * this.cols + (i % this.cols)) * 0.16 + Math.random() * 0.08)
-
-    // Loading: the marble and every bottle; the page shows the progress.
-    const manager = new THREE.LoadingManager()
-    manager.onProgress = (_u, loaded, total) => events.onProgress?.(loaded / total)
-    manager.onLoad = () => {
-      this.startedAt = this.now()
-      events.onReady?.()
-    }
-    const loader = new THREE.TextureLoader(manager)
-    const marble = loader.load(marbleUrl)
-    marble.wrapS = marble.wrapT = THREE.MirroredRepeatWrapping // no seams where the tiles meet
-    marble.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
-
-    // Rfaheya's gold, as warm light.
-    const warm = new THREE.Color(1.0, 0.74, 0.44)
-    this.build(marble, loader, warm)
+    this.scene.add(this.content)
+    this.marble = new THREE.TextureLoader().load(marbleUrl)
+    this.marble.wrapS = this.marble.wrapT = THREE.MirroredRepeatWrapping // no seams where the tiles meet
+    this.marble.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
+    this.dustMat = new THREE.ShaderMaterial({
+      uniforms: { uLamps: this.lampUniform, uTime: { value: 0 }, uPixel: { value: 300 }, uWarm: { value: new THREE.Vector3(this.warm.r, this.warm.g, this.warm.b) } },
+      vertexShader: dustVertex,
+      fragmentShader: dustFragment,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    })
 
     // Post: bloom on the lamps and highlights, then the glass.
     this.composer = new EffectComposer(this.renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }))
@@ -480,6 +484,7 @@ export class VitrineEngine {
     this.composer.addPass(new OutputPass())
 
     this.resize()
+    this.rebuild(items.slice(0, MAX))
     this.placeCamera(true)
     // Recording a demo frame by frame (tests only): the page asks for each frame.
     const w = window as unknown as { __vxManual?: boolean; __vxTick?: (ms: number) => void }
@@ -494,6 +499,69 @@ export class VitrineEngine {
     const c = i % this.cols
     const r = Math.floor(i / this.cols)
     return new THREE.Vector3((c - (this.cols - 1) / 2) * CELL_W, -r * CELL_H, 0)
+  }
+
+  /**
+   * A different wall (the characters, or one character's bottles): the lamps go out, the wall is
+   * rebuilt, and the lamps come on again one after another while the camera draws back.
+   */
+  show(items: ShowcaseItem[]) {
+    this.pending = items.slice(0, MAX)
+    this.leaveAt = this.now()
+    this.focus = null
+    if (this.hover !== null) {
+      this.hover = null
+      this.events.onHover?.(null)
+    }
+  }
+
+  private rebuild(items: ShowcaseItem[]) {
+    // Clear the old wall (the shared marble stays).
+    this.content.traverse((o) => {
+      const m = o as THREE.Mesh
+      m.geometry?.dispose()
+      const mats = Array.isArray(m.material) ? m.material : m.material ? [m.material] : []
+      for (const mat of mats) {
+        for (const v of Object.values((mat as THREE.ShaderMaterial).uniforms ?? {})) if (v.value instanceof THREE.Texture && v.value !== this.marble) v.value.dispose()
+        const map = (mat as THREE.MeshBasicMaterial).map
+        if (map && map !== this.marble) map.dispose()
+        if (mat !== this.dustMat) mat.dispose()
+      }
+    })
+    this.content.clear()
+    this.bottles = []
+    this.beams = []
+    this.lampDiscs = []
+    this.labels = []
+    this.hits = []
+    for (const l of this.lamps) l.set(0, 0, 0, 0)
+
+    this.items = items
+    const n = items.length
+    this.rows = Math.max(1, Math.ceil(n / this.cols))
+    this.levels = Array(n).fill(0)
+    this.intro = items.map((_, i) => 0.55 + i * 0.15 + Math.random() * 0.08)
+    this.focus = null
+    this.hover = null
+    this.scrollY = this.scrollTarget = 0
+    this.startedAt = -1
+
+    // Loading: the bottles (the page shows the progress the first time).
+    const manager = new THREE.LoadingManager()
+    let queued = 0
+    manager.onProgress = (_u, loaded, total) => !this.readyOnce && this.events.onProgress?.(loaded / total)
+    const start = () => {
+      this.startedAt = this.now()
+      if (!this.readyOnce) {
+        this.readyOnce = true
+        this.events.onReady?.()
+      }
+    }
+    manager.onLoad = start
+    manager.onStart = () => queued++
+    this.build(this.marble, new THREE.TextureLoader(manager), this.warm)
+    if (!queued) window.setTimeout(start, 0) // nothing to download (the characters)
+    this.resize()
   }
 
   private build(marble: THREE.Texture, loader: THREE.TextureLoader, warm: THREE.Color) {
@@ -534,7 +602,7 @@ export class VitrineEngine {
         fragmentShader: wallFragment,
       }),
     )
-    this.scene.add(wall)
+    this.content.add(wall)
 
     // The niches (inside faces of a box) and the plinths, merged into two meshes.
     const insides: THREE.BufferGeometry[] = []
@@ -560,12 +628,12 @@ export class VitrineEngine {
       mergeGeometries(insides),
       new THREE.ShaderMaterial({ uniforms: stoneUniforms(1.0, 0.55), vertexShader: stoneVertex, fragmentShader: stoneFragment, side: THREE.FrontSide }),
     )
-    this.scene.add(inside)
+    this.content.add(inside)
     const plinth = new THREE.Mesh(
       mergeGeometries(plinths),
       new THREE.ShaderMaterial({ uniforms: stoneUniforms(0.8, 0.9), vertexShader: stoneVertex, fragmentShader: stoneFragment }),
     )
-    this.scene.add(plinth)
+    this.content.add(plinth)
 
     // Per niche: lamp, beam, bottle, contact shadow, label, and a hit area for the pointer.
     const discGeo = new THREE.CircleGeometry(0.075, 40)
@@ -598,12 +666,12 @@ export class VitrineEngine {
       const disc = new THREE.Mesh(discGeo, discMat)
       disc.rotation.x = Math.PI / 2
       disc.position.copy(lampPos).add(new THREE.Vector3(0, -0.002, 0))
-      this.scene.add(disc)
+      this.content.add(disc)
       this.lampDiscs.push(discMat)
       const ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0x0b0807 }))
       ring.rotation.x = Math.PI / 2
       ring.position.copy(disc.position).add(new THREE.Vector3(0, -0.001, 0))
-      this.scene.add(ring)
+      this.content.add(ring)
 
       const beamMat = new THREE.ShaderMaterial({
         uniforms: { uLight: { value: 0 }, uTime: { value: 0 }, uWarm: { value: new THREE.Vector3(warm.r, warm.g, warm.b) } },
@@ -617,7 +685,7 @@ export class VitrineEngine {
       const beam = new THREE.Mesh(beamGeo, beamMat)
       beam.position.copy(lampPos)
       beam.renderOrder = 3
-      this.scene.add(beam)
+      this.content.add(beam)
       this.beams.push(beamMat)
 
       const plinthTop = p.y - IN_H / 2 + PLINTH_H
@@ -627,7 +695,7 @@ export class VitrineEngine {
       )
       shadow.rotation.x = -Math.PI / 2
       shadow.position.set(p.x, plinthTop + 0.002, -DEPTH * 0.52)
-      this.scene.add(shadow)
+      this.content.add(shadow)
 
       const bottleMat = new THREE.ShaderMaterial({
         uniforms: { uMap: { value: null }, uLight: { value: 0 }, uSheen: { value: 0 }, uTime: { value: 0 } },
@@ -639,7 +707,7 @@ export class VitrineEngine {
       const bottle = new THREE.Mesh(new THREE.PlaneGeometry(BOTTLE_H * 0.6, BOTTLE_H), bottleMat)
       bottle.position.set(p.x, plinthTop + BOTTLE_H / 2, -DEPTH * 0.52)
       bottle.renderOrder = 2
-      this.scene.add(bottle)
+      this.content.add(bottle)
       this.bottles.push(bottle)
       loader.load(this.items[i].image, (t) => {
         t.colorSpace = THREE.NoColorSpace // decoded by hand in the shader
@@ -647,20 +715,22 @@ export class VitrineEngine {
         bottleMat.uniforms.uMap.value = t
         const img = t.image as { width: number; height: number }
         const aspect = img.width / img.height
+        const h = Math.min(BOTTLE_H, (IN_W * 0.92) / aspect) // a wide picture is made smaller to fit the niche
         bottle.geometry.dispose()
-        bottle.geometry = new THREE.PlaneGeometry(BOTTLE_H * aspect, BOTTLE_H)
+        bottle.geometry = new THREE.PlaneGeometry(h * aspect, h)
+        bottle.position.y = plinthTop + h / 2
       })
 
       const labelMat = new THREE.MeshBasicMaterial({ map: labelTexture(this.items[i].name, this.items[i].price), transparent: true, depthWrite: false, color: 0x000000 })
       const label = new THREE.Mesh(new THREE.PlaneGeometry(PLINTH_W * 0.86, PLINTH_W * 0.86 * (160 / 512)), labelMat)
       label.position.set(p.x, p.y - IN_H / 2 + PLINTH_H * 0.5, -DEPTH * 0.52 + PLINTH_D / 2 + 0.002)
-      this.scene.add(label)
+      this.content.add(label)
       this.labels.push(labelMat)
 
       const hit = new THREE.Mesh(hitGeo, new THREE.MeshBasicMaterial({ visible: false }))
       hit.position.set(p.x, p.y, 0.01)
       hit.userData.index = i
-      this.scene.add(hit)
+      this.content.add(hit)
       this.hits.push(hit)
 
       for (let k = 0; k < perNiche; k++) {
@@ -674,18 +744,10 @@ export class VitrineEngine {
     dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(dustPos, 3))
     dustGeo.setAttribute('aNiche', new THREE.Float32BufferAttribute(dustNiche, 1))
     dustGeo.setAttribute('aSeed', new THREE.Float32BufferAttribute(dustSeeds, 3))
-    this.dustMat = new THREE.ShaderMaterial({
-      uniforms: { uLamps: this.lampUniform, uTime: { value: 0 }, uPixel: { value: 300 }, uWarm: { value: new THREE.Vector3(warm.r, warm.g, warm.b) } },
-      vertexShader: dustVertex,
-      fragmentShader: dustFragment,
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-    })
     const dust = new THREE.Points(dustGeo, this.dustMat)
     dust.frustumCulled = false
     dust.renderOrder = 4
-    this.scene.add(dust)
+    this.content.add(dust)
   }
   private dustMat!: THREE.ShaderMaterial
 
@@ -721,6 +783,7 @@ export class VitrineEngine {
   }
   /** A quick flicker when a lamp is chosen. */
   private flicker(i: number) {
+    if (this.startedAt < 0) return // still loading: the lamps come on in turn anyway
     this.intro[i] = this.now() - this.startedAt + 0.02
   }
 
@@ -832,26 +895,37 @@ export class VitrineEngine {
       this.events.onHover?.(null)
     }
 
+    // Changing walls: once the lamps are out, the new wall is built.
+    if (this.pending && t - this.leaveAt > 0.55) {
+      const next = this.pending
+      this.pending = null
+      this.rebuild(next)
+    }
+
     // Light in each niche: on in turn at the start (with a flicker), brightest where you look.
     const n = this.items.length
     for (let i = 0; i < n; i++) {
       let target = 1
-      if (this.focus !== null) target = i === this.focus ? 1.35 : 0.1
+      if (this.pending) target = 0
+      else if (this.focus !== null) target = i === this.focus ? 1.35 : 0.1
       else if (this.hover !== null) target = i === this.hover ? 1.3 : 0.32
       let on = 0
       if (since >= 0) {
         const s = since - this.intro[i]
         on = s < 0 ? 0 : s < 0.5 ? (Math.sin(s * 90) > 0.2 ? 1 : 0.12) * Math.min(1, s * 4 + 0.3) : 1
       }
-      this.levels[i] += (target * on - this.levels[i]) * Math.min(1, dt * (on < 1 ? 30 : 5))
+      this.levels[i] += (target * on - this.levels[i]) * Math.min(1, dt * (this.pending ? 9 : on < 1 ? 30 : 5))
       const level = this.levels[i]
       this.lamps[i].w = level
       this.beams[i].uniforms.uLight.value = level
       this.beams[i].uniforms.uTime.value = t
-      const b = this.bottles[i].material
-      b.uniforms.uLight.value = Math.min(1.2, level)
-      b.uniforms.uTime.value = t + i * 1.7
-      b.uniforms.uSheen.value = this.focus === i || this.hover === i ? 1 : 0.35
+      const bottle = this.bottles[i]
+      if (bottle) {
+        const b = bottle.material
+        b.uniforms.uLight.value = Math.min(1.2, level)
+        b.uniforms.uTime.value = t + i * 1.7
+        b.uniforms.uSheen.value = this.focus === i || this.hover === i ? 1 : 0.35
+      }
       this.lampDiscs[i].color.setRGB(9 * level, 7 * level, 5 * level)
       this.labels[i].color.setScalar(0.12 + Math.min(1, level) * 0.88)
     }
@@ -886,6 +960,8 @@ export class VitrineEngine {
         mat.dispose()
       }
     })
+    this.marble.dispose()
+    this.dustMat.dispose()
     this.drops.texture.dispose()
     this.composer.dispose()
     this.renderer.dispose()

@@ -38,6 +38,8 @@ export interface AdminLinks {
   faqs: string
   posts: string
   offers: string
+  /** Products → Vitrine characters */
+  characters?: string
   settings: string
   /** With __TAB__ in place of the settings tab */
   settingsTab: string

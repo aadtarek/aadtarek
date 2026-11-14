@@ -259,12 +259,16 @@ export const CAMPAIGNS: Campaign[] = [
   },
 ]
 
+/** The Vitrine's characters as saved in the dashboard (Products → Vitrine characters); null = the built-in ones. */
+export const VITRINE: { characters: { id?: string; name?: string; tagline?: string; image?: string; products?: number[] }[] | null } = { characters: null }
+
 /** Pictures chosen in the dashboard (Settings → Site images), by key; empty keeps the built-in one. */
 export const SITE_IMAGES: Record<string, string> = {}
 /** A dashboard picture, or the built-in one. */
 export const siteImage = (key: string, fallback: string) => SITE_IMAGES[key] || fallback
 
 export function applyStoreSettings(settings: StoreSettings) {
+  if (Array.isArray(settings.characters)) VITRINE.characters = settings.characters
   for (const c of CAMPAIGNS) {
     const own = settings.campaigns?.[c.slug]
     if (!own) continue

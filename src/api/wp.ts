@@ -42,6 +42,8 @@ export interface StoreSettings {
     logoDark?: boolean
     logoSize?: { desktop?: number; mobile?: number; footer?: number }
   }
+  /** The Vitrine's characters (Products → Vitrine characters) */
+  characters?: { id?: string; name?: string; tagline?: string; image?: string; products?: number[] }[] | null
   /** Campaign texts (Settings → Campaigns), by campaign slug */
   campaigns?: Record<string, { label?: string; title?: string; text?: string }>
   /** Site images chosen in Settings → Site images: key => URL */

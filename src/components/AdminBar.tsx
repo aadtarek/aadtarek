@@ -15,6 +15,7 @@ function editFor(path: string, a: AdminLinks): { label: string; href: string } {
   }
   if (path === '/') return { label: 'Edit home page', href: tab('home') }
   if (/^\/(vanilla-redefined|oud-rose-redefined)/.test(path)) return { label: 'Edit campaign', href: tab('campaigns') }
+  if (path.startsWith('/vitrine') && a.characters) return { label: 'Edit characters', href: a.characters }
   if (/^\/(vitrine|collections|our-standard|finder)/.test(path)) return { label: 'Edit pictures', href: tab('images') }
   if (path.startsWith('/shop')) return { label: 'Edit products', href: a.products }
   if (path.startsWith('/reviews')) return { label: 'Edit reviews', href: a.reviews }

@@ -1944,6 +1944,7 @@ function rfaheya_settings_data() {
 			'offers'       => rfaheya_offers_data(),
 			'heroSlider'   => rfaheya_hero_slider_data( $o['slider'] ),
 			'images'       => rfaheya_site_images_data(),
+			'characters'   => rfaheya_characters_data(),
 			'campaigns'    => array(
 				'vanilla-redefined'  => array(
 					'label' => $o['campaigns']['vanilla_label'],
@@ -4490,6 +4491,7 @@ function rfaheya_admin_links() {
 		'faqs'       => admin_url( 'edit.php?post_type=rfaheya_faq' ),
 		'posts'      => admin_url( 'edit.php' ),
 		'offers'     => admin_url( 'edit.php?post_type=product&page=rfaheya-discounts' ),
+		'characters' => admin_url( 'edit.php?post_type=product&page=rfaheya-characters' ),
 		'settings'   => $settings,
 		'settingsTab' => add_query_arg( 'tab', '__TAB__', $settings ),
 		'logout'     => wp_logout_url( home_url( '/' ) ),
@@ -7774,3 +7776,303 @@ add_action(
 		exit;
 	}
 );
+
+/* ---------------------------------------------------------------- the Vitrine's characters */
+
+const RFAHEYA_CHARACTERS = 'rfaheya_characters';
+
+/** The built-in characters (what the storefront shows until the page is saved). */
+function rfaheya_default_characters() {
+	$rows = array(
+		array( 'gangster', 'The Gangster', 'Smoke, leather & power' ),
+		array( 'doll', 'The Doll', 'Sweet, pink & iconic' ),
+		array( 'professor', 'The Professor', 'Woody, wise & refined' ),
+		array( 'gentleman', 'The Gentleman', 'Sharp, clean & confident' ),
+		array( 'romantic', 'The Romantic', 'Rose, warmth & date nights' ),
+		array( 'nightowl', 'The Night Owl', 'Loud, magnetic & after dark' ),
+		array( 'freespirit', 'The Free Spirit', 'Fresh air & endless summer' ),
+		array( 'sultan', 'The Sultan', 'Oud, amber & royal trails' ),
+	);
+	return array_map(
+		fn( $r ) => array(
+			'id'       => $r[0],
+			'name'     => $r[1],
+			'tagline'  => $r[2],
+			'enabled'  => true,
+			'image'    => 0,
+			'products' => array(),
+		),
+		$rows
+	);
+}
+
+/** The characters as saved (or the built-in ones). */
+function rfaheya_characters() {
+	$saved = get_option( RFAHEYA_CHARACTERS, null );
+	return is_array( $saved ) ? $saved : rfaheya_default_characters();
+}
+
+/** For the storefront: the switched-on characters, or null while the page was never saved (the built-in ones then). */
+function rfaheya_characters_data() {
+	$saved = get_option( RFAHEYA_CHARACTERS, null );
+	if ( ! is_array( $saved ) ) {
+		return null;
+	}
+	$out = array();
+	foreach ( $saved as $c ) {
+		if ( empty( $c['enabled'] ) ) {
+			continue;
+		}
+		$out[] = array(
+			'id'       => (string) $c['id'],
+			'name'     => (string) $c['name'],
+			'tagline'  => (string) $c['tagline'],
+			'image'    => empty( $c['image'] ) ? '' : (string) wp_get_attachment_image_url( (int) $c['image'], 'full' ),
+			'products' => array_map( 'intval', (array) $c['products'] ),
+		);
+	}
+	return $out;
+}
+
+function rfaheya_characters_url( $args = array() ) {
+	return add_query_arg( array_merge( array( 'post_type' => 'product', 'page' => 'rfaheya-characters' ), $args ), admin_url( 'edit.php' ) );
+}
+
+add_action(
+	'admin_menu',
+	function () {
+		add_submenu_page( 'edit.php?post_type=product', 'Vitrine characters', 'Vitrine characters', 'manage_woocommerce', 'rfaheya-characters', 'rfaheya_characters_page' );
+	}
+);
+
+add_action(
+	'admin_enqueue_scripts',
+	function ( $hook ) {
+		if ( 'product_page_rfaheya-characters' === $hook ) {
+			wp_enqueue_media();
+		}
+	}
+);
+
+/** A picture named character-<id> (e.g. character-professor.png) becomes that character's photo when it has none. */
+function rfaheya_character_attach( $attachment_id ) {
+	$file = strtolower( pathinfo( (string) get_post_meta( $attachment_id, '_wp_attached_file', true ), PATHINFO_FILENAME ) );
+	if ( ! preg_match( '/^character-(.+?)(-\d+|-scaled)?$/', $file, $m ) ) {
+		return false;
+	}
+	$list = rfaheya_characters();
+	foreach ( $list as $i => $c ) {
+		if ( sanitize_key( $c['id'] ) === sanitize_key( $m[1] ) && empty( $c['image'] ) ) {
+			$list[ $i ]['image'] = (int) $attachment_id;
+			update_option( RFAHEYA_CHARACTERS, $list, false );
+			delete_transient( 'rfaheya_bootstrap' );
+			return true;
+		}
+	}
+	return false;
+}
+add_action( 'add_attachment', 'rfaheya_character_attach' );
+
+add_action(
+	'admin_post_rfaheya_save_characters',
+	function () {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_die( 'Sorry, you are not allowed to change the characters.' );
+		}
+		check_admin_referer( 'rfaheya_save_characters' );
+		if ( ! empty( $_POST['reset'] ) ) {
+			delete_option( RFAHEYA_CHARACTERS );
+		} else {
+			$input   = isset( $_POST['ch'] ) && is_array( $_POST['ch'] ) ? wp_unslash( $_POST['ch'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned below
+			$list    = array();
+			foreach ( $input as $r ) {
+				if ( ! is_array( $r ) || ! empty( $r['delete'] ) ) {
+					continue;
+				}
+				$name = sanitize_text_field( $r['name'] ?? '' );
+				if ( '' === $name ) {
+					continue;
+				}
+				$id     = sanitize_key( $r['id'] ?? '' );
+				$list[] = array(
+					'id'       => $id ? $id : strtolower( wp_generate_password( 8, false ) ),
+					'name'     => $name,
+					'tagline'  => sanitize_text_field( $r['tagline'] ?? '' ),
+					'enabled'  => ! empty( $r['enabled'] ),
+					'image'    => absint( $r['image'] ?? 0 ),
+					'products' => array_values( array_unique( array_filter( array_map( 'absint', (array) ( $r['products'] ?? array() ) ) ) ) ),
+					'order'    => (float) ( $r['order'] ?? 0 ),
+				);
+			}
+			usort( $list, fn( $a, $b ) => $a['order'] <=> $b['order'] );
+			foreach ( $list as $i => $c ) {
+				unset( $list[ $i ]['order'] );
+			}
+			update_option( RFAHEYA_CHARACTERS, $list, false );
+		}
+		delete_transient( 'rfaheya_bootstrap' );
+		rfaheya_purge_page_cache();
+		wp_safe_redirect( rfaheya_characters_url( array( 'saved' => 1 ) ) );
+		exit;
+	}
+);
+
+/** One character's card (also the blank template for "Add a character"). */
+function rfaheya_character_card( $key, $c, $products ) {
+	$n      = 'ch[' . $key . ']';
+	$picked = array_map( 'intval', (array) ( $c['products'] ?? array() ) );
+	usort( $products, fn( $a, $b ) => (int) in_array( $b['id'], $picked, true ) <=> (int) in_array( $a['id'], $picked, true ) );
+	?>
+	<div class="rfc-card<?php echo empty( $c['enabled'] ) ? ' is-off' : ''; ?>">
+		<input type="hidden" name="<?php echo esc_attr( $n ); ?>[id]" value="<?php echo esc_attr( $c['id'] ?? '' ); ?>">
+		<div class="rfc-head">
+			<label class="rfc-switch"><input type="checkbox" name="<?php echo esc_attr( $n ); ?>[enabled]" value="1" <?php checked( ! empty( $c['enabled'] ) ); ?>> Show in the Vitrine</label>
+			<label class="rfc-order">Order <input type="number" step="1" name="<?php echo esc_attr( $n ); ?>[order]" value="<?php echo esc_attr( $c['_order'] ?? 0 ); ?>"></label>
+			<label class="rfc-delete"><input type="checkbox" name="<?php echo esc_attr( $n ); ?>[delete]" value="1"> Delete</label>
+		</div>
+		<div class="rfc-grid">
+			<label>Name<input type="text" class="regular-text" name="<?php echo esc_attr( $n ); ?>[name]" value="<?php echo esc_attr( $c['name'] ?? '' ); ?>" placeholder="The Professor"></label>
+			<label>Line under the name<input type="text" class="regular-text" name="<?php echo esc_attr( $n ); ?>[tagline]" value="<?php echo esc_attr( $c['tagline'] ?? '' ); ?>" placeholder="Woody, wise & refined"></label>
+		</div>
+		<div class="rfc-photo">
+			<?php $img = (int) ( $c['image'] ?? 0 ); ?>
+			<div class="rfc-photo-preview"><?php echo $img ? wp_get_attachment_image( $img, 'medium' ) : '<span>No photo yet<br>(a gold silhouette stands in)</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></div>
+			<div>
+				<p class="rfc-label">The character’s photo</p>
+				<p class="description">A full-length photo of the person, head to shoes, <b>with a transparent background</b> (PNG or WebP), standing straight and facing forward. Tall pictures look best (about 1 wide : 2.4 tall). Tip: name the file <code>character-<?php echo esc_html( $c['id'] ?? 'id' ); ?>.png</code> and it attaches itself when uploaded to the Media Library.</p>
+				<input type="hidden" class="rfc-image" name="<?php echo esc_attr( $n ); ?>[image]" value="<?php echo esc_attr( $img ? $img : '' ); ?>">
+				<button type="button" class="button rfc-pick">Choose photo</button> <button type="button" class="button-link rfc-clear">Remove</button>
+			</div>
+		</div>
+		<div class="rfc-products">
+			<p class="rfc-label">Perfumes <small>(ticked ones show on this character’s wall, in this order; none ticked = picked by its taste automatically). Only perfumes with a <b>Vitrine bottle</b> picture appear.</small></p>
+			<div class="rfc-tools"><input type="search" class="rfc-search" placeholder="Search perfumes…"><span class="rfc-count"></span></div>
+			<div class="rfc-list">
+				<?php foreach ( $products as $p ) : ?>
+					<label class="rfc-product<?php echo $p['bottle'] ? '' : ' no-bottle'; ?>" data-name="<?php echo esc_attr( strtolower( $p['name'] ) ); ?>">
+						<input type="checkbox" name="<?php echo esc_attr( $n ); ?>[products][]" value="<?php echo esc_attr( $p['id'] ); ?>" <?php checked( in_array( $p['id'], $picked, true ) ); ?>>
+						<?php echo $p['thumb']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						<span><?php echo esc_html( $p['name'] ); ?><?php echo $p['bottle'] ? '' : ' <em>no Vitrine bottle</em>'; ?></span>
+					</label>
+				<?php endforeach; ?>
+			</div>
+		</div>
+	</div>
+	<?php
+}
+
+function rfaheya_characters_page() {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+	$posts    = get_posts(
+		array(
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		)
+	);
+	$products = array_map(
+		fn( $p ) => array(
+			'id'     => (int) $p->ID,
+			'name'   => get_the_title( $p ),
+			'thumb'  => get_the_post_thumbnail( $p->ID, array( 36, 36 ) ),
+			'bottle' => ! empty( rfaheya_details( $p->ID )['showcase_image'] ),
+		),
+		$posts
+	);
+	$list     = rfaheya_characters();
+	?>
+	<div class="wrap rfc">
+		<h1>Vitrine characters</h1>
+		<p class="description">The Vitrine opens on a dark stage where the characters stand in a curve, turned with a scroll, a drag or a swipe. A tap on a character lights its own wall of perfumes in the vitrine; from there shoppers add one, choose a few, or take the whole look, then go back and pick another character.</p>
+		<?php if ( isset( $_GET['saved'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+			<div class="notice notice-success is-dismissible"><p>Saved. The Vitrine shows the new characters now.</p></div>
+		<?php endif; ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<input type="hidden" name="action" value="rfaheya_save_characters">
+			<?php wp_nonce_field( 'rfaheya_save_characters' ); ?>
+			<div class="rfc-cards">
+				<?php
+				foreach ( $list as $i => $c ) {
+					$c['_order'] = ( $i + 1 ) * 10;
+					rfaheya_character_card( 'k' . $i, $c, $products );
+				}
+				?>
+			</div>
+			<template id="rfc-template">
+				<?php
+				rfaheya_character_card(
+					'__KEY__',
+					array(
+						'enabled' => true,
+						'_order'  => ( count( $list ) + 1 ) * 10,
+					),
+					$products
+				);
+				?>
+			</template>
+			<p>
+				<button type="button" class="button" id="rfc-add">+ Add a character</button>
+			</p>
+			<p class="submit">
+				<button type="submit" class="button button-primary button-large">Save characters</button>
+				<button type="submit" name="reset" value="1" class="button rfc-reset" onclick="return confirm('Go back to the built-in eight characters?');">Reset to the built-in characters</button>
+			</p>
+		</form>
+	</div>
+	<style>
+		.rfc-cards{display:grid;gap:16px;max-width:1100px;margin-top:16px}
+		.rfc-card{background:#fff;border:1px solid #dcdcde;border-radius:10px;padding:16px 18px;border-top:3px solid #e49b2d}
+		.rfc-card.is-off{opacity:.62;border-top-color:#c3c4c7}
+		.rfc-head{display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+		.rfc-switch{font-weight:600}
+		.rfc-order input{width:70px;margin-left:6px}
+		.rfc-delete{margin-left:auto;color:#b32d2e}
+		.rfc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+		.rfc-grid label{display:grid;gap:4px;font-weight:600}
+		.rfc-grid input,.rfc-grid select{width:100%;max-width:none;font-weight:400}
+		.rfc-photo{display:flex;gap:16px;align-items:center;margin-top:14px}
+		.rfc-photo-preview{flex:none;width:96px;height:150px;display:grid;place-items:center;border-radius:8px;background:repeating-conic-gradient(#f0f0f1 0 25%,#fff 0 50%) 0 0/16px 16px;border:1px solid #dcdcde;overflow:hidden;text-align:center;font-size:11px;color:#8c8f94}
+		.rfc-photo-preview img{width:100%;height:100%;object-fit:contain}
+		.rfc-photo .rfc-label{margin-top:0}
+		.rfc-label{margin:14px 0 6px;font-weight:600}.rfc-label small{font-weight:400;color:#646970}
+		.rfc-tools{display:flex;gap:10px;align-items:center;margin-bottom:6px}.rfc-count{color:#646970}
+		.rfc-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;max-height:260px;overflow:auto;border:1px solid #f0f0f1;border-radius:8px;padding:6px}
+		.rfc-product{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;cursor:pointer}
+		.rfc-product:hover{background:#f6f7f7}.rfc-product img{width:30px;height:30px;object-fit:cover;border-radius:4px}
+		.rfc-product:has(input:checked){background:#fcf3e4}
+		.rfc-product.no-bottle span{color:#8c8f94}.rfc-product em{font-size:11px;color:#b26200}
+	</style>
+	<script>
+	(function(){
+		function wire(card){
+			var s=card.querySelector('.rfc-search'),c=card.querySelector('.rfc-count');
+			function count(){c.textContent=card.querySelectorAll('.rfc-list input:checked').length+' ticked'}
+			s.addEventListener('input',function(){var q=s.value.trim().toLowerCase();card.querySelectorAll('.rfc-product').forEach(function(l){l.style.display=!q||l.dataset.name.indexOf(q)>-1?'':'none'})});
+			card.addEventListener('change',function(e){if(e.target.name&&/\[enabled\]$/.test(e.target.name))card.classList.toggle('is-off',!e.target.checked);count()});
+			count();
+		}
+		document.querySelectorAll('.rfc-card').forEach(wire);
+		document.addEventListener('click',function(e){
+			var card=e.target.closest('.rfc-card');if(!card)return;
+			var input=card.querySelector('.rfc-image'),box=card.querySelector('.rfc-photo-preview');
+			if(e.target.classList.contains('rfc-clear')){input.value='';box.innerHTML='<span>No photo yet</span>';}
+			if(e.target.classList.contains('rfc-pick')&&window.wp&&wp.media){
+				var f=wp.media({title:'The character’s photo',library:{type:'image'},multiple:false});
+				f.on('select',function(){var a=f.state().get('selection').first().toJSON();input.value=a.id;var u=(a.sizes&&a.sizes.medium?a.sizes.medium.url:a.url);box.innerHTML='<img src="'+u+'" alt="">';});
+				f.open();
+			}
+		});
+		var n=0;
+		document.getElementById('rfc-add').addEventListener('click',function(){
+			var t=document.getElementById('rfc-template').innerHTML.replace(/__KEY__/g,'n'+(n++));
+			var box=document.createElement('div');box.innerHTML=t;var card=box.firstElementChild;
+			document.querySelector('.rfc-cards').appendChild(card);wire(card);card.scrollIntoView({behavior:'smooth'});card.querySelector('input[type=text]').focus();
+		});
+	})();
+	</script>
+	<?php
+}
