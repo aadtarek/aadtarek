@@ -47,7 +47,7 @@ const slide = (
 const BUILT_IN: (HeroSlide & { position?: string })[] = [
   slide([obsidianSm, obsidianClosed, obsidianMobileSm, pair(obsidianSm, 945, obsidian, 1890), pair(obsidianMobileSm, 740, obsidianMobile, 1074)], '62% 50%', 'New season', 'The Oud Edit', 'Deep, warm and unforgettable — our richest scents for the cold nights.', 'Shop the edit', '/shop?family=oriental'),
   slide([dynastySm, dynastyClosed, '', pair(dynastySm, 945, dynasty, 1890), ''], '62% 50%', 'Limited offer', 'Spend more, save more', 'Free shipping over 1,200 EGP · 20% off + free shipping over 2,500 EGP.', 'Start shopping', '/shop'),
-  slide([finderSm, finderClosed, finderMobileSm, pair(finderSm, 945, finder, 1890), pair(finderMobileSm, 740, finderMobile, 1074)], '62% 50%', 'Rfaheya Finder', 'Find your scent', 'Answer a few questions and meet the fragrance that feels like you.', 'Take the quiz', '/finder'),
+  slide([finderSm, finderClosed, finderMobileSm, pair(finderSm, 945, finder, 1890), pair(finderMobileSm, 740, finderMobile, 1074)], '62% 50%', 'Rfaheya Finder', 'Find your scent', 'Answer a few questions and meet the fragrance that feels like you.', 'Take the quiz', '/finder/quiz'),
 ]
 
 /** The dashboard's slides (those with a picture or a title); a slide without a picture borrows a built-in one. */

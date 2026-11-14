@@ -22,7 +22,7 @@ export const navLinks = [
       return c.label
     },
   })),
-  { to: '/finder', label: 'Rfaheya Finder' },
+  { to: '/finder/quiz', label: 'Rfaheya Finder' },
   { to: '/collections', label: 'Collections', roomy: true },
   { to: '/vitrine', label: 'The Vitrine' },
 ] as { to: string; label: string; roomy?: boolean }[]
@@ -206,7 +206,7 @@ export function Header() {
                   })}
                 </ul>
 
-                <Link to="/finder" className="relative mt-4 block overflow-hidden rounded-[22px] bg-[#14110d] p-5 text-white">
+                <Link to="/finder/quiz" className="relative mt-4 block overflow-hidden rounded-[22px] bg-[#14110d] p-5 text-white">
                   <p className="text-[10.5px] font-semibold tracking-[0.24em] text-[#f0c27a] uppercase">Not sure where to start?</p>
                   <p className="mt-2 font-serif text-[26px] leading-[1.05]">
                     Find your scent <span className="text-[#f0c27a] italic">in 2 minutes.</span>

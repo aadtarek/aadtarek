@@ -45,7 +45,7 @@ export interface StoreSettings {
   /** The Vitrine's characters (Products → Vitrine characters) */
   characters?: { id?: string; name?: string; tagline?: string; image?: string; products?: number[] }[] | null
   /** Campaign texts (Settings → Campaigns), by campaign slug */
-  campaigns?: Record<string, { label?: string; title?: string; text?: string }>
+  campaigns?: Record<string, { label?: string; title?: string; text?: string; products?: number[] }>
   /** Site images chosen in Settings → Site images: key => URL */
   images?: Record<string, string>
   heroSlider?: { enabled?: boolean; interval?: number; intro?: boolean; slides?: Partial<import('../config').HeroSlide>[] }

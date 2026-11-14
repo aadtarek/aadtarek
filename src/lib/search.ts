@@ -201,7 +201,7 @@ const SITE_PAGES: { to: string; title: string; subtitle: string; words: string }
     words: 'about us story who we are brand company best perfume company best fragrance brand rfaheya رفاهيه من نحن قصتنا الشركه افضل شركه عطور افضل براند',
   },
   { to: '/our-standard', title: 'Rfaheya Standard™', subtitle: 'How we judge a fragrance', words: 'standard quality evaluation longevity projection جوده معايير ثبات فوحان' },
-  { to: '/finder', title: 'Rfaheya Finder', subtitle: 'Find your scent in a few questions', words: 'finder quiz test recommend recommendation which perfume suits me help me choose اختبار ساعدني اختار يناسبني' },
+  { to: '/finder/quiz', title: 'Rfaheya Finder', subtitle: 'Find your scent in a few questions', words: 'finder quiz test recommend recommendation which perfume suits me help me choose اختبار ساعدني اختار يناسبني' },
   { to: '/reviews', title: 'Reviews', subtitle: 'What our customers say', words: 'reviews ratings opinions feedback testimonials آراء تقييمات رأي' },
   { to: '/track-order', title: 'Track your order', subtitle: 'Order status', words: 'track order tracking status where is my order shipment تتبع الاوردر الطلب فين' },
   { to: '/contact', title: 'Contact us', subtitle: 'Phone, WhatsApp and email', words: 'contact phone whatsapp email call support help تواصل رقم واتساب كلمنا' },

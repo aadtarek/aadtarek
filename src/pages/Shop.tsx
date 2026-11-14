@@ -567,17 +567,17 @@ function TryFirstTile() {
     <div className="relative flex h-full flex-col overflow-hidden rounded-[22px] bg-[#14110d] p-5 text-white sm:rounded-[26px] sm:p-6">
       <p className="text-[11px] font-semibold tracking-[0.24em] text-olive uppercase">Not sure yet?</p>
       <p className="mt-2.5 max-w-[62%] font-serif text-[30px] leading-none text-white sm:max-w-none sm:text-[40px]">Try any scent in 5&nbsp;ml</p>
-      <p className="mt-3 max-w-[62%] text-[13.5px] leading-normal text-[#b9ae9c] sm:max-w-none sm:text-[14px]">35 EGP — live with it for a few days, then commit to the full bottle.</p>
+      <p className="mt-3 max-w-[62%] text-[13.5px] leading-normal text-[#b9ae9c] sm:max-w-none sm:text-[14px]">Pick 10 or 20 scents in 5 ml, live with them for a few days, then commit to your favourite.</p>
       <div className="absolute top-5 right-4 flex sm:static sm:mt-auto sm:pt-6">
         {shots.map((p) => (
           <img key={p.id} src={p.images[0].src} srcSet={p.images[0].srcset} sizes="78px" alt="" loading="lazy" decoding="async" className="-mr-3.5 size-[54px] rounded-full border-[3px] border-[#14110d] object-cover sm:size-[78px]" />
         ))}
       </div>
       <Link
-        to="/finder"
+        to="/collections/discovery-sets"
         className="mt-5 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-olive text-[12px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover sm:mt-6"
       >
-        Find your scent
+        Build a set of 10 or 20
         <ArrowRight className="size-4" strokeWidth={1.6} />
       </Link>
     </div>

@@ -76,7 +76,7 @@ function rfaheya_fields() {
 			'slide_3_title'   => array( 'Slide 3 — title', 'Find your scent', 'text' ),
 			'slide_3_text'    => array( 'Slide 3 — text under the title', 'Answer a few questions and meet the fragrance that feels like you.', 'textarea' ),
 			'slide_3_button'  => array( 'Slide 3 — button text', 'Take the quiz', 'text' ),
-			'slide_3_link'    => array( 'Slide 3 — button link (e.g. /shop or /collections/oud)', '/finder', 'text' ),
+			'slide_3_link'    => array( 'Slide 3 — button link (e.g. /shop or /collections/oud)', '/finder/quiz', 'text' ),
 			'slide_4_show'    => array( 'Slide 4 — show this slide', 'yes', 'yesno' ),
 			'slide_4_image'   => array( 'Slide 4 — image (945 × 780)', '', 'image' ),
 			'slide_4_mobile'  => array( 'Slide 4 — image for phones (optional, 358 × 550)', '', 'image' ),
@@ -130,9 +130,11 @@ function rfaheya_fields() {
 			'vanilla_label' => array( 'Vanilla campaign — name in the menu', 'Vanilla Redefined', 'text' ),
 			'vanilla_title' => array( 'Vanilla campaign — banner title (the words after the comma show in gold)', 'Vanilla, redefined.', 'text' ),
 			'vanilla_text'  => array( 'Vanilla campaign — banner text', 'The warmest note in perfumery, re-composed: smooth, addictive vanilla with a modern, long-lasting Rfaheya signature.', 'textarea' ),
+			'vanilla_products' => array( 'Vanilla campaign — its products (ticked ones show on the page; none ticked = the products tagged “Vanilla Redefined”, else the ones with vanilla notes)', '', 'products' ),
 			'oudrose_label' => array( 'Oud & Rose campaign — name in the menu', 'Oud & Rose Redefined', 'text' ),
 			'oudrose_title' => array( 'Oud & Rose campaign — banner title (the words after the comma show in gold)', 'Oud & Rose, redefined.', 'text' ),
 			'oudrose_text'  => array( 'Oud & Rose campaign — banner text', 'Two legends of the Orient, side by side: deep smoky oud and velvet rose, crafted with quality materials and high concentration.', 'textarea' ),
+			'oudrose_products' => array( 'Oud & Rose campaign — its products (ticked ones show on the page; none ticked = the products tagged “Oud & Rose Redefined”, else the ones with oud or rose notes)', '', 'products' ),
 		),
 	);
 }
@@ -402,6 +404,13 @@ function rfaheya_clean_settings( $input ) {
 	$clean = array();
 	foreach ( rfaheya_fields() as $group => $fields ) {
 		foreach ( $fields as $key => $field ) {
+			if ( 'products' === $field[2] ) {
+				// Ticked products, as a list of ids.
+				$ids = isset( $input[ $group ][ $key ] ) ? $input[ $group ][ $key ] : array();
+				$ids = is_array( $ids ) ? $ids : explode( ',', (string) $ids ); // a saved list comes back as "12,7,30"
+				$clean[ $group ][ $key ] = implode( ',', array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) ) );
+				continue;
+			}
 			$value = isset( $input[ $group ][ $key ] ) ? trim( (string) $input[ $group ][ $key ] ) : '';
 			switch ( $field[2] ) {
 				case 'url':
@@ -510,7 +519,7 @@ function rfaheya_settings_field( $group, $key, $field, $value ) {
 		'logo_height_mobile' => array( 28, 70 ),
 		'logo_footer'        => array( 120, 360 ),
 	);
-	$wide = in_array( $field[2], array( 'textarea', 'image' ), true ) || 'yesno' === $field[2];
+	$wide = in_array( $field[2], array( 'textarea', 'image', 'products' ), true ) || 'yesno' === $field[2];
 	echo '<div class="rfs-field' . ( $wide ? ' rfs-wide' : '' ) . ' rfs-type-' . esc_attr( $field[2] ) . '">';
 	if ( 'yesno' === $field[2] ) {
 		printf(
@@ -538,6 +547,8 @@ function rfaheya_settings_field( $group, $key, $field, $value ) {
 		);
 	} elseif ( 'textarea' === $field[2] ) {
 		printf( '<textarea id="%s" rows="3" name="%s">%s</textarea>', esc_attr( $id ), esc_attr( $input ), esc_textarea( $value ) );
+	} elseif ( 'products' === $field[2] ) {
+		rfaheya_products_picker( $id, $input, $value );
 	} elseif ( 'product' === $field[2] ) {
 		printf( '<select id="%s" name="%s"><option value="">— Best seller —</option>', esc_attr( $id ), esc_attr( $input ) );
 		foreach ( rfaheya_one_language( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) ) as $p ) {
@@ -563,6 +574,73 @@ function rfaheya_settings_field( $group, $key, $field, $value ) {
 		printf( '<small class="rfs-help">%s</small>', esc_html( $help ) );
 	}
 	echo '</div>';
+}
+
+/** "12,7,30" → [12, 7, 30] */
+function rfaheya_id_list( $csv ) {
+	return array_values( array_filter( array_map( 'absint', explode( ',', (string) $csv ) ) ) );
+}
+
+/** A searchable list of products to tick (the ticked ones first, in their order). */
+function rfaheya_products_picker( $id, $input, $value ) {
+	$picked   = rfaheya_id_list( $value );
+	$products = rfaheya_one_language( get_posts( array( 'post_type' => 'product', 'post_status' => 'publish', 'numberposts' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) );
+	usort(
+		$products,
+		function ( $a, $b ) use ( $picked ) {
+			$ia = array_search( (int) $a->ID, $picked, true );
+			$ib = array_search( (int) $b->ID, $picked, true );
+			if ( false === $ia && false === $ib ) {
+				return 0;
+			}
+			if ( false === $ia ) {
+				return 1;
+			}
+			if ( false === $ib ) {
+				return -1;
+			}
+			return $ia <=> $ib;
+		}
+	);
+	printf( '<div class="rfs-products" id="%s"><input type="hidden" name="%s[]" value="">', esc_attr( $id ), esc_attr( $input ) );
+	echo '<div class="rfs-products-tools"><input type="search" class="rfs-products-search" placeholder="Search products…" aria-label="Search products"><span class="rfs-products-count"></span><button type="button" class="button-link rfs-products-clear">Clear all</button></div><div class="rfs-products-list">';
+	foreach ( $products as $p ) {
+		printf(
+			'<label class="rfs-product" data-name="%1$s"><input type="checkbox" name="%2$s[]" value="%3$d" %4$s>%5$s<span>%6$s</span></label>',
+			esc_attr( strtolower( get_the_title( $p ) ) ),
+			esc_attr( $input ),
+			(int) $p->ID,
+			checked( in_array( (int) $p->ID, $picked, true ), true, false ),
+			get_the_post_thumbnail( $p->ID, array( 36, 36 ) ),
+			esc_html( get_the_title( $p ) )
+		);
+	}
+	echo '</div></div>';
+	static $once = false;
+	if ( $once ) {
+		return;
+	}
+	$once = true;
+	?>
+	<style>
+		.rfs-products{border:1px solid #dcdcde;border-radius:10px;padding:8px;background:#fff}
+		.rfs-products-tools{display:flex;gap:12px;align-items:center;margin-bottom:6px}.rfs-products-search{flex:1;max-width:320px}
+		.rfs-products-count{color:#646970}.rfs-products-clear{margin-left:auto;color:#b32d2e}
+		.rfs-products-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:4px;max-height:300px;overflow:auto}
+		.rfs-product{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:6px;cursor:pointer}
+		.rfs-product:hover{background:#f6f7f7}.rfs-product:has(input:checked){background:#fcf3e4}
+		.rfs-product img{width:30px;height:30px;object-fit:cover;border-radius:4px}
+	</style>
+	<script>
+	document.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('.rfs-products').forEach(function(box){
+		var s=box.querySelector('.rfs-products-search'),c=box.querySelector('.rfs-products-count');
+		function count(){c.textContent=box.querySelectorAll('.rfs-product input:checked').length+' ticked'}
+		s.addEventListener('input',function(){var q=s.value.trim().toLowerCase();box.querySelectorAll('.rfs-product').forEach(function(l){l.style.display=!q||l.dataset.name.indexOf(q)>-1?'':'none'})});
+		box.querySelector('.rfs-products-clear').addEventListener('click',function(){box.querySelectorAll('.rfs-product input').forEach(function(i){i.checked=false});count()});
+		box.addEventListener('change',count);count();
+	})});
+	</script>
+	<?php
 }
 
 function rfaheya_settings_page() {
@@ -1950,11 +2028,13 @@ function rfaheya_settings_data() {
 					'label' => $o['campaigns']['vanilla_label'],
 					'title' => $o['campaigns']['vanilla_title'],
 					'text'  => $o['campaigns']['vanilla_text'],
+					'products' => rfaheya_id_list( $o['campaigns']['vanilla_products'] ?? '' ),
 				),
 				'oud-rose-redefined' => array(
 					'label' => $o['campaigns']['oudrose_label'],
 					'title' => $o['campaigns']['oudrose_title'],
 					'text'  => $o['campaigns']['oudrose_text'],
+					'products' => rfaheya_id_list( $o['campaigns']['oudrose_products'] ?? '' ),
 				),
 			),
 			'loyalty'      => rfaheya_loyalty(),

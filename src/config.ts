@@ -235,6 +235,8 @@ export interface Campaign {
   /** Site images keys (computers / phones) */
   image: string
   imageMobile: string
+  /** Chosen in the dashboard (Settings → Campaigns), in this order; empty = tagged / matched by notes */
+  products?: number[]
 }
 export const CAMPAIGNS: Campaign[] = [
   {
@@ -275,6 +277,7 @@ export function applyStoreSettings(settings: StoreSettings) {
     if (own.label?.trim()) c.label = own.label.trim()
     if (own.title?.trim()) c.title = own.title.trim()
     if (own.text?.trim()) c.text = own.text.trim()
+    if (Array.isArray(own.products)) c.products = own.products.map(Number).filter(Boolean)
   }
   if (settings.images && typeof settings.images === 'object') {
     for (const [k, v] of Object.entries(settings.images)) if (typeof v === 'string' && v) SITE_IMAGES[k] = v
@@ -361,7 +364,8 @@ export function applyStoreSettings(settings: StoreSettings) {
         title: x.title ?? '',
         text: x.text ?? '',
         button: x.button ?? '',
-        link: x.link ?? '',
+        // The finder starts straight on its first question.
+        link: (x.link ?? '').replace(/^\/finder\/?$/, '/finder/quiz'),
       }))
   }
   const f = settings.shipping

@@ -15,10 +15,16 @@ const smells = (p: Product) =>
   [...p.notes.map((n) => n.name), ...p.accords, ...p.composition.opening, ...p.composition.heart, ...p.composition.drydown].join(' ').toLowerCase()
 
 /**
- * The campaign's fragrances: the ones tagged with its name in WooCommerce; with none tagged,
- * those whose notes match (all of its notes first, then any of them).
+ * The campaign's fragrances: the ones chosen in the dashboard (Settings → Campaigns), in that
+ * order; else the ones tagged with its name in WooCommerce; with none tagged, those whose notes
+ * match (all of its notes first, then any of them).
  */
 export function campaignProducts(c: Campaign, all: Product[]) {
+  if (c.products?.length) {
+    const byId = new Map(all.map((p) => [p.id, p]))
+    const chosen = c.products.map((id) => byId.get(id)).filter((p): p is Product => !!p)
+    if (chosen.length) return chosen
+  }
   const tag = norm(c.label)
   const slugTag = norm(c.slug.replace(/-/g, ' '))
   const tagged = all.filter((p) => p.tags.some((t) => [tag, slugTag].includes(norm(t))))

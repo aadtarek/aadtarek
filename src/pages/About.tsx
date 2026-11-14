@@ -69,7 +69,7 @@ export function About() {
             <Link to="/shop" className="inline-flex h-12 items-center gap-2 rounded-full bg-olive px-7 text-[12px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover">
               Shop the collection <ArrowRight className="size-4" strokeWidth={1.6} />
             </Link>
-            <Link to="/finder" className="inline-flex h-12 items-center rounded-full bg-white/15 px-6 text-[12px] font-semibold tracking-[0.12em] text-white uppercase backdrop-blur-md transition hover:bg-white/25">
+            <Link to="/finder/quiz" className="inline-flex h-12 items-center rounded-full bg-white/15 px-6 text-[12px] font-semibold tracking-[0.12em] text-white uppercase backdrop-blur-md transition hover:bg-white/25">
               Find your scent
             </Link>
           </div>

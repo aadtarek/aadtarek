@@ -136,7 +136,7 @@ function CtaBanner() {
           </h2>
           <div className="mt-6 flex flex-wrap gap-2.5">
             <Link
-              to="/finder"
+              to="/finder/quiz"
               className="rf-magnetic group inline-flex h-[50px] items-center gap-2.5 rounded-full bg-olive px-[26px] text-[12px] font-semibold tracking-[0.12em] text-white uppercase transition hover:bg-olive-hover"
             >
               Take the scent quiz

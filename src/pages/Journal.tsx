@@ -170,7 +170,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
             </p>
             <p className="mt-2 text-[14px] text-white/65">Answer 7 quick questions and we’ll match you with your scent.</p>
             <Link
-              to="/finder"
+              to="/finder/quiz"
               className="mt-5 inline-flex h-11 items-center gap-2 rounded-full bg-olive px-5 text-[11.5px] font-semibold tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover"
             >
               Try the finder <ArrowRight className="size-4" strokeWidth={1.6} />

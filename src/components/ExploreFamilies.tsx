@@ -19,7 +19,7 @@ export function ExploreFamilies() {
           </h2>
         </div>
         <Link
-          to="/finder"
+          to="/finder/quiz"
           className="rf-white group inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line px-4 text-[10.5px] font-semibold tracking-[0.12em] uppercase transition hover:border-ink sm:h-[42px] sm:px-[18px] sm:text-[11px]"
         >
           Take the quiz

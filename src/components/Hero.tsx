@@ -110,7 +110,7 @@ export function Hero() {
             <ArrowRight className="size-4 transition group-hover:translate-x-0.5" strokeWidth={1.5} />
           </Link>
           <Link
-            to="/finder"
+            to="/finder/quiz"
             className="rf-magnetic inline-flex h-12 items-center justify-center rounded-full bg-cream/75 px-8 text-[11.5px] font-medium tracking-[0.12em] text-ink uppercase backdrop-blur-md transition hover:bg-cream"
           >
             Find your scent

@@ -14,7 +14,7 @@ type Tab = 'best' | 'new' | 'suggested'
 const tabs: Record<Tab, { label: string; badge?: string; sort: ProductSort; link: string }> = {
   best: { label: 'Best sellers', badge: 'Best Seller', sort: 'best-sellers', link: '/shop?sort=best-sellers' },
   new: { label: 'New arrivals', badge: 'New', sort: 'newest', link: '/shop?sort=newest' },
-  suggested: { label: 'Suggested for you', sort: 'best-sellers', link: '/finder' },
+  suggested: { label: 'Suggested for you', sort: 'best-sellers', link: '/finder/quiz' },
 }
 
 /**

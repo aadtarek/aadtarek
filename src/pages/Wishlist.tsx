@@ -25,7 +25,7 @@ export function Wishlist() {
             <Link to="/shop" className={primaryButton}>
               Explore fragrances
             </Link>
-            <Link to="/finder" className={ghostButton}>
+            <Link to="/finder/quiz" className={ghostButton}>
               Take the quiz
             </Link>
           </EmptyState>

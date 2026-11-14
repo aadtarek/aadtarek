@@ -140,7 +140,7 @@ export function FinderQuiz() {
             <p className="rf-white rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold tabular-nums shadow-[inset_0_0_0_1px_var(--color-line)]" aria-live="polite">
               {step + 1} <span className="text-muted">/ {TOTAL_STEPS}</span>
             </p>
-            <Link to="/finder" aria-label="Exit the finder" className="rf-white grid size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)]">
+            <Link to="/" aria-label="Exit the finder" className="rf-white grid size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)]">
               <X className="size-5" strokeWidth={1.5} />
             </Link>
           </div>

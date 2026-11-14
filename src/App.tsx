@@ -81,7 +81,7 @@ export default function App() {
                 <Route path="finder" element={<FinderLanding />} />
                 <Route path="finder/quiz" element={<Suspense fallback={<div className="min-h-[70vh]" />}><FinderQuiz /></Suspense>} />
                 <Route path="finder/result" element={<FinderResult />} />
-                <Route path="discover" element={<Navigate to="/finder" replace />} />
+                <Route path="discover" element={<Navigate to="/finder/quiz" replace />} />
                 <Route path="collections" element={<CollectionsIndex />} />
                 <Route path="collections/:slug" element={<CollectionPage />} />
                 <Route path="our-standard" element={<OurStandard />} />
