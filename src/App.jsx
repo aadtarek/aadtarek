@@ -6,30 +6,33 @@ import Countdown from './components/Countdown.jsx'
 import LineFlower from './components/LineFlower.jsx'
 import Monogram from './components/Monogram.jsx'
 import Sparkles from './components/Sparkles.jsx'
+import Studio from './components/Studio.jsx'
+import Scratch from './components/Scratch.jsx'
+import Timeline from './components/Timeline.jsx'
+import Rsvp from './components/Rsvp.jsx'
 import { useMusicBox } from './components/MusicBox.jsx'
 
-// Reveal sections (and bloom their flowers) when they scroll into view
 function useReveal() {
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && e.target.classList.add('in')),
-      { threshold: 0.22 }
+      { threshold: 0.18 }
     )
     document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
     return () => io.disconnect()
   }, [])
 }
 
-// 3D tilt that follows the finger / mouse
 function Tilt({ children, className = '' }) {
   const ref = useRef(null)
   const move = (e) => {
+    if (e.pointerType === 'touch') return
     const el = ref.current
     const r = el.getBoundingClientRect()
     const x = (e.clientX - r.left) / r.width - 0.5
     const y = (e.clientY - r.top) / r.height - 0.5
-    el.style.setProperty('--rx', `${-y * 14}deg`)
-    el.style.setProperty('--ry', `${x * 18}deg`)
+    el.style.setProperty('--rx', `${-y * 12}deg`)
+    el.style.setProperty('--ry', `${x * 16}deg`)
     el.style.setProperty('--gx', `${(x + 0.5) * 100}%`)
     el.style.setProperty('--gy', `${(y + 0.5) * 100}%`)
   }
@@ -48,7 +51,7 @@ const gcal = () => {
   const p = new URLSearchParams({
     action: 'TEMPLATE',
     text: `${W.groom} & ${W.bride}'s Wedding 💍`,
-    dates: '20261226/20261227',
+    dates: '20261226T170000Z/20261226T230000Z',
     location: `${W.venue}, ${W.area}`,
     details: `We can't wait to celebrate with you!\n${W.mapsUrl}`,
   })
@@ -59,7 +62,7 @@ const downloadIcs = () => {
   const ics = [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//wedding//EN', 'BEGIN:VEVENT',
     'UID:ahmed-mariam-20261226', 'DTSTAMP:20261101T000000Z',
-    'DTSTART;VALUE=DATE:20261226', 'DTEND;VALUE=DATE:20261227',
+    'DTSTART:20261226T170000Z', 'DTEND:20261226T230000Z',
     `SUMMARY:${W.groom} & ${W.bride}'s Wedding`, `LOCATION:${W.venue} - Obour`,
     `DESCRIPTION:${W.mapsUrl}`, 'END:VEVENT', 'END:VCALENDAR',
   ].join('\r\n')
@@ -70,8 +73,6 @@ const downloadIcs = () => {
 }
 
 const Icon = {
-  sun: <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5" /><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" /></svg>,
-  moon: <svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" /></svg>,
   note: <svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></svg>,
   mute: <svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13" /><circle cx="6.5" cy="18" r="2.5" /><path d="M3 3l18 18" /></svg>,
 }
@@ -82,16 +83,22 @@ const Divider = () => (
   </div>
 )
 
+const Heading = ({ eyebrow, title, ar }) => (
+  <>
+    <p className="eyebrow">{eyebrow}</p>
+    <h2 className="title foil">{title}</h2>
+    <p className="title-ar">{ar}</p>
+  </>
+)
+
+const DEFAULTS = { palette: 'mix', petals: 0.7, wind: 1, size: 1, butterflies: true, gold: true }
+
 export default function App() {
   const [opened, setOpened] = useState(false)
-  const [lightsOff, setLightsOff] = useState(false)
   const [burst, setBurst] = useState(0)
+  const [settings, setSettings] = useState(DEFAULTS)
   const music = useMusicBox()
   useReveal()
-
-  useEffect(() => {
-    document.body.classList.toggle('lights-off', lightsOff)
-  }, [lightsOff])
 
   useEffect(() => {
     document.body.style.overflow = opened ? '' : 'hidden'
@@ -105,20 +112,18 @@ export default function App() {
 
   return (
     <>
-      <div className="bg-marble" />
-      <Scene3D lightsOff={lightsOff} burst={burst} />
+      <div className="bg-velvet" />
+      <Scene3D settings={settings} burst={burst} />
       <div className="vignette" />
       <Sparkles />
       <Intro onOpen={open} />
 
       <div className={`controls ${opened ? 'show' : ''}`}>
-        <button className="ctl" onClick={() => setLightsOff((v) => !v)} aria-label="Toggle night mode">
-          {lightsOff ? Icon.sun : Icon.moon}
-        </button>
         <button className={`ctl ${music.playing ? 'playing' : ''}`} onClick={music.toggle} aria-label="Toggle music">
           {music.playing ? Icon.note : Icon.mute}
         </button>
       </div>
+      <Studio show={opened} settings={settings} setSettings={setSettings} onRain={() => setBurst((b) => b + 1)} />
 
       <main className={`page ${opened ? 'opened' : ''}`}>
         {/* HERO */}
@@ -138,11 +143,30 @@ export default function App() {
           <div className="scroll-hint"><span /></div>
         </section>
 
+        {/* COUPLE PHOTO */}
+        <section className="reveal photo-section">
+          <p className="eyebrow">Two hearts · One love</p>
+          <Tilt className="arch">
+            <div className="arch-inner">
+              <img src={W.photo} alt={`${W.groom} & ${W.bride}`} loading="lazy" />
+              <div className="arch-shine" />
+            </div>
+            <span className="arch-heart h1">♥</span>
+            <span className="arch-heart h2">♥</span>
+            <span className="arch-heart h3">♥</span>
+            <span className="arch-heart h4">♥</span>
+            <LineFlower className="arch-flower left" size={64} />
+            <LineFlower className="arch-flower right" size={64} />
+          </Tilt>
+          <p className="photo-caption">{W.groom} <i>&amp;</i> {W.bride}</p>
+          <p className="photo-ar">وأخيرًا… لقينا بعض 🤍</p>
+        </section>
+
         {/* INVITATION */}
         <section className="reveal">
           <Tilt className="card">
             <LineFlower className="card-flower left" size={70} />
-            <LineFlower className="card-flower right" size={70} flip />
+            <LineFlower className="card-flower right" size={70} />
             <p className="card-kicker">With joyful hearts</p>
             <p className="ar-big">يسعدنا ويشرفنا دعوتكم لحضور حفل زفافنا</p>
             <Divider />
@@ -150,20 +174,25 @@ export default function App() {
               We request the pleasure of your company as we celebrate our love
               and begin our forever together.
             </p>
+            {(W.groomParents || W.brideParents) && (
+              <div className="families">
+                <div><small>Son of</small><b>{W.groomParents}</b><span className="fam-name">{W.groom}</span></div>
+                <div className="fam-amp">&amp;</div>
+                <div><small>Daughter of</small><b>{W.brideParents}</b><span className="fam-name">{W.bride}</span></div>
+              </div>
+            )}
             <p className="cute">✦ مستنيينكم تنوّروا فرحتنا ✦</p>
           </Tilt>
         </section>
 
-        {/* DATE */}
+        {/* SCRATCH DATE */}
         <section className="reveal">
-          <p className="eyebrow">Mark your calendar</p>
-          <h2 className="title foil">Save the Date</h2>
-          <p className="title-ar">احجز التاريخ</p>
-          <div className="date-tiles">
-            <div className="tile" style={{ '--i': 0 }}><small>{W.dayName}</small><b className="foil">26</b><small className="ar">{W.dayNameAr}</small></div>
-            <div className="tile big" style={{ '--i': 1 }}><small>December</small><b className="foil">12</b><small className="ar">ديسمبر</small></div>
-            <div className="tile" style={{ '--i': 2 }}><small>Year</small><b className="foil">2026</b><small className="ar">٢٠٢٦</small></div>
-          </div>
+          <Heading eyebrow="A little surprise" title="Save the Date" ar="امسح واكشف التاريخ" />
+          <Scratch items={[
+            { value: '26', label: W.dayName },
+            { value: 'DEC', label: 'December' },
+            { value: '2026', label: 'Year' },
+          ]} />
         </section>
 
         {/* RINGS + VERSE */}
@@ -176,11 +205,20 @@ export default function App() {
           <p className="verse-ref">سورة الروم · ٢١</p>
         </section>
 
+        {/* PROGRAM */}
+        <section className="reveal program">
+          <Heading eyebrow="Order of the night" title="The Program" ar="برنامج الليلة" />
+          <div className="start-end">
+            <div><small>Starts · تبدأ</small><b className="foil">{W.startTime}</b></div>
+            <span className="se-line" />
+            <div><small>Ends · تنتهي</small><b className="foil">{W.endTime}</b></div>
+          </div>
+          <Timeline items={W.schedule} />
+        </section>
+
         {/* COUNTDOWN */}
         <section className="reveal">
-          <p className="eyebrow">Until we say “I do”</p>
-          <h2 className="title foil">Counting Down</h2>
-          <p className="title-ar">باقي على الفرح</p>
+          <Heading eyebrow="Until we say “I do”" title="Counting Down" ar="باقي على الفرح" />
           <Countdown target={W.date} />
           <p className="cute heart-line"><span className="beat">♥</span> and every second brings us closer</p>
         </section>
@@ -193,7 +231,7 @@ export default function App() {
             <p className="venue-name foil">{W.venue}</p>
             <p className="venue-ar">{W.venueAr}</p>
             <p className="venue-area">{W.area}</p>
-            <a className="map-frame" href={W.mapsUrl} target="_blank" rel="noopener noreferrer" aria-label="Open in Google Maps">
+            <a className="map-frame no-rose" href={W.mapsUrl} target="_blank" rel="noopener noreferrer" aria-label="Open in Google Maps">
               <iframe title="map" src={W.mapsEmbed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" tabIndex={-1} />
             </a>
             <a className="btn" href={W.mapsUrl} target="_blank" rel="noopener noreferrer">
@@ -201,31 +239,37 @@ export default function App() {
             </a>
             <Divider />
             <p className="card-kicker">Dress code</p>
-            <p className="dress"><span className="foil">{W.dressCode}</span> · <span className="ar">{W.dressCodeAr}</span></p>
+            <p className="dress"><span className="foil-dark">{W.dressCode}</span> · <span className="ar">{W.dressCodeAr}</span></p>
             <div className="swatches" aria-hidden="true">
               {['#f6c1cf', '#c9e4f6', '#d8f0c8', '#fbe39a', '#d9c8f5', '#ffcfa8'].map((c, i) => <i key={i} style={{ background: c, '--i': i }} />)}
             </div>
           </Tilt>
         </section>
 
-        {/* CALENDAR */}
+        {/* RSVP */}
         <section className="reveal">
-          <p className="eyebrow">Don't forget us</p>
-          <h2 className="title foil">Add to Calendar</h2>
-          <p className="title-ar">ضيفها لتقويمك</p>
+          <Heading eyebrow="Will you join us?" title="RSVP" ar="أكّد حضورك" />
+          <Tilt className="card rsvp-card no-rose">
+            <Rsvp />
+          </Tilt>
+        </section>
+
+        {/* CALENDAR */}
+        <section className="reveal short">
+          <Heading eyebrow="Don't forget us" title="Add to Calendar" ar="ضيفها لتقويمك" />
           <div className="btn-row">
             <a className="btn ghost" href={gcal()} target="_blank" rel="noreferrer"><span>Google Calendar</span></a>
             <button className="btn ghost" onClick={downloadIcs}><span>Apple / Outlook</span></button>
           </div>
-          <p className="tip">جرّب زرار القمر 🌙 فوق… وشوف الدهب بينوّر</p>
+          <p className="tip">🌹 جرّب زرار الوردة تحت… وغيّر لون الورد بنفسك</p>
         </section>
 
         {/* FOOTER */}
         <footer className="reveal footer">
-          <LineFlower className="footer-flower" size={60} />
+          <div className="footer-photo"><img src={W.photo} alt="" loading="lazy" /></div>
           <p className="footer-ar">وجودكم هو أجمل هدية</p>
           <p className="footer-en">Your presence is our greatest gift</p>
-          <Monogram size={96} className="footer-mono" />
+          <Monogram size={90} className="footer-mono" />
           <p className="sign foil">{W.groom} &amp; {W.bride}</p>
           <p className="sign-date">26 · 12 · 2026</p>
         </footer>
