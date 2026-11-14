@@ -126,6 +126,14 @@ function rfaheya_fields() {
 			'order_min'     => array( 'Minimum order (EGP) — the smallest basket that can be ordered; 0 for none', '300', 'text' ),
 		),
 		'images'   => rfaheya_image_fields(),
+		'campaigns' => array(
+			'vanilla_label' => array( 'Vanilla campaign — name in the menu', 'Vanilla Redefined', 'text' ),
+			'vanilla_title' => array( 'Vanilla campaign — banner title (the words after the comma show in gold)', 'Vanilla, redefined.', 'text' ),
+			'vanilla_text'  => array( 'Vanilla campaign — banner text', 'The warmest note in perfumery, re-composed: smooth, addictive vanilla with a modern, long-lasting Rfaheya signature.', 'textarea' ),
+			'oudrose_label' => array( 'Oud & Rose campaign — name in the menu', 'Oud & Rose Redefined', 'text' ),
+			'oudrose_title' => array( 'Oud & Rose campaign — banner title (the words after the comma show in gold)', 'Oud & Rose, redefined.', 'text' ),
+			'oudrose_text'  => array( 'Oud & Rose campaign — banner text', 'Two legends of the Orient, side by side: deep smoky oud and velvet rose, crafted with quality materials and high concentration.', 'textarea' ),
+		),
 	);
 }
 
@@ -137,6 +145,10 @@ function rfaheya_fields() {
 function rfaheya_site_images() {
 	$c = 'Collections page card';
 	return array(
+		'campaign_vanilla'     => array( 'Vanilla Redefined — banner (computers, 1600 × 760)', '', 'full' ),
+		'campaign_vanilla_m'   => array( 'Vanilla Redefined — banner (phones, 750 × 1100)', '', 'full' ),
+		'campaign_oudrose'     => array( 'Oud & Rose Redefined — banner (computers, 1600 × 760)', '', 'full' ),
+		'campaign_oudrose_m'   => array( 'Oud & Rose Redefined — banner (phones, 750 × 1100)', '', 'full' ),
 		'col_perfume_lab'      => array( "$c — Perfume Lab (computers, 834 × 522)", 'perfume-lab.webp', 'full' ),
 		'col_perfume_lab_m'    => array( "$c — Perfume Lab (phones, 436 × 348)", 'perfume-lab-Mobile.webp', 'full' ),
 		'col_ledger'           => array( "$c — Ledger (computers)", 'ledger.webp', 'full' ),
@@ -275,6 +287,7 @@ function rfaheya_group_title( $group ) {
 		'slider'  => 'Home hero slider (up to four slides, each with your own image and text; they open like an accordion. A slide shows when it has an image or a title; with none filled in, three built-in slides show)',
 		'login'   => 'Sign in with Google / Facebook (the buttons show once the keys are filled in)',
 		'images'  => 'Site images (an empty field keeps the built-in picture; WordPress’s smaller copy is used, so pages stay fast)',
+		'campaigns' => 'Campaigns in the header. Each page shows the products you tag with its menu name in WooCommerce (Products → Tags, e.g. “Vanilla Redefined”); with none tagged, the fragrances whose notes match. Banners: Site images tab.',
 		'shipping' => 'Free shipping & spend-more offer (the bar on the product page, cart and checkout; applied in the WooCommerce cart and shipping rates)',
 		'gift'     => 'Gift boxes (customers fill a box with any fragrances; a hidden “Gift box” product carries the packaging price)',
 		'loyalty'  => 'Loyalty points & welcome discount (points are added when an order is marked Completed; a customer’s points can be changed on their user profile)',
@@ -324,6 +337,7 @@ function rfaheya_settings_tabs() {
 		'offers'   => array( 'Orders & offers', 'dashicons-tag', 'Minimum order, free shipping, the spend-more offer and the bundle.', array( 'shipping', 'bundle' ) ),
 		'gifts'    => array( 'Gift boxes', 'dashicons-heart', 'Packaging prices for the gift boxes customers build.', array( 'gift' ) ),
 		'loyalty'  => array( 'Loyalty', 'dashicons-awards', 'Points and the first-order welcome discount.', array( 'loyalty' ) ),
+		'campaigns' => array( 'Campaigns', 'dashicons-megaphone', 'Vanilla Redefined and Oud & Rose Redefined: menu names and banner texts.', array( 'campaigns' ) ),
 		'images'   => array( 'Site images', 'dashicons-format-gallery', 'The pictures on the Collections page, Our Standard and the Rfaheya Finder.', array( 'images' ) ),
 		'signin'   => array( 'Sign in', 'dashicons-admin-users', 'Google and Facebook sign-in buttons.', array( 'login' ) ),
 		'tools'    => array( 'Tools', 'dashicons-admin-tools', 'Starter content and store health.', array() ),
@@ -346,6 +360,7 @@ function rfaheya_settings_section( $group, $key ) {
 	}
 	if ( 'images' === $group ) {
 		$sections = array(
+			'campaign' => 'Campaign banners',
 			'col_'     => 'Collections page',
 			'colhero_' => 'Collection page banners',
 			'standard' => 'Our Standard',
@@ -373,7 +388,11 @@ function rfaheya_settings_section( $group, $key ) {
 		'gift'     => 'Gift boxes & gift wrap',
 		'loyalty'  => 'Points & welcome discount',
 		'login'    => 'Sign in with Google / Facebook',
+		'campaigns' => 'Campaigns',
 	);
+	if ( 'campaigns' === $group ) {
+		return 0 === strpos( $key, 'vanilla' ) ? 'Vanilla Redefined' : 'Oud & Rose Redefined';
+	}
 	return isset( $titles[ $group ] ) ? $titles[ $group ] : $group;
 }
 
@@ -1925,6 +1944,18 @@ function rfaheya_settings_data() {
 			'offers'       => rfaheya_offers_data(),
 			'heroSlider'   => rfaheya_hero_slider_data( $o['slider'] ),
 			'images'       => rfaheya_site_images_data(),
+			'campaigns'    => array(
+				'vanilla-redefined'  => array(
+					'label' => $o['campaigns']['vanilla_label'],
+					'title' => $o['campaigns']['vanilla_title'],
+					'text'  => $o['campaigns']['vanilla_text'],
+				),
+				'oud-rose-redefined' => array(
+					'label' => $o['campaigns']['oudrose_label'],
+					'title' => $o['campaigns']['oudrose_title'],
+					'text'  => $o['campaigns']['oudrose_text'],
+				),
+			),
 			'loyalty'      => rfaheya_loyalty(),
 			'shipping'     => array(
 				'freeShipping' => 'no' !== $o['shipping']['free_enabled'],
@@ -2515,7 +2546,7 @@ function rfaheya_info_slug( $path ) {
 		return '';
 	}
 	// The storefront's own pages (and WooCommerce's) are not info pages.
-	if ( preg_match( '#^(shop|product|cart|checkout|my-account|account|wishlist|about|contact|faqs|reviews|journal|collections|finder|discover|our-standard|vitrine|track-order)$#', $m[1] ) ) {
+	if ( preg_match( '#^(shop|product|cart|checkout|my-account|account|wishlist|about|contact|faqs|reviews|journal|collections|finder|discover|our-standard|vitrine|vanilla-redefined|oud-rose-redefined|track-order)$#', $m[1] ) ) {
 		return '';
 	}
 	return $m[1];
@@ -6887,6 +6918,8 @@ function rfaheya_seo_for( $path, $data ) {
 		'/about'        => array( 'About Rfaheya', $desc ),
 		'/contact'      => array( 'Contact us', 'Questions about a fragrance or an order? Reach Rfaheya on WhatsApp, by phone or by email.' ),
 		'/faqs'         => array( 'Frequently asked questions', 'Delivery, returns, sizes and how Rfaheya fragrances are made.' ),
+		'/vanilla-redefined'  => array( 'Vanilla Redefined — Rfaheya', 'The warmest note in perfumery, re-composed: Rfaheya’s vanilla fragrances.' ),
+		'/oud-rose-redefined' => array( 'Oud & Rose Redefined — Rfaheya', 'Deep smoky oud and velvet rose: Rfaheya’s oud and rose fragrances.' ),
 		'/vitrine'      => array( 'The Vitrine — Rfaheya', 'Every Rfaheya fragrance in a lit window: pick a bottle to see its notes, sizes and price.' ),
 		'/our-standard' => array( 'The Rfaheya Standard', 'How every Rfaheya fragrance is measured on skin: character, comfort, density, projection, longevity and evolution.' ),
 		'/journal'      => array( 'Journal', 'Stories, guides and notes from the Rfaheya fragrance lab.' ),
@@ -7078,7 +7111,7 @@ add_filter( 'wp_sitemaps_enabled', '__return_false' );
 function rfaheya_sitemap() {
 	list( $data ) = rfaheya_bootstrap_ready();
 	$urls = array();
-	foreach ( array( '/', '/shop', '/collections', '/collections/discovery-sets', '/collections/gift-boxes', '/finder', '/reviews', '/about', '/contact', '/faqs', '/our-standard', '/vitrine', '/journal' ) as $p ) {
+	foreach ( array( '/', '/shop', '/collections', '/collections/discovery-sets', '/collections/gift-boxes', '/finder', '/reviews', '/about', '/contact', '/faqs', '/our-standard', '/vitrine', '/vanilla-redefined', '/oud-rose-redefined', '/journal' ) as $p ) {
 		$urls[ home_url( $p ) ] = '';
 	}
 	foreach ( isset( $data['products'] ) ? $data['products'] : array() as $p ) {

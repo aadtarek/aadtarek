@@ -17,7 +17,7 @@ import { CartProvider } from './store/cart'
 import { RewardsProvider } from './store/rewards'
 import { WishlistProvider } from './store/wishlist'
 import { IntroReveal } from './components/IntroReveal'
-import { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage, CollectionsIndex, Article, Journal, OurStandard, Vitrine, FinderLanding, FinderQuiz, FinderResult, OrderReceived, ProductPage, Reviews, Shop, TrackOrder, Wishlist } from './routes'
+import { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage, CollectionsIndex, Article, Journal, OurStandard, Vitrine, CampaignPage, FinderLanding, FinderQuiz, FinderResult, OrderReceived, ProductPage, Reviews, Shop, TrackOrder, Wishlist } from './routes'
 
 /** `npm run build:preview` uses #/ URLs so the site works from a single static file host (shareable preview link). */
 const Router = import.meta.env.VITE_HASH_ROUTER ? HashRouter : BrowserRouter
@@ -86,6 +86,8 @@ export default function App() {
                 <Route path="collections/:slug" element={<CollectionPage />} />
                 <Route path="our-standard" element={<OurStandard />} />
                 <Route path="vitrine" element={<Vitrine />} />
+                <Route path="vanilla-redefined" element={<CampaignPage slug="vanilla-redefined" />} />
+                <Route path="oud-rose-redefined" element={<CampaignPage slug="oud-rose-redefined" />} />
                 <Route path="journal" element={<Journal />} />
                 <Route path="journal/:slug" element={<Article />} />
                 <Route path=":page" element={<InfoPage />} />

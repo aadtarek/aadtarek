@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { BagIcon, HeartIcon, MoonIcon, SearchIcon, SunIcon, UserIcon } from './LineIcons'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { CAMPAIGNS } from '../config'
 import { useTheme } from '../lib/theme'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
@@ -11,15 +12,20 @@ import { useSwipeClose } from '../lib/useSwipeClose'
 
 const SearchOverlay = lazy(() => import('./SearchOverlay').then((m) => ({ default: m.SearchOverlay })))
 
+// About and Contact live in the footer. The campaigns' names can be changed in the dashboard.
 export const navLinks = [
   { to: '/shop', label: 'Shop' },
-  { to: '/shop?sort=best-sellers', label: 'Best Sellers' },
+  { to: '/shop?sort=best-sellers', label: 'Best Sellers', roomy: true },
+  ...CAMPAIGNS.map((c) => ({
+    to: `/${c.slug}`,
+    get label() {
+      return c.label
+    },
+  })),
   { to: '/finder', label: 'Rfaheya Finder' },
-  { to: '/collections', label: 'Collections' },
+  { to: '/collections', label: 'Collections', roomy: true },
   { to: '/vitrine', label: 'The Vitrine' },
-  { to: '/about', label: 'About' },
-  { to: '/contact', label: 'Contact' },
-]
+] as { to: string; label: string; roomy?: boolean }[]
 
 export function Header() {
   const { count, open } = useCart()
@@ -103,13 +109,14 @@ export function Header() {
 
         <Logo className="h-11 lg:h-[41px]" ownClassName="h-[var(--rf-logo-hm,48px)] max-w-[50vw] lg:h-[var(--rf-logo-h,56px)] lg:max-w-[320px]" />
 
-        <nav aria-label="Main" className="ml-6 hidden items-center gap-6 lg:flex xl:ml-10 xl:gap-8 2xl:ml-[4.5%] 2xl:gap-10">
+        {/* Small laptops: the "roomy" links wait for a wider screen (they stay in the menu and footer). */}
+        <nav aria-label="Main" className="ml-5 hidden items-center gap-4 lg:flex xl:ml-7 xl:gap-[18px] 2xl:ml-[4%] 2xl:gap-8">
           {navLinks.map((l) => (
             <Link
               key={l.to}
               to={l.to}
               aria-current={isActive(l.to) ? 'page' : undefined}
-              className={`relative py-2 text-[11.5px] font-medium tracking-[0.07em] whitespace-nowrap uppercase transition after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-ink after:transition-transform hover:after:scale-x-100 ${
+              className={`${l.roomy ? 'hidden xl:inline-block' : ''} relative py-2 text-[11px] font-medium tracking-[0.07em] whitespace-nowrap uppercase transition 2xl:text-[11.5px] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-ink after:transition-transform hover:after:scale-x-100 ${
                 isActive(l.to) ? 'after:scale-x-100' : 'after:scale-x-0'
               }`}
             >

@@ -1893,3 +1893,15 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
   font-weight: 500;
   letter-spacing: -0.02em;
 }
+
+/* Campaign banners: a slow push-in on the picture. */
+@keyframes rf-campaign-zoom {
+  from {
+    transform: scale(1.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*='rf-campaign-zoom'] {
+    animation: none !important;
+  }
+}

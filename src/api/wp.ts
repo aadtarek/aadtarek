@@ -42,6 +42,8 @@ export interface StoreSettings {
     logoDark?: boolean
     logoSize?: { desktop?: number; mobile?: number; footer?: number }
   }
+  /** Campaign texts (Settings → Campaigns), by campaign slug */
+  campaigns?: Record<string, { label?: string; title?: string; text?: string }>
   /** Site images chosen in Settings → Site images: key => URL */
   images?: Record<string, string>
   heroSlider?: { enabled?: boolean; interval?: number; intro?: boolean; slides?: Partial<import('../config').HeroSlide>[] }

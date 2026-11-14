@@ -218,12 +218,60 @@ export function bundleDiscount(lines: { size: string; price: number; quantity: n
 }
 
 /** Applies the WordPress settings (called once before the app renders). */
+/**
+ * The campaigns in the header (Settings → Rfaheya Store → Campaigns). A campaign shows the
+ * products tagged with its name in WooCommerce (e.g. the tag "Vanilla Redefined"); with none
+ * tagged, the fragrances whose notes match.
+ */
+export interface Campaign {
+  slug: string
+  /** Short name in the menu */
+  label: string
+  eyebrow: string
+  title: string
+  text: string
+  /** Notes that pick its products when none is tagged */
+  notes: string[]
+  /** Site images keys (computers / phones) */
+  image: string
+  imageMobile: string
+}
+export const CAMPAIGNS: Campaign[] = [
+  {
+    slug: 'vanilla-redefined',
+    label: 'Vanilla Redefined',
+    eyebrow: 'The campaign',
+    title: 'Vanilla, redefined.',
+    text: 'The warmest note in perfumery, re-composed: smooth, addictive vanilla with a modern, long-lasting Rfaheya signature.',
+    notes: ['vanilla'],
+    image: 'campaign_vanilla',
+    imageMobile: 'campaign_vanilla_m',
+  },
+  {
+    slug: 'oud-rose-redefined',
+    label: 'Oud & Rose Redefined',
+    eyebrow: 'The campaign',
+    title: 'Oud & Rose, redefined.',
+    text: 'Two legends of the Orient, side by side: deep smoky oud and velvet rose, crafted with quality materials and high concentration.',
+    notes: ['oud', 'rose'],
+    image: 'campaign_oudrose',
+    imageMobile: 'campaign_oudrose_m',
+  },
+]
+
 /** Pictures chosen in the dashboard (Settings → Site images), by key; empty keeps the built-in one. */
 export const SITE_IMAGES: Record<string, string> = {}
 /** A dashboard picture, or the built-in one. */
 export const siteImage = (key: string, fallback: string) => SITE_IMAGES[key] || fallback
 
 export function applyStoreSettings(settings: StoreSettings) {
+  for (const c of CAMPAIGNS) {
+    const own = settings.campaigns?.[c.slug]
+    if (!own) continue
+    if (own.label?.trim()) c.label = own.label.trim()
+    if (own.title?.trim()) c.title = own.title.trim()
+    if (own.text?.trim()) c.text = own.text.trim()
+  }
   if (settings.images && typeof settings.images === 'object') {
     for (const [k, v] of Object.entries(settings.images)) if (typeof v === 'string' && v) SITE_IMAGES[k] = v
   }

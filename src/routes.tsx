@@ -34,6 +34,7 @@ const Article = page(() => import('./pages/Journal').then((m) => m.Article))
 const Journal = page(() => import('./pages/Journal').then((m) => m.Journal))
 const OurStandard = page(() => import('./pages/OurStandard').then((m) => m.OurStandard))
 const Vitrine = page(() => import('./pages/Vitrine').then((m) => m.Vitrine))
+const CampaignPage = page(() => import('./pages/Campaign').then((m) => m.CampaignPage))
 const FinderLanding = page(() => import('./pages/finder/FinderLanding').then((m) => m.FinderLanding))
 const FinderQuiz = page(() => import('./pages/finder/FinderQuiz').then((m) => m.FinderQuiz))
 const FinderResult = page(() => import('./pages/finder/FinderResult').then((m) => m.FinderResult))
@@ -61,6 +62,7 @@ const byModule: Record<string, { preload: () => Promise<void> }> = {
   'src/pages/Collections.tsx': CollectionsIndex,
   'src/pages/OurStandard.tsx': OurStandard,
   'src/pages/Vitrine.tsx': Vitrine,
+  'src/pages/Campaign.tsx': CampaignPage,
   'src/pages/Journal.tsx': Journal,
   'src/pages/InfoPage.tsx': InfoPage,
 }
@@ -71,4 +73,4 @@ export function preloadRoute(path: string): Promise<void> {
   return hit ? byModule[hit[1]].preload() : Promise.resolve()
 }
 
-export { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage, CollectionsIndex, Article, Journal, OurStandard, Vitrine, FinderLanding, FinderQuiz, FinderResult, OrderReceived, ProductPage, Reviews, Shop, TrackOrder, Wishlist }
+export { About, Account, Checkout, Contact, FaqSection, InfoPage, CollectionPage, CollectionsIndex, Article, Journal, OurStandard, Vitrine, CampaignPage, FinderLanding, FinderQuiz, FinderResult, OrderReceived, ProductPage, Reviews, Shop, TrackOrder, Wishlist }

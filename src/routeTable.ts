@@ -21,6 +21,7 @@ export const ROUTE_TABLE: [pattern: string, module: string][] = [
   ['^/collections', 'src/pages/Collections.tsx'],
   ['^/our-standard', 'src/pages/OurStandard.tsx'],
   ['^/vitrine', 'src/pages/Vitrine.tsx'],
+  ['^/(vanilla-redefined|oud-rose-redefined)/?$', 'src/pages/Campaign.tsx'],
   ['^/journal', 'src/pages/Journal.tsx'],
   ['^/[^/]+/?$', 'src/pages/InfoPage.tsx'],
 ]
