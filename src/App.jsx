@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { WEDDING as W } from './config'
 import Scene3D from './components/Scene3D.jsx'
-import Intro from './components/Intro.jsx'
+import IntroScene from './components/IntroScene.jsx'
 import Countdown from './components/Countdown.jsx'
 import LineFlower from './components/LineFlower.jsx'
 import Monogram from './components/Monogram.jsx'
@@ -109,8 +109,8 @@ export default function App() {
   }, [opened])
 
   const open = () => {
-    setTimeout(() => setBurst((b) => b + 1), 1500)
-    setTimeout(() => setOpened(true), 2200)
+    setTimeout(() => setOpened(true), 4200)
+    setTimeout(() => setBurst((b) => b + 1), 4500)
   }
 
   return (
@@ -122,7 +122,7 @@ export default function App() {
       <Sparkles />
       <Celebrate />
       {opened && <ScrollFx />}
-      <Intro onOpen={open} />
+      <IntroScene onOpen={open} />
 
       <div className={`controls ${opened ? 'show' : ''}`}>
         <button className={`ctl music-pill ${music.playing ? 'playing' : ''}`} onClick={music.toggle} aria-label="Toggle music">

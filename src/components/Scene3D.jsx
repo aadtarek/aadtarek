@@ -17,7 +17,7 @@ const smooth = (a, b, x) => {
 const lerp = THREE.MathUtils.lerp
 
 /* ---------- realistic petal: rounded, notched, cupped, curled, ruffled, velvety shading ---------- */
-function petalGeo({ cup, curl, ruffle = 0.03, seed = 0 }) {
+export function petalGeo({ cup, curl, ruffle = 0.03, seed = 0 }) {
   const g = new THREE.PlaneGeometry(1, 1, 18, 18)
   const p = g.attributes.position
   const col = new Float32Array(p.count * 3)
@@ -42,7 +42,7 @@ function petalGeo({ cup, curl, ruffle = 0.03, seed = 0 }) {
   return g
 }
 
-function leafGeo() {
+export function leafGeo() {
   const g = new THREE.PlaneGeometry(1, 1, 10, 16)
   const p = g.attributes.position
   const col = new Float32Array(p.count * 3)
@@ -69,7 +69,7 @@ const PETAL_GEOS = () => [
   petalGeo({ cup: 0.8, curl: 0.55, ruffle: 0.05, seed: 5 }),
 ]
 
-function roseMaterial(hex) {
+export function roseMaterial(hex) {
   const c = new THREE.Color(hex)
   return new THREE.MeshPhysicalMaterial({
     color: c, vertexColors: true, roughness: 0.62, side: THREE.DoubleSide,

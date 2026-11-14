@@ -465,3 +465,28 @@ section.short { min-height: 70vh; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- 3D opening: blooming rose + particle names ---------- */
+.intro3d { position: fixed; inset: 0; z-index: 50; cursor: pointer; background: #14030a; overflow: hidden; }
+.intro3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.intro3d-ui { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; align-items: center; text-align: center; padding: max(56px, 9vh) 20px max(40px, 6vh); }
+.i3-kicker { font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: 0.55em; text-transform: uppercase; color: #e9c58a; animation: fadeUp 1.4s 0.3s both; }
+.i3-sub { font-family: var(--serif); font-style: italic; font-size: 22px; color: rgba(255, 228, 220, 0.75); margin-top: 8px; animation: fadeUp 1.4s 0.5s both; transition: opacity 0.6s; }
+.i3-reveal { margin-top: auto; margin-bottom: 18vh; display: grid; justify-items: center; gap: 10px; opacity: 0; transform: translateY(20px); transition: opacity 1s 1.9s, transform 1.2s var(--spring) 1.9s; }
+.i3-reveal p { font-family: var(--serif); font-style: italic; font-size: 24px; color: #ffe9df; }
+.i3-reveal b { font-family: var(--caps); font-size: 15px; letter-spacing: 0.45em; color: #f3d68e; text-shadow: 0 0 16px rgba(243, 214, 142, 0.7); }
+.i3-line { width: 0; height: 1px; background: linear-gradient(90deg, transparent, #f3d68e, transparent); transition: width 1.2s var(--ease) 2s; }
+.i3-tap { position: absolute; left: 50%; bottom: max(40px, 7vh); transform: translateX(-50%); display: grid; place-items: center; font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: 0.4em; text-transform: uppercase; color: #ffe9df; white-space: nowrap; animation: fadeUp 1.4s 1s both, breathe 2.4s 2.4s ease-in-out infinite; }
+.i3-ring { position: absolute; top: -64px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(243, 214, 142, 0.8); animation: ping 2.2s ease-out infinite; }
+.i3-ring.r2 { animation-delay: 1.1s; }
+.i3-ring::after { content: ''; position: absolute; inset: 15px; border-radius: 50%; background: #f3d68e; box-shadow: 0 0 12px #f3d68e; }
+.stage-playing .i3-tap, .stage-whiteout .i3-tap { opacity: 0; transition: opacity 0.4s; animation: none; }
+.stage-playing .i3-sub, .stage-whiteout .i3-sub { opacity: 0; }
+.stage-playing .i3-reveal { opacity: 1; transform: none; }
+.stage-playing .i3-line { width: 160px; }
+.stage-whiteout .i3-reveal, .stage-whiteout .i3-kicker { opacity: 0; transition: opacity 0.4s; }
+.stage-playing { cursor: default; }
+.intro3d-white { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 55%, #ffffff, #fbf5f2 60%, #f4e6e2); transition: opacity 1s ease; }
+.stage-whiteout .intro3d-white { opacity: 1; }
+.intro3d { transition: opacity 0.9s ease; }
+.intro3d.fade { opacity: 0; pointer-events: none; }
