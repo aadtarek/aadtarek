@@ -9,7 +9,8 @@ import Sparkles from './components/Sparkles.jsx'
 import Studio from './components/Studio.jsx'
 import Scratch from './components/Scratch.jsx'
 import Timeline from './components/Timeline.jsx'
-import Rsvp from './components/Rsvp.jsx'
+import Card3D from './components/Card3D.jsx'
+import Celebrate from './components/Celebrate.jsx'
 import { useMusicBox } from './components/MusicBox.jsx'
 
 function useReveal() {
@@ -83,11 +84,11 @@ const Divider = () => (
   </div>
 )
 
-const Heading = ({ eyebrow, title, ar }) => (
+const Heading = ({ eyebrow, title, sub }) => (
   <>
     <p className="eyebrow">{eyebrow}</p>
     <h2 className="title foil">{title}</h2>
-    <p className="title-ar">{ar}</p>
+    <p className="title-sub">{sub}</p>
   </>
 )
 
@@ -116,6 +117,7 @@ export default function App() {
       <Scene3D settings={settings} burst={burst} />
       <div className="vignette" />
       <Sparkles />
+      <Celebrate />
       <Intro onOpen={open} />
 
       <div className={`controls ${opened ? 'show' : ''}`}>
@@ -129,16 +131,19 @@ export default function App() {
         {/* HERO */}
         <section className="hero">
           <Monogram size={112} className="hero-mono" />
-          <p className="bism">بسم الله الرحمن الرحيم</p>
+          <div className="bism-wrap">
+            <span className="bism-orn" />
+            <p className="bism">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+            <span className="bism-orn r" />
+          </div>
           <p className="kicker">Together with their families</p>
           <h1 className="names">
             <span className="name foil">{W.groom}</span>
             <span className="amp">&amp;</span>
             <span className="name foil">{W.bride}</span>
           </h1>
-          <p className="names-ar">{W.groomAr} <span>و</span> {W.brideAr}</p>
           <div className="hero-date">
-            <span>{W.dayName}</span><b className="foil">26 · 12 · 2026</b><span className="ar">{W.dayNameAr}</span>
+            <span>{W.dayName}</span><b className="foil">26 · 12 · 2026</b><span>Cairo</span>
           </div>
           <div className="scroll-hint"><span /></div>
         </section>
@@ -159,35 +164,36 @@ export default function App() {
             <LineFlower className="arch-flower right" size={64} />
           </Tilt>
           <p className="photo-caption">{W.groom} <i>&amp;</i> {W.bride}</p>
-          <p className="photo-ar">وأخيرًا… لقينا بعض 🤍</p>
+          <p className="photo-sub">Two souls, one beautiful story</p>
         </section>
 
-        {/* INVITATION */}
+        {/* INVITATION — 3D card */}
         <section className="reveal">
-          <Tilt className="card">
-            <LineFlower className="card-flower left" size={70} />
-            <LineFlower className="card-flower right" size={70} />
-            <p className="card-kicker">With joyful hearts</p>
-            <p className="ar-big">يسعدنا ويشرفنا دعوتكم لحضور حفل زفافنا</p>
-            <Divider />
-            <p className="en">
-              We request the pleasure of your company as we celebrate our love
-              and begin our forever together.
-            </p>
+          <Card3D className="invite">
+            <LineFlower className="card-flower left z4" size={74} />
+            <LineFlower className="card-flower right z4" size={74} />
+            <p className="card-kicker z1">With joyful hearts</p>
+            <Monogram size={84} className="z3 card-mono" />
+            <p className="invite-line z2">You are cordially invited to celebrate the wedding of</p>
+            <p className="invite-names foil z4">{W.groom} &amp; {W.bride}</p>
             {(W.groomParents || W.brideParents) && (
-              <div className="families">
-                <div><small>Son of</small><b>{W.groomParents}</b><span className="fam-name">{W.groom}</span></div>
+              <div className="families z2">
+                <div><small>Son of</small><b>{W.groomParents}</b></div>
                 <div className="fam-amp">&amp;</div>
-                <div><small>Daughter of</small><b>{W.brideParents}</b><span className="fam-name">{W.bride}</span></div>
+                <div><small>Daughter of</small><b>{W.brideParents}</b></div>
               </div>
             )}
-            <p className="cute">✦ مستنيينكم تنوّروا فرحتنا ✦</p>
-          </Tilt>
+            <div className="z1"><Divider /></div>
+            <p className="en z2">
+              as we celebrate our love and begin our forever together.
+            </p>
+            <p className="invite-date z3"><span>{W.dayName}</span><b>26 · 12 · 2026</b><span>{W.startTime}</span></p>
+          </Card3D>
         </section>
 
         {/* SCRATCH DATE */}
         <section className="reveal">
-          <Heading eyebrow="A little surprise" title="Save the Date" ar="امسح واكشف التاريخ" />
+          <Heading eyebrow="A little surprise" title="Save the Date" sub="Scratch the gold to reveal" />
           <Scratch items={[
             { value: '26', label: W.dayName },
             { value: 'DEC', label: 'December' },
@@ -207,67 +213,58 @@ export default function App() {
 
         {/* PROGRAM */}
         <section className="reveal program">
-          <Heading eyebrow="Order of the night" title="The Program" ar="برنامج الليلة" />
+          <Heading eyebrow="Order of the night" title="The Program" sub="An evening to remember" />
           <div className="start-end">
-            <div><small>Starts · تبدأ</small><b className="foil">{W.startTime}</b></div>
+            <div><small>Starts</small><b className="foil">{W.startTime}</b></div>
             <span className="se-line" />
-            <div><small>Ends · تنتهي</small><b className="foil">{W.endTime}</b></div>
+            <div><small>Ends</small><b className="foil">{W.endTime}</b></div>
           </div>
           <Timeline items={W.schedule} />
         </section>
 
         {/* COUNTDOWN */}
         <section className="reveal">
-          <Heading eyebrow="Until we say “I do”" title="Counting Down" ar="باقي على الفرح" />
+          <Heading eyebrow="Until we say “I do”" title="Counting Down" sub="The big day is almost here" />
           <Countdown target={W.date} />
           <p className="cute heart-line"><span className="beat">♥</span> and every second brings us closer</p>
         </section>
 
-        {/* VENUE */}
+        {/* VENUE — 3D card */}
         <section className="reveal">
-          <Tilt className="card venue">
-            <div className="pin"><span className="pin-dot" /><span className="pin-wave" /><span className="pin-wave w2" /></div>
-            <p className="card-kicker">The celebration will be held at</p>
-            <p className="venue-name foil">{W.venue}</p>
-            <p className="venue-ar">{W.venueAr}</p>
-            <p className="venue-area">{W.area}</p>
-            <a className="map-frame no-rose" href={W.mapsUrl} target="_blank" rel="noopener noreferrer" aria-label="Open in Google Maps">
+          <Card3D className="venue">
+            <div className="pin z4"><span className="pin-dot" /><span className="pin-wave" /><span className="pin-wave w2" /></div>
+            <p className="card-kicker z1">The celebration will be held at</p>
+            <p className="venue-name foil z3">{W.venue}</p>
+            <p className="venue-area z2">{W.area}</p>
+            <a className="map-frame no-rose z2" href={W.mapsUrl} target="_blank" rel="noopener noreferrer" aria-label="Open in Google Maps">
               <iframe title="map" src={W.mapsEmbed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" tabIndex={-1} />
             </a>
-            <a className="btn" href={W.mapsUrl} target="_blank" rel="noopener noreferrer">
-              <span>Open in Maps · افتح الخريطة</span>
+            <a className="btn z3" href={W.mapsUrl} target="_blank" rel="noopener noreferrer">
+              <span>Open in Maps</span>
             </a>
-            <Divider />
-            <p className="card-kicker">Dress code</p>
-            <p className="dress"><span className="foil-dark">{W.dressCode}</span> · <span className="ar">{W.dressCodeAr}</span></p>
-            <div className="swatches" aria-hidden="true">
+            <div className="z1"><Divider /></div>
+            <p className="card-kicker z1">Dress code</p>
+            <p className="dress z3"><span className="foil-dark">{W.dressCode}</span></p>
+            <div className="swatches z4" aria-hidden="true">
               {['#f6c1cf', '#c9e4f6', '#d8f0c8', '#fbe39a', '#d9c8f5', '#ffcfa8'].map((c, i) => <i key={i} style={{ background: c, '--i': i }} />)}
             </div>
-          </Tilt>
-        </section>
-
-        {/* RSVP */}
-        <section className="reveal">
-          <Heading eyebrow="Will you join us?" title="RSVP" ar="أكّد حضورك" />
-          <Tilt className="card rsvp-card no-rose">
-            <Rsvp />
-          </Tilt>
+          </Card3D>
         </section>
 
         {/* CALENDAR */}
         <section className="reveal short">
-          <Heading eyebrow="Don't forget us" title="Add to Calendar" ar="ضيفها لتقويمك" />
+          <Heading eyebrow="Don't forget us" title="Add to Calendar" sub="Save the night in your phone" />
           <div className="btn-row">
             <a className="btn ghost" href={gcal()} target="_blank" rel="noreferrer"><span>Google Calendar</span></a>
             <button className="btn ghost" onClick={downloadIcs}><span>Apple / Outlook</span></button>
           </div>
-          <p className="tip">🌹 جرّب زرار الوردة تحت… وغيّر لون الورد بنفسك</p>
+          <p className="tip">🌹 Tap the rose button below to style the flowers yourself</p>
         </section>
 
         {/* FOOTER */}
         <footer className="reveal footer">
           <div className="footer-photo"><img src={W.photo} alt="" loading="lazy" /></div>
-          <p className="footer-ar">وجودكم هو أجمل هدية</p>
+          <p className="footer-big">With love</p>
           <p className="footer-en">Your presence is our greatest gift</p>
           <Monogram size={90} className="footer-mono" />
           <p className="sign foil">{W.groom} &amp; {W.bride}</p>

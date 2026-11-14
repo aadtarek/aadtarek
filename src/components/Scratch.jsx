@@ -90,7 +90,7 @@ export default function Scratch({ items }) {
           <Coin key={i} index={i} {...it} onDone={() => setCount((c) => c + 1)} />
         ))}
       </div>
-      <p className="scratch-hint">{all ? 'See you there! ✨ مستنيينكم' : <>امسح بصباعك على الدهب<br /><small>Scratch to reveal</small></>}</p>
+      <p className="scratch-hint">{all ? 'See you there! ✨' : 'Scratch each coin with your finger'}</p>
     </div>
   )
 }

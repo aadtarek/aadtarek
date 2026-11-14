@@ -20,7 +20,6 @@ export default function Timeline({ items }) {
           <div className="tl-card">
             <b className="tl-time">{it.time}</b>
             <span className="tl-en">{it.en}</span>
-            <span className="tl-ar">{it.ar}</span>
           </div>
         </div>
       ))}
