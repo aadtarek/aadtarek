@@ -1905,3 +1905,15 @@ svg.lucide:not(.lucide-check, .lucide-plus, .lucide-minus) {
     animation: none !important;
   }
 }
+
+/* The storefront admin bar (staff only, components/AdminBar.tsx): everything sits below it. */
+html.rf-has-adminbar body {
+  padding-top: 32px;
+}
+html.rf-has-adminbar .rf-header {
+  top: 32px;
+}
+html.rf-has-adminbar .vx,
+html.rf-has-adminbar .vx-empty {
+  top: 32px;
+}

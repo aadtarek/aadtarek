@@ -23,6 +23,26 @@ export interface Me {
   welcome?: { code: string; percent: number; used: boolean } | null
   redeem?: { code: string; amount: number; points: number } | null
   nonce?: string
+  /** Staff only: dashboard links for the storefront's admin bar (rfaheya.php rfaheya_admin_links) */
+  admin?: AdminLinks | null
+}
+
+export interface AdminLinks {
+  dashboard: string
+  /** With __ID__ in place of the post id */
+  editPost: string
+  products: string
+  newProduct: string
+  orders: string
+  reviews: string
+  faqs: string
+  posts: string
+  offers: string
+  settings: string
+  /** With __TAB__ in place of the settings tab */
+  settingsTab: string
+  logout: string
+  name: string
 }
 
 export interface AppliedCoupon {
@@ -33,6 +53,8 @@ export interface AppliedCoupon {
 
 interface RewardsValue {
   me: Me
+  /** Dashboard links when a staff member is signed in (the admin bar), else null */
+  admin: AdminLinks | null
   /** False until the signed-in state is known (WordPress). */
   ready: boolean
   /** Discounts applied to the cart (welcome / points / other coupons) */
@@ -305,8 +327,8 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo<RewardsValue>(
-    () => ({ me, ready: !isWoo || loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, applyPromo, orderPlaced, claimOrder }),
-    [me, loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, applyPromo, orderPlaced, claimOrder],
+    () => ({ me, admin: wooMe.admin ?? null, ready: !isWoo || loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, applyPromo, orderPlaced, claimOrder }),
+    [me, wooMe.admin, loaded, coupons, couponTotal, busy, error, redeem, cancelRedeem, removeCoupon, applyPromo, orderPlaced, claimOrder],
   )
   return <RewardsContext.Provider value={value}>{children}</RewardsContext.Provider>
 }

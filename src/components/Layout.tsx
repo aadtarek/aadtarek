@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { AdminBar } from './AdminBar'
 import { AnnouncementBar } from './AnnouncementBar'
 import { Header } from './Header'
 import { installFx } from '../lib/fx'
@@ -51,6 +52,7 @@ export function Layout() {
   if (pathname.startsWith('/vitrine')) {
     return (
       <>
+        <AdminBar />
         <main ref={main}>
           <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
             <Outlet />
@@ -67,6 +69,7 @@ export function Layout() {
 
   return (
     <div className="flex min-h-screen flex-col pb-[calc(84px+env(safe-area-inset-bottom))] lg:pb-0">
+      <AdminBar />
       <AnnouncementBar />
       <Header />
       {/* At least a screen tall: the footer starts below the first view, so pages whose content

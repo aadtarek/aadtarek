@@ -176,8 +176,9 @@ function Experience({ products, phone }: { products: Product[]; phone: boolean }
     }
     const [x, y] = ndc(ev)
     const i = engine.current?.pick(x, y) ?? null
+    // A tap on a bottle steps in; a second tap on it (or a tap beside it) steps back out.
     if (i !== null && i !== focusRef.current) setFocus(i)
-    else if (i === null && focusRef.current !== null && phone) setFocus(null)
+    else if (focusRef.current !== null) setFocus(null)
   }
 
   const f = focus
@@ -215,7 +216,6 @@ function Experience({ products, phone }: { products: Product[]; phone: boolean }
 
       {f === null && (
         <>
-          <p className="vx-hint">{phone ? 'Swipe to explore · tap a bottle to light it' : 'Scroll to explore · click a bottle to step in'}</p>
           <div className="vx-rail" aria-hidden>
             <span style={{ transform: `translateY(${scroll * 100 * 4}%)` }} />
           </div>

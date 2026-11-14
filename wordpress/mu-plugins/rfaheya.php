@@ -4467,6 +4467,33 @@ function rfaheya_me_data() {
 			'points' => (int) $redeem['points'],
 		) : null,
 		'nonce'     => wp_create_nonce( 'rfaheya_points' ),
+		'admin'     => rfaheya_admin_links(),
+	);
+}
+
+/**
+ * For the shop's own admin bar (shown on the storefront to staff who can edit products): the
+ * dashboard links it needs. Nothing for customers.
+ */
+function rfaheya_admin_links() {
+	if ( ! current_user_can( 'edit_products' ) && ! current_user_can( 'manage_options' ) ) {
+		return null;
+	}
+	$settings = admin_url( 'options-general.php?page=rfaheya-store' );
+	return array(
+		'dashboard'  => admin_url(),
+		'editPost'   => admin_url( 'post.php?post=__ID__&action=edit' ),
+		'products'   => admin_url( 'edit.php?post_type=product' ),
+		'newProduct' => admin_url( 'post-new.php?post_type=product' ),
+		'orders'     => class_exists( '\Automattic\WooCommerce\Utilities\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ? admin_url( 'admin.php?page=wc-orders' ) : admin_url( 'edit.php?post_type=shop_order' ),
+		'reviews'    => admin_url( 'edit.php?post_type=product&page=product-reviews' ),
+		'faqs'       => admin_url( 'edit.php?post_type=rfaheya_faq' ),
+		'posts'      => admin_url( 'edit.php' ),
+		'offers'     => admin_url( 'edit.php?post_type=product&page=rfaheya-discounts' ),
+		'settings'   => $settings,
+		'settingsTab' => add_query_arg( 'tab', '__TAB__', $settings ),
+		'logout'     => wp_logout_url( home_url( '/' ) ),
+		'name'       => wp_get_current_user()->display_name,
 	);
 }
 
