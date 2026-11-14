@@ -12,6 +12,9 @@ import Timeline from './components/Timeline.jsx'
 import Card3D from './components/Card3D.jsx'
 import Celebrate from './components/Celebrate.jsx'
 import { useMusicBox } from './components/MusicBox.jsx'
+import SplitText from './components/SplitText.jsx'
+import ScrollFx from './components/ScrollFx.jsx'
+import Marquee from './components/Marquee.jsx'
 
 function useReveal() {
   useEffect(() => {
@@ -87,7 +90,7 @@ const Divider = () => (
 const Heading = ({ eyebrow, title, sub }) => (
   <>
     <p className="eyebrow">{eyebrow}</p>
-    <h2 className="title foil">{title}</h2>
+    <SplitText as="h2" className="title" text={title} />
     <p className="title-sub">{sub}</p>
   </>
 )
@@ -106,7 +109,6 @@ export default function App() {
   }, [opened])
 
   const open = () => {
-    music.start()
     setTimeout(() => setBurst((b) => b + 1), 1500)
     setTimeout(() => setOpened(true), 2200)
   }
@@ -114,15 +116,19 @@ export default function App() {
   return (
     <>
       <div className="bg-velvet" />
+      <div className="bg-blobs" aria-hidden="true"><i /><i /><i /></div>
       <Scene3D settings={settings} burst={burst} />
       <div className="vignette" />
       <Sparkles />
       <Celebrate />
+      {opened && <ScrollFx />}
       <Intro onOpen={open} />
 
       <div className={`controls ${opened ? 'show' : ''}`}>
-        <button className={`ctl ${music.playing ? 'playing' : ''}`} onClick={music.toggle} aria-label="Toggle music">
+        <button className={`ctl music-pill ${music.playing ? 'playing' : ''}`} onClick={music.toggle} aria-label="Toggle music">
           {music.playing ? Icon.note : Icon.mute}
+          <span className="eq" aria-hidden="true"><i /><i /><i /></span>
+          <span className="ctl-label">{music.playing ? 'Music on' : 'Play music'}</span>
         </button>
       </div>
       <Studio show={opened} settings={settings} setSettings={setSettings} onRain={() => setBurst((b) => b + 1)} />
@@ -130,7 +136,7 @@ export default function App() {
       <main className={`page ${opened ? 'opened' : ''}`}>
         {/* HERO */}
         <section className="hero">
-          <Monogram size={112} className="hero-mono" />
+          <div data-speed="-0.15"><Monogram size={112} className="hero-mono" /></div>
           <div className="bism-wrap">
             <span className="bism-orn" />
             <p className="bism">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
@@ -138,22 +144,24 @@ export default function App() {
           </div>
           <p className="kicker">Together with their families</p>
           <h1 className="names">
-            <span className="name foil">{W.groom}</span>
+            <SplitText className="name" text={W.groom} delay={0.7} step={0.08} />
             <span className="amp">&amp;</span>
-            <span className="name foil">{W.bride}</span>
+            <SplitText className="name" text={W.bride} delay={1.1} step={0.08} />
           </h1>
           <div className="hero-date">
-            <span>{W.dayName}</span><b className="foil">26 · 12 · 2026</b><span>Cairo</span>
+            <span>{W.dayName}</span><b>26 · 12 · 2026</b><span>Cairo</span>
           </div>
           <div className="scroll-hint"><span /></div>
         </section>
 
+        <Marquee items={[`${W.groom} & ${W.bride}`, '26 · 12 · 2026', 'Forever starts here', W.venue]} />
+
         {/* COUPLE PHOTO */}
         <section className="reveal photo-section">
           <p className="eyebrow">Two hearts · One love</p>
-          <Tilt className="arch">
+          <Tilt className="arch" >
             <div className="arch-inner">
-              <img src={W.photo} alt={`${W.groom} & ${W.bride}`} loading="lazy" />
+              <img data-speed="0.06" src={W.photo} alt={`${W.groom} & ${W.bride}`} loading="lazy" />
               <div className="arch-shine" />
             </div>
             <span className="arch-heart h1">♥</span>
@@ -261,13 +269,15 @@ export default function App() {
           <p className="tip">🌹 Tap the rose button below to style the flowers yourself</p>
         </section>
 
+        <Marquee reverse items={['Save the date', '26 · 12 · 2026', `${W.groom} & ${W.bride}`, 'See you there']} />
+
         {/* FOOTER */}
         <footer className="reveal footer">
           <div className="footer-photo"><img src={W.photo} alt="" loading="lazy" /></div>
           <p className="footer-big">With love</p>
           <p className="footer-en">Your presence is our greatest gift</p>
           <Monogram size={90} className="footer-mono" />
-          <p className="sign foil">{W.groom} &amp; {W.bride}</p>
+          <SplitText as="p" className="sign" text={`${W.groom} & ${W.bride}`} step={0.06} />
           <p className="sign-date">26 · 12 · 2026</p>
         </footer>
       </main>

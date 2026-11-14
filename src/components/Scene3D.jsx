@@ -193,7 +193,7 @@ function makeGlitter(count, topY, bottomY) {
   geo.setAttribute('aPhase', new THREE.BufferAttribute(phase, 1))
   geo.setAttribute('aSize', new THREE.BufferAttribute(size, 1))
   const mat = new THREE.ShaderMaterial({
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    transparent: true, depthWrite: false,
     uniforms: { uTime: { value: 0 }, uPR: { value: Math.min(window.devicePixelRatio, 2) } },
     vertexShader: /* glsl */ `
       attribute float aPhase; attribute float aSize;
@@ -207,7 +207,7 @@ function makeGlitter(count, topY, bottomY) {
         vec4 mv = modelViewMatrix * vec4(p,1.0);
         float b = 0.5 + 0.5*sin(uTime*(0.9 + fract(aPhase)*1.6) + aPhase);
         vBlink = pow(b, 3.0);
-        gl_PointSize = aSize * uPR * 70.0 * (0.35 + vBlink) / -mv.z;
+        gl_PointSize = aSize * uPR * 55.0 * (0.35 + vBlink) / -mv.z;
         gl_Position = projectionMatrix * mv;
       }`,
     fragmentShader: /* glsl */ `
@@ -220,8 +220,8 @@ function makeGlitter(count, topY, bottomY) {
         float core = smoothstep(0.22, 0.0, d);
         float halo = smoothstep(0.5, 0.0, d) * 0.3;
         float a = clamp(star*0.8 + core + halo, 0.0, 1.0);
-        vec3 col = mix(vec3(1.0, 0.8, 0.45), vec3(1.0), core*0.6);
-        gl_FragColor = vec4(col, a * vBlink * 0.9);
+        vec3 col = mix(vec3(0.72, 0.53, 0.2), vec3(0.95, 0.78, 0.42), core);
+        gl_FragColor = vec4(col, a * vBlink * 0.85);
       }`,
   })
   return new THREE.Points(geo, mat)
@@ -243,19 +243,19 @@ export default function Scene3D({ settings, burst }) {
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.75 : 2))
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.1
+    renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
 
     const scene = new THREE.Scene()
-    scene.fog = new THREE.FogExp2(0x2a0610, 0.032)
+    scene.fog = new THREE.FogExp2(0xfaf1ee, 0.03)
     const pmrem = new THREE.PMREMGenerator(renderer)
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.environmentIntensity = 0.6
+    scene.environmentIntensity = 0.85
 
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100)
     camera.position.set(0, 0, 10)
 
-    const ambient = new THREE.AmbientLight(0xffe9df, 0.55)
+    const ambient = new THREE.AmbientLight(0xfff4ee, 1.0)
     const key = new THREE.PointLight(0xffd9a8, 55, 30, 1.6)
     const rim = new THREE.PointLight(0xff9db0, 30, 30, 1.6)
     const top = new THREE.DirectionalLight(0xfff2e0, 1.2)
@@ -462,8 +462,8 @@ export default function Scene3D({ settings, burst }) {
       camera.lookAt(0, camY, 0)
 
       const breath = 0.85 + 0.15 * Math.sin(t * 0.7)
-      ambient.intensity = 0.55 * breath
-      key.intensity = 55 * breath
+      ambient.intensity = 1.0 * breath
+      key.intensity = 45 * breath
       key.position.set(4 * Math.sin(t * 0.4), camY + 3, 5)
       rim.position.set(-4 * Math.cos(t * 0.33), camY - 2, 4)
       glitter.material.uniforms.uTime.value = t

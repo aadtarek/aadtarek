@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
 
 // Confetti cannons + gold fireworks + a shockwave. Fire with: window.dispatchEvent(new Event('celebrate'))
-const CONFETTI = ['#d4ae62', '#f3d68e', '#fff4e0', '#7a1a30', '#e8b4b8', '#b8892d', '#ffffff']
-const FIRE = [['#fff4d0', '#f3d68e', '#d4ae62'], ['#ffffff', '#ffd1dc', '#e8b4b8'], ['#fff1c8', '#f0d48a', '#c39a45']]
+const CONFETTI = ['#c9a04a', '#e6c873', '#8f2a40', '#6e1529', '#e7a6b3', '#f2d3d6', '#b98d3e']
+const FIRE = [['#b98d3e', '#dcb873', '#9c7424'], ['#8f2a40', '#c66b7e', '#e7a6b3'], ['#c9a04a', '#8f2a40', '#e6c873']]
 
 export default function Celebrate() {
   const ref = useRef(null)
@@ -60,11 +60,11 @@ export default function Celebrate() {
     const frame = () => {
       ctx.clearRect(0, 0, W, H)
       // shockwave rings
-      ctx.globalCompositeOperation = 'lighter'
+      ctx.globalCompositeOperation = 'source-over'
       rings = rings.filter((r) => (r.life -= r.small ? 0.04 : 0.018) > 0)
       rings.forEach((r) => {
         r.r += r.small ? 6 : 18
-        ctx.strokeStyle = `rgba(243,214,142,${r.life * 0.8})`
+        ctx.strokeStyle = `rgba(185,141,62,${r.life * 0.8})`
         ctx.lineWidth = (r.small ? 2 : 6) * r.life
         ctx.beginPath()
         ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2)
@@ -75,11 +75,11 @@ export default function Celebrate() {
         k.x += k.vx
         k.y += k.vy
         k.vy *= 0.985
-        ctx.fillStyle = '#fff4d0'
+        ctx.fillStyle = '#b98d3e'
         ctx.beginPath()
         ctx.arc(k.x, k.y, 2.5, 0, Math.PI * 2)
         ctx.fill()
-        for (let i = 0; i < 2; i++) sparks.push({ x: k.x, y: k.y, px: k.x, py: k.y, vx: (Math.random() - 0.5) * 0.8, vy: Math.random() * 1.5, life: 0.6, decay: 0.03, color: '#f3d68e' })
+        for (let i = 0; i < 2; i++) sparks.push({ x: k.x, y: k.y, px: k.x, py: k.y, vx: (Math.random() - 0.5) * 0.8, vy: Math.random() * 1.5, life: 0.6, decay: 0.03, color: '#dcb873' })
         if (k.y <= k.ty || k.vy > -2) { explode(k.x, k.y, k.pal); return false }
         return true
       })
