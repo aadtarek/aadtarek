@@ -14,6 +14,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { Stage, type StageCharacter } from './stage'
 
 
 export interface ShowcaseItem {
@@ -28,6 +29,24 @@ export interface EngineEvents {
   onHover?: (index: number | null) => void
   onPick?: (index: number) => void
   onScroll?: (share: number) => void
+  /** The character at the front of the stage changed */
+  onStage?: (index: number) => void
+  /** A flight between the stage and the wall has landed */
+  onArrive?: (where: 'stage' | 'wall') => void
+}
+
+/** Where the characters' stage stands in the scene (in front of the wall, lower). */
+const STAGE_ORIGIN = new THREE.Vector3(0, -1.7, 21)
+type Mode = 'stage' | 'toWall' | 'wall' | 'toStage'
+const ease = (u: number) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2)
+const bez = (a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, d: THREE.Vector3, u: number) => {
+  const v = 1 - u
+  return a
+    .clone()
+    .multiplyScalar(v * v * v)
+    .add(b.clone().multiplyScalar(3 * v * v * u))
+    .add(c.clone().multiplyScalar(3 * v * u * u))
+    .add(d.clone().multiplyScalar(u * u * u))
 }
 
 const MAX = 120 // niches the shaders hold
@@ -413,9 +432,14 @@ export class VitrineEngine {
   private content = new THREE.Group() // everything on the wall, swapped when the wall changes
   private marble!: THREE.Texture
   private warm = new THREE.Color(1.0, 0.74, 0.44) // Rfaheya's gold, as warm light
-  private pending: ShowcaseItem[] | null = null
-  private leaveAt = -1
   private readyOnce = false
+  private tex = new Map<string, THREE.Texture>() // every picture, loaded once at the start
+  private stage: Stage | null = null
+  private mode: Mode = 'wall'
+  private flight = { t0: 0, dur: 1, from: new THREE.Vector3(), fromLook: new THREE.Vector3() }
+  private hopAt = -10
+  private readyAt = -1
+  private stageFront = -1
   private beams: THREE.ShaderMaterial[] = []
   private lampDiscs: THREE.MeshBasicMaterial[] = []
   private labels: THREE.MeshBasicMaterial[] = []
@@ -442,7 +466,19 @@ export class VitrineEngine {
   private phone: boolean
   private events: EngineEvents
 
-  constructor(canvas: HTMLCanvasElement, items: ShowcaseItem[], phone: boolean, marbleUrl: string, events: EngineEvents = {}) {
+  /**
+   * `items` is the wall to show straight away (no characters); with `characters`, the stage comes
+   * first and the walls open with enter(). Every picture in `preload` is loaded before the lights come on.
+   */
+  constructor(
+    canvas: HTMLCanvasElement,
+    items: ShowcaseItem[],
+    phone: boolean,
+    marbleUrl: string,
+    events: EngineEvents = {},
+    characters: StageCharacter[] | null = null,
+    preload: string[] = [],
+  ) {
     this.canvas = canvas
     this.phone = phone
     this.events = events
@@ -456,13 +492,10 @@ export class VitrineEngine {
 
     this.cols = phone ? 2 : window.innerWidth >= 1280 ? 5 : 4
     this.rows = 1
-    this.camera = new THREE.PerspectiveCamera(phone ? 34 : 30, 1, 0.05, 60)
+    this.camera = new THREE.PerspectiveCamera(phone ? 34 : 30, 1, 0.05, 80)
     for (let i = 0; i < MAX; i++) this.lamps.push(new THREE.Vector4(0, 0, 0, 0))
     this.lampUniform = { value: this.lamps }
     this.scene.add(this.content)
-    this.marble = new THREE.TextureLoader().load(marbleUrl)
-    this.marble.wrapS = this.marble.wrapT = THREE.MirroredRepeatWrapping // no seams where the tiles meet
-    this.marble.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
     this.dustMat = new THREE.ShaderMaterial({
       uniforms: { uLamps: this.lampUniform, uTime: { value: 0 }, uPixel: { value: 300 }, uWarm: { value: new THREE.Vector3(this.warm.r, this.warm.g, this.warm.b) } },
       vertexShader: dustVertex,
@@ -483,13 +516,57 @@ export class VitrineEngine {
     this.composer.addPass(this.glass)
     this.composer.addPass(new OutputPass())
 
+    // Everything is loaded once, behind the one loading screen: the marble, the people, all the bottles.
+    const manager = new THREE.LoadingManager()
+    manager.onProgress = (_u, loaded, total) => this.events.onProgress?.(loaded / total)
+    const loader = new THREE.TextureLoader(manager)
+    this.marble = loader.load(marbleUrl)
+    this.marble.wrapS = this.marble.wrapT = THREE.MirroredRepeatWrapping // no seams where the tiles meet
+    this.marble.anisotropy = this.renderer.capabilities.getMaxAnisotropy()
+    const urls = new Set([...(characters ?? []).map((c) => c.image ?? ''), ...preload, ...items.map((i) => i.image)].filter(Boolean))
+    for (const url of urls) this.load(url, loader)
+    manager.onLoad = () => this.ready(characters, items)
+
     this.resize()
-    this.rebuild(items.slice(0, MAX))
-    this.placeCamera(true)
+    this.rebuild(characters ? [] : items.slice(0, MAX))
+    if (characters) {
+      this.mode = 'stage'
+      const v = this.stageView()
+      this.camPos.copy(v.pos).add(new THREE.Vector3(0, 4.5, 11)) // the entrance: high and far, in the dark
+      this.camLook.copy(v.look).add(new THREE.Vector3(0, 0.6, 0))
+      this.camera.position.copy(this.camPos)
+      this.camera.lookAt(this.camLook)
+    } else this.placeCamera(true)
     // Recording a demo frame by frame (tests only): the page asks for each frame.
     const w = window as unknown as { __vxManual?: boolean; __vxTick?: (ms: number) => void }
     if (w.__vxManual) w.__vxTick = (ms) => this.frame(ms / 1000)
     else this.loop()
+  }
+
+  private load(url: string, loader: THREE.TextureLoader) {
+    const t = loader.load(url, (t) => (t.needsUpdate = true))
+    t.colorSpace = THREE.NoColorSpace // decoded by hand in the shaders
+    t.anisotropy = 4
+    this.tex.set(url, t)
+    return t
+  }
+
+  /** Everything has loaded: the stage is built and its lights come on as the camera flies in (or the wall lights up). */
+  private ready(characters: StageCharacter[] | null, items: ShowcaseItem[]) {
+    if (this.readyOnce || this.disposed) return
+    this.readyOnce = true
+    this.readyAt = this.now()
+    if (characters) {
+      this.stage = new Stage(characters, this.tex, this.marble, this.warm, this.phone, STAGE_ORIGIN)
+      this.stage.setPixel(this.height * this.renderer.getPixelRatio() * 0.9)
+      this.scene.add(this.stage.group)
+      this.stage.lightUp(this.now() + 0.4)
+      this.fly('toStage', 3.4)
+    } else {
+      this.rebuild(items.slice(0, MAX))
+      this.startedAt = this.now()
+    }
+    this.events.onReady?.()
   }
   private virtual = 0
 
@@ -501,30 +578,80 @@ export class VitrineEngine {
     return new THREE.Vector3((c - (this.cols - 1) / 2) * CELL_W, -r * CELL_H, 0)
   }
 
-  /**
-   * A different wall (the characters, or one character's bottles): the lamps go out, the wall is
-   * rebuilt, and the lamps come on again one after another while the camera draws back.
-   */
-  show(items: ShowcaseItem[]) {
-    this.pending = items.slice(0, MAX)
-    this.leaveAt = this.now()
+  /* -------------------------------------------------------------- the stage and the flights */
+
+  private fly(to: 'toWall' | 'toStage', dur: number) {
+    this.mode = to
+    this.flight = { t0: this.now(), dur, from: this.camPos.clone(), fromLook: this.camLook.clone() }
+  }
+  /** Into a character's wall: the stage goes dark and the camera flies over the character to its wall, which lights up as it arrives. */
+  enter(items: ShowcaseItem[]) {
+    if (!this.stage || this.mode !== 'stage') return
+    this.rebuild(items.slice(0, MAX))
+    this.startedAt = this.now() + 1.25
+    this.stage.dim()
+    this.fly('toWall', 2.7)
+  }
+  /** Back to the stage: the wall goes dark, the camera flies back and the spotlights come on again. */
+  leave() {
+    if (!this.stage || this.mode === 'stage' || this.mode === 'toStage') return
     this.focus = null
     if (this.hover !== null) {
       this.hover = null
       this.events.onHover?.(null)
     }
+    this.stage.lightUp(this.now() + 0.6)
+    this.fly('toStage', 2.4)
+  }
+  /** Turns the ring to a character (or by a number of places). */
+  stageGo(i: number) {
+    if (!this.stage) return
+    this.stage.target = Math.max(0, Math.min(this.stageCount - 1, i))
+  }
+  stageNudge(by: number) {
+    if (!this.stage) return
+    this.stage.target = Math.max(0, Math.min(this.stageCount - 1, this.stage.target + by))
+  }
+  stageSnap() {
+    if (this.stage) this.stage.target = Math.round(this.stage.target)
+  }
+  get stageAt() {
+    return this.stage ? this.stage.target : 0
+  }
+  private get stageCount() {
+    return this.stage ? this.stage.count : 0
+  }
+  /** Which character is under a point (-1..1), or null. */
+  stagePick(x: number, y: number) {
+    if (!this.stage || this.mode !== 'stage') return null
+    this.ray.setFromCamera(new THREE.Vector2(x, y), this.camera)
+    return this.stage.pick(this.ray)
+  }
+  /** Every bottle on the wall hops in turn with its lamp flaring (added to the bag). */
+  celebrate() {
+    this.hopAt = this.now()
+  }
+  private stageView() {
+    const v = this.stage
+      ? this.stage.view(this.tilt.x, this.tilt.y)
+      : {
+          pos: new THREE.Vector3(this.tilt.x * 0.5, 1.3 - this.tilt.y * 0.18, this.phone ? 6.6 : 6.0).add(STAGE_ORIGIN),
+          look: new THREE.Vector3(0, this.phone ? 0.6 : 0.72, -0.6).add(STAGE_ORIGIN),
+        }
+    return v
   }
 
   private rebuild(items: ShowcaseItem[]) {
-    // Clear the old wall (the shared marble stays).
+    // Clear the old wall (the marble and the loaded pictures stay).
+    const keep = new Set<THREE.Texture>([this.marble, ...this.tex.values()])
     this.content.traverse((o) => {
       const m = o as THREE.Mesh
       m.geometry?.dispose()
       const mats = Array.isArray(m.material) ? m.material : m.material ? [m.material] : []
       for (const mat of mats) {
-        for (const v of Object.values((mat as THREE.ShaderMaterial).uniforms ?? {})) if (v.value instanceof THREE.Texture && v.value !== this.marble) v.value.dispose()
+        for (const v of Object.values((mat as THREE.ShaderMaterial).uniforms ?? {})) if (v.value instanceof THREE.Texture && !keep.has(v.value)) v.value.dispose()
         const map = (mat as THREE.MeshBasicMaterial).map
-        if (map && map !== this.marble) map.dispose()
+        if (map && !keep.has(map)) map.dispose()
         if (mat !== this.dustMat) mat.dispose()
       }
     })
@@ -545,27 +672,13 @@ export class VitrineEngine {
     this.hover = null
     this.scrollY = this.scrollTarget = 0
     this.startedAt = -1
-
-    // Loading: the bottles (the page shows the progress the first time).
-    const manager = new THREE.LoadingManager()
-    let queued = 0
-    manager.onProgress = (_u, loaded, total) => !this.readyOnce && this.events.onProgress?.(loaded / total)
-    const start = () => {
-      this.startedAt = this.now()
-      if (!this.readyOnce) {
-        this.readyOnce = true
-        this.events.onReady?.()
-      }
-    }
-    manager.onLoad = start
-    manager.onStart = () => queued++
-    this.build(this.marble, new THREE.TextureLoader(manager), this.warm)
-    if (!queued) window.setTimeout(start, 0) // nothing to download (the characters)
+    this.build(this.marble, new THREE.TextureLoader(), this.warm)
     this.resize()
   }
 
-  private build(marble: THREE.Texture, loader: THREE.TextureLoader, warm: THREE.Color) {
+  private build(marble: THREE.Texture, _loader: THREE.TextureLoader, warm: THREE.Color) {
     const n = this.items.length
+    if (!n) return // no wall yet (the stage comes first)
     const stoneUniforms = (tint: number, gloss: number) => ({
       uMap: { value: marble },
       uLamps: this.lampUniform,
@@ -709,17 +822,22 @@ export class VitrineEngine {
       bottle.renderOrder = 2
       this.content.add(bottle)
       this.bottles.push(bottle)
-      loader.load(this.items[i].image, (t) => {
-        t.colorSpace = THREE.NoColorSpace // decoded by hand in the shader
-        t.anisotropy = 4
+      const fit = (t: THREE.Texture) => {
         bottleMat.uniforms.uMap.value = t
-        const img = t.image as { width: number; height: number }
+        const img = t.image as { width: number; height: number } | undefined
+        if (!img?.width) return
         const aspect = img.width / img.height
         const h = Math.min(BOTTLE_H, (IN_W * 0.92) / aspect) // a wide picture is made smaller to fit the niche
         bottle.geometry.dispose()
         bottle.geometry = new THREE.PlaneGeometry(h * aspect, h)
         bottle.position.y = plinthTop + h / 2
-      })
+        bottle.userData.y = bottle.position.y
+      }
+      const url = this.items[i].image
+      const cached = this.tex.get(url)
+      if (cached?.image) fit(cached)
+      else this.load(url, new THREE.TextureLoader(new THREE.LoadingManager(() => fit(this.tex.get(url)!))))
+      bottle.userData.y = bottle.position.y
 
       const labelMat = new THREE.MeshBasicMaterial({ map: labelTexture(this.items[i].name, this.items[i].price), transparent: true, depthWrite: false, color: 0x000000 })
       const label = new THREE.Mesh(new THREE.PlaneGeometry(PLINTH_W * 0.86, PLINTH_W * 0.86 * (160 / 512)), labelMat)
@@ -817,13 +935,14 @@ export class VitrineEngine {
     this.bloom.resolution.set((this.width * pr) / 2, (this.height * pr) / 2)
     this.drops.resize(this.width * (this.phone ? 0.5 : 0.42), this.height * (this.phone ? 0.5 : 0.42))
     this.dustMat.uniforms.uPixel.value = this.height * pr * 0.9
+    this.stage?.setPixel(this.height * pr * 0.9)
     this.scrollTarget = Math.min(this.scrollTarget, this.maxScroll())
   }
 
   /* -------------------------------------------------------------- the loop */
 
-  private placeCamera(jump = false) {
-    const k = jump ? 1 : 0.06
+  /** Where the camera wants to be over the wall (overview or a niche), and the off-centre framing. */
+  private wallPose() {
     let pos: THREE.Vector3
     let look: THREE.Vector3
     let shift = new THREE.Vector2()
@@ -838,14 +957,53 @@ export class VitrineEngine {
     } else {
       const dist = this.overviewDistance()
       const y = -this.scrollY + (this.phone ? -CELL_H * 0.35 : 0)
-      const introPull = this.startedAt < 0 ? 1 : Math.max(0, 1 - (this.now() - this.startedAt) / 2.6)
+      const since = this.startedAt < 0 ? -1 : this.now() - this.startedAt
+      const introPull = since < 0 ? 1 : Math.max(0, 1 - since / 2.6)
       look = new THREE.Vector3(0, y, -DEPTH * 0.3)
       pos = new THREE.Vector3(this.tilt.x * (this.phone ? 0.18 : 0.32), y - this.tilt.y * 0.16, dist - introPull * introPull * dist * 0.45)
+    }
+    return { pos, look, shift }
+  }
+
+  private placeCamera(jump = false) {
+    const k = jump ? 1 : 0.06
+    let pos: THREE.Vector3
+    let look: THREE.Vector3
+    let shift = new THREE.Vector2()
+    if (this.mode === 'toWall' || this.mode === 'toStage') {
+      // A flight: a sweeping curve between the stage and the wall.
+      const f = this.flight
+      const u = Math.min(1, (this.now() - f.t0) / f.dur)
+      const e = ease(u)
+      if (this.mode === 'toWall') {
+        const to = this.wallPose()
+        const head = this.stage ? this.stage.front() : STAGE_ORIGIN.clone()
+        pos = bez(f.from, head.clone().add(new THREE.Vector3(0, 0.25, 1.4)), to.pos.clone().add(new THREE.Vector3(0, 1.6, 5.5)), to.pos, e)
+        look = bez(f.fromLook, head, to.look.clone().add(new THREE.Vector3(0, 0.6, 0)), to.look, Math.min(1, e * 1.15))
+      } else {
+        const to = this.stageView()
+        pos = bez(f.from, f.from.clone().add(new THREE.Vector3(0, 1.4, 4)), to.pos.clone().add(new THREE.Vector3(0, 2.6, 2.5)), to.pos, e)
+        look = bez(f.fromLook, f.fromLook.clone().add(new THREE.Vector3(0, 0.4, 2)), to.look.clone().add(new THREE.Vector3(0, -0.2, 0)), to.look, e)
+      }
+      if (u >= 1) {
+        this.mode = this.mode === 'toWall' ? 'wall' : 'stage'
+        this.events.onArrive?.(this.mode)
+      }
+      jump = true
+    } else if (this.mode === 'stage') {
+      const v = this.stageView()
+      pos = v.pos
+      look = v.look
+    } else {
+      const v = this.wallPose()
+      pos = v.pos
+      look = v.look
+      shift = v.shift
     }
     if (jump) {
       this.camPos.copy(pos)
       this.camLook.copy(look)
-      this.viewShift.copy(shift)
+      this.viewShift.lerp(shift, k)
     } else {
       this.camPos.lerp(pos, k)
       this.camLook.lerp(look, k)
@@ -882,31 +1040,38 @@ export class VitrineEngine {
     if (this.phone && !this.still && this.tiltTarget.lengthSq() === 0) this.tilt.set(Math.sin(t * 0.45) * 0.45, Math.sin(t * 0.31) * 0.2)
     this.placeCamera()
 
+    // The stage: the ring turns, its lights follow.
+    if (this.stage) {
+      this.stage.update(dt, t, this.still)
+      const front = Math.round(this.stage.pos)
+      if (front !== this.stageFront) {
+        this.stageFront = front
+        this.events.onStage?.(front)
+      }
+    }
+    const onWall = this.mode === 'wall' || this.mode === 'toWall'
+
     // Hover (computers): the niche under the pointer.
-    if (!this.phone && this.focus === null && this.pointer.x < 2) {
+    if (!this.phone && this.mode === 'wall' && this.focus === null && this.pointer.x < 2) {
       const h = this.pick(this.pointer.x, this.pointer.y)
       if (h !== this.hover) {
         this.hover = h
         this.events.onHover?.(h)
         if (h !== null) this.flicker(h)
       }
-    } else if (this.hover !== null && (this.pointer.x > 2 || this.focus !== null)) {
+    } else if (this.hover !== null && (this.pointer.x > 2 || this.focus !== null || this.mode !== 'wall')) {
       this.hover = null
       this.events.onHover?.(null)
-    }
-
-    // Changing walls: once the lamps are out, the new wall is built.
-    if (this.pending && t - this.leaveAt > 0.55) {
-      const next = this.pending
-      this.pending = null
-      this.rebuild(next)
     }
 
     // Light in each niche: on in turn at the start (with a flicker), brightest where you look.
     const n = this.items.length
     for (let i = 0; i < n; i++) {
       let target = 1
-      if (this.pending) target = 0
+      // Added to the bag: a wave of lamps flaring along the wall.
+      const hop = t - this.hopAt - i * 0.07
+      const hopping = hop > 0 && hop < 0.7 ? Math.sin((hop / 0.7) * Math.PI) : 0
+      if (!onWall) target = 0
       else if (this.focus !== null) target = i === this.focus ? 1.35 : 0.1
       else if (this.hover !== null) target = i === this.hover ? 1.3 : 0.32
       let on = 0
@@ -914,8 +1079,8 @@ export class VitrineEngine {
         const s = since - this.intro[i]
         on = s < 0 ? 0 : s < 0.5 ? (Math.sin(s * 90) > 0.2 ? 1 : 0.12) * Math.min(1, s * 4 + 0.3) : 1
       }
-      this.levels[i] += (target * on - this.levels[i]) * Math.min(1, dt * (this.pending ? 9 : on < 1 ? 30 : 5))
-      const level = this.levels[i]
+      this.levels[i] += (target * on - this.levels[i]) * Math.min(1, dt * (!onWall ? 6 : on < 1 ? 30 : 5))
+      const level = this.levels[i] + hopping * 0.6
       this.lamps[i].w = level
       this.beams[i].uniforms.uLight.value = level
       this.beams[i].uniforms.uTime.value = t
@@ -924,7 +1089,11 @@ export class VitrineEngine {
         const b = bottle.material
         b.uniforms.uLight.value = Math.min(1.2, level)
         b.uniforms.uTime.value = t + i * 1.7
-        b.uniforms.uSheen.value = this.focus === i || this.hover === i ? 1 : 0.35
+        b.uniforms.uSheen.value = this.focus === i || this.hover === i || hopping > 0 ? 1 : 0.35
+        if (bottle.userData.y !== undefined) {
+          bottle.position.y = bottle.userData.y + hopping * 0.11
+          bottle.rotation.z = hopping * Math.sin(hop * 18) * 0.06
+        }
       }
       this.lampDiscs[i].color.setRGB(9 * level, 7 * level, 5 * level)
       this.labels[i].color.setScalar(0.12 + Math.min(1, level) * 0.88)
@@ -937,7 +1106,8 @@ export class VitrineEngine {
     this.events.onScroll?.(this.maxScroll() > 0 ? this.scrollY / this.maxScroll() : 0)
 
     // A slow device: draw fewer pixels.
-    if (since > 1 && since < 8) {
+    const live = this.readyAt >= 0 ? t - this.readyAt : -1
+    if (live > 1 && live < 9) {
       if (dt > 1 / 32) this.slowFrames++
       if (this.slowFrames > 40 && this.renderer.getPixelRatio() > 1) {
         this.slowFrames = 0
@@ -960,6 +1130,8 @@ export class VitrineEngine {
         mat.dispose()
       }
     })
+    this.stage?.dispose()
+    for (const t of this.tex.values()) t.dispose()
     this.marble.dispose()
     this.dustMat.dispose()
     this.drops.texture.dispose()

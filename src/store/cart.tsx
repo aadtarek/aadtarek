@@ -76,6 +76,8 @@ interface CartContextValue {
 interface Backend {
   lines: CartLine[]
   add: (productId: number, variationId: number, quantity: number, giftMessage?: string) => Promise<void>
+  /** Several lines in one go (all shown at once, saved in one job), when the backend can */
+  addMany?: (lines: { variationId: number; quantity: number }[]) => Promise<void>
   setQuantity: (key: string, quantity: number) => Promise<void>
   remove: (key: string) => Promise<void>
   clear: () => Promise<void>
@@ -266,6 +268,16 @@ function useWooCart(): Backend {
         if (item) setGifts((g) => ({ ...g, [item.key]: [...(g[item.key] ?? []), giftMessage] }))
       }
     },
+    addMany: async (list) => {
+      await run(
+        async () => {
+          let next: WooCart | undefined
+          for (const l of list) next = await storeApi<WooCart>('cart/add-item', { method: 'POST', body: { id: l.variationId, quantity: l.quantity } })
+          return next ?? storeApi<WooCart>('cart')
+        },
+        (c) => list.reduce((acc, l) => guessAdd(acc, l.variationId, l.quantity), c),
+      )
+    },
     setQuantity: async (key, quantity) => {
       const q = Math.min(MAX_QTY, quantity)
       if (quantity <= 0) {
@@ -365,7 +377,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     p.catch((e: unknown) => setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.'))
   }, [])
 
-  const { add: backendAdd } = backend
+  const { add: backendAdd, addMany: backendAddMany } = backend
   const add = useCallback<CartContextValue['add']>(
     (productId, variationId, quantity = 1, options = {}) => {
       report(backendAdd(productId, variationId, quantity, options.giftMessage?.trim() || undefined))
@@ -377,10 +389,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addMany = useCallback<CartContextValue['addMany']>(
     (list) => {
-      report(list.reduce<Promise<void>>((p, l) => p.then(() => backendAdd(l.productId, l.variationId, l.quantity ?? 1, l.giftMessage?.trim() || undefined)), Promise.resolve()))
+      // All at once when there are no gift notes (the bag shows them together, one save); else one by one.
+      if (backendAddMany && !list.some((l) => l.giftMessage?.trim())) report(backendAddMany(list.map((l) => ({ variationId: l.variationId, quantity: l.quantity ?? 1 }))))
+      else report(list.reduce<Promise<void>>((p, l) => p.then(() => backendAdd(l.productId, l.variationId, l.quantity ?? 1, l.giftMessage?.trim() || undefined)), Promise.resolve()))
       setOpen(true)
     },
-    [backendAdd, report],
+    [backendAdd, backendAddMany, report],
   )
 
   const value = useMemo<CartContextValue>(() => {
