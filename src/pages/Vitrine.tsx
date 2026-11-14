@@ -1,48 +1,42 @@
-import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Link } from 'react-router-dom'
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { fullSizeVariations, getAllProducts } from '../api/catalog'
-import marbleDark from '../assets/vitrine/marble-dark.webp'
-import marbleLit from '../assets/vitrine/marble-lit.webp'
-import { RainGlass } from '../components/RainGlass'
-import { FREE_SHIPPING, FREE_SHIPPING_GOVERNORATES } from '../config'
+import logo from '../assets/logo.svg'
+import marble from '../assets/vitrine/marble.webp'
+import { FREE_SHIPPING, FREE_SHIPPING_GOVERNORATES, HOME } from '../config'
 import { formatPrice } from '../lib/format'
 import { flyToCart } from '../lib/fx'
+import { useOwnLogo } from '../lib/ownLogo'
 import { usePageTitle } from '../lib/usePageTitle'
 import { useCart } from '../store/cart'
 import type { Product } from '../types'
+import { VitrineEngine, webglAvailable } from '../vitrine/engine'
 import './vitrine.css'
 
-/** Niches in one window on computers (phones show one niche at a time, in a 3D carousel). */
-const PER_WINDOW = 5
-
-type Vars = CSSProperties & Record<`--${string}`, string | number>
-
 /**
- * The Vitrine: every fragrance that has a showcase bottle (Products → Rfaheya details →
- * Showcase bottle) standing in its own marble niche, built in 3D: back wall, side walls, ceiling
- * with a downlight, a polished floor and a stone plinth, all behind wet glass. The camera leans
- * with the mouse (or the phone's tilt), the lamps come on one by one, a hovered niche keeps its
- * light while the others dim, and a click travels into the niche with the notes, sizes and an
- * add-to-bag card.
+ * The Vitrine: a full-screen 3D experience (no site header, footer or tab bar). Every fragrance
+ * with a showcase bottle (Products → Rfaheya details → Showcase bottle) stands in its own lit
+ * marble niche in a wall seen through wet glass. Scroll or swipe along the wall, point or tilt
+ * to lean, click or tap a bottle to light it and step in: notes, sizes and add to bag.
  */
 export function Vitrine() {
   usePageTitle('The Vitrine — Rfaheya')
   const products = useMemo(() => getAllProducts().filter((p) => p.showcaseImage), [])
   const phone = usePhone()
-  if (!products.length) {
-    return (
-      <section className="vt-empty">
-        <p className="vt-eyebrow">The Vitrine</p>
-        <h1>The window is being dressed.</h1>
-        <p>Our bottles will be standing here very soon.</p>
-        <Link to="/shop" className="vt-empty-link">
-          Shop the collection <ArrowRight className="size-4" strokeWidth={1.6} />
-        </Link>
-      </section>
-    )
-  }
-  return <Scene key={phone ? 'phone' : 'desk'} products={products} phone={phone} />
+
+  // The page owns the whole screen while it is open.
+  useEffect(() => {
+    const html = document.documentElement
+    const before = html.style.overflow
+    html.style.overflow = 'hidden'
+    return () => {
+      html.style.overflow = before
+    }
+  }, [])
+
+  if (!products.length || !webglAvailable()) return <Fallback products={products} />
+  return <Experience key={phone ? 'phone' : 'desk'} products={products} phone={phone} />
 }
 
 function usePhone() {
@@ -62,371 +56,203 @@ const lowest = (p: Product) => {
   return prices.length ? Math.min(...prices) : 0
 }
 
-/** Sizes of the niches and the camera distances, from the size of the stage. */
-function geometry(W: number, H: number, phone: boolean) {
-  const NH = phone ? H * 0.8 : H * 0.98
-  const NW = phone ? Math.min(W * 0.74, NH * 0.6) : NH * 0.52
-  const ND = NW * 0.95
-  const G = NW * 0.07
-  const P = NW + G
-  const p = NW * 2.6
-  // How far back the camera stands so the whole window (or one niche, on phones) fits.
-  const fit = phone ? Math.min((W * 0.86) / NW, (H * 0.86) / NH) : Math.min((W * 0.94) / (PER_WINDOW * P - G), (H * 0.8) / NH)
-  const back = p / fit - p
-  return { W, H, NW, NH, ND, G, P, p, back }
+function BrandMark({ className = '' }: { className?: string }) {
+  const own = useOwnLogo()
+  return <img src={HOME.logo ? own.src : logo} alt="Rfaheya" className={`vx-logo ${className}`} draggable={false} />
 }
 
-/** Lamps come on one after another (with a flicker); `key` starts them again. */
-function useLightsOn(count: number, key: unknown, delay = 0) {
-  const [on, setOn] = useState(0)
-  useEffect(() => {
-    setOn(0)
-    let n = 0
-    let t = 0
-    const s = window.setTimeout(() => {
-      t = window.setInterval(() => {
-        n += 1
-        setOn(n)
-        if (n >= count) window.clearInterval(t)
-      }, 190)
-    }, delay)
-    return () => {
-      window.clearTimeout(s)
-      window.clearInterval(t)
-    }
-  }, [count, key, delay])
-  return on
-}
-
-function Scene({ products, phone }: { products: Product[]; phone: boolean }) {
-  const stage = useRef<HTMLElement>(null)
-  const [size, setSize] = useState({ W: 1280, H: 760 })
+function Experience({ products, phone }: { products: Product[]; phone: boolean }) {
+  const navigate = useNavigate()
+  const cart = useCart()
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const engine = useRef<VitrineEngine | null>(null)
+  const [progress, setProgress] = useState(0)
   const [ready, setReady] = useState(false)
-  const [center, setCenter] = useState(0) // phones: the niche in front
-  const [win, setWin] = useState(0) // computers: the window shown
+  const [entered, setEntered] = useState(false)
+  const [focus, setFocusState] = useState<number | null>(null)
   const [hover, setHover] = useState<number | null>(null)
-  const [focus, setFocus] = useState<number | null>(null)
-  const [drag, setDrag] = useState(0)
-  const windows = Math.ceil(products.length / PER_WINDOW)
+  const [scroll, setScroll] = useState(0)
+  const focusRef = useRef<number | null>(null)
 
-  useLayoutEffect(() => {
-    const el = stage.current
+  const setFocus = (i: number | null) => {
+    focusRef.current = i
+    setFocusState(i)
+    engine.current?.setFocus(i)
+  }
+
+  useEffect(() => {
+    const el = canvas.current
     if (!el) return
-    const measure = () => setSize({ W: el.clientWidth, H: el.clientHeight })
-    measure()
-    const ro = new ResizeObserver(measure)
-    ro.observe(el)
-    return () => ro.disconnect()
-  }, [])
+    const items = products.map((p) => ({ image: p.showcaseImage!, name: p.name, price: formatPrice(lowest(p)) }))
+    const e = new VitrineEngine(el, items, phone, marble, {
+      onProgress: setProgress,
+      onReady: () => {
+        setReady(true)
+        window.setTimeout(() => setEntered(true), 900)
+      },
+      onHover: setHover,
+      onScroll: (s) => setScroll((old) => (Math.abs(old - s) > 0.004 ? s : old)),
+    })
+    engine.current = e
+    const ro = new ResizeObserver(() => e.resize())
+    ro.observe(el.parentElement!)
+    return () => {
+      ro.disconnect()
+      e.dispose()
+      engine.current = null
+    }
+  }, [products, phone])
+
+  // Keys: arrows step through the bottles, Escape steps back out.
   useEffect(() => {
-    const t = window.setTimeout(() => setReady(true), 60)
-    return () => window.clearTimeout(t)
-  }, [])
-
-  const g = geometry(size.W, size.H, phone)
-  const first = phone ? center - 1 : win * PER_WINDOW
-  const count = phone ? 3 : PER_WINDOW
-  const on = useLightsOn(count, phone ? 'phone' : win, ready ? 500 : 99999)
-
-  // --- light in each niche
-  const lit = (i: number) => {
-    const k = i - first
-    if (k < 0 || k >= count || k >= on) return phone && i !== center ? 0.1 : 0.04
-    if (focus !== null) return i === focus ? 1 : 0.07
-    if (phone) return i === center ? 1 : 0.14
-    if (hover !== null) return i === hover ? 1 : 0.14
-    return 1
-  }
-
-  // --- the camera: dolly (distance and framing), orbit (the lean), truck (along the row)
-  let truck: number
-  let dolly: [number, number, number]
-  if (focus !== null) {
-    truck = -focus * g.P
-    // Into the niche, up to the bottle (the plinth drops below the frame on computers).
-    const shift = phone ? 0 : -g.W * 0.14
-    const lift = phone ? -g.NH * 0.08 - g.H * 0.21 : -g.NH * 0.16
-    dolly = [shift, lift, g.ND * 0.45 + g.NW * (phone ? 0.02 : 0.62)]
-  } else if (phone) {
-    truck = -center * g.P + drag
-    dolly = [0, g.NH * 0.02, -g.back]
-  } else {
-    truck = -(win * PER_WINDOW + (PER_WINDOW - 1) / 2) * g.P
-    dolly = [0, g.NH * 0.02, -g.back]
-  }
-  if (!ready) dolly = [dolly[0], dolly[1], dolly[2] + g.back * 0.55] // starts close, then draws back
-
-  const move = useCallback(
-    (by: number) => {
-      if (focus !== null) {
-        const next = Math.max(0, Math.min(products.length - 1, focus + by))
-        setFocus(next)
-        if (phone) setCenter(next)
-        else setWin(Math.floor(next / PER_WINDOW))
-      } else if (phone) setCenter((c) => Math.max(0, Math.min(products.length - 1, c + by)))
-      else {
-        setHover(null)
-        setWin((w) => (w + by + windows) % windows)
-      }
-    },
-    [focus, phone, products.length, windows],
-  )
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFocus(null)
-      else if (e.key === 'ArrowRight') move(1)
-      else if (e.key === 'ArrowLeft') move(-1)
+    const onKey = (ev: KeyboardEvent) => {
+      const f = focusRef.current
+      if (ev.key === 'Escape') f !== null ? setFocus(null) : navigate(-1)
+      else if (f !== null && ev.key === 'ArrowRight') setFocus(Math.min(products.length - 1, f + 1))
+      else if (f !== null && ev.key === 'ArrowLeft') setFocus(Math.max(0, f - 1))
+      else if (f === null && (ev.key === 'ArrowDown' || ev.key === 'PageDown')) engine.current?.scrollBy(1.2)
+      else if (f === null && (ev.key === 'ArrowUp' || ev.key === 'PageUp')) engine.current?.scrollBy(-1.2)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [move])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products.length])
 
-  // --- the lean: mouse on computers; the phone's tilt (asked for on the first touch on iPhones)
-  const steer = (x: number, y: number) => {
-    const el = stage.current
-    if (!el) return
-    el.classList.remove('is-idle')
-    el.style.setProperty('--mx', Math.max(-1, Math.min(1, x)).toFixed(3))
-    el.style.setProperty('--my', Math.max(-1, Math.min(1, y)).toFixed(3))
-  }
-  const tiltAsked = useRef(false)
+  // The phone's tilt leans the view (iPhones ask once, on the first touch).
   useEffect(() => {
     if (!phone) return
     let base: number | null = null
-    const onTilt = (e: DeviceOrientationEvent) => {
-      if (e.gamma === null || e.beta === null) return
-      base ??= e.beta
-      steer(e.gamma / 22, (e.beta - base) / 26)
+    const onTilt = (ev: DeviceOrientationEvent) => {
+      if (ev.gamma === null || ev.beta === null) return
+      base ??= ev.beta
+      engine.current?.setTilt(ev.gamma / 20, (ev.beta - base) / 22)
     }
     window.addEventListener('deviceorientation', onTilt)
     return () => window.removeEventListener('deviceorientation', onTilt)
   }, [phone])
+  const asked = useRef(false)
   const askTilt = () => {
-    if (tiltAsked.current) return
-    tiltAsked.current = true
+    if (asked.current) return
+    asked.current = true
     const D = window.DeviceOrientationEvent as unknown as { requestPermission?: () => Promise<string> }
     D?.requestPermission?.().catch(() => undefined)
   }
 
-  // --- swipe (phones)
-  const touch = useRef<{ x: number; y: number; moved: boolean } | null>(null)
-  const onTouchStart = (e: React.TouchEvent) => {
-    askTilt()
-    touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, moved: false }
+  // Pointer: drag or wheel to move along the wall, click / tap to pick a bottle.
+  const drag = useRef<{ x: number; y: number; last: number; t: number; v: number; moved: boolean } | null>(null)
+  const ndc = (ev: { clientX: number; clientY: number }) => {
+    const r = canvas.current!.getBoundingClientRect()
+    return [((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1] as const
   }
-  const onTouchMove = (e: React.TouchEvent) => {
-    const t = touch.current
-    if (!t || focus !== null) return
-    const dx = e.touches[0].clientX - t.x
-    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(e.touches[0].clientY - t.y)) {
-      t.moved = true
-      setDrag(dx)
+  const unit = () => (phone ? 3.2 : 2.4) / (canvas.current?.clientHeight || 800)
+  const onPointerDown = (ev: React.PointerEvent) => {
+    if (phone) askTilt()
+    drag.current = { x: ev.clientX, y: ev.clientY, last: ev.clientY, t: performance.now(), v: 0, moved: false }
+  }
+  const onPointerMove = (ev: React.PointerEvent) => {
+    const [x, y] = ndc(ev)
+    engine.current?.pointerAt(x, y)
+    const d = drag.current
+    if (!d) return
+    if (Math.abs(ev.clientY - d.y) > 6 || Math.abs(ev.clientX - d.x) > 6) d.moved = true
+    if (d.moved && focusRef.current === null) {
+      const dy = ev.clientY - d.last
+      const now = performance.now()
+      d.v = dy / Math.max(1, now - d.t)
+      d.t = now
+      d.last = ev.clientY
+      engine.current?.scrollBy(-dy * unit())
     }
   }
-  const onTouchEnd = () => {
-    const t = touch.current
-    touch.current = null
-    if (!t?.moved) return
-    if (Math.abs(drag) > g.NW * 0.18) move(drag < 0 ? 1 : -1)
-    setDrag(0)
+  const onPointerUp = (ev: React.PointerEvent) => {
+    const d = drag.current
+    drag.current = null
+    if (!d) return
+    if (d.moved) {
+      const f = focusRef.current
+      if (f === null) engine.current?.scrollBy(-d.v * 260 * unit()) // a flick keeps going
+      else if (Math.abs(ev.clientX - d.x) > 50) setFocus(Math.max(0, Math.min(products.length - 1, f + (ev.clientX < d.x ? 1 : -1)))) // swipe to the next bottle
+      return
+    }
+    const [x, y] = ndc(ev)
+    const i = engine.current?.pick(x, y) ?? null
+    if (i !== null && i !== focusRef.current) setFocus(i)
+    else if (i === null && focusRef.current !== null && phone) setFocus(null)
   }
 
-  const shown: number[] = []
-  const from = Math.max(0, phone ? center - 2 : win * PER_WINDOW - 1)
-  const to = Math.min(products.length - 1, phone ? center + 2 : win * PER_WINDOW + PER_WINDOW)
-  for (let i = from; i <= to; i++) shown.push(i)
-
-  const vars: Vars = {
-    '--nw': `${g.NW}px`,
-    '--nh': `${g.NH}px`,
-    '--nd': `${g.ND}px`,
-    '--g': `${g.G}px`,
-    '--pp': `${g.p}px`,
-    '--marble': `url(${marbleDark})`,
-    '--marble-lit': `url(${marbleLit})`,
-    '--tilt-y': phone ? 9 : 6,
-    '--tilt-x': phone ? 6 : 3.5,
-  }
-
+  const f = focus
   return (
-    <section
-      ref={stage}
-      className={`vt3 is-idle ${phone ? 'is-phone' : ''} ${focus !== null ? 'is-focus' : ''} ${ready ? 'is-ready' : ''} ${drag ? 'is-drag' : ''}`}
-      style={vars}
-      aria-label="The Vitrine"
-      onMouseMove={(e) => {
-        if (phone) return
-        const r = e.currentTarget.getBoundingClientRect()
-        steer(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1)
-      }}
-      onTouchStart={phone ? onTouchStart : undefined}
-      onTouchMove={phone ? onTouchMove : undefined}
-      onTouchEnd={phone ? onTouchEnd : undefined}
-    >
-      <div className="vt3-dolly" style={{ transform: `translate3d(${dolly[0]}px, ${dolly[1]}px, ${dolly[2]}px)` }}>
-        <div className="vt3-sway">
-        <div className="vt3-orbit">
-          <div className="vt3-truck" style={{ transform: `translate3d(${truck}px, 0, 0)` }}>
-            {shown.map((i) => (
-              <Niche
-                key={products[i].id}
-                product={products[i]}
-                index={i}
-                lit={lit(i)}
-                flicker={i - first >= 0 && i - first < on}
-                sheen={focus === i || hover === i || (phone && focus === null && i === center)}
-                onEnter={() => !phone && focus === null && setHover(i)}
-                onLeave={() => !phone && focus === null && setHover(null)}
-                onPick={() => {
-                  if (phone && i !== center) return setCenter(i)
-                  setHover(null)
-                  setFocus(i)
-                  if (phone) setCenter(i)
-                }}
-              />
-            ))}
-          </div>
-        </div>
-        </div>
+    <div className={`vx ${phone ? 'is-phone' : ''} ${f !== null ? 'is-focus' : ''} ${entered ? 'is-in' : ''}`}>
+      <div
+        className={`vx-stage ${hover !== null ? 'is-pointing' : ''}`}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={() => engine.current?.pointerAt(null)}
+        onWheel={(ev) => f === null && engine.current?.scrollBy(ev.deltaY * 0.0021)}
+      >
+        <canvas ref={canvas} className="vx-canvas" />
       </div>
 
-      <RainGlass className="vt3-rain" density={phone ? 0.75 : 1} />
-      <div className="vt3-glass" aria-hidden />
-
-      <header className={`vt3-title ${focus !== null ? 'is-away' : ''}`}>
-        <p className="vt-eyebrow">The Vitrine</p>
-        <p className="vt-hint">{phone ? 'Swipe through the niches · tap to step closer' : 'Hover to light a bottle · click to step inside'}</p>
+      {/* The heads-up layer */}
+      <header className="vx-top">
+        <button type="button" className="vx-brand" onClick={() => navigate('/')} aria-label="Leave The Vitrine — Rfaheya home">
+          <BrandMark />
+        </button>
+        <p className="vx-name">
+          <span>The</span> Vitrine
+        </p>
+        <div className="vx-actions">
+          <button type="button" className="vx-icon" onClick={cart.open} aria-label={`Bag, ${cart.count} items`}>
+            <ShoppingBag className="size-[18px]" strokeWidth={1.5} />
+            {cart.count > 0 && <span className="vx-badge">{cart.count}</span>}
+          </button>
+          <button type="button" className="vx-icon" onClick={() => (f !== null ? setFocus(null) : navigate(-1))} aria-label={f !== null ? 'Back to the wall' : 'Close'}>
+            <X className="size-[18px]" strokeWidth={1.5} />
+          </button>
+        </div>
       </header>
 
-      {focus === null && (phone ? products.length > 1 : windows > 1) && (
-        <nav className="vt3-pager" aria-label={phone ? 'Bottles' : 'Windows'}>
-          <button type="button" onClick={() => move(-1)} aria-label="Previous" disabled={phone && center === 0}>
-            <ChevronLeft className="size-4" strokeWidth={1.6} />
-          </button>
-          <span>{phone ? `${center + 1} / ${products.length}` : `Window ${win + 1} / ${windows}`}</span>
-          <button type="button" onClick={() => move(1)} aria-label="Next" disabled={phone && center === products.length - 1}>
-            <ChevronRight className="size-4" strokeWidth={1.6} />
-          </button>
-        </nav>
-      )}
-
-      {focus !== null && (
+      {f === null && (
         <>
-          {!phone && (
-            <>
-              <button type="button" className="vt3-side is-prev" onClick={() => move(-1)} aria-label="Previous bottle" disabled={focus === 0}>
-                <ChevronLeft className="size-5" strokeWidth={1.4} />
-              </button>
-              <button type="button" className="vt3-side is-next" onClick={() => move(1)} aria-label="Next bottle" disabled={focus === products.length - 1}>
-                <ChevronRight className="size-5" strokeWidth={1.4} />
-              </button>
-            </>
+          <p className="vx-hint">{phone ? 'Swipe to explore · tap a bottle to light it' : 'Scroll to explore · click a bottle to step in'}</p>
+          <div className="vx-rail" aria-hidden>
+            <span style={{ transform: `translateY(${scroll * 100 * 4}%)` }} />
+          </div>
+          {!phone && hover !== null && (
+            <p className="vx-tip" key={hover}>
+              {products[hover].name} <span>{formatPrice(lowest(products[hover]))}</span>
+            </p>
           )}
-          {phone && (
-            <button type="button" className="vt3-back" onClick={() => setFocus(null)}>
-              <ArrowLeft className="size-4" strokeWidth={1.6} /> The window
-            </button>
-          )}
-          <InfoCard key={products[focus].id} product={products[focus]} number={focus + 1} onBack={() => setFocus(null)} phone={phone} />
         </>
       )}
-    </section>
-  )
-}
 
-/* ---------------------------------------------------------------- one niche */
-
-const DUST = Array.from({ length: 7 }, (_, i) => ({
-  left: 30 + ((i * 37) % 40),
-  top: 12 + ((i * 53) % 62),
-  size: 1.5 + ((i * 7) % 3) * 0.6,
-  dur: 7 + ((i * 5) % 6),
-  delay: -((i * 1.7) % 9),
-}))
-
-function Niche({
-  product,
-  index,
-  lit,
-  flicker,
-  sheen,
-  onEnter,
-  onLeave,
-  onPick,
-}: {
-  product: Product
-  index: number
-  lit: number
-  flicker: boolean
-  sheen: boolean
-  onEnter: () => void
-  onLeave: () => void
-  onPick: () => void
-}) {
-  const img = product.showcaseImage!
-  const style: Vars = {
-    '--i': index,
-    '--lit': lit,
-    '--bx': `${(index * 29) % 100}%`,
-    '--by': `${(index * 47) % 100}%`,
-    '--sheen': sheen ? 1 : 0,
-  }
-  return (
-    <div className={`nx ${flicker ? 'is-on' : ''}`} style={style}>
-      <div className="nx-face nx-back">
-        <i className="nx-lit" />
-      </div>
-      <div className="nx-face nx-left">
-        <i className="nx-lit" />
-      </div>
-      <div className="nx-face nx-right">
-        <i className="nx-lit" />
-      </div>
-      <div className="nx-face nx-ceil">
-        <span className="nx-lamp" />
-      </div>
-      <div className="nx-face nx-floor">
-        <i className="nx-lit" />
-      </div>
-      <div className="nx-beam" />
-      {sheen && lit > 0.5 && (
-        <div className="nx-dust" aria-hidden>
-          {DUST.map((d, k) => (
-            <span key={k} style={{ left: `${d.left}%`, top: `${d.top}%`, width: d.size * 3, height: d.size * 3, animationDuration: `${d.dur}s`, animationDelay: `${d.delay}s` }} />
-          ))}
-        </div>
+      {f !== null && (
+        <>
+          <div className={`vx-steps ${phone ? 'is-in-card' : ''}`}>
+            <button type="button" onClick={() => setFocus(Math.max(0, f - 1))} disabled={f === 0} aria-label="Previous bottle">
+              <ChevronLeft className="size-5" strokeWidth={1.4} />
+            </button>
+            <span>
+              {String(f + 1).padStart(2, '0')} / {String(products.length).padStart(2, '0')}
+            </span>
+            <button type="button" onClick={() => setFocus(Math.min(products.length - 1, f + 1))} disabled={f === products.length - 1} aria-label="Next bottle">
+              <ChevronRight className="size-5" strokeWidth={1.4} />
+            </button>
+          </div>
+          <InfoCard key={products[f].id} product={products[f]} number={f + 1} onBack={() => setFocus(null)} phone={phone} />
+        </>
       )}
-      <div className="nx-plinth">
-        <div className="pl pl-top" />
-        <div className="pl pl-left" />
-        <div className="pl pl-right" />
-        <div className="pl pl-front">
-          <span className="pl-name">{product.name}</span>
-          <span className="pl-price">{formatPrice(lowest(product))}</span>
+
+      {/* Loading, then the lights come on */}
+      <div className={`vx-load ${ready ? 'is-done' : ''}`} aria-hidden={ready}>
+        <BrandMark className="vx-load-logo" />
+        <p className="vx-load-name">The Vitrine</p>
+        <div className="vx-load-bar">
+          <span style={{ transform: `scaleX(${Math.max(0.04, progress)})` }} />
         </div>
+        <p className="vx-load-pct">{Math.round(progress * 100)}%</p>
       </div>
-      <div className="nx-item">
-        <img className="nx-glow" src={img} alt="" aria-hidden />
-        <img className="nx-bottle" src={img} alt="" draggable={false} decoding="async" />
-        {sheen && (
-          <span className="nx-spec" style={{ maskImage: `url(${img})`, WebkitMaskImage: `url(${img})` }}>
-            <i />
-          </span>
-        )}
-      </div>
-      <div className="nx-post" />
-      <div className="nx-lintel" />
-      <button
-        type="button"
-        className="nx-hit"
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-        onFocus={onEnter}
-        onBlur={onLeave}
-        onClick={onPick}
-        aria-label={`${product.name}, from ${formatPrice(lowest(product))}`}
-      />
     </div>
   )
 }
@@ -448,13 +274,13 @@ function InfoCard({ product, number, onBack, phone = false }: { product: Product
   const notes = rows.length ? rows : ([['Notes', product.notes.map((n) => n.name).slice(0, 4)]] as [string, string[]][])
 
   return (
-    <aside className={`vt-card ${phone ? 'is-phone' : ''}`} aria-live="polite">
-      <p className="vt-card-no">
+    <aside className={`vx-card ${phone ? 'is-phone' : ''}`} aria-live="polite">
+      <p className="vx-card-no">
         N° {String(number).padStart(2, '0')} · Eau de parfum
       </p>
-      <h2 className="vt-card-name">{product.name}</h2>
-      {product.tagline && <p className="vt-card-tag">{product.tagline}</p>}
-      <dl className="vt-notes">
+      <h2 className="vx-card-name">{product.name}</h2>
+      {product.inspiredBy && <p className="vx-card-tag">Inspired by {product.inspiredBy}</p>}
+      <dl className="vx-notes">
         {notes.map(([label, list]) => (
           <div key={label}>
             <dt>{label}</dt>
@@ -463,7 +289,7 @@ function InfoCard({ product, number, onBack, phone = false }: { product: Product
         ))}
       </dl>
       {sizes.length > 0 && (
-        <div className="vt-sizes" role="radiogroup" aria-label="Size">
+        <div className="vx-sizes" role="radiogroup" aria-label="Size">
           {sizes.map((v) => (
             <button key={v.id} type="button" role="radio" aria-checked={v.id === pick} disabled={!v.inStock} className={v.id === pick ? 'is-on' : ''} onClick={() => setPick(v.id)}>
               <span>{v.size}</span>
@@ -474,7 +300,7 @@ function InfoCard({ product, number, onBack, phone = false }: { product: Product
       )}
       <button
         type="button"
-        className="vt-add"
+        className="vx-add"
         disabled={!chosen?.inStock}
         onClick={(e) => {
           if (!chosen) return
@@ -484,14 +310,14 @@ function InfoCard({ product, number, onBack, phone = false }: { product: Product
       >
         {chosen?.inStock === false ? 'Sold out' : 'Add to bag'}
       </button>
-      {FREE_SHIPPING.enabled && (
-        <p className="vt-card-note">
+      {FREE_SHIPPING.enabled && !phone && (
+        <p className="vx-card-note">
           Free shipping in {FREE_SHIPPING_GOVERNORATES.join(' & ')} on orders over {formatPrice(FREE_SHIPPING.min)}.
         </p>
       )}
-      <div className="vt-card-links">
+      <div className="vx-card-links">
         <button type="button" onClick={onBack}>
-          <ArrowLeft className="size-3.5" strokeWidth={1.6} /> Back to the window
+          <ArrowLeft className="size-3.5" strokeWidth={1.6} /> Back to the wall
         </button>
         <Link to={`/product/${product.slug}`}>
           Full details <ArrowRight className="size-3.5" strokeWidth={1.6} />
@@ -501,3 +327,18 @@ function InfoCard({ product, number, onBack, phone = false }: { product: Product
   )
 }
 
+/* ---------------------------------------------------------------- without 3D */
+
+function Fallback({ products }: { products: Product[] }) {
+  return (
+    <section className="vx-empty">
+      <BrandMark className="vx-load-logo" />
+      <p className="vx-load-name">The Vitrine</p>
+      <h1>{products.length ? 'This device can’t show the 3D window.' : 'The window is being dressed.'}</h1>
+      <p>{products.length ? 'Every bottle is waiting for you in the shop.' : 'Our bottles will be standing here very soon.'}</p>
+      <Link to="/shop" className="vx-add vx-empty-link">
+        Shop the collection
+      </Link>
+    </section>
+  )
+}

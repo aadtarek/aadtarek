@@ -47,6 +47,24 @@ export function Layout() {
     window.scrollTo(0, 0)
   }, [pathname])
 
+  // The Vitrine is a full-screen experience: no bar, header or footer, only the page (and the bag).
+  if (pathname.startsWith('/vitrine')) {
+    return (
+      <>
+        <main ref={main}>
+          <Suspense fallback={<div className="fixed inset-0 bg-black" />}>
+            <Outlet />
+          </Suspense>
+        </main>
+        {(loaded || cart.isOpen) && (
+          <Suspense fallback={null}>
+            <CartDrawer />
+          </Suspense>
+        )}
+      </>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col pb-[calc(84px+env(safe-area-inset-bottom))] lg:pb-0">
       <AnnouncementBar />

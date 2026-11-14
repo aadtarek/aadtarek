@@ -1,684 +1,383 @@
-/* The Vitrine — marble niches built in 3D behind wet glass (src/pages/Vitrine.tsx). */
+/* The Vitrine — full-screen 3D (src/pages/Vitrine.tsx, src/vitrine/engine.ts), in Rfaheya's gold. */
 
-
-.vt3,
-.vt-empty {
-  --vt-ink: #f3e9e1;
-  --vt-muted: rgba(243, 233, 225, 0.62);
-  --vt-glass: rgba(24, 18, 16, 0.5);
-  --vt-line: rgba(255, 240, 230, 0.16);
-  --vt-warm: 255, 214, 186;
-  color: var(--vt-ink);
-  background: #060404;
-}
-.vt-eyebrow {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.32em;
-  text-transform: uppercase;
-  color: #e7c39a;
-}
-.vt-hint {
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--vt-muted);
+.vx,
+.vx-empty {
+  --vx-gold: #e49b2d;
+  --vx-gold-soft: #f0c27a;
+  --vx-ink: #f6ecdd;
+  --vx-muted: rgba(246, 236, 221, 0.62);
+  --vx-line: rgba(228, 155, 45, 0.28);
+  --vx-glass: rgba(18, 12, 8, 0.55);
+  color: var(--vx-ink);
+  background: #020101;
 }
 
-/* ---------------------------------------------------------------- stage and camera */
-
-.vt3 {
-  --mx: 0;
-  --my: 0;
-  position: relative;
-  height: max(620px, calc(100svh - 76px));
+.vx {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
   overflow: hidden;
-  overflow: clip; /* never scrolled sideways, not even by focus moving to a niche */
-  perspective: var(--pp);
-  perspective-origin: 50% 46%;
-  isolation: isolate;
-  touch-action: pan-y;
-  background: radial-gradient(120% 90% at 50% 40%, #1a1110, #050303 70%);
-}
-.vt3.is-phone {
-  /* Clear of the header above and the floating tab bar below. */
-  height: max(500px, calc(100svh - 64px - 104px));
-}
-/* With nothing steering it, the view sways gently on its own (a transform: drawn by the GPU). */
-.vt3-sway {
-  position: absolute;
-  left: 0;
-  top: 0;
-  transform-style: preserve-3d;
-}
-.vt3.is-phone.is-idle .vt3-sway {
-  animation: vt3-sway 12s ease-in-out infinite;
-}
-@keyframes vt3-sway {
-  0%,
-  100% { transform: rotateY(calc(var(--tilt-y) * -0.45deg)) rotateX(calc(var(--tilt-x) * -0.12deg)); }
-  50% { transform: rotateY(calc(var(--tilt-y) * 0.45deg)) rotateX(calc(var(--tilt-x) * 0.12deg)); }
-}
-.vt3-dolly,
-.vt3-orbit,
-.vt3-truck {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 0;
-  height: 0;
-  transform-style: preserve-3d;
-}
-.vt3-dolly {
-  left: 0;
-  top: 0;
-  transition: transform 1.35s cubic-bezier(0.65, 0, 0.18, 1);
-}
-.vt3.is-ready .vt3-dolly {
-  transition-duration: 1.35s;
-}
-.vt3:not(.is-ready) .vt3-dolly,
-.vt3.is-ready:not(.is-focus) .vt3-dolly {
-  transition: transform 2.6s cubic-bezier(0.22, 0.8, 0.2, 1);
-}
-.vt3.is-focus .vt3-dolly {
-  transition: transform 1.35s cubic-bezier(0.65, 0, 0.18, 1);
-}
-.vt3-orbit {
-  left: 0;
-  top: 0;
-  transform: rotateX(calc(var(--my) * var(--tilt-x) * -1deg)) rotateY(calc(var(--mx) * var(--tilt-y) * 1deg));
-  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-.vt3-truck {
-  left: 0;
-  top: 0;
-  transition: transform 1.35s cubic-bezier(0.65, 0, 0.18, 1);
-}
-.vt3.is-drag .vt3-truck {
-  transition: none;
-}
-/* The stage's centre is the scene's origin. */
-.vt3-dolly {
-  left: 50%;
-  top: 50%;
-}
-
-/* ---------------------------------------------------------------- a niche */
-
-.nx {
-  --lit: 0;
-  position: absolute;
-  left: calc(var(--i) * (var(--nw) + var(--g)) - var(--nw) / 2);
-  top: calc(var(--nh) / -2);
-  width: var(--nw);
-  height: var(--nh);
-  transform-style: preserve-3d;
-}
-.nx-face {
-  position: absolute;
-  overflow: hidden;
-  background: #120c0c var(--marble) no-repeat;
-  background-size: calc(var(--nw) * 2.6) auto;
-  background-position: var(--bx) var(--by);
-}
-.nx-lit {
-  position: absolute;
-  inset: 0;
-  background: var(--marble-lit) no-repeat;
-  background-size: inherit;
-  background-position: inherit;
-  opacity: var(--lit);
-  transition: opacity 0.65s;
-}
-.nx-face::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.nx-back {
-  inset: 0;
-  transform: translateZ(calc(var(--nd) * -1));
-}
-.nx-back .nx-lit {
-  mask: radial-gradient(62% 58% at 50% 20%, #000 18%, rgba(0, 0, 0, 0.6) 46%, transparent 80%);
-}
-.nx-back::after {
-  background: radial-gradient(120% 90% at 50% 25%, transparent 40%, rgba(0, 0, 0, 0.55));
-}
-
-.nx-left,
-.nx-right {
-  top: 0;
-  width: var(--nd);
-  height: var(--nh);
-  transform-origin: 0 50%;
-  transform: rotateY(90deg);
-}
-.nx-left {
-  left: 0;
-}
-.nx-right {
-  left: var(--nw);
-}
-.nx-left .nx-lit,
-.nx-right .nx-lit {
-  mask: radial-gradient(70% 60% at 55% 22%, rgba(0, 0, 0, 0.85), transparent 75%);
-}
-/* Side walls darken toward the opening (less light there) and toward the floor. */
-.nx-left::after,
-.nx-right::after {
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.15) 55%, rgba(0, 0, 0, 0.35)), linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.5));
-}
-
-.nx-ceil,
-.nx-floor {
-  left: 0;
-  width: var(--nw);
-  height: var(--nd);
-  transform-origin: 50% 0;
-  transform: rotateX(-90deg);
-}
-.nx-ceil {
-  top: 0;
-}
-.nx-ceil::after {
-  background: rgba(4, 2, 2, 0.82);
-}
-.nx-floor {
-  top: var(--nh);
-}
-.nx-floor .nx-lit {
-  mask: radial-gradient(55% 60% at 50% 45%, rgba(0, 0, 0, 0.9), transparent 75%);
-}
-/* A polished floor: a soft sheen line toward the back. */
-.nx-floor::after {
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 40%, rgba(255, 230, 215, calc(var(--lit) * 0.06)) 70%, rgba(0, 0, 0, 0.4));
-}
-
-.nx-lamp {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  z-index: 1;
-  width: 20%;
-  aspect-ratio: 1;
-  translate: -50% -50%;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, #fffdf8, #ffe6cc 45%, rgba(255, 214, 180, 0.45) 62%, rgba(255, 214, 180, 0) 100%);
-  opacity: calc(0.1 + var(--lit) * 0.9);
-  box-shadow: 0 0 calc(var(--nw) * 0.06 * var(--lit)) calc(var(--nw) * 0.03 * var(--lit)) rgba(var(--vt-warm), 0.6);
-  transition:
-    opacity 0.55s,
-    box-shadow 0.55s;
-}
-.nx.is-on .nx-lamp {
-  animation: vt-flicker 0.8s steps(1, end);
-}
-@keyframes vt-flicker {
-  0% { opacity: 0.1; }
-  12% { opacity: 1; }
-  20% { opacity: 0.2; }
-  34% { opacity: 0.9; }
-  42% { opacity: 0.35; }
-  60% { opacity: 1; }
-}
-
-/* Light falling from the lamp: a soft cone, and dust drifting in it. */
-.nx-beam,
-.nx-dust {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: var(--nw);
-  height: calc(var(--nh) * 0.82);
-  transform: translateZ(calc(var(--nd) * -0.5));
-  pointer-events: none;
-}
-.nx-beam {
-  clip-path: polygon(44% 0, 56% 0, 96% 100%, 4% 100%);
-  background: linear-gradient(180deg, rgba(var(--vt-warm), 0.34), rgba(var(--vt-warm), 0.08) 55%, rgba(var(--vt-warm), 0.02));
-  opacity: calc(var(--lit) * 0.85);
-  transition: opacity 0.6s;
-}
-.nx-dust {
-  opacity: calc(var(--lit) * 0.9);
-  transition: opacity 0.6s;
-}
-.nx-dust span {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, #fff4ea, rgba(255, 230, 210, 0.5) 45%, transparent);
-  animation: vt-dust 9s linear infinite;
-  will-change: transform, opacity;
-}
-@keyframes vt-dust {
-  0% { transform: translate3d(0, 0, 0); opacity: 0; }
-  15% { opacity: 0.9; }
-  50% { transform: translate3d(14px, -26px, 0); opacity: 0.5; }
-  85% { opacity: 0.85; }
-  100% { transform: translate3d(-8px, -54px, 0); opacity: 0; }
-}
-
-/* The plinth: a stone block standing in the niche. */
-.nx-plinth {
-  --pw: calc(var(--nw) * 0.54);
-  --ph: calc(var(--nh) * 0.19);
-  --pd: calc(var(--nd) * 0.5);
-  position: absolute;
-  left: calc((var(--nw) - var(--pw)) / 2);
-  top: calc(var(--nh) - var(--ph));
-  width: var(--pw);
-  height: var(--ph);
-  transform-style: preserve-3d;
-  transform: translateZ(calc(var(--nd) * -0.45 + var(--pd) / 2));
-}
-.pl {
-  position: absolute;
-  background: #0d0909 var(--marble) no-repeat;
-  background-size: calc(var(--nw) * 1.6) auto;
-  background-position: calc(var(--bx) + 30%) 70%;
-}
-.pl-front {
-  inset: 0;
-  display: grid;
-  place-content: center;
-  gap: 0.35em;
-  text-align: center;
-  font-size: calc(var(--nw) * 0.042);
-  box-shadow: inset 0 calc(var(--nw) * 0.004) 0 rgba(255, 240, 230, calc(0.08 + var(--lit) * 0.22));
-}
-.pl-front::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255, 220, 200, calc(var(--lit) * 0.12)), rgba(0, 0, 0, 0.55));
-}
-.pl-top {
-  left: 0;
-  top: 0;
-  width: var(--pw);
-  height: var(--pd);
-  transform-origin: 50% 0;
-  transform: rotateX(-90deg);
-}
-.pl-top::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 70% at 50% 50%, rgba(255, 226, 205, calc(var(--lit) * 0.35)), rgba(0, 0, 0, 0.35));
-}
-.pl-left,
-.pl-right {
-  top: 0;
-  width: var(--pd);
-  height: var(--ph);
-  transform-origin: 0 50%;
-  transform: rotateY(90deg);
-  filter: brightness(0.45);
-}
-.pl-left {
-  left: 0;
-}
-.pl-right {
-  left: var(--pw);
-}
-.pl-name,
-.pl-price {
-  position: relative;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(243, 233, 225, calc(0.25 + var(--lit) * 0.65));
-  transition: color 0.6s;
-}
-.pl-name {
-  font-size: 0.82em;
-  font-weight: 600;
-}
-
-/* The bottle, its warm glow on the stone, and a light streak that crosses the glass. */
-.nx-item {
-  position: absolute;
-  left: 0;
-  width: var(--nw);
-  top: calc(var(--nh) * (1 - 0.19 - 0.44));
-  height: calc(var(--nh) * 0.44);
-  transform: translateZ(calc(var(--nd) * -0.45));
-  pointer-events: none;
-}
-.nx-bottle,
-.nx-spec {
-  position: absolute;
-  inset: 0 12%;
-  width: 76%;
-  height: 100%;
-  object-fit: contain;
-  object-position: 50% 100%;
-}
-.nx-bottle {
-  filter: brightness(calc(0.07 + var(--lit) * 0.97)) saturate(calc(0.5 + var(--lit) * 0.55)) drop-shadow(0 calc(var(--nw) * 0.02) calc(var(--nw) * 0.03) rgba(0, 0, 0, 0.6));
-  transform-origin: 50% 100%;
-  transition:
-    filter 0.65s,
-    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
   user-select: none;
+  -webkit-user-select: none;
 }
-.vt3:not(.is-focus) .nx:hover .nx-bottle {
-  transform: translateY(-3%) scale(1.03);
-}
-.nx-spec {
-  overflow: hidden;
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: 50% 100%;
-  animation: vt-in 0.6s both;
-}
-/* The streak moves by transform only (no repainting). */
-.nx-spec i {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -60%;
-  width: 60%;
-  background: linear-gradient(105deg, transparent 10%, rgba(255, 255, 255, 0.42) 46%, rgba(255, 246, 236, 0.12) 56%, transparent 90%);
-  animation: vt-sweep 4.4s cubic-bezier(0.45, 0, 0.3, 1) infinite;
-  will-change: transform;
-}
-@keyframes vt-sweep {
-  0% { transform: translateX(0); }
-  48%,
-  100% { transform: translateX(270%); }
-}
-.nx-glow {
-  position: absolute;
-  left: 26%;
-  width: 48%;
-  bottom: -3%;
-  height: 10%;
-  object-fit: fill;
-  filter: blur(calc(var(--nw) * 0.03)) sepia(0.6) brightness(1.2);
-  opacity: calc(var(--lit) * 0.32);
-  transform: scaleY(-1);
-  transition: opacity 0.6s;
-}
-
-/* The wall the niches are cut into: posts between them and a lintel above. */
-.nx-post {
-  position: absolute;
-  left: var(--nw);
-  top: calc(var(--nh) * -0.06);
-  width: var(--g);
-  height: calc(var(--nh) * 1.12);
-  background: #0b0707 var(--marble) no-repeat;
-  background-size: calc(var(--nw) * 2.6) auto;
-  background-position: calc(var(--bx) + 50%) 40%;
-  box-shadow:
-    inset calc(var(--g) * 0.12) 0 0 rgba(255, 235, 220, 0.06),
-    inset calc(var(--g) * -0.5) 0 calc(var(--g) * 0.6) rgba(0, 0, 0, 0.6);
-  filter: brightness(0.55);
-}
-.nx-lintel {
-  position: absolute;
-  left: calc(var(--g) / -2);
-  top: calc(var(--nh) * -0.06);
-  width: calc(var(--nw) + var(--g));
-  height: calc(var(--nh) * 0.06);
-  background: #0b0707 var(--marble) no-repeat;
-  background-size: calc(var(--nw) * 2.6) auto;
-  background-position: var(--bx) 10%;
-  filter: brightness(0.5);
-}
-.nx-hit {
+.vx-stage {
   position: absolute;
   inset: 0;
+  touch-action: none;
+  cursor: grab;
+}
+.vx-stage:active {
+  cursor: grabbing;
+}
+.vx-stage.is-pointing {
   cursor: pointer;
-  outline: none;
-  -webkit-tap-highlight-color: transparent;
 }
-.nx-hit:focus-visible {
-  box-shadow: inset 0 0 0 2px rgba(var(--vt-warm), 0.55);
+.vx-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.vx-logo {
+  height: 100%;
+  width: auto;
+  /* The dark logo, in gold on the dark scene. */
+  filter: brightness(0) saturate(100%) invert(68%) sepia(64%) saturate(640%) hue-rotate(345deg) brightness(96%);
 }
 
-/* ---------------------------------------------------------------- glass, titles, controls */
+/* ---------------------------------------------------------------- heads-up */
 
-.vt3-rain {
-  z-index: 4;
-  transform: translate3d(calc(var(--mx) * 16px), calc(var(--my) * 10px), 0) scale(1.05);
-}
-.vt3-glass {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-  background:
-    linear-gradient(112deg, transparent calc(34% + var(--mx) * 8%), rgba(255, 255, 255, 0.045) calc(42% + var(--mx) * 8%), transparent calc(50% + var(--mx) * 8%)),
-    linear-gradient(112deg, transparent calc(56% + var(--mx) * 10%), rgba(255, 255, 255, 0.025) calc(59% + var(--mx) * 10%), transparent calc(62% + var(--mx) * 10%)),
-    radial-gradient(130% 95% at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.6));
-}
-.vt3-title {
-  position: absolute;
-  top: 24px;
-  left: 50%;
-  translate: -50% 0;
-  z-index: 6;
-  width: max-content;
-  max-width: 92%;
-  text-align: center;
-  transition:
-    opacity 0.5s,
-    translate 0.5s;
-}
-.vt3-title.is-away {
+.vx-top,
+.vx-hint,
+.vx-rail,
+.vx-tip,
+.vx-steps {
   opacity: 0;
-  translate: -50% -12px;
-  pointer-events: none;
+  transition:
+    opacity 0.9s 0.3s,
+    transform 0.9s 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
-.vt3-pager {
+.vx.is-in .vx-top,
+.vx.is-in .vx-hint,
+.vx.is-in .vx-rail,
+.vx.is-in .vx-tip,
+.vx.is-in .vx-steps {
+  opacity: 1;
+}
+.vx-top {
   position: absolute;
-  bottom: 22px;
-  left: 50%;
-  translate: -50% 0;
-  z-index: 6;
-  display: flex;
+  inset: 0 0 auto;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 14px;
-  padding: 6px;
-  border: 1px solid var(--vt-line);
-  border-radius: 999px;
-  background: var(--vt-glass);
-  backdrop-filter: blur(14px);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  white-space: nowrap;
+  padding: max(14px, env(safe-area-inset-top)) 22px 14px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent);
+  pointer-events: none;
+  transform: translateY(-10px);
 }
-.vt3-pager button,
-.vt3-side {
+.vx.is-in .vx-top {
+  transform: none;
+}
+.vx-top > * {
+  pointer-events: auto;
+}
+.vx-brand {
+  justify-self: start;
+  height: 34px;
+}
+.vx-name {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--vx-gold-soft);
+}
+.vx-name span {
+  color: var(--vx-muted);
+}
+.vx-actions {
+  justify-self: end;
+  display: flex;
+  gap: 8px;
+}
+.vx-icon {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--vx-line);
   border-radius: 999px;
-  color: var(--vt-ink);
-  transition:
-    background 0.2s,
-    opacity 0.2s;
-}
-.vt3-pager button:hover,
-.vt3-side:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-.vt3-pager button:disabled,
-.vt3-side:disabled {
-  opacity: 0.3;
-}
-.vt3-side {
-  position: absolute;
-  top: 50%;
-  z-index: 6;
-  width: 46px;
-  height: 46px;
-  border: 1px solid var(--vt-line);
-  background: var(--vt-glass);
+  background: var(--vx-glass);
   backdrop-filter: blur(12px);
-  animation: vt-in 0.6s 1s both;
+  color: var(--vx-ink);
+  transition:
+    border-color 0.25s,
+    background 0.25s,
+    transform 0.25s;
 }
-.vt3-side.is-prev {
-  left: 22px;
+.vx-icon:hover {
+  border-color: var(--vx-gold);
+  background: rgba(228, 155, 45, 0.16);
 }
-.vt3-side.is-next {
-  right: calc(min(340px, 30vw) + 50px);
+.vx-icon:active {
+  transform: scale(0.94);
 }
-.vt3-back {
+.vx-badge {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 7;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border: 1px solid var(--vt-line);
+  top: -3px;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
   border-radius: 999px;
-  background: var(--vt-glass);
+  background: var(--vx-gold);
+  color: #1a1206;
+  font-size: 10px;
+  font-weight: 700;
+}
+.vx-hint {
+  position: absolute;
+  left: 50%;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  z-index: 5;
+  translate: -50% 0;
+  padding: 10px 18px;
+  border: 1px solid var(--vx-line);
+  border-radius: 999px;
+  background: var(--vx-glass);
   backdrop-filter: blur(12px);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  animation: vt-in 0.5s 0.6s both;
+  white-space: nowrap;
+  color: var(--vx-muted);
+  pointer-events: none;
 }
-@keyframes vt-in {
-  from { opacity: 0; }
+.vx.is-in .vx-hint {
+  animation: vx-breathe 3.2s 1.4s ease-in-out infinite;
+}
+@keyframes vx-breathe {
+  50% { border-color: rgba(228, 155, 45, 0.6); color: var(--vx-ink); }
+}
+.vx-rail {
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  z-index: 5;
+  width: 2px;
+  height: 140px;
+  translate: 0 -50%;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(246, 236, 221, 0.12);
+  pointer-events: none;
+}
+.vx-rail span {
+  display: block;
+  height: 20%;
+  border-radius: 2px;
+  background: var(--vx-gold);
+  box-shadow: 0 0 10px var(--vx-gold);
+  transition: transform 0.2s;
+}
+.vx-tip {
+  position: absolute;
+  left: 50%;
+  bottom: 74px;
+  z-index: 5;
+  translate: -50% 0;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  animation: vx-up 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.vx-tip span {
+  margin-left: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--vx-gold);
+}
+@keyframes vx-up {
+  from { opacity: 0; transform: translateY(8px); }
+}
+.vx-steps {
+  position: absolute;
+  left: 22px;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px;
+  border: 1px solid var(--vx-line);
+  border-radius: 999px;
+  background: var(--vx-glass);
+  backdrop-filter: blur(12px);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  animation: vx-up 0.6s 0.9s both;
+}
+.vx-steps button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: var(--vx-ink);
+  transition: background 0.2s;
+}
+.vx-steps button:hover {
+  background: rgba(228, 155, 45, 0.18);
+}
+.vx-steps button:disabled {
+  opacity: 0.3;
 }
 
 /* ---------------------------------------------------------------- the card */
 
-.vt-card {
+.vx-card {
   position: absolute;
-  right: 28px;
+  right: max(28px, 4vw);
   top: 50%;
+  z-index: 6;
+  width: min(360px, 32vw);
   translate: 0 -46%;
-  z-index: 7;
-  width: min(340px, 30vw);
-  padding: 22px 22px 18px;
-  border: 1px solid var(--vt-line);
-  border-radius: 20px;
-  background: linear-gradient(160deg, rgba(40, 30, 27, 0.62), rgba(14, 10, 9, 0.72));
-  backdrop-filter: blur(18px) saturate(1.2);
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.9);
-  animation: vt-card-in 0.7s 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  padding: 24px 24px 18px;
+  border: 1px solid var(--vx-line);
+  border-radius: 22px;
+  background: linear-gradient(160deg, rgba(42, 28, 16, 0.7), rgba(10, 7, 5, 0.78));
+  backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow:
+    0 30px 80px -30px rgba(0, 0, 0, 0.95),
+    inset 0 1px 0 rgba(240, 194, 122, 0.12);
+  user-select: text;
+  animation: vx-card-in 0.8s 0.85s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-@keyframes vt-card-in {
-  from { opacity: 0; transform: translateX(26px); }
+@keyframes vx-card-in {
+  from { opacity: 0; transform: translateX(30px); }
 }
-@keyframes vt-in {
-  from { opacity: 0; }
+.vx-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 24px;
+  right: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--vx-gold), transparent);
 }
-.vt-card-no {
+.vx-card-no {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.26em;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: var(--vt-muted);
+  color: var(--vx-gold);
 }
-.vt-card-name {
-  margin-top: 6px;
+.vx-card-name {
+  margin-top: 8px;
   font-family: var(--font-serif);
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 500;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
 }
-.vt-card-tag {
+.vx-card-tag {
   margin-top: 6px;
-  font-size: 13px;
-  color: var(--vt-muted);
+  font-size: 12.5px;
+  color: var(--vx-muted);
 }
-.vt-notes {
+.vx-notes {
   margin-top: 16px;
   display: grid;
   gap: 6px;
   font-size: 13px;
 }
-.vt-notes div {
+.vx-notes div {
   display: grid;
   grid-template-columns: 64px 1fr;
   gap: 10px;
 }
-.vt-notes dt {
+.vx-notes dt {
   padding-top: 2px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: var(--vt-muted);
+  color: var(--vx-gold-soft);
 }
-.vt-sizes {
+.vx-sizes {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid var(--vt-line);
+  border-top: 1px solid var(--vx-line);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
 }
-.vt-sizes button {
+.vx-sizes button {
   display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 9px 12px;
-  border: 1px solid var(--vt-line);
-  border-radius: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 8px;
+  border: 1px solid rgba(246, 236, 221, 0.16);
+  border-radius: 14px;
   font-size: 12px;
-  color: var(--vt-muted);
+  color: var(--vx-muted);
   transition:
     border-color 0.2s,
     color 0.2s,
     background 0.2s;
 }
-.vt-sizes button span:last-child {
+.vx-sizes button span:last-child {
+  font-weight: 600;
   white-space: nowrap;
 }
-.vt-sizes button.is-on {
-  border-color: rgba(243, 233, 225, 0.85);
-  color: var(--vt-ink);
-  background: rgba(255, 255, 255, 0.06);
+.vx-sizes button.is-on {
+  border-color: var(--vx-gold);
+  color: var(--vx-ink);
+  background: rgba(228, 155, 45, 0.14);
 }
-.vt-sizes button:disabled {
+.vx-sizes button:disabled {
   opacity: 0.4;
   text-decoration: line-through;
 }
-.vt-add {
+.vx-add {
   margin-top: 14px;
+  display: grid;
+  place-items: center;
   width: 100%;
-  height: 46px;
+  height: 48px;
   border-radius: 999px;
-  background: #f1e6da;
-  color: #17110e;
+  background: linear-gradient(180deg, #efab45, var(--vx-gold));
+  color: #1a1206;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.24em;
   text-transform: uppercase;
+  box-shadow: 0 12px 30px -12px rgba(228, 155, 45, 0.7);
   transition:
-    background 0.2s,
+    filter 0.2s,
     transform 0.2s;
 }
-.vt-add:hover {
-  background: #fff;
+.vx-add:hover {
+  filter: brightness(1.08);
 }
-.vt-add:active {
+.vx-add:active {
   transform: scale(0.98);
 }
-.vt-add:disabled {
+.vx-add:disabled {
   opacity: 0.5;
 }
-.vt-card-note {
+.vx-card-note {
   margin-top: 10px;
   font-size: 11px;
   text-align: center;
-  color: var(--vt-muted);
+  color: var(--vx-muted);
 }
-.vt-card-links {
+.vx-card-links {
   margin-top: 12px;
   display: flex;
   justify-content: space-between;
@@ -688,111 +387,176 @@
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
-.vt-card-links > * {
+.vx-card-links > * {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--vt-ink);
+  color: var(--vx-ink);
   opacity: 0.85;
+  transition:
+    opacity 0.2s,
+    color 0.2s;
 }
-.vt-card-links > *:hover {
+.vx-card-links > *:hover {
   opacity: 1;
+  color: var(--vx-gold-soft);
 }
 
-
-/* Phones: the card rises from the bottom over the niche. */
-.vt-card.is-phone {
+/* Phones: a sheet that rises over the lower part of the screen. */
+.vx-card.is-phone {
   top: auto;
   right: 10px;
   left: 10px;
-  bottom: 10px;
-  translate: none;
+  bottom: max(10px, env(safe-area-inset-bottom));
   width: auto;
-  max-height: 54%;
+  translate: none;
+  height: 50%;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 18px 18px 14px;
-  animation: vt-sheet 0.75s 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: vx-sheet 0.75s 0.75s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
-@keyframes vt-sheet {
+@keyframes vx-sheet {
   from { opacity: 0; transform: translateY(40px); }
 }
-.vt3.is-phone .vt3-title {
-  top: 16px;
+.vx-card.is-phone .vx-card-name {
+  font-size: 25px;
 }
-.vt3.is-phone .vt3-pager {
-  bottom: 16px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .vt3.is-idle .vt3-sway,
-  .nx-dust span,
-  .nx-spec i {
-    animation: none;
-  }
-}
-/* ---------------------------------------------------------------- empty */
-
-.vt-empty {
-  min-height: 70svh;
-  display: grid;
-  place-content: center;
-  gap: 12px;
-  padding: 40px 20px;
-  text-align: center;
-}
-.vt-empty h1 {
-  font-family: var(--font-serif);
-  font-size: clamp(32px, 5vw, 56px);
-  font-weight: 500;
-}
-.vt-empty p:last-of-type {
-  color: var(--vt-muted);
-}
-.vt-empty-link {
-  justify-self: center;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 12px 22px;
-  border-radius: 999px;
-  background: #f1e6da;
-  color: #17110e;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-
-/* The phone card, compact: everything up to "Add to bag" fits without scrolling. */
-.vt-card.is-phone .vt-card-name {
-  font-size: 24px;
-}
-.vt-card.is-phone .vt-card-tag {
-  display: none;
-}
-.vt-card.is-phone .vt-notes {
+.vx-card.is-phone .vx-notes {
   margin-top: 10px;
   gap: 3px;
   font-size: 12.5px;
 }
-.vt-card.is-phone .vt-sizes {
+.vx-card.is-phone .vx-sizes {
   margin-top: 10px;
   padding-top: 10px;
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
-.vt-card.is-phone .vt-sizes button {
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
+.vx-card.is-phone .vx-sizes button {
   padding: 7px 4px;
   font-size: 11.5px;
 }
-.vt-card.is-phone .vt-add {
+.vx-card.is-phone .vx-add {
   margin-top: 10px;
-  height: 42px;
+  height: 44px;
 }
-.vt-card.is-phone .vt-card-note {
+/* Phones: the arrows sit on the card's top edge (swiping works too). */
+.vx.is-phone .vx-steps {
+  left: auto;
+  right: 22px;
+  bottom: calc(50% + max(10px, env(safe-area-inset-bottom)) + 8px);
+  z-index: 7;
+  gap: 6px;
+  padding: 3px;
+  font-size: 11px;
+}
+.vx.is-phone .vx-steps button {
+  width: 30px;
+  height: 30px;
+}
+.vx.is-phone .vx-name {
   display: none;
+}
+.vx.is-phone .vx-top {
+  grid-template-columns: 1fr auto;
+  padding-inline: 14px;
+}
+.vx.is-phone .vx-brand {
+  height: 28px;
+}
+.vx.is-phone .vx-hint {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+}
+.vx.is-phone .vx-rail {
+  right: 8px;
+}
+
+/* ---------------------------------------------------------------- loading */
+
+.vx-load {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  background: radial-gradient(70% 60% at 50% 45%, #1a1008, #020101 70%);
+  transition:
+    opacity 1.1s 0.2s,
+    visibility 0s 1.4s;
+}
+.vx-load.is-done {
+  opacity: 0;
+  visibility: hidden;
+}
+.vx-load-logo {
+  height: 46px;
+  animation: vx-glow 2.4s ease-in-out infinite;
+}
+@keyframes vx-glow {
+  50% { opacity: 0.6; }
+}
+.vx-load-name {
+  font-family: var(--font-serif);
+  font-size: 13px;
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--vx-gold-soft);
+}
+.vx-load-bar {
+  width: 180px;
+  height: 1px;
+  margin-top: 10px;
+  overflow: hidden;
+  background: rgba(246, 236, 221, 0.15);
+}
+.vx-load-bar span {
+  display: block;
+  height: 100%;
+  background: var(--vx-gold);
+  box-shadow: 0 0 10px var(--vx-gold);
+  transform-origin: left;
+  transition: transform 0.4s;
+}
+.vx-load-pct {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--vx-muted);
+}
+
+/* ---------------------------------------------------------------- without 3D */
+
+.vx-empty {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+.vx-empty h1 {
+  margin-top: 10px;
+  font-family: var(--font-serif);
+  font-size: clamp(28px, 4.5vw, 48px);
+  font-weight: 500;
+}
+.vx-empty p:last-of-type {
+  color: var(--vx-muted);
+}
+.vx-empty-link {
+  width: auto;
+  padding: 0 28px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vx.is-in .vx-hint,
+  .vx-load-logo {
+    animation: none;
+  }
 }

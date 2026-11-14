@@ -72,6 +72,7 @@ export function TabBar() {
   // The quiz is a full-screen flow of its own.
   if (pathname.startsWith('/finder/quiz')) return null
 
+  if (pathname.startsWith('/vitrine')) return null // the full-screen Vitrine has its own controls
   return (
     <nav
       aria-label="Quick navigation"
