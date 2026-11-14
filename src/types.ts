@@ -58,6 +58,8 @@ export interface Product {
   inspiredBy: string
   /** Bottle image for the DNA card on the product page (optional) */
   dnaImage?: string
+  /** The bottle alone on a transparent background, for The Vitrine (optional) */
+  showcaseImage?: string
   images: ProductImage[]
   categories: string[]
   /** Fragrance families used by "Explore by what you love" */

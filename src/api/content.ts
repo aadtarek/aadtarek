@@ -173,6 +173,8 @@ export interface ProductDetails {
   longevity?: string
   badge?: string
   dna_image_url?: string
+  /** The bottle alone, transparent background (The Vitrine) */
+  showcase_image_url?: string
   opening?: string[]
   heart?: string[]
   drydown?: string[]

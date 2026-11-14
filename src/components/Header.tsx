@@ -16,6 +16,7 @@ export const navLinks = [
   { to: '/shop?sort=best-sellers', label: 'Best Sellers' },
   { to: '/finder', label: 'Rfaheya Finder' },
   { to: '/collections', label: 'Collections' },
+  { to: '/vitrine', label: 'The Vitrine' },
   { to: '/about', label: 'About' },
   { to: '/contact', label: 'Contact' },
 ]

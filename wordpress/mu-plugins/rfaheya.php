@@ -1418,6 +1418,13 @@ function rfaheya_details_box( $post ) {
 			}
 		);
 		$row(
+			'Showcase bottle',
+			'The bottle alone on a transparent background (PNG / WebP), for The Vitrine page. A file named showcase-' . get_post_field( 'post_name', get_the_ID() ) . ' uploaded to the Media Library is picked up by itself.',
+			function () use ( $val ) {
+				rfaheya_media_field( 'rfaheya-showcase-image', 'rfaheya[showcase_image]', $val( 'showcase_image', 0 ) );
+			}
+		);
+		$row(
 			'Opening',
 			'The composition: first impression.',
 			function () use ( $val ) {
@@ -1514,6 +1521,7 @@ function rfaheya_clean_details( $input ) {
 	$out     = array(
 		'inspired_by' => $text( 'inspired_by' ),
 		'dna_image'   => isset( $input['dna_image'] ) ? absint( $input['dna_image'] ) : 0,
+		'showcase_image' => isset( $input['showcase_image'] ) ? absint( $input['showcase_image'] ) : 0,
 		'badge'       => $badge,
 		'accords'     => $names( 'accords' ),
 		'notes'       => $names( 'notes' ),
@@ -1930,6 +1938,50 @@ function rfaheya_settings_data() {
 		);
 }
 
+/*
+ * The Vitrine's bottles: a picture uploaded as "showcase-<product slug>" (any image type) becomes
+ * that product's showcase bottle, unless one is already chosen. Checked on upload, and once for
+ * the pictures already in the Media Library.
+ */
+function rfaheya_showcase_attach( $attachment_id ) {
+	$file = (string) get_post_meta( $attachment_id, '_wp_attached_file', true );
+	$name = strtolower( pathinfo( $file, PATHINFO_FILENAME ) );
+	if ( ! preg_match( '/^showcase-(.+)$/', $name, $m ) ) {
+		return false;
+	}
+	foreach ( array_unique( array( $m[1], preg_replace( '/-(\d+|scaled)$/', '', $m[1] ) ) ) as $slug ) {
+		$product = get_page_by_path( $slug, OBJECT, 'product' );
+		if ( $product ) {
+			$d = rfaheya_details( $product->ID );
+			if ( empty( $d['showcase_image'] ) ) {
+				$d['showcase_image'] = (int) $attachment_id;
+				update_post_meta( $product->ID, '_rfaheya_details', $d );
+				delete_transient( 'rfaheya_bootstrap' ); // the shop data is rebuilt with the new bottle
+			}
+			return true;
+		}
+	}
+	return false;
+}
+add_action( 'add_attachment', 'rfaheya_showcase_attach' );
+add_action(
+	'admin_init',
+	function () {
+		if ( get_option( 'rfaheya_showcase_seeded' ) || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+		global $wpdb;
+		$ids = $wpdb->get_col( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value LIKE '%showcase-%'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$hit = false;
+		foreach ( $ids as $id ) {
+			$hit = rfaheya_showcase_attach( (int) $id ) || $hit;
+		}
+		if ( $hit ) {
+			update_option( 'rfaheya_showcase_seeded', time(), false );
+		}
+	}
+);
+
 /** Rfaheya details of every published product: id => details (+ DNA image URL). */
 function rfaheya_products_details() {
 	$ids = get_posts(
@@ -1946,6 +1998,9 @@ function rfaheya_products_details() {
 		$d = rfaheya_details( $id );
 		if ( ! empty( $d['dna_image'] ) ) {
 			$d['dna_image_url'] = (string) wp_get_attachment_image_url( (int) $d['dna_image'], 'large' );
+		}
+		if ( ! empty( $d['showcase_image'] ) ) {
+			$d['showcase_image_url'] = (string) wp_get_attachment_image_url( (int) $d['showcase_image'], 'full' );
 		}
 		$out[ (string) $id ] = $d;
 	}
@@ -2460,7 +2515,7 @@ function rfaheya_info_slug( $path ) {
 		return '';
 	}
 	// The storefront's own pages (and WooCommerce's) are not info pages.
-	if ( preg_match( '#^(shop|product|cart|checkout|my-account|account|wishlist|about|contact|faqs|reviews|journal|collections|finder|discover|our-standard|track-order)$#', $m[1] ) ) {
+	if ( preg_match( '#^(shop|product|cart|checkout|my-account|account|wishlist|about|contact|faqs|reviews|journal|collections|finder|discover|our-standard|vitrine|track-order)$#', $m[1] ) ) {
 		return '';
 	}
 	return $m[1];
@@ -6832,6 +6887,7 @@ function rfaheya_seo_for( $path, $data ) {
 		'/about'        => array( 'About Rfaheya', $desc ),
 		'/contact'      => array( 'Contact us', 'Questions about a fragrance or an order? Reach Rfaheya on WhatsApp, by phone or by email.' ),
 		'/faqs'         => array( 'Frequently asked questions', 'Delivery, returns, sizes and how Rfaheya fragrances are made.' ),
+		'/vitrine'      => array( 'The Vitrine — Rfaheya', 'Every Rfaheya fragrance in a lit window: pick a bottle to see its notes, sizes and price.' ),
 		'/our-standard' => array( 'The Rfaheya Standard', 'How every Rfaheya fragrance is measured on skin: character, comfort, density, projection, longevity and evolution.' ),
 		'/journal'      => array( 'Journal', 'Stories, guides and notes from the Rfaheya fragrance lab.' ),
 	);
@@ -7022,7 +7078,7 @@ add_filter( 'wp_sitemaps_enabled', '__return_false' );
 function rfaheya_sitemap() {
 	list( $data ) = rfaheya_bootstrap_ready();
 	$urls = array();
-	foreach ( array( '/', '/shop', '/collections', '/collections/discovery-sets', '/collections/gift-boxes', '/finder', '/reviews', '/about', '/contact', '/faqs', '/our-standard', '/journal' ) as $p ) {
+	foreach ( array( '/', '/shop', '/collections', '/collections/discovery-sets', '/collections/gift-boxes', '/finder', '/reviews', '/about', '/contact', '/faqs', '/our-standard', '/vitrine', '/journal' ) as $p ) {
 		$urls[ home_url( $p ) ] = '';
 	}
 	foreach ( isset( $data['products'] ) ? $data['products'] : array() as $p ) {

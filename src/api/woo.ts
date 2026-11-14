@@ -230,6 +230,7 @@ function mapProduct(
     standard,
     inspiredBy: d.inspired_by?.trim() || (attr(p, 'Inspired By', 'Inspired')[0] ?? ''),
     dnaImage: d.dna_image_url || undefined,
+    showcaseImage: d.showcase_image_url || undefined,
     images: p.images.length
       ? p.images.map((i) => ({ src: i.src, alt: i.alt || stripHtml(p.name), srcset: i.srcset || undefined }))
       : [{ src: FALLBACK_NOTE, alt: stripHtml(p.name) }],
