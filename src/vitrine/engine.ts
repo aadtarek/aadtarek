@@ -421,7 +421,7 @@ export class VitrineEngine {
   private viewShift = new THREE.Vector2() // eased view offset (moves the subject off-centre)
   private width = 1
   private height = 1
-  private startedAt = 0
+  private startedAt = -1 // set once everything has loaded
   private slowFrames = 0
 
   private canvas: HTMLCanvasElement
@@ -456,7 +456,7 @@ export class VitrineEngine {
     const manager = new THREE.LoadingManager()
     manager.onProgress = (_u, loaded, total) => events.onProgress?.(loaded / total)
     manager.onLoad = () => {
-      this.startedAt = this.clock.getElapsed()
+      this.startedAt = this.now()
       events.onReady?.()
     }
     const loader = new THREE.TextureLoader(manager)
@@ -481,8 +481,12 @@ export class VitrineEngine {
 
     this.resize()
     this.placeCamera(true)
-    this.loop()
+    // Recording a demo frame by frame (tests only): the page asks for each frame.
+    const w = window as unknown as { __vxManual?: boolean; __vxTick?: (ms: number) => void }
+    if (w.__vxManual) w.__vxTick = (ms) => this.frame(ms / 1000)
+    else this.loop()
   }
+  private virtual = 0
 
   /* -------------------------------------------------------------- building the wall */
 
@@ -717,7 +721,7 @@ export class VitrineEngine {
   }
   /** A quick flicker when a lamp is chosen. */
   private flicker(i: number) {
-    this.intro[i] = this.clock.getElapsed() - this.startedAt + 0.02
+    this.intro[i] = this.now() - this.startedAt + 0.02
   }
 
   private visibleRows() {
@@ -771,7 +775,7 @@ export class VitrineEngine {
     } else {
       const dist = this.overviewDistance()
       const y = -this.scrollY + (this.phone ? -CELL_H * 0.35 : 0)
-      const introPull = Math.max(0, 1 - (this.clock.getElapsed() - this.startedAt) / 2.6)
+      const introPull = this.startedAt < 0 ? 1 : Math.max(0, 1 - (this.now() - this.startedAt) / 2.6)
       look = new THREE.Vector3(0, y, -DEPTH * 0.3)
       pos = new THREE.Vector3(this.tilt.x * (this.phone ? 0.18 : 0.32), y - this.tilt.y * 0.16, dist - introPull * introPull * dist * 0.45)
     }
@@ -797,9 +801,17 @@ export class VitrineEngine {
     if (this.disposed) return
     this.raf = requestAnimationFrame(this.loop)
     this.clock.update()
-    const dt = Math.min(0.05, this.clock.getDelta())
-    const t = this.clock.getElapsed()
-    const since = this.startedAt ? t - this.startedAt : -1
+    this.frame(Math.min(0.05, this.clock.getDelta()))
+  }
+
+  private now() {
+    return (window as unknown as { __vxManual?: boolean }).__vxManual ? this.virtual : this.clock.getElapsed()
+  }
+
+  private frame(dt: number) {
+    this.virtual += dt
+    const t = this.now()
+    const since = this.startedAt >= 0 ? t - this.startedAt : -1
 
     // Ease the scroll and the lean.
     this.scrollY += (this.scrollTarget - this.scrollY) * Math.min(1, dt * 7)
