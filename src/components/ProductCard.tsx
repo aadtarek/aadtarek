@@ -70,13 +70,13 @@ export function ProductCard({ product, badge = product.badge, priority = false }
         >
           <HeartIcon key={String(wished)} className={`size-[18px] transition ${wished ? 'rf-heart-beat fill-[#e49b2d] text-[#e49b2d]' : ''}`} strokeWidth={1.5} />
         </button>
-        {/* Tags sit on the picture (no icons): the card stays short. */}
+        {/* Tags sit on the picture (no icons), on computers only: phones show the card without them. */}
         {chips.length > 0 && (
-          <ul className="pointer-events-none absolute bottom-2 left-2 right-12 flex flex-wrap-reverse gap-1 sm:bottom-2.5 sm:left-2.5 sm:right-14" aria-label="Tags">
-            {chips.slice(0, 3).map(({ label }, i) => (
+          <ul className="pointer-events-none absolute right-14 bottom-2.5 left-2.5 hidden flex-wrap-reverse gap-1 sm:flex" aria-label="Tags">
+            {chips.slice(0, 3).map(({ label }) => (
               <li
                 key={label}
-                className={`${i === 2 ? 'max-sm:hidden' : ''} max-w-full truncate rounded-full bg-white/85 px-2 py-[3px] text-[10px] leading-tight font-medium whitespace-nowrap text-[#14110d] backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[11px]`}
+                className={`max-w-full truncate rounded-full bg-white/85 px-2 py-[3px] text-[10px] leading-tight font-medium whitespace-nowrap text-[#14110d] backdrop-blur-sm sm:px-2.5 sm:py-1 sm:text-[11px]`}
               >
                 {label}
               </li>
