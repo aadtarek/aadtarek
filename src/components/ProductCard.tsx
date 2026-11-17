@@ -27,7 +27,7 @@ export function ProductCard({ product, badge = product.badge, priority = false }
   const sample = sampleVariation(product)
   const [variationId, setVariationId] = useState(() => (sizes.find((v) => v.inStock) ?? sizes[0]).id)
   const selected = sizes.find((v) => v.id === variationId) ?? sizes[0]
-  const href = `/product/${product.slug}`
+  const href = `/shop/${product.slug}`
   const chips = product.tags.length ? product.tags.slice(0, 3).map((label) => ({ label })) : profileChips(product, familyName)
   const [pillRef, pillBox] = useSlidingPill<HTMLDivElement>(variationId)
   const [main] = product.images

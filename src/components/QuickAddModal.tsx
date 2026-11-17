@@ -34,7 +34,7 @@ function QuickView({ product, onClose }: { product: Product; onClose: () => void
   const [qty, setQty] = useState(1)
   const selected = sizes.find((v) => v.id === variationId) ?? sizes[0]
   const chips = profileChips(product, familyName)
-  const href = `/product/${product.slug}`
+  const href = `/shop/${product.slug}`
 
   return (
     <Overlay onClose={onClose} label={`Quick view: ${product.name}`}>

@@ -66,6 +66,8 @@ interface RawPost {
   content: { rendered: string }
   /** Word count, when the post comes without its text (the page's own copy, rfaheya.php) */
   rf_words?: number
+  /** Its language (WPML), e.g. 'ar' */
+  rf_lang?: string
   _embedded?: {
     'wp:featuredmedia'?: { source_url?: string; alt_text?: string; media_details?: { sizes?: Record<string, { source_url: string; width: number }> } }[]
     'wp:term'?: { taxonomy: string; name: string }[][]
@@ -74,6 +76,8 @@ interface RawPost {
 
 export interface WpArticle extends Article {
   html: string
+  /** 'ar' for Arabic articles (shown right to left) */
+  lang?: string
   /** Featured image sizes, for <img srcset> */
   srcset?: string
 }
@@ -85,6 +89,7 @@ function mapPost(p: RawPost): WpArticle {
   const category = p._embedded?.['wp:term']?.flat().find((t) => t.taxonomy === 'category' && t.name !== 'Uncategorized')?.name ?? 'Journal'
   return {
     slug: p.slug,
+    lang: p.rf_lang ?? (/[\u0600-\u06FF]/.test(p.title.rendered) ? 'ar' : 'en'),
     title: stripHtml(p.title.rendered),
     excerpt: stripHtml(p.excerpt.rendered).replace(/\s*\[(…|&hellip;|\.\.\.)\]\s*$/, '…'),
     category,
@@ -102,7 +107,9 @@ export const fetchPosts = () =>
 
 export const fetchPost = (slug: string) =>
   cached(`post:${slug}`, async () => {
-    const list = await wpGet<RawPost[]>(`wp/v2/posts?_embed=wp:featuredmedia,wp:term&slug=${encodeURIComponent(slug)}`)
+    // Any language (the standard route only finds the main language's articles under WPML).
+    const own = await wpGet<RawPost[]>(`rfaheya/v1/post?slug=${encodeURIComponent(slug)}`).catch(() => [] as RawPost[])
+    const list = own.length ? own : await wpGet<RawPost[]>(`wp/v2/posts?_embed=wp:featuredmedia,wp:term&slug=${encodeURIComponent(slug)}`)
     return list[0] ? mapPost(list[0]) : null
   })
 

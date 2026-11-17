@@ -47,7 +47,7 @@ function RouteGate({ children }: { children: ReactNode }) {
 function ProductAlias() {
   const { slug = '' } = useParams()
   const { search } = useLocation()
-  return <Navigate to={`/product/${slug}${search}`} replace />
+  return <Navigate to={`/shop/${slug}${search}`} replace />
 }
 
 export default function App() {
@@ -65,9 +65,9 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
                 <Route path="shop" element={<Shop />} />
-                <Route path="product/:slug" element={<ProductPage />} />
+                <Route path="product/:slug" element={<ProductAlias />} />
                 {/* WooCommerce's own product links (product base "shop" or "product") */}
-                <Route path="shop/:slug" element={<ProductAlias />} />
+                <Route path="shop/:slug" element={<ProductPage />} />
                 <Route path="wishlist" element={<Wishlist />} />
                 <Route path="account" element={<Account />} />
                 <Route path="checkout" element={<Checkout />} />

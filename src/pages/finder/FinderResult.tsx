@@ -152,7 +152,7 @@ export function FinderResult() {
         </div>
 
         <div className="relative order-1 p-2 lg:order-2 lg:p-3">
-          <Link to={`/product/${product.slug}`} className="block overflow-hidden rounded-[22px] lg:h-full lg:rounded-[28px]" style={{ background: tint.tint }}>
+          <Link to={`/shop/${product.slug}`} className="block overflow-hidden rounded-[22px] lg:h-full lg:rounded-[28px]" style={{ background: tint.tint }}>
             <img src={product.images[0].src} alt={product.images[0].alt} className="aspect-[4/3] w-full object-cover lg:aspect-auto lg:h-full" />
           </Link>
           <div className="absolute inset-x-4 bottom-4 rounded-[20px] bg-white/85 p-3 text-[#14110d] backdrop-blur-xl lg:inset-x-6 lg:bottom-6 lg:p-4">

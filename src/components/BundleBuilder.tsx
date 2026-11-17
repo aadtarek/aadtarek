@@ -178,7 +178,7 @@ function BundleCard({ product, picked, onAdd }: { product: Product; picked: numb
   const img = product.images[0]
   return (
     <article className={`flex h-full flex-col overflow-hidden rounded-[20px] bg-cream/70 transition ${picked ? 'ring-2 ring-[#e49b2d]' : 'ring-1 ring-line'}`}>
-      <Link to={`/product/${product.slug}`} className="relative block aspect-[5/4] overflow-hidden" tabIndex={-1} aria-hidden>
+      <Link to={`/shop/${product.slug}`} className="relative block aspect-[5/4] overflow-hidden" tabIndex={-1} aria-hidden>
         <img src={img.src} srcSet={img.srcset} sizes="200px" alt="" loading="lazy" decoding="async" className="size-full object-cover" />
         {picked > 0 && (
           <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-[#e49b2d] px-2 py-0.5 text-[11px] font-medium text-white">

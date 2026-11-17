@@ -90,7 +90,7 @@ export function CartDrawer() {
                 {cart.lines.map((line, i) => (
                   <li key={line.key} className="rf-cart-line relative flex gap-3.5 border-b border-line py-3.5" style={{ '--i': Math.min(i, 8) } as CSSProperties}>
                     <Link
-                      to={`/product/${line.product.slug}`}
+                      to={`/shop/${line.product.slug}`}
                       onClick={cart.close}
                       className="size-[76px] shrink-0 overflow-hidden rounded-[18px] sm:size-[86px]"
                       style={{ background: tintFor(line.product).tint }}
@@ -99,7 +99,7 @@ export function CartDrawer() {
                     </Link>
                     <div className="flex min-w-0 flex-1 flex-col pr-6">
                       <Link
-                        to={isGiftBoxProduct(line.product) ? '/collections/gift-boxes' : `/product/${line.product.slug}`}
+                        to={isGiftBoxProduct(line.product) ? '/collections/gift-boxes' : `/shop/${line.product.slug}`}
                         onClick={cart.close}
                         className="truncate font-serif text-[20px] leading-tight hover:underline sm:text-[22px]"
                       >

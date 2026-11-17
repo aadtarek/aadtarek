@@ -324,7 +324,7 @@ function Discover({ recent, onPick, onClearRecent, onGo }: { recent: string[]; o
               <SuggestionRow
                 key={p.id}
                 onGo={onGo}
-                doc={{ id: `product:${p.id}`, kind: 'product', title: p.name, subtitle: p.inspiredBy ? `DNA: ${p.inspiredBy}` : p.tagline, to: `/product/${p.slug}`, image: p.images[0]?.src, fields: [] }}
+                doc={{ id: `product:${p.id}`, kind: 'product', title: p.name, subtitle: p.inspiredBy ? `DNA: ${p.inspiredBy}` : p.tagline, to: `/shop/${p.slug}`, image: p.images[0]?.src, fields: [] }}
               />
             ))}
           </ul>

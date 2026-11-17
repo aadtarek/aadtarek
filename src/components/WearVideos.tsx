@@ -246,7 +246,7 @@ export function VideoModal({ videos, index, onIndex, onClose }: { videos: WearVi
                   </>
                 )}
                 <Link
-                  to={`/product/${product.slug}`}
+                  to={`/shop/${product.slug}`}
                   onClick={onClose}
                   className="mt-4 block text-center text-[12px] tracking-[0.1em] text-muted uppercase underline-offset-4 hover:text-ink hover:underline"
                 >

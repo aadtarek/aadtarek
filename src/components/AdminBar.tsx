@@ -7,7 +7,7 @@ import { useRewards, type AdminLinks } from '../store/rewards'
 /** What "Edit" opens for the page on screen. */
 function editFor(path: string, a: AdminLinks): { label: string; href: string } {
   const tab = (t: string) => a.settingsTab.replace('__TAB__', t)
-  const product = path.match(/^\/product\/([^/?#]+)/)
+  const product = path.match(/^\/(?:shop|product)\/([^/?#]+)/)
   if (product) {
     const p = getAllProducts().find((x) => x.slug === decodeURIComponent(product[1]))
     if (p) return { label: `Edit ${p.name}`, href: a.editPost.replace('__ID__', String(p.id)) }

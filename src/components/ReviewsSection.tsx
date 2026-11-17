@@ -165,7 +165,7 @@ function Quote({ review }: { review: Review }) {
             {review.author}
           </span>
           {product && (
-            <Link to={`/product/${product.slug}`} tabIndex={-1} className="block truncate text-[11.5px] text-[#f0c27a] hover:underline">
+            <Link to={`/shop/${product.slug}`} tabIndex={-1} className="block truncate text-[11.5px] text-[#f0c27a] hover:underline">
               {product.name}
               {review.size ? ` · ${review.size.replace(/\s*ML$/i, ' ml')}` : ''}
             </Link>

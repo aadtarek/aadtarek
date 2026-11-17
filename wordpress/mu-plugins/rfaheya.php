@@ -126,6 +126,9 @@ function rfaheya_fields() {
 			'order_min'     => array( 'Minimum order (EGP) — the smallest basket that can be ordered; 0 for none', '300', 'text' ),
 		),
 		'images'   => rfaheya_image_fields(),
+		'seo'      => array(
+			'redirects' => array( 'Redirects — one per line: old address, a space or →, new address (e.g. /old-perfume → /shop/new-perfume). Old site links (/shop/…, /product-category/…, articles at /…, /ar/…) are redirected automatically; add only the ones that changed name.', '', 'textarea' ),
+		),
 		'campaigns' => array(
 			'vanilla_label' => array( 'Vanilla campaign — name in the menu', 'Vanilla Redefined', 'text' ),
 			'vanilla_title' => array( 'Vanilla campaign — banner title (the words after the comma show in gold)', 'Vanilla, redefined.', 'text' ),
@@ -342,6 +345,7 @@ function rfaheya_settings_tabs() {
 		'campaigns' => array( 'Campaigns', 'dashicons-megaphone', 'Vanilla Redefined and Oud & Rose Redefined: menu names and banner texts.', array( 'campaigns' ) ),
 		'images'   => array( 'Site images', 'dashicons-format-gallery', 'The pictures on the Collections page, Our Standard and the Rfaheya Finder.', array( 'images' ) ),
 		'signin'   => array( 'Sign in', 'dashicons-admin-users', 'Google and Facebook sign-in buttons.', array( 'login' ) ),
+		'seo'      => array( 'SEO & redirects', 'dashicons-search', 'Old addresses sent to new ones (301). Titles and descriptions come from Rank Math.', array( 'seo' ) ),
 		'tools'    => array( 'Tools', 'dashicons-admin-tools', 'Starter content and store health.', array() ),
 	);
 }
@@ -391,6 +395,7 @@ function rfaheya_settings_section( $group, $key ) {
 		'loyalty'  => 'Points & welcome discount',
 		'login'    => 'Sign in with Google / Facebook',
 		'campaigns' => 'Campaigns',
+		'seo'       => 'Redirects',
 	);
 	if ( 'campaigns' === $group ) {
 		return 0 === strpos( $key, 'vanilla' ) ? 'Vanilla Redefined' : 'Oud & Rose Redefined';
@@ -546,7 +551,7 @@ function rfaheya_settings_field( $group, $key, $field, $value ) {
 			esc_attr( $key )
 		);
 	} elseif ( 'textarea' === $field[2] ) {
-		printf( '<textarea id="%s" rows="3" name="%s">%s</textarea>', esc_attr( $id ), esc_attr( $input ), esc_textarea( $value ) );
+		printf( '<textarea id="%s" rows="%d" name="%s">%s</textarea>', esc_attr( $id ), 'redirects' === $key ? 14 : 3, esc_attr( $input ), esc_textarea( $value ) );
 	} elseif ( 'products' === $field[2] ) {
 		rfaheya_products_picker( $id, $input, $value );
 	} elseif ( 'product' === $field[2] ) {
@@ -2543,10 +2548,53 @@ function rfaheya_write_data_file( $prefix, $data ) {
 	return (string) wp_make_link_relative( trailingslashit( $up['baseurl'] ) . 'rfaheya/' . $name );
 }
 
+/** One article in the shape the storefront reads from the REST API (src/api/content.ts), without its text. */
+function rfaheya_post_slim_one( $post ) {
+	$media = array();
+	$thumb = (int) get_post_thumbnail_id( $post );
+	if ( $thumb ) {
+		$meta  = wp_get_attachment_metadata( $thumb );
+		$sizes = array();
+		foreach ( (array) ( $meta['sizes'] ?? array() ) as $name => $size ) {
+			if ( (int) ( $size['width'] ?? 0 ) >= 600 ) {
+				$sizes[ $name ] = array(
+					'source_url' => (string) wp_get_attachment_image_url( $thumb, $name ),
+					'width'      => (int) $size['width'],
+				);
+			}
+		}
+		$media[] = array(
+			'source_url'    => (string) wp_get_attachment_image_url( $thumb, 'full' ),
+			'alt_text'      => (string) get_post_meta( $thumb, '_wp_attachment_image_alt', true ),
+			'media_details' => array( 'sizes' => (object) $sizes ),
+		);
+	}
+	$terms = array();
+	foreach ( get_the_category( $post->ID ) as $cat ) {
+		$terms[] = array(
+			'taxonomy' => 'category',
+			'name'     => $cat->name,
+		);
+	}
+	$text  = trim( wp_strip_all_tags( (string) $post->post_content ) );
+	return array(
+		'slug'      => $post->post_name,
+		'date'      => str_replace( ' ', 'T', $post->post_date ),
+		'title'     => array( 'rendered' => get_the_title( $post ) ),
+		'excerpt'   => array( 'rendered' => get_the_excerpt( $post ) ),
+		'content'   => array( 'rendered' => '' ),
+		'rf_words'  => '' === $text ? 0 : count( preg_split( '/\s+/u', $text ) ),
+		'rf_lang'   => rfaheya_post_lang( $post ),
+		'_embedded' => array(
+			'wp:featuredmedia' => $media,
+			'wp:term'          => array( $terms ),
+		),
+	);
+}
+
 /**
- * The journal's published posts in the shape the storefront reads from the REST API
- * (src/api/content.ts), without their full text: what the journal list needs. Kept an hour,
- * and dropped whenever a post is saved.
+ * Every published article in every language, as the journal's list needs them. Kept an hour,
+ * and dropped whenever an article is published, changed, unpublished or deleted.
  */
 function rfaheya_posts_slim() {
 	$cached = get_transient( 'rfaheya_posts_slim' );
@@ -2554,54 +2602,34 @@ function rfaheya_posts_slim() {
 		return $cached;
 	}
 	$out = array();
-	foreach ( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 100 ) ) as $post ) {
-		$media = array();
-		$thumb = (int) get_post_thumbnail_id( $post );
-		if ( $thumb ) {
-			$meta  = wp_get_attachment_metadata( $thumb );
-			$sizes = array();
-			foreach ( (array) ( $meta['sizes'] ?? array() ) as $name => $size ) {
-				if ( (int) ( $size['width'] ?? 0 ) >= 600 ) {
-					$sizes[ $name ] = array(
-						'source_url' => (string) wp_get_attachment_image_url( $thumb, $name ),
-						'width'      => (int) $size['width'],
-					);
-				}
-			}
-			$media[] = array(
-				'source_url'    => (string) wp_get_attachment_image_url( $thumb, 'full' ),
-				'alt_text'      => (string) get_post_meta( $thumb, '_wp_attachment_image_alt', true ),
-				'media_details' => array( 'sizes' => (object) $sizes ),
-			);
+	foreach ( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'suppress_filters' => true ) ) as $post ) {
+		if ( ! empty( $post->post_password ) ) {
+			continue;
 		}
-		$terms = array();
-		foreach ( get_the_category( $post->ID ) as $cat ) {
-			$terms[] = array(
-				'taxonomy' => 'category',
-				'name'     => $cat->name,
-			);
-		}
-		$text  = trim( wp_strip_all_tags( (string) $post->post_content ) );
-		$out[] = array(
-			'slug'      => $post->post_name,
-			'date'      => str_replace( ' ', 'T', $post->post_date ),
-			'title'     => array( 'rendered' => get_the_title( $post ) ),
-			'excerpt'   => array( 'rendered' => get_the_excerpt( $post ) ),
-			'content'   => array( 'rendered' => '' ),
-			'rf_words'  => '' === $text ? 0 : count( preg_split( '/\s+/u', $text ) ),
-			'_embedded' => array(
-				'wp:featuredmedia' => $media,
-				'wp:term'          => array( $terms ),
-			),
-		);
+		$out[] = rfaheya_post_slim_one( $post );
 	}
 	set_transient( 'rfaheya_posts_slim', $out, HOUR_IN_SECONDS );
 	return $out;
 }
+// The journal's list is made again whenever an article is published, changed, unpublished or deleted.
 add_action(
-	'save_post_post',
-	function () {
-		delete_transient( 'rfaheya_posts_slim' );
+	'transition_post_status',
+	function ( $new, $old, $post ) {
+		if ( 'post' === $post->post_type && ( 'publish' === $new || 'publish' === $old ) ) {
+			delete_transient( 'rfaheya_posts_slim' );
+			rfaheya_purge_page_cache();
+		}
+	},
+	10,
+	3
+);
+add_action( 'save_post_post', fn() => delete_transient( 'rfaheya_posts_slim' ) );
+add_action(
+	'deleted_post',
+	function ( $id ) {
+		if ( 'post' === get_post_type( $id ) ) {
+			delete_transient( 'rfaheya_posts_slim' );
+		}
 	}
 );
 
@@ -2684,6 +2712,22 @@ function rfaheya_storefront_shell() {
 	$file = ABSPATH . 'index.html';
 	if ( ! is_readable( $file ) ) {
 		return;
+	}
+	// Old addresses (the previous site's, renamed products and articles…) move for good to the new ones.
+	$asked = wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only compared and rebuilt
+	$to    = rfaheya_redirect_for( (string) ( $asked['path'] ?? '/' ) );
+	if ( $to ) {
+		$query = (string) ( $asked['query'] ?? '' );
+		$query = trim( preg_replace( '/(^|&)rfaheya_shell=1(&|$)/', '$1', $query ), '&' );
+		if ( $query && false === strpos( $to, '?' ) ) {
+			$to .= '?' . $query;
+		}
+		while ( ob_get_level() > 0 ) {
+			ob_end_clean();
+		}
+		header( 'X-Redirect-By: Rfaheya' );
+		wp_redirect( preg_match( '#^https?://#', $to ) ? $to : home_url( $to ), 301 ); // phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- the dashboard's own redirects may point to another site
+		exit;
 	}
 	$html = (string) file_get_contents( $file );
 	// The fresh copy, or the last good one so the shop shows at once (a fresh one follows).
@@ -2890,6 +2934,27 @@ add_action(
 	'rest_api_init',
 	function () {
 		$public = '__return_true';
+
+		// One article by its address name, in any language (the standard posts route only
+		// finds the main language's under WPML).
+		register_rest_route(
+			'rfaheya/v1',
+			'/post',
+			array(
+				'methods'             => 'GET',
+				'permission_callback' => $public,
+				'args'                => array( 'slug' => array( 'required' => true ) ),
+				'callback'            => function ( WP_REST_Request $req ) {
+					$post = rfaheya_post_by_slug( (string) $req['slug'], 'post' );
+					if ( ! $post || ! empty( $post->post_password ) ) {
+						return rest_ensure_response( array() );
+					}
+					$one = rfaheya_post_slim_one( $post );
+					$one['content'] = array( 'rendered' => apply_filters( 'the_content', $post->post_content ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+					return rest_ensure_response( array( $one ) );
+				},
+			)
+		);
 
 		register_rest_route(
 			'rfaheya/v1',
@@ -7004,6 +7069,295 @@ function rfaheya_seo_private( $path ) {
 	return (bool) preg_match( '#^/(account|checkout|cart|wishlist|track-order)(/|$)#', $path );
 }
 
+/* ---------- Rank Math: the titles, descriptions and robots set in WordPress are the ones used */
+
+function rfaheya_rank_math_on() {
+	return defined( 'RANK_MATH_VERSION' ) || class_exists( 'RankMath' );
+}
+
+/** Rank Math's variables (%title% %sep% %sitename% …) filled in for a post or term. */
+function rfaheya_rm_vars( $text, $object = null ) {
+	$text = (string) $text;
+	if ( '' === $text || false === strpos( $text, '%' ) ) {
+		return $text;
+	}
+	try {
+		if ( class_exists( '\RankMath\Helper' ) && method_exists( '\RankMath\Helper', 'replace_vars' ) ) {
+			$out = \RankMath\Helper::replace_vars( $text, $object ? $object : array() );
+			if ( is_string( $out ) && false === strpos( $out, '%' ) ) {
+				return trim( $out );
+			}
+		}
+	} catch ( Throwable $e ) {
+		unset( $e );
+	}
+	// Without Rank Math (or for what it left): the common ones.
+	$titles = (array) get_option( 'rank-math-options-titles', array() );
+	$sep    = isset( $titles['title_separator'] ) ? html_entity_decode( (string) $titles['title_separator'] ) : '-';
+	$map    = array(
+		'%sep%'      => $sep,
+		'%sitename%' => get_bloginfo( 'name' ),
+		'%sitedesc%' => get_bloginfo( 'description' ),
+		'%page%'     => '',
+	);
+	if ( $object instanceof WP_Post ) {
+		$map['%title%']   = get_the_title( $object );
+		$map['%excerpt%'] = rfaheya_seo_text( $object->post_excerpt ? $object->post_excerpt : $object->post_content );
+		$map['%seo_title%'] = get_the_title( $object );
+	} elseif ( $object instanceof WP_Term ) {
+		$map['%term%']             = $object->name;
+		$map['%term_description%'] = rfaheya_seo_text( $object->description );
+	}
+	$text = strtr( $text, $map );
+	$text = preg_replace( '/%[a-z_]+(\([^)]*\))?%/', '', $text );
+	return trim( preg_replace( '/\s+/', ' ', $text ), " \t-|" );
+}
+
+/**
+ * What Rank Math says about a post (product, article, page) or a term: its own title and
+ * description when set, else Rank Math's template for that type; robots, canonical, picture.
+ * Empty values are left out (the storefront's own then stand).
+ */
+function rfaheya_rm_for( $object ) {
+	if ( ! rfaheya_rank_math_on() || ! $object ) {
+		return array();
+	}
+	$titles = (array) get_option( 'rank-math-options-titles', array() );
+	if ( $object instanceof WP_Post ) {
+		$get   = fn( $k ) => get_post_meta( $object->ID, 'rank_math_' . $k, true );
+		$type  = $object->post_type;
+		$title = (string) $get( 'title' );
+		$desc  = (string) $get( 'description' );
+		$title = '' !== $title ? $title : (string) ( $titles[ 'pt_' . $type . '_title' ] ?? '' );
+		$desc  = '' !== $desc ? $desc : (string) ( $titles[ 'pt_' . $type . '_description' ] ?? '' );
+		$image = (string) $get( 'facebook_image' );
+	} elseif ( $object instanceof WP_Term ) {
+		$get   = fn( $k ) => get_term_meta( $object->term_id, 'rank_math_' . $k, true );
+		$title = (string) $get( 'title' );
+		$desc  = (string) $get( 'description' );
+		$title = '' !== $title ? $title : (string) ( $titles[ 'tax_' . $object->taxonomy . '_title' ] ?? '' );
+		$desc  = '' !== $desc ? $desc : (string) ( $titles[ 'tax_' . $object->taxonomy . '_description' ] ?? '' );
+		$image = (string) $get( 'facebook_image' );
+	} else {
+		return array();
+	}
+	$robots = (array) $get( 'robots' );
+	$out    = array(
+		'title'       => rfaheya_seo_text( rfaheya_rm_vars( $title, $object ), 200 ),
+		'description' => rfaheya_seo_text( rfaheya_rm_vars( $desc, $object ), 170 ),
+		'image'       => $image,
+		'canonical'   => (string) $get( 'canonical_url' ),
+		'noindex'     => in_array( 'noindex', $robots, true ),
+		'keyword'     => (string) $get( 'focus_keyword' ),
+	);
+	return array_filter( $out, fn( $v ) => '' !== $v && false !== $v );
+}
+
+/** Rank Math's home page title and description (Titles & Meta → Homepage), or the front page's own. */
+function rfaheya_rm_home() {
+	if ( ! rfaheya_rank_math_on() ) {
+		return array();
+	}
+	$front = (int) get_option( 'page_on_front' );
+	if ( 'page' === get_option( 'show_on_front' ) && $front ) {
+		$own = rfaheya_rm_for( get_post( $front ) );
+		if ( $own ) {
+			return $own;
+		}
+	}
+	$titles = (array) get_option( 'rank-math-options-titles', array() );
+	return array_filter(
+		array(
+			'title'       => rfaheya_seo_text( rfaheya_rm_vars( (string) ( $titles['homepage_title'] ?? '' ) ), 200 ),
+			'description' => rfaheya_seo_text( rfaheya_rm_vars( (string) ( $titles['homepage_description'] ?? '' ) ), 170 ),
+		)
+	);
+}
+
+/** A post or product by its address name, whatever its language (WPML) — also by a name it had before. */
+function rfaheya_post_by_slug( $slug, $type ) {
+	$slug = sanitize_title( rawurldecode( (string) $slug ) );
+	if ( '' === $slug ) {
+		return null;
+	}
+	$post = get_page_by_path( $slug, OBJECT, $type );
+	if ( $post && 'publish' === $post->post_status ) {
+		return $post;
+	}
+	return null;
+}
+
+/** A post's language: from WPML, else guessed from its title (Arabic letters). */
+function rfaheya_post_lang( $post ) {
+	if ( ! $post ) {
+		return 'en';
+	}
+	if ( has_filter( 'wpml_post_language_details' ) ) {
+		$d = apply_filters( 'wpml_post_language_details', null, $post->ID );
+		if ( is_array( $d ) && ! empty( $d['language_code'] ) ) {
+			return (string) $d['language_code'];
+		}
+	}
+	return preg_match( '/\p{Arabic}/u', get_the_title( $post ) ) ? 'ar' : 'en';
+}
+
+/** The same post in the other languages (WPML), by language code (published ones only). */
+function rfaheya_post_translations( $post ) {
+	$out = array();
+	if ( ! $post || ! has_filter( 'wpml_element_trid' ) ) {
+		return $out;
+	}
+	$type = 'post_' . $post->post_type;
+	$trid = apply_filters( 'wpml_element_trid', null, $post->ID, $type );
+	if ( ! $trid ) {
+		return $out;
+	}
+	foreach ( (array) apply_filters( 'wpml_get_element_translations', null, $trid, $type ) as $lang => $t ) {
+		$id = (int) ( is_object( $t ) ? $t->element_id : ( $t['element_id'] ?? 0 ) );
+		if ( $id && $id !== (int) $post->ID ) {
+			$other = get_post( $id );
+			if ( $other && 'publish' === $other->post_status ) {
+				$out[ (string) $lang ] = $other;
+			}
+		}
+	}
+	return $out;
+}
+
+/** The current name of a post or product that was renamed (WordPress keeps the old names). */
+function rfaheya_renamed( $slug, $type ) {
+	global $wpdb;
+	$slug = sanitize_title( rawurldecode( (string) $slug ) );
+	$id   = (int) $wpdb->get_var( $wpdb->prepare( "SELECT p.ID FROM {$wpdb->posts} p JOIN {$wpdb->postmeta} m ON m.post_id = p.ID WHERE m.meta_key = '_wp_old_slug' AND m.meta_value = %s AND p.post_type = %s AND p.post_status = 'publish' LIMIT 1", $slug, $type ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	return $id ? get_post( $id ) : null;
+}
+
+/**
+ * Where an old address goes (301), or ''. Covers the old WordPress site's links (products at
+ * /shop/…, articles at /…, Arabic at /ar/…, categories, tags, the old pages), names changed in
+ * WordPress, the redirects in Settings → Rfaheya Store → SEO & redirects, and Rank Math's own.
+ */
+function rfaheya_redirect_for( $path ) {
+	$raw  = (string) $path;
+	$path = '/' === $raw ? '/' : rtrim( $raw, '/' );
+
+	// 1. The redirects typed in the dashboard (exact, with or without the final slash).
+	$own = (string) ( rfaheya_options()['seo']['redirects'] ?? '' );
+	foreach ( preg_split( '/\r?\n/', $own ) as $line ) {
+		$parts = preg_split( '/\s*(?:→|->|=>|\s)\s*/u', trim( $line ), 2 );
+		if ( count( $parts ) < 2 || '' === $parts[0] ) {
+			continue;
+		}
+		$from = '/' . trim( (string) wp_parse_url( $parts[0], PHP_URL_PATH ), '/' );
+		if ( rawurldecode( $from ) === rawurldecode( $path ) || rawurldecode( $from ) === rawurldecode( $raw ) ) {
+			$to = trim( $parts[1] );
+			return preg_match( '#^https?://#', $to ) ? $to : '/' . ltrim( $to, '/' );
+		}
+	}
+
+	// 2. Rank Math's redirections (Rank Math → Redirections), when that module is on.
+	try {
+		if ( class_exists( '\RankMath\Redirections\DB' ) && method_exists( '\RankMath\Redirections\DB', 'match_redirections' ) ) {
+			$hit = \RankMath\Redirections\DB::match_redirections( ltrim( rawurldecode( $raw ), '/' ) );
+			if ( ! empty( $hit['url_to'] ) && in_array( (int) ( $hit['header_code'] ?? 301 ), array( 301, 302, 307 ), true ) ) {
+				return (string) $hit['url_to'];
+			}
+		}
+	} catch ( Throwable $e ) {
+		unset( $e );
+	}
+
+	// 3. The old site's addresses.
+	if ( preg_match( '#^/(sitemap_index|[a-z_]+-sitemap\d*|wp-sitemap[a-z0-9-]*|sitemap)\.xml$#', $path ) && '/sitemap.xml' !== $path ) {
+		return '/sitemap.xml'; // Rank Math's / WordPress's sitemaps: the storefront's one
+	}
+	$seg = array_values( array_filter( explode( '/', trim( $path, '/' ) ), 'strlen' ) );
+	if ( isset( $seg[0] ) && 'ar' === $seg[0] ) {
+		array_shift( $seg ); // the Arabic version of an address: same place on the storefront
+		if ( ! $seg ) {
+			return '/';
+		}
+		$inner = rfaheya_redirect_for( '/' . implode( '/', $seg ) );
+		if ( $inner ) {
+			return $inner;
+		}
+		return '/' . implode( '/', $seg );
+	}
+	$n = count( $seg );
+	if ( 2 === $n && in_array( $seg[0], array( 'shop', 'product' ), true ) ) {
+		if ( rfaheya_post_by_slug( $seg[1], 'product' ) ) {
+			return 'product' === $seg[0] || '/' === substr( $raw, -1 ) ? '/shop/' . $seg[1] : '';
+		}
+		$moved = rfaheya_renamed( $seg[1], 'product' );
+		if ( $moved ) {
+			return '/shop/' . $moved->post_name;
+		}
+		return '';
+	}
+	if ( $n >= 2 && 'product-category' === $seg[0] ) {
+		$cat  = sanitize_title( rawurldecode( $seg[ $n - 1 ] ) );
+		$fams = array( 'floral', 'fresh', 'fruity', 'oriental', 'sweet', 'woody', 'citrus', 'aromatic' );
+		if ( in_array( $cat, $fams, true ) ) {
+			return '/shop?family=' . $cat;
+		}
+		if ( preg_match( '/^(mens?|men)(-|$)/', $cat ) ) {
+			return '/shop?gender=men';
+		}
+		if ( preg_match( '/^(womens?|women)(-|$)/', $cat ) ) {
+			return '/shop?gender=women';
+		}
+		if ( preg_match( '/^unisex/', $cat ) ) {
+			return '/shop?gender=unisex';
+		}
+		return '/shop';
+	}
+	if ( $n >= 1 && in_array( $seg[0], array( 'category', 'tag', 'author', 'blog' ), true ) ) {
+		return '/journal';
+	}
+	if ( 'product-tag' === ( $seg[0] ?? '' ) ) {
+		return '/shop';
+	}
+	if ( 2 === $n && 'journal' === $seg[0] && ! rfaheya_post_by_slug( $seg[1], 'post' ) ) {
+		$moved = rfaheya_renamed( $seg[1], 'post' );
+		return $moved ? '/journal/' . $moved->post_name : '';
+	}
+	if ( 1 === $n ) {
+		$aliases = array(
+			'about-us'   => '/about',
+			'contact-us' => '/contact',
+			'faq'        => '/faqs',
+			'blog'       => '/journal',
+			'sign-in'    => '/account',
+			'register'   => '/account',
+			'login'      => '/account',
+			'new-cart'   => '/checkout',
+			'compare'    => '/shop',
+			'home'       => '/',
+			'limited-edition' => '/shop',
+		);
+		$one = sanitize_title( rawurldecode( $seg[0] ) );
+		if ( isset( $aliases[ $one ] ) ) {
+			return $aliases[ $one ];
+		}
+		// An article at the site's root (the old WordPress address): to the journal.
+		if ( ! rfaheya_info_page_for( '/' . $seg[0] ) && ! preg_match( '#^(shop|cart|checkout|account|wishlist|about|contact|faqs|reviews|journal|collections|finder|discover|our-standard|vitrine|vanilla-redefined|oud-rose-redefined|track-order|privacy|returns)$#', $one ) ) {
+			$post = rfaheya_post_by_slug( $seg[0], 'post' ) ?: rfaheya_renamed( $seg[0], 'post' );
+			if ( $post ) {
+				return '/journal/' . $post->post_name;
+			}
+			$product = rfaheya_post_by_slug( $seg[0], 'product' );
+			if ( $product ) {
+				return '/shop/' . $product->post_name;
+			}
+		}
+	}
+	// 4. Addresses with a final slash: the same page without it (one address per page).
+	if ( '/' !== $raw && '/' === substr( $raw, -1 ) ) {
+		return $path;
+	}
+	return '';
+}
+
 /** Title, description, picture and structured data for a storefront path. */
 function rfaheya_seo_for( $path, $data ) {
 	$site  = 'Rfaheya';
@@ -7017,7 +7371,21 @@ function rfaheya_seo_for( $path, $data ) {
 		'type'        => 'website',
 		'noindex'     => rfaheya_seo_private( $path ),
 		'jsonld'      => array(),
+		'status'      => 200,
+		'canonical'   => '',
+		'alternates'  => array(),
+		'lang'        => '',
 	);
+	// Rank Math's values win over the storefront's own when they are set.
+	$rm = function ( $object ) use ( &$out ) {
+		foreach ( rfaheya_rm_for( $object ) as $k => $v ) {
+			if ( in_array( $k, array( 'title', 'description', 'image', 'canonical' ), true ) ) {
+				$out[ $k ] = $v;
+			} elseif ( 'noindex' === $k ) {
+				$out['noindex'] = true;
+			}
+		}
+	};
 	$crumbs = array( array( 'Home', $home ) );
 	$static = array(
 		'/shop'         => array( 'Shop all fragrances', 'Every Rfaheya fragrance — inspired scents for men, women and everyone, in full bottles and small sizes to try first.' ),
@@ -7036,6 +7404,9 @@ function rfaheya_seo_for( $path, $data ) {
 	$path = '/' === $path ? '/' : rtrim( $path, '/' );
 
 	if ( '/' === $path ) {
+		foreach ( rfaheya_rm_home() as $k => $v ) {
+			$out[ $k ] = $v;
+		}
 		$out['jsonld'][] = array(
 			'@context' => 'https://schema.org',
 			'@type'    => 'Organization',
@@ -7058,6 +7429,9 @@ function rfaheya_seo_for( $path, $data ) {
 		$crumbs[]           = array( $static[ $path ][0], home_url( $path ) );
 	} elseif ( preg_match( '#^/(?:product|shop)/([^/]+)$#', $path, $m ) ) {
 		$slug    = sanitize_title( rawurldecode( $m[1] ) );
+		if ( ! empty( $data['products'] ) ) {
+			$out['status'] = 404; // until it is found below
+		}
 		$product = null;
 		foreach ( isset( $data['products'] ) ? $data['products'] : array() as $p ) {
 			if ( isset( $p['slug'] ) && $p['slug'] === $slug ) {
@@ -7074,7 +7448,8 @@ function rfaheya_seo_for( $path, $data ) {
 			$money  = fn( $v ) => round( (float) $v / pow( 10, $unit ), 2 );
 			$low    = $money( $prices['price_range']['min_amount'] ?? ( $prices['price'] ?? 0 ) );
 			$high   = $money( $prices['price_range']['max_amount'] ?? ( $prices['price'] ?? 0 ) );
-			$url    = home_url( '/product/' . $slug );
+			$url    = home_url( '/shop/' . $slug );
+			$out['status'] = 200;
 			$out['title']       = $product['name'] . ( $short ? ' — ' . $short : '' ) . ' | ' . $site;
 			$out['description'] = $about ? $about : $desc;
 			$out['image']       = $image ? $image : $out['image'];
@@ -7114,7 +7489,9 @@ function rfaheya_seo_for( $path, $data ) {
 					'bestRating'  => 5,
 				);
 			}
-			$out['jsonld'][] = $item;
+			$rm( get_post( (int) ( $product['id'] ?? 0 ) ) );
+			$item['description'] = $out['description'];
+			$out['jsonld'][]     = $item;
 		}
 	} elseif ( preg_match( '#^/collections/([^/]+)$#', $path, $m ) ) {
 		$name               = ucwords( str_replace( '-', ' ', sanitize_title( $m[1] ) ) );
@@ -7123,22 +7500,53 @@ function rfaheya_seo_for( $path, $data ) {
 		$crumbs[]           = array( 'Collections', home_url( '/collections' ) );
 		$crumbs[]           = array( $name, home_url( $path ) );
 	} elseif ( preg_match( '#^/journal/([^/]+)$#', $path, $m ) ) {
-		$post = get_page_by_path( sanitize_title( $m[1] ), OBJECT, 'post' );
-		if ( $post && 'publish' === $post->post_status ) {
+		$post = rfaheya_post_by_slug( $m[1], 'post' );
+		if ( $post ) {
 			$out['title']       = get_the_title( $post ) . ' — Rfaheya Journal';
 			$out['description'] = rfaheya_seo_text( $post->post_excerpt ? $post->post_excerpt : $post->post_content );
 			$out['image']       = get_the_post_thumbnail_url( $post, 'large' ) ? get_the_post_thumbnail_url( $post, 'large' ) : $out['image'];
 			$out['type']        = 'article';
 			$crumbs[]           = array( 'Journal', home_url( '/journal' ) );
-			$crumbs[]           = array( get_the_title( $post ), home_url( $path ) );
+			$crumbs[]           = array( get_the_title( $post ), home_url( '/journal/' . $post->post_name ) );
+			$rm( $post );
+			$out['jsonld'][] = array(
+				'@context'      => 'https://schema.org',
+				'@type'         => 'BlogPosting',
+				'headline'      => get_the_title( $post ),
+				'description'   => $out['description'],
+				'image'         => $out['image'] ? array( $out['image'] ) : null,
+				'datePublished' => get_post_time( 'c', true, $post ),
+				'dateModified'  => get_post_modified_time( 'c', true, $post ),
+				'author'        => array( '@type' => 'Organization', 'name' => $site ),
+				'publisher'     => array( '@type' => 'Organization', 'name' => $site, 'logo' => $logo ? array( '@type' => 'ImageObject', 'url' => $logo ) : null ),
+				'mainEntityOfPage' => home_url( '/journal/' . $post->post_name ),
+				'inLanguage'    => rfaheya_post_lang( $post ),
+			);
+			$out['lang'] = rfaheya_post_lang( $post );
+			// The same article in the other language (WPML): each points at the other.
+			foreach ( rfaheya_post_translations( $post ) as $lang => $other ) {
+				$out['alternates'][ $lang ] = home_url( '/journal/' . $other->post_name );
+			}
+		} else {
+			$out['status'] = 404;
 		}
 	} elseif ( preg_match( '#^/([^/]+)$#', $path, $m ) && ! $out['noindex'] ) {
-		$page = get_page_by_path( sanitize_title( $m[1] ) );
-		if ( $page && 'publish' === $page->post_status ) {
+		$page = rfaheya_info_page_for( $path );
+		if ( $page ) {
 			$out['title']       = get_the_title( $page ) . ' — ' . $site;
 			$out['description'] = rfaheya_seo_text( $page->post_excerpt ? $page->post_excerpt : $page->post_content );
 			$crumbs[]           = array( get_the_title( $page ), home_url( $path ) );
+			$rm( $page );
+		} elseif ( rfaheya_info_slug( $path ) && ! in_array( rfaheya_info_slug( $path ), array( 'privacy', 'returns' ), true ) ) {
+			$out['status'] = 404; // no such page (the storefront shows its "not found" page)
 		}
+	} elseif ( preg_match( '#^/(shop|product|journal|collections)/.+/.+#', $path ) ) {
+		$out['status'] = 404;
+	}
+	if ( 404 === $out['status'] ) {
+		$out['title']   = 'Page not found — ' . $site;
+		$out['noindex'] = true;
+		$crumbs         = array();
 	}
 	if ( count( $crumbs ) > 1 ) {
 		$out['jsonld'][] = array(
@@ -7157,10 +7565,19 @@ function rfaheya_seo_for( $path, $data ) {
 /** Puts a page's search and sharing details into the storefront's HTML. */
 function rfaheya_seo_apply( $html, $path, $data ) {
 	$seo   = rfaheya_seo_for( $path, $data );
-	$canon = home_url( '/' === $path ? '/' : rtrim( $path, '/' ) );
+	$canon = $seo['canonical'] ? $seo['canonical'] : home_url( '/' === $path ? '/' : rtrim( preg_replace( '#^/product/#', '/shop/', $path ), '/' ) );
+	if ( 404 === (int) $seo['status'] && ! headers_sent() ) {
+		status_header( 404 );
+	}
 	$html  = preg_replace( '#<title>.*?</title>#s', '<title>' . esc_html( $seo['title'] ) . '</title>', $html, 1 );
 	$html  = preg_replace( '#<meta name="description" content="[^"]*"\s*/?>#', '<meta name="description" content="' . esc_attr( $seo['description'] ) . '">', $html, 1 );
-	$head  = '<link rel="canonical" href="' . esc_url( $canon ) . '">';
+	$head  = 404 === (int) $seo['status'] ? '' : '<link rel="canonical" href="' . esc_url( $canon ) . '">';
+	if ( $seo['alternates'] ) {
+		$here = $seo['lang'] ? $seo['lang'] : 'en';
+		foreach ( $seo['alternates'] + array( $here => $canon ) as $lang => $url ) {
+			$head .= '<link rel="alternate" hreflang="' . esc_attr( $lang ) . '" href="' . esc_url( $url ) . '">';
+		}
+	}
 	if ( $seo['noindex'] ) {
 		$head .= '<meta name="robots" content="noindex, follow">';
 	}
@@ -7225,14 +7642,26 @@ function rfaheya_sitemap() {
 	}
 	foreach ( isset( $data['products'] ) ? $data['products'] : array() as $p ) {
 		if ( ! empty( $p['slug'] ) ) {
-			$urls[ home_url( '/product/' . $p['slug'] ) ] = '';
+			$product = get_post( (int) ( $p['id'] ?? 0 ) );
+			if ( $product && ! empty( rfaheya_rm_for( $product )['noindex'] ) ) {
+				continue; // Rank Math says: not in search results
+			}
+			$wc = $product && function_exists( 'wc_get_product' ) ? wc_get_product( $product->ID ) : null;
+			if ( $wc && in_array( $wc->get_catalog_visibility(), array( 'hidden', 'search' ), true ) ) {
+				continue; // hidden from the shop (the gift wrap, the gift box builder's product…)
+			}
+			$urls[ home_url( '/shop/' . $p['slug'] ) ] = $product ? get_post_modified_time( 'c', true, $product ) : '';
 		}
 	}
-	foreach ( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => 200 ) ) as $post ) {
+	// Every article in every language (get_posts is not narrowed to one language by WPML).
+	foreach ( get_posts( array( 'post_type' => 'post', 'post_status' => 'publish', 'numberposts' => -1, 'suppress_filters' => true ) ) as $post ) {
+		if ( ! empty( $post->post_password ) || ! empty( rfaheya_rm_for( $post )['noindex'] ) ) {
+			continue;
+		}
 		$urls[ home_url( '/journal/' . $post->post_name ) ] = get_post_modified_time( 'c', true, $post );
 	}
 	foreach ( get_pages( array( 'post_status' => 'publish' ) ) as $page ) {
-		if ( ! rfaheya_seo_private( '/' . $page->post_name ) && ! in_array( $page->post_name, array( 'shop', 'cart', 'checkout', 'my-account' ), true ) ) {
+		if ( rfaheya_info_page_for( '/' . $page->post_name ) && empty( rfaheya_rm_for( $page )['noindex'] ) ) {
 			$urls[ home_url( '/' . $page->post_name ) ] = get_post_modified_time( 'c', true, $page );
 		}
 	}

@@ -9,6 +9,9 @@ import { articles as demoArticles, findArticle, type Article as ArticleData } fr
 import journalImage from '../assets/headers/journal-1200.webp'
 import { NotFound } from './NotFound'
 
+/** Arabic articles are written right to left (WPML's Arabic posts). */
+const ltr = (a: ArticleData) => ((a as Partial<WpArticle>).lang === 'ar' ? { dir: 'rtl' as const, lang: 'ar' } : {})
+
 const date = (d: string) => new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
 export function Journal() {
@@ -42,8 +45,8 @@ function JournalView({ articles }: { articles: ArticleData[] }) {
             <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
               {lead.category} · {lead.readMinutes} min read
             </p>
-            <h2 className="mt-3 font-serif text-[32px] leading-[1.1] sm:text-[42px]">{lead.title}</h2>
-            <p className="mt-3 text-[16.5px] text-ink-soft">{lead.excerpt}</p>
+            <h2 {...ltr(lead)} className="mt-3 font-serif text-[32px] leading-[1.1] sm:text-[42px]">{lead.title}</h2>
+            <p {...ltr(lead)} className="mt-3 text-[16.5px] text-ink-soft">{lead.excerpt}</p>
             <span className="mt-6 inline-flex items-center gap-2 text-[12.5px] font-medium tracking-[0.14em] uppercase">
               Read article <ArrowRight className="size-4 transition group-hover:translate-x-1" strokeWidth={1.5} />
             </span>
@@ -59,8 +62,8 @@ function JournalView({ articles }: { articles: ArticleData[] }) {
                   <p className="text-[12px] tracking-[0.16em] text-muted uppercase">
                     {a.category} · {a.readMinutes} min read
                   </p>
-                  <h2 className="mt-2 font-serif text-[26px] leading-[1.15]">{a.title}</h2>
-                  <p className="mt-2 text-[15.5px] text-ink-soft">{a.excerpt}</p>
+                  <h2 {...ltr(a)} className="mt-2 font-serif text-[26px] leading-[1.15]">{a.title}</h2>
+                  <p {...ltr(a)} className="mt-2 text-[15.5px] text-ink-soft">{a.excerpt}</p>
                 </div>
               </Link>
             </li>
@@ -115,8 +118,8 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
               <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur-md">{a.readMinutes} min read</span>
               <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur-md">{date(a.date)}</span>
             </p>
-            <h1 className="mt-4 font-serif text-[42px] leading-[0.98] sm:text-[64px]">{a.title}</h1>
-            <p className="mt-3 max-w-xl text-[16px] text-white/80 sm:text-[18px]">{a.excerpt}</p>
+            <h1 {...ltr(a)} className="mt-4 font-serif text-[42px] leading-[1.05] sm:text-[64px]">{a.title}</h1>
+            <p {...ltr(a)} className="mt-3 max-w-xl text-[16px] text-white/80 sm:text-[18px]">{a.excerpt}</p>
           </div>
         </div>
       </header>
@@ -124,7 +127,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
       {/* ---------- Body ---------- */}
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-5">
         <div className="rf-white rounded-[28px] px-5 py-8 shadow-[inset_0_0_0_1px_var(--color-line)] sm:px-10 sm:py-12 lg:rounded-[36px] lg:px-14">
-          <div className="max-w-[44rem] text-[17px] leading-[1.8] text-ink-soft">
+          <div {...ltr(a)} className="max-w-[44rem] text-[17px] leading-[1.8] text-ink-soft">
             {'html' in a && <WpHtml html={a.html} />}
             {a.body.map((s, i) => {
               const n = s.heading ? headings.indexOf(s.heading) + 1 : 0

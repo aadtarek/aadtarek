@@ -585,7 +585,7 @@ function InfoCard({ product, number, onBack, phone = false }: { product: Product
         <button type="button" onClick={onBack}>
           <ArrowLeft className="size-3.5" strokeWidth={1.6} /> Back to the wall
         </button>
-        <Link to={`/product/${product.slug}`}>
+        <Link to={`/shop/${product.slug}`}>
           Full details <ArrowRight className="size-3.5" strokeWidth={1.6} />
         </Link>
       </div>

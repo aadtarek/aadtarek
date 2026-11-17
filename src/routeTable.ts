@@ -4,6 +4,7 @@
  * downloading it from index.html). The first match wins.
  */
 export const ROUTE_TABLE: [pattern: string, module: string][] = [
+  ['^/shop/[^/?#]+', 'src/pages/ProductPage.tsx'],
   ['^/shop', 'src/pages/Shop.tsx'],
   ['^/product/', 'src/pages/ProductPage.tsx'],
   ['^/wishlist', 'src/pages/Wishlist.tsx'],

@@ -44,7 +44,7 @@ export function ReviewCard({ review }: { review: Review }) {
           )}
         </span>
         <Link
-          to={`/product/${product.slug}`}
+          to={`/shop/${product.slug}`}
           aria-label={`${product.name}${size ? `, ${size}` : ''}`}
           title={product.name}
           className="ml-auto flex shrink-0 items-center gap-2 rounded-full bg-chip py-1 pr-3 pl-1 transition hover:bg-[#f3e3c9]"
