@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pottery Hub — Handmade Ceramics, Made in Egypt</title>
 <meta name="description" content="Shop handmade ceramics from Egypt: mugs, bowls, cups and saucers, tajin, skillets and teapots. Free shipping on every order.">
-<meta name="theme-color" content="#2f3b33">
+<meta name="theme-color" content="#ba4a2f">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preload" as="image" href="assets/img/emblem-light.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Urbanist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -33,44 +35,56 @@ img{display:block;max-width:100%}
 .ic{flex:none}
 
 /* cursor */
-@media (hover:hover) and (pointer:fine){html,body,*{cursor:none!important}#cur{display:block}}
+@media (hover:hover) and (pointer:fine){html,body,*{cursor:none!important}#cur{display:grid}}
 #cur{display:none;position:fixed;left:0;top:0;z-index:9999;pointer-events:none;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
   background:rgba(47,59,51,.5);border:0 solid rgba(47,59,51,.9);
   transition:width .25s var(--out),height .25s var(--out),margin .25s var(--out),background .25s var(--out),border-width .25s var(--out)}
 #cur.hov{width:38px;height:38px;margin:-19px 0 0 -19px;background:rgba(186,74,47,.32)}
 #cur.press{width:44px;height:44px;margin:-22px 0 0 -22px;background:transparent;border-width:5px}
+#cur{place-items:center}
+#cur span{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#fff;opacity:0;transform:scale(.6);transition:opacity .3s,transform .4s var(--out)}
+#cur.lbl{width:86px;height:86px;margin:-43px 0 0 -43px;background:var(--terra);border-width:0}
+#cur.lbl span{opacity:1;transform:none}
 .rec #cur{width:50px;height:50px;margin:-25px 0 0 -25px}
 .rec #cur.hov{width:58px;height:58px;margin:-29px 0 0 -29px}
 .rec #cur.press{width:62px;height:62px;margin:-31px 0 0 -31px;border-width:7px}
 
 /* nav */
-.nav{position:fixed;inset:0 0 auto 0;height:74px;z-index:100;padding:0 var(--pad);display:flex;align-items:center;justify-content:space-between;
-  color:rgba(255,255,255,.92);border-bottom:1px solid rgba(255,255,255,.28);transition:background .5s,color .5s,border-color .5s}
-.nav.solid{background:rgba(245,239,230,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:var(--ink);border-color:var(--line)}
-.nav .l,.nav .r,.nav .c{display:flex;align-items:center}
-.logo{font-weight:300;font-size:26px;letter-spacing:-.01em;white-space:nowrap}
-.logo b{font-weight:700;color:var(--terra)}
-.nav:not(.solid) .logo b{color:#fff}
-.vdiv{width:1px;height:42px;background:currentColor;opacity:.35;margin:0 28px}
-.ship-note{font-size:12.5px;font-weight:500;display:flex;gap:7px;align-items:center;opacity:.9}
-.nav .c{gap:40px;font-size:14.5px;font-weight:500}
+.nav{position:fixed;left:0;right:0;top:0;height:84px;z-index:100;padding:0 var(--pad);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;
+  color:rgba(255,255,255,.94);border:1px solid transparent;border-bottom-color:rgba(255,255,255,.22);border-radius:0;
+  transition:left .9s var(--out),right .9s var(--out),top .9s var(--out),height .9s var(--out),padding .9s var(--out),border-radius .9s var(--out),background .6s,color .6s,border-color .6s,box-shadow .8s,transform .8s var(--out)}
+.nav.solid{left:max(14px,calc(50% - 600px));right:max(14px,calc(50% - 600px));top:14px;height:68px;padding:0 10px 0 30px;border-radius:999px;
+  background:rgba(251,248,243,.84);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);color:var(--ink);border-color:rgba(47,59,51,.1);box-shadow:0 20px 50px -20px rgba(40,30,20,.3)}
+.nav.pre{transform:translateY(-120%)}
+.nav .l{display:flex;align-items:center;gap:30px}
+.nav .r{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.nav .c{display:flex;gap:32px;font-size:14px;font-weight:600;letter-spacing:.02em}
+.brand{position:relative;display:block;height:70px;width:121px;transition:height .9s var(--out),width .9s var(--out)}
+.nav.solid .brand{height:58px;width:100px}
+.brand img{position:absolute;left:0;top:0;height:100%;width:auto;transition:opacity .6s}
+.brand .dk{opacity:0}
+.nav.solid .brand .lt{opacity:0}
+.nav.solid .brand .dk{opacity:1}
+.brand:hover img{animation:wob .9s var(--out)}
+@keyframes wob{30%{transform:rotate(-4deg) scale(1.04)}60%{transform:rotate(3deg)}}
 .ul{position:relative;padding:4px 0}
 .ul::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:currentColor;transform:scaleX(0);transform-origin:right;transition:transform .45s var(--out)}
 .ul:hover::after{transform:scaleX(1);transform-origin:left}
-.nav .r{gap:14px}
-.ibtn{position:relative;display:grid;place-items:center;width:38px;height:38px;border-radius:50%;transition:background .3s}
-.ibtn:hover{background:rgba(255,255,255,.14)}
+.ibtn{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;transition:background .3s}
+.ibtn:hover{background:rgba(255,255,255,.16)}
 .nav.solid .ibtn:hover{background:rgba(47,59,51,.07)}
-.cnt{position:absolute;top:0;right:-2px;min-width:17px;height:17px;border-radius:9px;background:var(--terra);color:#fff;font-style:normal;font-size:10.5px;font-weight:700;display:grid;place-items:center;padding:0 4px;transform:scale(0);transition:transform .4s var(--out)}
+.ibtn.mb{display:none}
+.cnt{position:absolute;top:1px;right:-1px;min-width:17px;height:17px;border-radius:9px;background:var(--terra);color:#fff;font-style:normal;font-size:10.5px;font-weight:700;display:grid;place-items:center;padding:0 4px;transform:scale(0);transition:transform .4s var(--out)}
 .cnt.on{transform:scale(1)}
-.cnt.bump{animation:bump .5s var(--out)}
-@keyframes bump{40%{transform:scale(1.4)}}
-.pill{display:flex;align-items:center;gap:10px;border:1.5px solid currentColor;border-radius:9px;padding:6px 7px 6px 11px;margin-left:6px}
-.pill .av{width:22px;height:22px;border-radius:50%;background:currentColor;display:grid;place-items:center}
+.cnt.bump{animation:bump .6s var(--out)}
+@keyframes bump{40%{transform:scale(1.5)}}
+.pill{display:flex;align-items:center;gap:10px;border:1.5px solid currentColor;border-radius:999px;padding:6px 7px 6px 13px;margin-left:4px}
+.pill .av{width:24px;height:24px;border-radius:50%;background:currentColor;display:grid;place-items:center}
 .pill .av svg{color:#6b5048}
-.nav.solid .pill{border-color:var(--line);background:#fff}
-.nav.solid .pill .av{background:var(--forest)}
-.nav.solid .pill .av svg{color:var(--cream)}
+.nav.solid .pill{border-color:transparent;background:var(--forest);color:var(--cream)}
+.nav.solid .pill .av{background:var(--cream)}
+.nav.solid .pill .av svg{color:var(--forest)}
+#prog{position:fixed;left:0;right:0;top:0;height:2px;z-index:101;background:var(--terra);transform-origin:left;transform:scaleX(0);pointer-events:none}
 
 /* hero */
 .hero-wrap{position:relative}
@@ -218,9 +232,14 @@ img{display:block;max-width:100%}
 .card{position:relative;opacity:0;transform:translateY(40px);transition:opacity .9s var(--out),transform .9s var(--out);transition-delay:var(--d,0ms);outline:none}
 .card.vis{opacity:1;transform:none}
 .media{position:relative;aspect-ratio:4/5;border-radius:22px;overflow:hidden;background:var(--sand);transition:box-shadow .6s var(--out),transform .6s var(--out)}
-.card.vis:hover .media{transform:translateY(-6px);box-shadow:0 26px 50px -18px rgba(60,40,30,.35)}
-.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply;transition:transform 1.2s var(--out)}
-.card:hover .media img{transform:scale(1.07)}
+.media{transform:perspective(900px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(var(--ty,0px));clip-path:inset(22% 0 0 0 round 22px);transition:box-shadow .6s var(--out),transform .6s var(--out),clip-path 1.3s var(--out)}
+.card.vis .media{clip-path:inset(0 0 0 0 round 22px)}
+.card.vis:hover .media{--ty:-6px;box-shadow:0 30px 60px -20px rgba(60,40,30,.4)}
+.media::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity .5s;background:radial-gradient(circle at var(--gx,50%) var(--gy,30%),rgba(255,255,255,.4),transparent 55%)}
+.card:hover .media::after{opacity:1}
+.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply;transform:scale(1.22);transition:transform 1.4s var(--out)}
+.card.vis .media img{transform:scale(1)}
+.card.vis:hover .media img{transform:scale(1.08)}
 .badge{position:absolute;left:14px;top:14px;z-index:2;background:var(--terra);color:#fff;border-radius:30px;padding:5px 11px;font-size:11.5px;font-weight:700;letter-spacing:.02em}
 .heart{position:absolute;right:14px;top:14px;z-index:3;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:grid;place-items:center;color:var(--forest);transition:background .3s,transform .35s var(--out)}
 .heart:hover{background:#fff;transform:scale(1.08)}
@@ -229,10 +248,18 @@ img{display:block;max-width:100%}
 .heart.on svg{fill:currentColor}
 .heart.pop svg{animation:hpop .45s var(--out)}
 @keyframes hpop{40%{transform:scale(1.35)}}
-.quick{position:absolute;left:12px;right:12px;bottom:12px;z-index:3;height:46px;border-radius:15px;background:rgba(47,59,51,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:var(--cream);display:flex;align-items:center;justify-content:center;gap:9px;font-size:13.5px;font-weight:600;transform:translateY(calc(100% + 14px));opacity:0;transition:transform .55s var(--out),opacity .4s,background .3s}
+.quick{position:absolute;left:10px;right:10px;bottom:10px;z-index:3;display:flex;gap:6px;transform:translateY(calc(100% + 14px));opacity:0;transition:transform .6s var(--out),opacity .4s}
 .card:hover .quick,.card:focus-within .quick{transform:none;opacity:1}
-.quick:hover,.quick.ok{background:var(--terra)}
-@media (hover:none){.quick{transform:none;opacity:1;left:auto;width:42px;height:42px;border-radius:50%}.quick span{display:none}}
+.quick button{flex:1;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:7px;font-size:13px;font-weight:700;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:background .3s,transform .35s var(--out),color .3s}
+.quick button:hover{transform:translateY(-2px)}
+.quick .qa{background:rgba(255,255,255,.92);color:var(--forest)}
+.quick .qa.ok{background:var(--sage)}
+.quick .qb{background:var(--terra);color:#fff}
+.quick .qb:hover{background:var(--terra-d)}
+.card:hover .quick button{animation:qin .6s var(--out) both}
+.card:hover .quick .qb{animation-delay:.06s}
+@keyframes qin{from{transform:translateY(16px);opacity:0}}
+@media (hover:none){.quick{transform:none;opacity:1}.quick .qa span{display:none}.quick .qa{flex:0 0 44px}.quick button{height:40px}}
 .info{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 4px 0}
 .info .cat-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--light);font-weight:700}
 .info h4{font-family:"Gilda Display",Georgia,serif;font-weight:400;font-size:18px;line-height:1.25;margin-top:5px;color:var(--ink)}
@@ -361,8 +388,24 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .booknow{height:54px;border-radius:16px;background:var(--terra);color:#fff;font-weight:700;font-size:15.5px;transition:background .4s,transform .3s var(--out);box-shadow:0 14px 30px rgba(186,74,47,.3)}
 .booknow:hover{transform:translateY(-2px);background:var(--terra-d)}
 .booknow.done{background:var(--forest);box-shadow:none}
-.buy{height:54px;border-radius:16px;border:1.5px solid var(--forest);color:var(--forest);font-weight:700;font-size:15.5px;transition:background .3s,color .3s}
-.buy:hover{background:var(--forest);color:var(--cream)}
+.buy{position:relative;overflow:hidden;height:54px;border-radius:16px;background:var(--forest);color:var(--cream);font-weight:700;font-size:15.5px;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .3s,transform .3s var(--out);box-shadow:0 14px 30px -10px rgba(47,59,51,.5)}
+.buy:hover{background:#26302a;transform:translateY(-2px)}
+.buy::after{content:"";position:absolute;top:0;bottom:0;width:45%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:shine 3.4s ease-in-out infinite}
+@keyframes shine{0%,55%{left:-60%}100%{left:135%}}
+.buy svg{transition:transform .4s var(--out)}
+.buy:hover svg{transform:translateX(4px)}
+.trust{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--muted);font-weight:600}
+.trust span{display:flex;align-items:center;gap:6px}
+.trust svg{color:var(--terra)}
+.sbar{position:fixed;left:50%;bottom:16px;z-index:89;width:min(820px,calc(100% - 24px));transform:translate(-50%,160%);display:flex;align-items:center;gap:14px;padding:10px 10px 10px 12px;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:22px;box-shadow:0 26px 60px -20px rgba(40,30,20,.35);transition:transform .7s var(--out)}
+.sbar.on{transform:translate(-50%,0)}
+.sbar .si{width:52px;height:52px;border-radius:14px;background:var(--sand);overflow:hidden;flex:none}
+.sbar .si img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
+.sbar .sn{flex:1;min-width:0}
+.sbar .sn b{display:block;font-family:"Gilda Display",serif;font-weight:400;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbar .sn small{color:var(--terra);font-weight:700;font-size:14px}
+.sbar .booknow,.sbar .buy{height:48px;padding:0 22px;border-radius:14px;font-size:14.5px}
 .acc{border-top:1px solid var(--line)}
 .acc details{border-bottom:1px solid var(--line)}
 .acc summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:16px 2px;font-weight:600;font-size:15px;color:var(--forest)}
@@ -465,6 +508,72 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .toast u{font-weight:700;color:#ffd9cb}
 
+/* preloader */
+#pre{position:fixed;inset:0;z-index:10000;background:var(--terra);color:var(--cream);display:grid;place-items:center;overflow:hidden;clip-path:inset(0 0 0 0 round 0 0 0 0);transition:clip-path 1.2s var(--ease)}
+#pre::before{content:"";position:absolute;inset:0;background:var(--grain);opacity:.12;mix-blend-mode:overlay}
+#pre.out{clip-path:inset(0 0 100% 0 round 0 0 50% 50%)}
+.pre-in{position:relative;display:flex;flex-direction:column;align-items:center;gap:20px;transition:transform 1.1s var(--ease),opacity .7s}
+#pre.out .pre-in{transform:translateY(-80px);opacity:0}
+.pre-logo{position:relative;width:146px;height:210px;transform:scale(.85);opacity:0;transition:transform 1.4s var(--out),opacity .8s}
+#pre.go .pre-logo{transform:none;opacity:1}
+.pre-logo img{position:absolute;inset:0;width:100%;height:100%}
+.pre-logo .g{opacity:.18}
+.pre-logo .f{-webkit-mask-image:conic-gradient(from 200deg at 50% 52%,#000 var(--a,0deg),transparent calc(var(--a,0deg) + 1deg));mask-image:conic-gradient(from 200deg at 50% 52%,#000 var(--a,0deg),transparent calc(var(--a,0deg) + 1deg))}
+.pre-word{display:flex;font-family:"Gilda Display",serif;font-size:clamp(34px,4.6vw,58px);letter-spacing:.12em;line-height:1}
+.pre-word span{display:inline-block;overflow:hidden;padding-bottom:.05em}
+.pre-word i{display:inline-block;font-style:normal;transform:translateY(110%);transition:transform 1s var(--out);transition-delay:calc(var(--i)*55ms + .2s)}
+#pre.go .pre-word i{transform:none}
+.pre-sub{font-size:11.5px;letter-spacing:.5em;font-weight:600;opacity:0;transition:opacity 1s .9s}
+#pre.go .pre-sub{opacity:.75}
+.pre-bar{width:200px;height:1px;background:rgba(245,239,230,.25);margin-top:8px}
+.pre-bar i{display:block;height:100%;background:var(--cream);transform-origin:left;transform:scaleX(0)}
+.pre-n{position:absolute;right:var(--pad);bottom:36px;font-family:"Gilda Display",serif;font-size:clamp(64px,10vw,150px);line-height:1;opacity:.92}
+.pre-n sup{font-size:.3em;vertical-align:top;margin-left:4px;opacity:.7}
+.pre-c{position:absolute;left:var(--pad);bottom:46px;font-size:12px;letter-spacing:.3em;text-transform:uppercase;font-weight:600;opacity:.7}
+.spark{position:absolute;width:16px;height:16px;color:var(--cream);animation:twk 2.4s ease-in-out infinite}
+@keyframes twk{0%,100%{transform:scale(.4) rotate(0);opacity:.2}50%{transform:scale(1) rotate(90deg);opacity:1}}
+
+/* marquee */
+.marq{position:relative;z-index:2;overflow:hidden;padding:30px 0;margin:0 0 100px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.marq .tr{display:flex;width:max-content;will-change:transform}
+.marq .it{display:flex;align-items:center;gap:44px;padding-right:44px;font-family:"Gilda Display",serif;font-size:clamp(42px,6.4vw,100px);line-height:1.05;white-space:nowrap;color:var(--forest)}
+.marq .it .o{color:transparent;-webkit-text-stroke:1.2px var(--terra)}
+.marq .st{width:.42em;height:.42em;color:var(--terra);animation:spin 9s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* reveals */
+[data-rv]{opacity:0;transform:translateY(46px);transition:opacity 1.1s var(--out),transform 1.2s var(--out);transition-delay:var(--d,0ms)}
+[data-rv].in{opacity:1;transform:none}
+.sp .wd{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.1em;margin-bottom:-.1em}
+.sp .wd>i{display:inline-block;font-style:normal;transform:translateY(115%) rotate(5deg);transform-origin:0 100%;transition:transform 1.15s var(--out);transition-delay:calc(var(--i)*70ms)}
+.sp.in .wd>i{transform:none}
+.eyebrow::before{transform:scaleX(0);transform-origin:left;transition:transform 1s var(--out) .15s}
+.eyebrow.in::before{transform:none}
+.perk i svg{animation:floaty 4s ease-in-out infinite}
+.perk:nth-child(2) i svg{animation-delay:-1s}.perk:nth-child(3) i svg{animation-delay:-2s}.perk:nth-child(4) i svg{animation-delay:-3s}
+@keyframes floaty{50%{transform:translateY(-4px) rotate(-6deg)}}
+.perk{transition:transform .5s var(--out),box-shadow .5s,background .4s}
+.perk:hover{transform:translateY(-6px);background:#fff;box-shadow:0 24px 40px -24px rgba(60,40,30,.35)}
+.cat .cw img{transform:scale(1.2);transition:transform 1.6s var(--out)}
+.cat.in .cw img{transform:scale(1)}
+.cat.in:hover .cw img{transform:scale(1.08)}
+.promo .pw{transform:translateY(40%);transition:transform 1.6s var(--out)}
+.promo.in .pw{transform:none}
+.promo.in:hover .pw{transform:translateY(-10px)}
+.band img{top:-12%;height:124%;will-change:transform}
+.chip{position:relative;overflow:hidden;isolation:isolate}
+.chip::before{content:"";position:absolute;inset:0;z-index:-1;background:var(--forest);transform:translateY(101%);transition:transform .5s var(--out);border-radius:inherit}
+.chip:hover:not(.on){color:var(--cream)}
+.chip:hover::before,.chip.on::before{transform:none}
+.btn,.wbtn,.see{position:relative;overflow:hidden}
+.flyer{position:fixed;z-index:400;pointer-events:none;object-fit:cover;border-radius:50%;background:var(--sand);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.giant{position:relative;display:block;margin-top:56px;font-family:"Gilda Display",serif;font-size:11.2vw;line-height:.9;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:1px rgba(245,239,230,.32);white-space:nowrap;text-align:center;user-select:none}
+.foot{overflow:hidden}
+.foot .spark{color:#e9a48f}
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
+
 /* responsive */
 @media (max-width:1100px){
   .shop-grid{grid-template-columns:repeat(2,1fr)}
@@ -472,7 +581,10 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
   .foot .fg{grid-template-columns:1fr 1fr}
 }
 @media (max-width:1000px){
-  .nav .c,.nav .vdiv,.ship-note{display:none}
+  .nav .c{display:none}
+  .ibtn.mb{display:grid}
+  .pill{display:none}
+  .nav.solid{padding:0 8px}
   .grid{grid-template-columns:repeat(2,1fr)}
   .dgrid,.co{grid-template-columns:1fr}
   .sum{position:static}
@@ -486,8 +598,15 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
   .tag{left:22vw}
 }
 @media (max-width:640px){
-  .logo{font-size:22px}
-  .nav .r{gap:2px}
+  .brand{height:54px;width:93px}
+  .nav.solid .brand{height:48px;width:83px}
+  .nav.solid{left:10px;right:10px;top:10px;height:60px}
+  .nav .r{gap:0}
+  .sbar .booknow{display:none}
+  .sbar .sn b{font-size:15px}
+  .pre-n{bottom:24px}
+  .pre-c{display:none}
+  .giant{font-size:12vw}
   .nav .hide-m{display:none}
   .ttl,.t0,.t1,.t2{white-space:normal;max-width:80vw;font-size:13.5vw;left:5vw;line-height:.95}
   .t2{font-size:14vw}
@@ -529,20 +648,34 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 </style>
 </head>
 <body>
-<div id="cur"></div>
+<div id="cur"><span></span></div>
 
-<header class="nav" id="nav">
-  <div class="l">
-    <a href="#" class="logo" data-home>Pottery<b>.</b>Hub</a>
-    <span class="vdiv"></span>
-    <span class="ship-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>Free shipping on every order</span>
+<div id="pre" aria-hidden="true">
+  <svg class="spark" style="left:14%;top:22%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
+  <svg class="spark" style="right:18%;top:30%;animation-delay:-.8s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
+  <svg class="spark" style="left:26%;bottom:24%;animation-delay:-1.6s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
+  <div class="pre-in">
+    <div class="pre-logo"><img class="g" src="assets/img/emblem-light.png" alt=""><img class="f" id="preF" src="assets/img/emblem-light.png" alt=""></div>
+    <div class="pre-word" id="preWord"></div>
+    <div class="pre-sub">HOUSE OF POTTERY</div>
+    <div class="pre-bar"><i id="preBar"></i></div>
   </div>
-  <nav class="c">
-    <button class="ul" data-shop>Shop</button>
-    <button class="ul" data-go="cats">Collections</button>
-    <button class="ul" data-go="classes">Workshops</button>
-    <button class="ul" data-go="about">About</button>
-  </nav>
+  <div class="pre-c">Handmade in Egypt</div>
+  <div class="pre-n"><span id="preN">0</span><sup>%</sup></div>
+</div>
+<div id="prog"></div>
+
+<header class="nav pre" id="nav">
+  <div class="l">
+    <button class="ibtn mb" id="openMenuM" aria-label="Menu"><svg width="20" height="14" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 1h18M1 7h12M1 13h18"/></svg></button>
+    <nav class="c">
+      <button class="ul" data-shop>Shop</button>
+      <button class="ul" data-go="cats">Collections</button>
+      <button class="ul" data-go="classes">Workshops</button>
+      <button class="ul" data-go="about">About</button>
+    </nav>
+  </div>
+  <a href="#" class="brand" data-home aria-label="Pottery Hub — home"><img class="lt" src="assets/img/logo-light.png" alt="Pottery Hub"><img class="dk" src="assets/img/logo-dark.png" alt=""></a>
   <div class="r">
     <button class="ibtn" id="openSearch" aria-label="Search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
     <button class="ibtn hide-m" id="openWish" aria-label="Wishlist"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg><i class="cnt" id="wishN">0</i></button>
@@ -605,6 +738,8 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
   <div class="grid" id="grid"></div>
 </main>
 
+<div class="marq" id="marq" aria-hidden="true"><div class="tr" id="marqT"></div></div>
+
 <section class="sec" id="cats">
   <div class="sec-h">
     <div><div class="eyebrow">Collections</div><h2 class="serif">Shop by category</h2></div>
@@ -619,17 +754,17 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 
 <section class="sec">
   <div class="promos">
-    <div class="promo a"><div class="pw"><img src="" data-k="75-1" alt="" loading="lazy"></div>
+    <div class="promo a" data-rv><div class="pw"><img src="" data-k="75-1" alt="" loading="lazy"></div>
       <div class="eyebrow" style="color:#e9a48f">Sets &amp; bundles</div><h3>Serve it all, together</h3><p>Nested bowl sets and serving platters, matched by hand for full tables.</p>
       <button class="wbtn" data-shop-cat="Bowls">Shop sets <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
-    <div class="promo b"><div class="pw"><img src="" data-k="25-1" alt="" loading="lazy"></div>
+    <div class="promo b" data-rv style="--d:120ms"><div class="pw"><img src="" data-k="25-1" alt="" loading="lazy"></div>
       <div class="eyebrow" style="color:#ffd9cb">Everyday pieces</div><h3>Mugs from EGP 300</h3><p>Speckled, reactive and matte glazes for every morning.</p>
       <button class="wbtn" data-shop-cat="Mugs">Shop mugs <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
   </div>
 </section>
 
-<section class="band" id="classes">
-  <img src="https://potteryhubeg.com/wp-content/uploads/2024/07/w-hmp-video-2-image.jpg" alt="Hands shaping clay on a pottery wheel" loading="lazy">
+<section class="band" id="classes" data-rv>
+  <img data-par=".12" src="https://potteryhubeg.com/wp-content/uploads/2024/07/w-hmp-video-2-image.jpg" alt="Hands shaping clay on a pottery wheel" loading="lazy">
   <div class="bt">
     <div class="eyebrow">Workshops</div>
     <h2 class="serif">Get to know pottery</h2>
@@ -641,17 +776,20 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 
 <footer class="foot" id="about">
   <div class="fg">
-    <div><div class="logo">Pottery<b>.</b>Hub</div><p style="margin-top:14px;max-width:360px;line-height:1.7">Where creativity meets craftsmanship. We make handmade ceramics that bring warmth, character and artistic charm to everyday life — shaped and glazed in Egypt.</p></div>
+    <div><img src="assets/img/logo-light.png" alt="Pottery Hub" style="height:92px;width:auto"><p style="margin-top:18px;max-width:360px;line-height:1.7">Where creativity meets craftsmanship. We make handmade ceramics that bring warmth, character and artistic charm to everyday life — shaped and glazed in Egypt.</p></div>
     <div><h5>Shop</h5><ul id="footCats"></ul></div>
     <div><h5>Help</h5><ul><li><button data-shop>All products</button></li><li><button id="fCart">Your cart</button></li><li><button id="fWish">Wishlist</button></li><li><a href="https://www.facebook.com/profile.php?id=61595757980356" target="_blank" rel="noopener">Contact us</a></li></ul></div>
     <div><h5>Stay in the loop</h5><p>New glazes, restocks and workshop dates — first.</p>
       <form class="news" id="news"><input type="email" required placeholder="Your email" aria-label="Email"><button>Subscribe</button></form></div>
   </div>
+  <div class="giant sp" id="giant" data-par="-.08">House of Pottery</div>
+  <svg class="spark" style="left:8%;bottom:30%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
+  <svg class="spark" style="right:12%;bottom:46%;animation-delay:-1.2s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
   <div class="bot"><span>© 2026 Pottery Hub. Handmade in Egypt.</span><span>Free shipping on every order</span></div>
 </footer>
 
 <!-- SHOP -->
-<section class="page" id="shopPage" aria-hidden="true">
+<section class="page" id="shopPage" aria-hidden="true" data-lenis-prevent>
   <div class="pband"></div>
   <div class="pwrap">
     <div class="crumb"><a href="#" data-home>Home</a>›<span id="shopCrumb">Shop</span></div>
@@ -678,7 +816,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 </section>
 
 <!-- PRODUCT -->
-<section class="page" id="detail" aria-hidden="true">
+<section class="page" id="detail" aria-hidden="true" data-lenis-prevent>
   <div class="pband"></div>
   <div class="pwrap">
     <div class="crumb rv" id="crumb"></div>
@@ -699,7 +837,8 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
           <div class="pr" id="dprice"></div>
           <div class="dates"><div><small>Category</small><b id="dcat"></b></div><div><small>Shipping</small><b>Free</b></div></div>
           <div class="qty">Quantity<div class="step" id="dqty"><button data-d="-1" aria-label="Less">−</button><output>1</output><button data-d="1" aria-label="More">+</button></div></div>
-          <div class="bbtns"><button class="booknow" id="addCart">Add to Cart</button><button class="buy" id="buyNow">Buy it now</button></div>
+          <div class="bbtns"><button class="booknow" id="addCart">Add to Cart</button><button class="buy" id="buyNow">Buy now <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+          <div class="trust"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>Free shipping</span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Secure checkout</span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>Handmade</span></div>
         </div>
         <div class="acc rv">
           <details open><summary>Handmade details</summary><p>Each piece is thrown or hand-built, then glazed by hand in our studio. Speckles, drips and tone vary slightly from piece to piece — that's the mark of the maker, not a flaw.</p></details>
@@ -717,26 +856,27 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 </section>
 
 <!-- CHECKOUT -->
-<section class="page" id="checkout" aria-hidden="true">
+<section class="page" id="checkout" aria-hidden="true" data-lenis-prevent>
   <div class="pband" style="height:220px"></div>
   <div class="pwrap" id="coWrap"></div>
 </section>
 
+<div class="sbar" id="sbar"><div class="si"><img id="sbImg" alt=""></div><div class="sn"><b id="sbName"></b><small id="sbPrice"></small></div><button class="booknow" id="sbAdd">Add to Cart</button><button class="buy" id="sbBuy">Buy now <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
 <div class="scrim" id="scrim"></div>
 
-<aside class="drawer" id="drawer" aria-hidden="true">
+<aside class="drawer" id="drawer" aria-hidden="true" data-lenis-prevent>
   <div class="dh"><h3 class="serif" id="drTitle">Your cart</h3><button class="x" data-close aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <div class="tabs"><button data-tab="cart" class="on">Cart <span id="tabCartN"></span></button><button data-tab="wish">Wishlist <span id="tabWishN"></span></button></div>
   <div class="dbody" id="drBody"></div>
   <div class="dfoot" id="drFoot"></div>
 </aside>
 
-<aside class="drawer left" id="menu" aria-hidden="true">
-  <div class="dh"><div class="logo" style="color:var(--ink)">Pottery<b>.</b>Hub</div><button class="x" data-close aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+<aside class="drawer left" id="menu" aria-hidden="true" data-lenis-prevent>
+  <div class="dh"><img src="assets/img/logo-dark.png" alt="Pottery Hub" style="height:52px;width:auto"><button class="x" data-close aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
   <nav class="menu-l" id="menuL"></nav>
 </aside>
 
-<div class="sov" id="sov" aria-hidden="true">
+<div class="sov" id="sov" aria-hidden="true" data-lenis-prevent>
   <div style="display:flex;gap:12px;align-items:center">
     <label class="sbox" style="flex:1"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><input id="sovQ" placeholder="Search mugs, bowls, teapots…" autocomplete="off" aria-label="Search"></label>
     <button class="x" data-close aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -747,6 +887,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
 <script>
 const RAW=[["2026/09/39-1", "Beige Speckled Ceramic Skillet Set", ["Skillet"], 1300, 1100, "A set of three beige ceramic skillets with a rustic speckled finish and rounded handles, perfect for cooking, baking, serving, and stylish table presentation."], ["2026/09/18-1", "Black & White Speckled Ceramic Mug", ["Mugs"], 420, 320, "A stylish ceramic mug featuring a matte black upper finish, a speckled black-and-white center, and a clean white base for a modern handcrafted look."], ["2026/09/108-1", "Black Ceramic Coffee Cup & Saucer", ["Coffee Cup & Saucer"], 350, 250, "Elegant black ceramic coffee cup with a matching saucer, featuring a rich glossy finish and subtle textured design."], ["2026/09/80-1", "Black Speckled Ceramic Mixing Bowl", ["Bowls"], 850, 650, "A stylish black speckled ceramic bowl with a glossy finish and convenient pouring spout, perfect for mixing, serving, and everyday kitchen use."], ["2026/09/90-1", "Blue & Cream Bloom Ceramic Serving Bowl", ["Plates and Tajin"], 1100, 800, "A beautifully crafted scalloped ceramic serving bowl featuring a striking blue and cream split-glaze design with delicate textured detailing."], ["2026/09/92-1", "Blue & White Ceramic Serving Set", ["Bowls"], 1400, 1000, "A stylish blue and white ceramic serving set featuring a textured two-tone glaze and unique contemporary shapes."], ["2026/09/109-1", "Blue & White Glazed Ceramic Cup & Saucer", ["Coffee Cup & Saucer"], 350, 250, "A beautifully crafted ceramic cup and saucer featuring a vibrant blue-and-white glaze with a unique handcrafted finish."], ["2026/09/95-1", "Blue & White Ribbed Ceramic Bowl Set", ["Bowls"], 1800, 1500, "A stylish set of three nested ceramic bowls featuring textured ribbed detailing and a striking blue, white, and speckled glaze."], ["2026/09/45-1", "Blue Ceramic Serving & Bowl Set", ["Bowls", "Plates and Tajin"], 2100, 1600, "A stunning blue ceramic set featuring layered serving plates and bowls with textured detailing, rich cobalt glaze, and a matching handled bowl."], ["2026/09/111-1", "Blue Glazed Ceramic Cup & Saucer", ["Coffee Cup & Saucer"], 350, 250, "A beautifully crafted ceramic cup and saucer featuring rich blue tones, a glossy artisan glaze, and a distinctive handcrafted finish."], ["2026/09/47-1", "Blue Speckled Ceramic Bowl Set", ["Bowls", "Plates and Tajin"], 1200, 1000, "A stylish set of two blue ceramic bowls featuring rich cobalt tones, delicate speckling, and decorative ridged detailing for a modern handcrafted look."], ["2026/09/5", "Blue Speckled Ceramic Tumbler with Stainless Steel Straw", ["Pots"], 450, 375, "A beautifully crafted blue and white speckled ceramic tumbler with a unique glazed finish and stainless steel straw, perfect for enjoying your favorite cold drinks in style."], ["2026/09/31-1", "Brown Speckled Ceramic Mug", ["Mugs"], 420, 320, "A warm-toned ceramic mug featuring a rich brown speckled glaze, cream accents, and a rounded shape for a cozy, handcrafted look."], ["2026/09/28-1", "Brown Speckled Ceramic Mug Set", ["Mugs"], 640, 500, "A beautiful set of two brown speckled ceramic mugs featuring a unique layered design, warm earthy tones, and glossy handcrafted-inspired finishes."], ["2026/09/102-1", "Celadon Ceramic Citrus Juicer", ["Bowls"], 1000, 700, "A beautifully crafted ceramic citrus juicer with a built-in strainer, practical side handle, and a unique celadon-green glazed finish."], ["2024/07/ChatGPT-Image-Sep-19-2026-05_19_46-PM", "Ceramic Black Mug", ["Mugs"], 400, 300, "A sleek and timeless ceramic mug featuring a classic black finish. Perfect for your daily coffee, tea, or favorite hot drink, with a simple design that fits beautifully into any kitchen or workspace."], ["2026/09/68-1", "Classic Beige Ceramic Lidded Bowl", ["Casserole"], 1500, 1100, "Elegant beige ceramic bowl with a matching lid, featuring a simple handcrafted design for stylish serving and storage."], ["2026/09/120", "Classic Sage Green Ceramic Teapot", ["TeaPot"], 750, 450, "A charming sage green ceramic teapot with a rounded body, elegant curved handle, tapered spout, and matching lid—perfect for serving tea in style."], ["2026/09/50-1", "Cream Speckled Ceramic Serving Bowl Set", ["Bowls"], 1900, 1500, "A set of elegant cream ceramic serving bowls featuring warm brown speckles, textured ridged details, and comfortable loop handles for a rustic handcrafted look."], ["2026/09/33-1", "Deep Blue Reactive Glaze Ceramic Mug", ["Mugs"], 420, 320, "A distinctive ceramic mug featuring a rich deep blue and teal reactive glaze, layered rounded design, and a bold curved handle for a unique artistic look."], ["2026/09/64-1", "Forest Green Ceramic Casserole Dish", ["Casserole"], 1500, 1100, "A beautifully designed ceramic casserole dish with a deep forest green glaze, rounded shape, and matching lid, perfect for cooking and elegant serving."], ["2026/09/72-1", "Forest Green Ruffled Ceramic Serving Bowl", ["Bowls"], 1400, 1000, "A beautifully crafted deep green ceramic serving bowl with an elegant ruffled rim and glossy finish."], ["2026/09/113-1", "Green Speckled Ceramic Cup & Saucer", ["Coffee Cup & Saucer"], 350, 250, "A fresh and elegant ceramic cup and saucer set with a vibrant green glaze and delicate speckled finish.A fresh and elegant ceramic cup and saucer set with a vibrant green glaze and delicate speckled finish."], ["2026/09/7-1", "Green Speckled Ceramic Tumbler with Stainless Steel Straw", ["Pots"], 450, 375, "A beautifully textured green and cream speckled ceramic tumbler paired with a stainless steel straw, perfect for adding a natural, handcrafted touch to your everyday drinks."], ["2026/09/11-1", "Green Speckled Ribbed Ceramic Tumbler", ["Pots"], 450, 375, "A stylish green speckled ceramic tumbler with a ribbed texture and glossy finish, perfect for adding a fresh, handcrafted touch to your everyday drinkware."], ["2026/09/%D9%A1%D9%A0%D9%A4", "Handcrafted Terracotta Bottle & Jar Set", ["Bottle & Jar"], 1400, 1000, "A set of three handcrafted terracotta vessels featuring warm natural tones, unique shapes, and traditional decorative detailing."], ["2026/09/22-1", "Midnight Blue Ceramic Mug", ["Mugs"], 420, 320, "A striking glossy ceramic mug in deep charcoal and midnight blue, featuring unique raised details and a rich blue interior for a bold, artistic look."], ["2026/09/42-1", "Mint Green Speckled Ceramic Skillet Set", ["Skillet"], 1300, 1100, "A set of three mint green ceramic skillets with a beautiful speckled finish and rounded handles, perfect for cooking, baking, serving, and stylish table presentation."], ["2026/09/98-1", "Navy Blue Ceramic Serving Platter Set", ["Plates and Tajin"], 1800, 1500, "A sophisticated set of three nested ceramic serving platters in a rich glossy navy-blue finish, perfect for elegant everyday dining and entertaining."], ["2026/09/70-1", "Olive Green Ceramic Lidded Bowl Set – 2 Pieces", ["Bowls", "Casserole"], 1900, 1400, "A beautiful set of two olive-green ceramic bowls with matching lids and a unique speckled glaze, perfect for serving and storing food."], ["2026/09/78-1", "Olive Green Fluted Ceramic Bowl Set", ["Bowls"], 1900, 1500, "A stunning set of three nested ceramic bowls featuring a rich olive-green glaze, textured fluted details, and elegant blue and rust accents."], ["2026/09/75-1", "Olive Green Nested Ceramic Bowl Set", ["Bowls"], 2400, 1900, "A stylish set of three nested ceramic bowls with a rich olive-green glaze and distinctive blue and rust-colored accents."], ["2026/09/74-1", "Olive Wave Ceramic Bowl", ["Bowls"], 1400, 1000, "A beautifully crafted ceramic bowl featuring a soft olive-green glaze, organic scalloped edges, and subtle blue-brown accents."], ["2026/09/25-1", "Pink Speckled Ceramic Mug", ["Mugs"], 420, 320, "A charming pink ceramic mug with a glossy speckled finish and unique rounded dimples, designed to bring a playful and artistic touch to your everyday coffee moments."], ["2026/09/36-1", "Pink Speckled Ceramic Skillet Set", ["Skillet"], 1300, 1100, "A set of three glossy pink ceramic skillets featuring a beautiful speckled finish and practical handles, perfect for serving, baking, and adding a stylish touch to your table."], ["2026/09/110-1", "Purple Glazed Ceramic Cup & Saucer", ["Coffee Cup & Saucer"], 350, 250, "A charming handcrafted ceramic cup and saucer with a rich purple glaze and organic, textured finish."], ["2026/09/107-1", "Rustic Brown Ceramic Coffee Cup & Saucer", ["Coffee Cup & Saucer"], 350, 250, "A beautifully glazed brown ceramic cup and saucer with a rich rustic finish, perfect for serving coffee, espresso, or tea."], ["2026/09/118-1", "Sage Green Ceramic Bottle & Cup Set", ["Bottle & Jar"], 750, 550, "A beautifully crafted ceramic bottle and matching cup set featuring a soft sage-green glaze and elegant handmade detailing."], ["2026/09/84-1", "Sage Green Ceramic Chip & Dip Serving Set", ["Bowls"], 1400, 1000, "A beautifully glazed sage-green ceramic serving dish with a built-in center dip bowl, perfect for serving chips, snacks, dips, and appetizers."], ["2026/09/15-1", "Speckled Beige Ceramic Round Mug", ["Mugs"], 420, 320, "A charming round ceramic mug featuring a warm beige speckled glaze and a distinctive rounded handle, perfect for enjoying coffee, tea, and your favorite hot beverages."], ["2026/09/117-1", "Speckled Deep Green Ceramic Bowl", ["Bowls"], 800, 500, "A beautifully crafted deep green ceramic bowl with a distinctive speckled glaze, perfect for serving snacks, sides, desserts, or adding a stylish touch to your table."], ["2026/09/3-1", "Speckled Ribbed Ceramic Tumbler with Stainless Steel Straw", ["Pots"], 450, 375, "A stylish ribbed ceramic tumbler featuring a warm speckled brown glaze and a stainless steel straw. Its textured design and earthy tones make it a beautiful choice for everyday drinks, adding a cozy handcrafted touch to your tableware collection."], ["2026/09/54-1", "Teal Green Ceramic Bowl Set", ["Bowls", "Plates and Tajin"], 1800, 1500, "A stylish set of three nested ceramic bowls featuring a rich teal glaze, elegant vertical detailing, and subtle earthy accents for a modern handcrafted look."], ["2026/09/115-1", "Teal Speckled Ceramic Serving Set", ["Bowls"], 1400, 1000, "A stylish handcrafted ceramic serving set featuring a decorative tray and matching wavy bowls in a rich teal speckled glaze."], ["2026/09/50-2", "White Speckled Ceramic Bowl Set", ["Bowls", "Plates and Tajin"], 1800, 1500, "A set of three elegant white ceramic bowls featuring a warm speckled finish and subtle vertical fluted detailing, perfect for everyday serving and stylish table settings."], ["2026/09/59-1", "White Speckled Ceramic Casserole Dish", ["Casserole"], 1500, 1100, "A beautifully crafted ceramic casserole dish with a warm white speckled finish, rounded design, and matching domed lid for stylish cooking and serving."]];
 (()=>{
@@ -793,8 +934,18 @@ function badges(bump){
   if(drawerOpen)renderDrawer();
   if(coOpen&&!coDone)renderCheckout(true);
 }
-function addCart(id,q=1,silent){
-  const x=cart.find(c=>c.id===id);x?x.q=Math.min(20,x.q+q):cart.push({id,q});save();badges('c');
+function flyToCart(src,done){
+  const tgt=$('#openCart').getBoundingClientRect(),r=src&&src.getBoundingClientRect();
+  if(!r||!r.width){done();return}
+  const f=document.createElement('img');f.className='flyer';f.src=src.currentSrc||src.src;document.body.appendChild(f);
+  const s0=Math.min(r.width,r.height),x0=r.left+r.width/2,y0=r.top+r.height/2,x1=tgt.left+tgt.width/2,y1=tgt.top+tgt.height/2,t0=performance.now(),D=850;
+  (function st(now){const t=clamp((now-t0)/D,0,1),e=eio(t),sz=s0+(22-s0)*e,x=x0+(x1-x0)*e,y=y0+(y1-y0)*e-Math.sin(Math.PI*t)*140;
+    Object.assign(f.style,{left:(x-sz/2)+'px',top:(y-sz/2)+'px',width:sz+'px',height:sz+'px',opacity:t>.9?(1-t)*10:1,transform:'rotate('+(t*200)+'deg)'});
+    if(t<1)requestAnimationFrame(st);else{f.remove();done()}})(t0);
+}
+function addCart(id,q=1,silent,src){
+  const x=cart.find(c=>c.id===id);x?x.q=Math.min(20,x.q+q):cart.push({id,q});save();
+  if(src)flyToCart(src,()=>badges('c'));else badges('c');
   if(!silent)toast(q+' × '+P[id].name+' added','View cart',()=>openDrawer('cart'));
 }
 function toggleWish(id){const i=wish.indexOf(id);i<0?wish.push(id):wish.splice(i,1);save();badges('w');toast(i<0?'Saved to your wishlist':'Removed from your wishlist')}
@@ -817,11 +968,11 @@ const bigHeart='<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stro
 
 /* ---------- cards ---------- */
 function cardHTML(p,i){
-  return '<article class="card" data-id="'+p.id+'" style="--d:'+((i%4)*90)+'ms" tabindex="0">'+
+  return '<article class="card" data-id="'+p.id+'" data-cur="View" style="--d:'+((i%4)*90)+'ms" tabindex="0">'+
    '<div class="media"><img src="'+p.sm+'" alt="'+esc(p.name)+'" loading="lazy">'+
    '<span class="badge">−'+off(p)+'%</span>'+
    '<button class="heart'+(wish.includes(p.id)?' on':'')+'" data-h="'+p.id+'" aria-label="Save to wishlist">'+IC.heart+'</button>'+
-   '<button class="quick" aria-label="Add to cart">'+IC.bag+'<span>Add to cart</span></button></div>'+
+   '<div class="quick"><button class="qa" aria-label="Add to cart">'+IC.bag+'<span>Add</span></button><button class="qb">Buy now</button></div></div>'+
    '<div class="info"><div><div class="cat-l">'+CATN[p.cat]+'</div><h4>'+esc(p.name)+'</h4></div>'+
    '<div class="pr"><b>EGP '+fmt(p.now)+'</b><s>EGP '+fmt(p.old)+'</s></div></div></article>';
 }
@@ -932,7 +1083,7 @@ addEventListener('resize',()=>{layoutRail(cur);onScroll()});
 
 /* ---------- layers + history ---------- */
 function anyPage(){return stack.some(n=>!OVER.includes(n))}
-function sync(){document.body.classList.toggle('lock',stack.length>0);$('#scrim').classList.toggle('on',stack.some(n=>OVER.includes(n)));onScroll()}
+function sync(){document.body.classList.toggle('lock',stack.length>0);if(window.__lenis)stack.length?__lenis.stop():__lenis.start();$('#scrim').classList.toggle('on',stack.some(n=>OVER.includes(n)));onScroll()}
 function push(name){if(stack.includes(name))return false;stack.push(name);history.pushState({ph:stack.length},'');sync();return true}
 function swapTop(name){const top=stack.pop();if(top)L[top].hide();if(!stack.includes(name))stack.push(name);history.replaceState({ph:stack.length},'');sync()}
 function enter(name){const top=stack[stack.length-1];if(top&&OVER.includes(top))swapTop(name);else push(name)}
@@ -944,13 +1095,15 @@ function showPage(el){el.classList.add('open');el.setAttribute('aria-hidden','fa
 function hidePage(el){el.classList.remove('open');el.setAttribute('aria-hidden','true')}
 
 document.addEventListener('click',e=>{
-  const h=e.target.closest('[data-home]');if(h){e.preventDefault();if(stack.length)closeAll();else scrollTo({top:0,behavior:'smooth'});return}
+  const h=e.target.closest('[data-home]');if(h){e.preventDefault();if(stack.length)closeAll();else smoothTo(0);return}
   if(e.target.closest('[data-close]')){back();return}
   const s=e.target.closest('[data-shop]');if(s){openShop({});return}
   const sc=e.target.closest('[data-shop-cat]');if(sc){openShop({cat:sc.dataset.shopCat});return}
-  const g=e.target.closest('[data-go]');if(g){const id=g.dataset.go,go=()=>$('#'+id).scrollIntoView({behavior:'smooth'});if(stack.length){closeAll();setTimeout(go,450)}else go();return}
-  const q=e.target.closest('.quick');
-  if(q){addCart(+q.closest('.card').dataset.id);q.classList.add('ok');setTimeout(()=>q.classList.remove('ok'),900);return}
+  const g=e.target.closest('[data-go]');if(g){const id=g.dataset.go,go=()=>smoothTo($('#'+id));if(stack.length){closeAll();setTimeout(go,450)}else go();return}
+  const qa=e.target.closest('.quick .qa');
+  if(qa){const c=qa.closest('.card');addCart(+c.dataset.id,1,false,$('.media img',c));qa.classList.add('ok');setTimeout(()=>qa.classList.remove('ok'),900);return}
+  const qb=e.target.closest('.quick .qb');
+  if(qb){addCart(+qb.closest('.card').dataset.id,1,true);openCheckout();return}
   const hr=e.target.closest('.heart[data-h]');
   if(hr){hr.classList.remove('pop');void hr.offsetWidth;hr.classList.add('pop');toggleWish(+hr.dataset.h);return}
   const c=e.target.closest('.card');if(c)openDetail(+c.dataset.id,$('.media img',c));
@@ -1044,9 +1197,14 @@ function populate(p){
   $$('#minis button').forEach((b,i)=>b.onclick=()=>i===2&&more>1?openShop({cat:p.cat}):openDetail(+b.dataset.id,$('img',b)));
   fill($('#simGrid'),rel.slice(3,7));
   $('#mainHeart').dataset.h=p.id;$('#mainHeart').classList.toggle('on',wish.includes(p.id));
+  $('#sbImg').src=p.th;$('#sbName').textContent=p.name;$('#sbPrice').textContent='EGP '+fmt(p.now);
   const lo=$('#mainLo'),hi=$('#mainHi');lo.src=p.sm;hi.style.opacity=0;hi.onload=()=>hi.style.opacity=1;hi.src=p.lg;
 }
-L.product={hide:()=>hidePage(detail)};
+L.product={hide:()=>{hidePage(detail);$('#sbar').classList.remove('on')}};
+const bookIO=new IntersectionObserver(es=>es.forEach(e=>{$('#sbar').classList.toggle('on',!e.isIntersecting&&stack[stack.length-1]==='product'&&e.boundingClientRect.top<0)}),{threshold:0});
+bookIO.observe($('.book',detail));
+$('#sbAdd').onclick=()=>addCart(curP.id,qty,false,$('#sbImg'));
+$('#sbBuy').onclick=()=>{addCart(curP.id,qty,true);openCheckout()};
 function openDetail(id,from){
   const p=P[id];if(!p)return;closePops();
   if(stack.includes('checkout')){closeAll();setTimeout(()=>openDetail(id),80);return}
@@ -1065,7 +1223,7 @@ function openDetail(id,from){
     if(t<1)requestAnimationFrame(step);else{main.classList.remove('wait');requestAnimationFrame(()=>f.remove())}})(t0);
 }
 $('#dqty').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;qty=clamp(qty+ +b.dataset.d,1,20);$('output',$('#dqty')).textContent=qty});
-$('#addCart').onclick=function(){addCart(curP.id,qty);this.classList.add('done');this.textContent='Added ✓';setTimeout(()=>{this.classList.remove('done');this.textContent='Add to Cart'},2200)};
+$('#addCart').onclick=function(){addCart(curP.id,qty,false,$('#mainHi'));this.classList.add('done');this.textContent='Added ✓';setTimeout(()=>{this.classList.remove('done');this.textContent='Add to Cart'},2200)};
 $('#buyNow').onclick=()=>{addCart(curP.id,qty,true);openCheckout()};
 
 /* ---------- drawer ---------- */
@@ -1114,7 +1272,7 @@ $('#menuL').innerHTML='<button data-m="home">Home</button><button data-m="shop">
 $('#menuL').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
   if(m==='home')closeAll();else if(m==='shop')openShop({});else if(m==='cat')openShop({cat:b.dataset.c});else openDrawer(m)});
 L.menu={hide:()=>menu.classList.remove('on')};
-$('#openMenu').onclick=()=>{if(push('menu'))menu.classList.add('on')};
+$('#openMenu').onclick=$('#openMenuM').onclick=()=>{if(push('menu'))menu.classList.add('on')};
 
 /* ---------- search overlay ---------- */
 const sov=$('#sov');
@@ -1180,7 +1338,7 @@ L.checkout={hide:()=>{hidePage(coEl);coOpen=false}};
 function openCheckout(){
   closePops();coDone=false;
   if(!stack.includes('checkout'))enter('checkout');
-  coOpen=true;renderCheckout();coEl.scrollTop=0;showPage(coEl);sync();
+  coOpen=true;$('#sbar').classList.remove('on');renderCheckout();coEl.scrollTop=0;showPage(coEl);sync();
 }
 
 /* ---------- misc ---------- */
@@ -1191,11 +1349,90 @@ addEventListener('pointermove',e=>{cu.style.transform='translate('+e.clientX+'px
 addEventListener('pointerdown',()=>cu.classList.add('press'));
 addEventListener('pointerup',()=>cu.classList.remove('press'));
 
-/* ---------- intro ---------- */
+/* ---------- smooth scroll ---------- */
+function smoothTo(t){if(window.__lenis)__lenis.scrollTo(t,{duration:1.6});else typeof t==='number'?scrollTo({top:t,behavior:'smooth'}):t.scrollIntoView({behavior:'smooth'})}
+if(window.Lenis&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+  window.__lenis=new Lenis({lerp:.09,smoothWheel:true,wheelMultiplier:.95});
+  (function lr(t){__lenis.raf(t);requestAnimationFrame(lr)})(performance.now());
+}
+
+/* ---------- motion: splits, reveals, parallax, tilt, magnet ---------- */
+function split(el){if(el.dataset.split===el.textContent)return;const words=el.textContent.trim().split(/\s+/);
+  el.innerHTML=words.map((w,i)=>'<span class="wd"><i style="--i:'+i+'">'+esc(w)+'</i></span>').join(' ');el.dataset.split=el.textContent;el.classList.add('sp')}
+$$('.sec-h h2, .band h2, .promo h3, #giant').forEach(split);
+const rio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rio.unobserve(e.target)}}),{threshold:.15,rootMargin:'0px 0px -6% 0px'});
+function watch(root){$$('[data-rv],.sp,.eyebrow,.cat',root||document).forEach(el=>{if(!el.classList.contains('in'))rio.observe(el)})}
+$$('#perks .perk').forEach((p,i)=>{p.setAttribute('data-rv','');p.style.setProperty('--d',i*110+'ms')});
+$$('#catRow .cat').forEach((c,i)=>{c.setAttribute('data-rv','');c.dataset.cur='Shop';c.style.setProperty('--d',Math.min(i,5)*90+'ms')});
+$$('.sec-h p, .sec-h .see, .sec-h .arrows, .chips, .band p, .band .btn, .promo p, .promo .wbtn, .foot .fg>div').forEach((el,i)=>{el.setAttribute('data-rv','');el.style.setProperty('--d',(el.matches('.foot .fg>div')?(i%4)*100:150)+'ms')});
+watch();
+const _fill=fill;fill=function(g,l){_fill(g,l);watch(g)};
+new MutationObserver(()=>{['#shopTitle'].forEach(sel=>{const el=$(sel);if(el&&el.dataset.split!==el.textContent){el.classList.remove('in');split(el);requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('in')))}})}).observe($('#shopTitle'),{childList:true,characterData:true,subtree:true});
+
+/* marquee */
+const MQ=['Handmade in Egypt','House of Pottery','Free shipping','One of a kind','Glazed by hand'];
+const star='<svg class="st" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>';
+const half='<div class="it">'+MQ.map((t,i)=>'<span class="'+(i%2?'o':'')+'">'+t+'</span>'+star).join('')+'</div>';
+$('#marqT').innerHTML=half+half;
+let mx=0,lastY=scrollY,vel=0;
+const pars=$$('[data-par]');
+(function motion(){
+  const y=scrollY,dy=y-lastY;lastY=y;vel+=(dy-vel)*.1;
+  const tr=$('#marqT'),w=tr.scrollWidth/2;mx-=.6+Math.min(Math.abs(vel),40)*.35;if(-mx>=w)mx+=w;
+  tr.style.transform='translate3d('+mx+'px,0,0) skewX('+clamp(-vel*.25,-8,8)+'deg)';
+  const vh=innerHeight;
+  if(!stack.length)pars.forEach(el=>{const r=el.parentElement.getBoundingClientRect();if(r.bottom<-200||r.top>vh+200)return;el.style.transform='translate3d(0,'+((r.top+r.height/2-vh/2)*+el.dataset.par)+'px,0)'});
+  const h=document.documentElement.scrollHeight-vh;$('#prog').style.transform='scaleX('+(h>0?y/h:0)+')';
+  requestAnimationFrame(motion);
+})();
+
+/* card tilt */
+document.addEventListener('pointermove',e=>{
+  const m=e.target.closest&&e.target.closest('.card .media');
+  $$('.media.tilt').forEach(x=>{if(x!==m){x.classList.remove('tilt');x.style.setProperty('--rx','0deg');x.style.setProperty('--ry','0deg')}});
+  if(!m||e.pointerType!=='mouse')return;
+  const r=m.getBoundingClientRect(),px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+  m.classList.add('tilt');m.style.setProperty('--rx',((.5-py)*8)+'deg');m.style.setProperty('--ry',((px-.5)*10)+'deg');
+  m.style.setProperty('--gx',px*100+'%');m.style.setProperty('--gy',py*100+'%');
+},{passive:true});
+
+/* magnetic buttons */
+document.addEventListener('pointermove',e=>{
+  if(e.pointerType!=='mouse')return;
+  $$('.mag-on').forEach(b=>{if(!b.contains(e.target)){b.classList.remove('mag-on');b.style.transform=''}});
+  const b=e.target.closest&&e.target.closest('.btn,.wbtn,.see,.send,.ibtn,.pill,.arrows button,.x');
+  if(!b||b.closest('.search')&&!b.classList.contains('send'))return;
+  const r=b.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);
+  b.classList.add('mag-on');b.style.transform='translate('+dx*.22+'px,'+dy*.3+'px)';
+},{passive:true});
+
+/* ---------- preloader + intro ---------- */
+function startIntro(){
+  hero.classList.add('in');search.classList.add('in');nav.classList.remove('pre');
+  setTimeout(()=>{conn.classList.add('on');cap.classList.add('on')},650);
+  restartAuto();
+}
 badges();layoutRail(0);setCap(0);onScroll();
-setTimeout(()=>{hero.classList.add('in');search.classList.add('in')},250);
-setTimeout(()=>{conn.classList.add('on');cap.classList.add('on')},900);
-restartAuto();
+(function preload(){
+  const pre=$('#pre');
+  $('#preWord').innerHTML='POTTERY HUB'.split('').map((c,i)=>c===' '?'<span style="width:.45em"></span>':'<span><i style="--i:'+i+'">'+c+'</i></span>').join('');
+  if(window.__lenis)__lenis.stop();document.documentElement.style.overflow='hidden';
+  const urls=SLIDES.map(s=>s.pr.lg).concat(SLIDES.map(s=>s.pr.th),['assets/img/logo-light.png','assets/img/logo-dark.png']);
+  let done=0;const total=urls.length+1;
+  urls.forEach(u=>{const i=new Image();i.onload=i.onerror=()=>done++;i.src=u});
+  (document.fonts?document.fonts.ready:Promise.resolve()).then(()=>done++);
+  requestAnimationFrame(()=>pre.classList.add('go'));
+  const t0=performance.now();let shown=0,fin=false;
+  (function tick(now){
+    const el=now-t0,goal=Math.min(done/total,el/1900,1),force=el>7000?1:0;
+    shown+=((Math.max(goal,force))-shown)*.07;if(Math.max(goal,force)>=1&&shown>.995)shown=1;
+    $('#preN').textContent=Math.round(shown*100);$('#preBar').style.transform='scaleX('+shown+')';
+    $('#preF').style.setProperty('--a',(shown*360)+'deg');
+    if(shown<1)return requestAnimationFrame(tick);
+    if(fin)return;fin=true;
+    setTimeout(()=>{pre.classList.add('out');document.documentElement.style.overflow='';if(window.__lenis&&!stack.length)__lenis.start();setTimeout(startIntro,450);setTimeout(()=>pre.remove(),1400)},350);
+  })(t0);
+})();
 })();
 </script>
 </body>
