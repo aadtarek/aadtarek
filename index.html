@@ -100,7 +100,7 @@ img{display:block;max-width:100%}
 .slices i{flex:1;height:100%;background-repeat:no-repeat;clip-path:inset(100% 0 0 0);animation:hsl 1.2s var(--ease) forwards;animation-delay:calc(var(--k)*80ms)}
 @keyframes hsl{to{clip-path:inset(0 0 0 0)}}
 .hshade{position:absolute;inset:0;z-index:4;pointer-events:none;
-  background:linear-gradient(180deg,rgba(22,13,9,.55) 0%,rgba(22,13,9,.08) 28%,rgba(22,13,9,.12) 50%,rgba(22,13,9,.82) 100%),linear-gradient(90deg,rgba(22,13,9,.45),transparent 60%)}
+  background:linear-gradient(180deg,rgba(22,13,9,.5) 0%,rgba(22,13,9,.06) 26%,rgba(22,13,9,.14) 50%,rgba(22,13,9,.8) 100%),linear-gradient(90deg,rgba(28,16,10,.62),rgba(28,16,10,.25) 45%,transparent 70%)}
 .hshade::after{content:"";position:absolute;inset:0;background:var(--grain);opacity:.1;mix-blend-mode:overlay}
 .hc{position:absolute;left:var(--pad);right:var(--pad);bottom:clamp(120px,19vh,190px);z-index:5;color:#fff;max-width:1100px;will-change:transform,opacity}
 .heb{display:flex;align-items:center;gap:12px;font-size:12px;letter-spacing:.24em;text-transform:uppercase;font-weight:700;color:#f3c3ae;margin-bottom:18px;overflow:hidden}
@@ -947,17 +947,17 @@ $('#perks').innerHTML=[[IC.truck,'Free shipping','On every order'],[IC.hand,'Han
 $$('.promo img').forEach(i=>{const p=byK(i.dataset.k);if(p)i.src=p.sm});
 
 /* ---------- hero ---------- */
-/* Swap these photos for your own high-resolution shots (2400px+ wide). */
+/* Hero photos: assets/img/hero-*.jpg (2400x1350). AI-generated placeholders — swap for real studio photos when available. */
 const HERO=[
-  {img:U+'2024/07/w-hmp-slide-3.jpg',pos:[50,60],eb:'New season',t:'Handmade for slow living',p:'Mugs, bowls and serving pieces — shaped, glazed and fired by hand in Egypt.',cta:'Shop the collection',cat:null,lab:'The collection'},
-  {img:U+'2024/07/w-hmp-slide-2.jpg',pos:[50,50],eb:'Bowls & serving',t:'Made for full tables',p:'Speckled, ribbed and scalloped pieces that turn every dinner into an occasion.',cta:'Shop bowls',cat:'Bowls',lab:'Bowls & serving'},
-  {img:U+'2024/07/w-hmp-img-2-opt.jpg',pos:[50,40],eb:'From the wheel',t:'Shaped by hand, every time',p:'No two pieces alike — small variations are the mark of the maker.',cta:'Shop mugs',cat:'Mugs',lab:'Shaped by hand'}
+  {img:'assets/img/hero-1.jpg',pos:[62,50],mpos:[84,50],eb:'House of Pottery',t:'Handmade in Egypt',p:'Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story.',cta:'Shop the collection',cat:null,lab:'The collection'},
+  {img:'assets/img/hero-2.jpg',pos:[60,55],mpos:[66,50],eb:'Bowls & serving',t:'Made for full tables',p:'Speckled, ribbed and scalloped pieces that turn every dinner into an occasion.',cta:'Shop bowls',cat:'Bowls',lab:'Bowls & serving'},
+  {img:'assets/img/hero-3.jpg',pos:[60,50],mpos:[30,50],eb:'Mugs & cups',t:'For slow mornings',p:'Hand-thrown mugs, cups and saucers for the first quiet hour of the day.',cta:'Shop mugs',cat:'Mugs',lab:'Slow mornings'}
 ];
 const hero=$('#hero'),hFrame=$('#hFrame'),hSl=$('#hSl'),hC=$('#hC'),HDUR=7000;
 let hcur=-1,hbusy=false,htimer=null;
 HERO.forEach((h,i)=>{
   h.el=document.createElement('div');h.el.className='hs';
-  h.el.innerHTML='<div class="im" style="background-image:url(\''+h.img+'\');background-position:'+h.pos[0]+'% '+h.pos[1]+'%"></div>';
+  h.el.innerHTML='<div class="im" style="background-image:url(\''+h.img+'\')"></div>';
   hSl.appendChild(h.el);
   const t=document.createElement('span');t.className='ht';let k=0;
   t.innerHTML=h.t.split(' ').map(w=>'<span class="wd">'+[...w].map(c=>'<span class="ch"><i style="--i:'+(k++)+'">'+esc(c)+'</i></span>').join('')+'</span>').join(' ');
@@ -974,9 +974,13 @@ $('#hCta').onclick=e=>{e.stopPropagation();openShop({cat:HERO[hcur].cat})};
 hFrame.addEventListener('click',e=>{if(!e.target.closest('button,a'))heroGo((hcur+1)%HERO.length)});
 hero.addEventListener('pointerenter',()=>hero.classList.add('paused'));
 hero.addEventListener('pointerleave',()=>hero.classList.remove('paused'));
+const hpos=h=>innerWidth<640&&h.mpos?h.mpos:h.pos;
+function heroLayout(){HERO.forEach(h=>{const p=hpos(h);$('.im',h.el).style.backgroundPosition=p[0]+'% '+p[1]+'%'});
+  $('#hT').style.height=Math.max(...HERO.map(x=>x.tt.offsetHeight))+'px'}
+heroLayout();addEventListener('resize',heroLayout);if(document.fonts)document.fonts.ready.then(heroLayout);
 function sliceLayer(h){
   const W=hFrame.clientWidth,H=hFrame.clientHeight,N=innerWidth<640?4:6,wrap=document.createElement('div');wrap.className='slices';
-  const [iw,ih]=h.nat||[1600,1000],s=Math.max(W*1.08/iw,H*1.08/ih)*1.14,bw=iw*s,bh=ih*s,bx=(W-bw)*h.pos[0]/100,by=(H-bh)*h.pos[1]/100;
+  const [iw,ih]=h.nat||[1600,1000],s=Math.max(W*1.08/iw,H*1.08/ih)*1.14,bw=iw*s,bh=ih*s,bx=(W-bw)*hpos(h)[0]/100,by=(H-bh)*hpos(h)[1]/100;
   for(let k=0;k<N;k++){const i=document.createElement('i');i.style.setProperty('--k',k);
     i.style.backgroundImage='url(\''+h.img+'\')';i.style.backgroundSize=bw+'px '+bh+'px';i.style.backgroundPosition=(bx-k*W/N)+'px '+by+'px';wrap.appendChild(i)}
   return wrap;
