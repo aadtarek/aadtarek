@@ -3,11 +3,10 @@ import { useParams } from "react-router-dom";
 import { Flip } from "gsap/Flip";
 import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "../components/Icons.jsx";
-import { AddButton, BT, BundleShowcase, Finale, Frame3D, Money, ProductCard, Split, TLink, Tag } from "../components/ui.jsx";
-import { CAT_KEYS, D3MAP, P, SHOP, byId, catLink, fmt, img, off, pad, reduceMotion, src, waLink } from "../lib/util.js";
+import { AddButton, BT, BundleShowcase, Finale, Money, ProductCard, Split, TLink, Tag } from "../components/ui.jsx";
+import { CAT_KEYS, D3MAP, P, SHOP, byId, catLink, fmt, off, pad, reduceMotion, src, waLink } from "../lib/util.js";
 import { ScrollTrigger, flipIn, gsap, reveals } from "../lib/motion.js";
 import H3D from "../components/H3D.jsx";
-import { getHome } from "../lib/home3d.js";
 
 gsap.registerPlugin(Flip);
 
@@ -138,27 +137,6 @@ function ProductView({ p }) {
   );
 }
 
-/* ---------------- 3D EXPERIENCE ---------------- */
-export function Experience() {
-  const { t, lenis } = useApp();
-  const { dev } = useParams();
-  const root = usePage();
-  const h = getHome();
-  return (
-    <div ref={root}>
-      <section className="xp"><Frame3D full activate={dev} /></section>
-      <section className="sec"><div className="wrap">
-        <div className="shead"><div><Tag>{t("xp_tag")}</Tag><Split text={t("xp_h")} /></div><div className="side"><p data-fade="">{t("xp_p")}</p></div></div>
-        <div className="xp-list" data-stagger="">
-          {(h ? h.devices : []).map((d) => { const p = byId[D3MAP[d.id]]; return (
-            <button key={d.id} className="xp-item" onClick={() => { lenis.current ? lenis.current.scrollTo(0, { duration: 1.2 }) : window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => h.activate(d.id, true), reduceMotion() ? 0 : 700); }}>
-              <img src={img(p)} alt="" /><span><b>{d.name}</b><small>{d.room} · {fmt(p.sale)} {t("cur")}</small></span><span className="n num">{pad(d.n)}</span>
-            </button>); })}
-        </div>
-      </div></section>
-    </div>
-  );
-}
 
 /* ---------------- ABOUT ---------------- */
 export function About() {

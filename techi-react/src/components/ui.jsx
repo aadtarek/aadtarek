@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { useApp } from "../context.jsx";
 import { Icon, CAT_ICON } from "./Icons.jsx";
-import { D3MAP, byId, fmt, img, isFine, off, pad, reduceMotion, waLink } from "../lib/util.js";
-import { getHome } from "../lib/home3d.js";
+import { fmt, img, isFine, off, pad, reduceMotion, waLink } from "../lib/util.js";
 
 /* link that plays the page transition */
 export function TLink({ to, children, onClick, ...rest }) {
@@ -135,61 +134,20 @@ export function Finale() {
   );
 }
 
-/* the 3D apartment, mounted into this frame */
-export function Frame3D({ full, activate }) {
-  const { t, f, lang } = useApp();
-  const host = useRef(null), card = useRef(null);
-  const [dev, setDev] = useState(null);
-  const [day, setDay] = useState(false);
-  const [pins, setPins] = useState(true);
-  const [run, setRun] = useState(null);
-  const [ok, setOk] = useState(true);
-  useEffect(() => {
-    const h = getHome();
-    if (!h) { setOk(false); return; }
-    h.setLang && h.setLang(lang);
-    h.mount(host.current);
-    const offFn = h.on((id, did) => { if (!id) return; const d = h.devices.find((x) => x.id === id); setDev({ id, did, room: d.room, name: d.name }); });
-    let timer;
-    if (activate) timer = setTimeout(() => h.activate(activate, true), 1600);
-    return () => { offFn(); clearTimeout(timer); h.unmount(); };
-  }, [activate]); // eslint-disable-line
-  useEffect(() => { if (dev && card.current && !reduceMotion()) gsap.fromTo(card.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }); }, [dev]);
-  const h = () => getHome();
-  const p = dev ? byId[D3MAP[dev.id]] : null;
+/* poster of the 3D walk-through (a real frame of the house) that opens it */
+const FR = { en: { tag: "3D HOME", h: "Walk through a Techi home", go: "Step inside" }, ar: { tag: "البيت 3D", h: "اتمشى جوه بيت Techi", go: "ادخل البيت" } };
+export function Frame3D({ activate, view = "living" }) {
+  const { lang } = useApp();
+  const c = FR[lang] || FR.en;
   return (
-    <div className={"t3d-frame" + (full ? " full" : "") + (pins ? "" : " nopins")} data-lenis-prevent="">
-      <div className="t3d-host" ref={host}>{!ok && <div className="t3d-fallback">{t("no3d")}</div>}</div>
-      <div className="t3d-ui">
-        <div className="t3d-top">
-          <div className="t3d-title">{full ? <><h2>{t("t3d_title")}</h2><p>{t("t3d_p")}</p></> : <p className="t3d-hint">{t("t3d_hint")}</p>}</div>
-          <div className="t3d-tools">
-            <button className="glass-btn" aria-pressed={day} onClick={() => { setDay(!day); h()?.setDay(!day); }}><Icon name={day ? "moon" : "sun"} /><span>{day ? t("night") : t("day")}</span></button>
-            <button className="glass-btn" aria-pressed={pins} onClick={() => setPins(!pins)}><Icon name="target" /><span>{t("pins")}</span></button>
-            <button className="glass-btn" onClick={() => h()?.home()}><Icon name="house" /><span>{t("whole")}</span></button>
-          </div>
-        </div>
-        <div className="t3d-bottom">
-          <div className="scenes3d">
-            {[["sleep", "sleep", "sc_sleep"], ["away", "away", "sc_away"], ["home", "arrive", "sc_home"]].map(([s, ic, k]) => (
-              <button key={s} className={"glass-btn" + (run === s ? " run" : "")} onClick={() => { h()?.runScene(s); setRun(s); setTimeout(() => setRun(null), 2600); }}><Icon name={ic} />{t(k)}</button>
-            ))}
-          </div>
-          {p && (
-            <div className="dev-card" ref={card}>
-              <img src={img(p)} alt="" />
-              <div><span className="r">{dev.room} · {dev.name}</span><h4>{f.nm(p)}</h4><div className="did">{dev.did}</div></div>
-              <div className="row">
-                <span className="p num">{fmt(p.sale)} {t("cur")}<small>{p.reg > p.sale ? fmt(p.reg) : ""}</small></span>
-                <span style={{ display: "flex", gap: 6 }}>
-                  <TLink className="mini-add alt" to={"/product/" + p.id}>{t("details")}</TLink>
-                  <AddButton id={p.id} className="mini-add"><Icon name="plus" />{t("add")}</AddButton>
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <TLink className="walk-poster" to={activate ? "/experience/" + activate : "/experience"} data-cursor={c.go}>
+      <picture>
+        <source media="(max-width: 760px)" srcSet={`/techi-3d/poster-${view}-m.webp`} />
+        <img src={`/techi-3d/poster-${view}.webp`} alt={c.h} loading="lazy" />
+      </picture>
+      <span className="wp-shade" />
+      <span className="wp-copy"><span className="tag"><i className="led" />{c.tag}</span><b>{c.h}</b></span>
+      <span className="wp-go"><Icon name="house" />{c.go}</span>
+    </TLink>
   );
 }

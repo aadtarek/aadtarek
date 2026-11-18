@@ -1,0 +1,9 @@
+3D home assets — all CC0 (public domain) from Poly Haven (https://polyhaven.com):
+Furniture: modern_arm_chair_01, mid_century_lounge_chair, coffee_table_round_01, side_table_01,
+modern_wooden_cabinet, potted_plant_02, potted_plant_04, ceramic_vase_01, ceramic_vase_03,
+hanging_picture_frame_01, hanging_picture_frame_02, modern_ceiling_lamp_01,
+wooden_display_shelves_01, wicker_basket_01, dining_chair_02, Ottoman_01.
+Textures: oak_wood_planks, painted_plaster_wall, white_plaster_02, denim_fabric_04,
+fabric_pattern_05, long_white_tiles, kitchen_wood.
+HDRIs: hotel_room (interior light), homecoming_center_rooftop (window view).
+Textures converted to WebP for the web. Sofa, bed, kitchen, doors and Techi devices are modelled in code (src/lib/walk3d.js).

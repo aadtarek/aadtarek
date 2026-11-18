@@ -5,7 +5,6 @@ import { useApp } from "../context.jsx";
 import { Icon } from "../components/Icons.jsx";
 import { Frame3D, Tag } from "../components/ui.jsx";
 import H3D from "../components/H3D.jsx";
-import { getHome } from "../lib/home3d.js";
 import { reduceMotion } from "../lib/util.js";
 
 const COPY = {
@@ -115,8 +114,6 @@ export default function MyHome() {
   const set = (k) => (e) => setConn((x) => { const n = { ...x, [k]: e.target.value }; return n; });
   const connect = (e) => { e.preventDefault(); const clean = { ...conn, token: conn.token.replace(/^\s*TOKEN:/i, "").replace(/[^A-Za-z0-9_\-]/g, ""), lanUrl: conn.lanUrl.replace(/[^\x21-\x7e]/g, ""), relayUrl: conn.relayUrl.trim(), hubId: conn.hubId.trim() }; const { token, ...rest } = clean; write("techi-hub-conn", rest); open(clean); };
 
-  /* the 3D apartment mirrors the real home */
-  useEffect(() => { const h = getHome(); if (!h || !h.mirror) return; Object.values(devices).forEach((d) => d.role3d && h.mirror(d.role3d, d.state)); }, [devices]);
   /* alarms become toasts */
   const lastEv = useRef(0);
   useEffect(() => { const e = events[0]; if (!e || e.ts <= lastEv.current) return; lastEv.current = e.ts; if (e.level === "alert") toast("Techi Hub", e.msg, null, true); }, [events, toast]);

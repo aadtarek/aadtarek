@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { gsap } from "gsap";
 import { I18N } from "./data/i18n.js";
 import { byId, img, L, reduceMotion } from "./lib/util.js";
-import { getHome } from "./lib/home3d.js";
 
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
@@ -23,8 +22,6 @@ export function AppProvider({ children }) {
     document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
     window.TECHI_LANG = lang;
     write("techi-lang", lang);
-    const h = getHome();
-    if (h && h.setLang) h.setLang(lang);
   }, [lang]);
 
   /* ---------- theme: light / dark (follows the system until the visitor picks one) ---------- */

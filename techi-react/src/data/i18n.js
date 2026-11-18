@@ -1,9 +1,6 @@
 /* Techi copy — Arabic (Egyptian) and English */
 export const I18N={
 ar:{
-  tour_tag:"جولة في البيت",tour_h:"ادخل البيت.",tour_p:"اسحب عشان تلف حوالين الشقة. اختار أوضة واضغط مطوّل عليها عشان تدخلها وتشوف أجهزتها شغالة.",
-  tour_drag:"اسحب عشان تستكشف",tour_hold_hint:"اضغط مطوّل على أوضة عشان تدخلها",tour_tap_hint:"اضغط مطوّل على أوضة أو دوس على اسمها",tour_hold:"اضغط",
-  tour_devices:"أجهزة",tour_drag_room:"اسحب عشان تبص حواليك",tour_back:"ارجع للشقة",tour_next:"الأوضة اللي بعدها",tour_rooms:"الأوض",tour_in_room:"الأجهزة في الأوضة دي",tour_again:"شغّله",
   nav_home:"الرئيسية",nav_shop:"المجموعة",nav_bundles:"الباقات",nav_xp:"البيت 3D",nav_about:"عن Techi",cart:"السلة",lang:"EN",lang_label:"Switch to English",
   cats:{screens:"شاشات التحكم",switches:"السويتشات والبرايز",security:"الأمان والحساسات",voice:"التحكم والصوت",bundles:"الباقات"},
   cur:"ج.م",pieces:"منتج",
@@ -13,8 +10,7 @@ ar:{
   s5_tag:"05 · إزاي بنشتغل",s5_h:"من المعاينة لحد أول \"تصبح على خير\".",
   steps:[["معاينة","بنزورك ونحدد أماكن السويتشات والحساسات والكالون."],["عرض سعر","عرض واضح بالأجهزة والتركيب، أو باقة جاهزة."],["تركيب","تركيب احترافي على نفس العلب الموجودة."],["نظبط معاك","نربط الأبلكيشن وAlexa ونعملك السيناريوهات."]],
   fin_h:"تعالى شوف البيت شغال.",fin_addr:"Value Mall · التجمع الخامس",fin_addr2:"الشوروم في القاهرة الجديدة",wa:"كلمنا على واتساب",wa_hi:"أهلاً Techi، عايز أعرف أكتر عن البيت الذكي",
-  t3d_title:"بيت Techi الذكي",t3d_p:"اسحب عشان تلف حوالين البيت، واعمل زووم، ودوس على أي رقم.",t3d_hint:"اسحب عشان تلف · دوس على الأرقام",
-  day:"نهار",night:"ليل",pins:"الأرقام",whole:"البيت كله",sc_sleep:"تصبح على خير",sc_away:"خارج البيت",sc_home:"راجع البيت",
+  night:"ليل",
   no3d:"الجهاز ده مش بيدعم الـ 3D. جرّب من متصفح تاني.",
   all:"الكل",search:"دوّر على جهاز…",
   empty:"مالقيناش حاجة بالاسم ده. جرّب كلمة تانية.",
@@ -22,7 +18,6 @@ ar:{
   crumbs_home:"الرئيسية",qty_less:"قلل",qty_more:"زوّد",order_wa:"واتساب",see3d:"شوفه شغال في البيت 3D",
   perks:[["تركيب احترافي","فريقنا بيركّب ويظبط"],["الشوروم","Value Mall، التجمع"],["Tuya","أبلكيشن واحد"]],specs:"المواصفات",pairs:"أجهزة بتشتغل معاه.",pairs_tag:"ممكن يعجبك",
   wa_order:"أهلاً Techi، عايز أطلب: ",
-  xp_tag:"كل رقم منتج",xp_h:"كل رقم في البيت، جهاز تقدر تطلبه.",xp_p:"دوس على أي جهاز والكاميرا هتروحله وتشغّله.",
   ab_tag:"عن Techi",ab_p:"شركة مصرية للبيوت الذكية، والشوروم بتاعنا في Value Mall بالتجمع الخامس.",
   ab_big:"بنختار أجهزة TYSH وAmazon اللي شغالة على Tuya وZigbee 3.0، وبنركّبها ونظبطها لحد ما بيتك كله يبقى في أبلكيشن واحد.",
   facts:[["الشوروم","Value Mall، التجمع الخامس، القاهرة الجديدة"],["التركيب","تركيب احترافي على نفس العلب، ونظبط معاك الأبلكيشن وAlexa."],["الضمان","باقة السويتشات والحساسات عليها ضمان 5 سنين."],["المنصة","Tuya · Zigbee 3.0 · Alexa · Google Home"]],
@@ -31,9 +26,6 @@ ar:{
   foot_p:"أجهزة البيت الذكي بتركيب احترافي. Value Mall، التجمع الخامس، القاهرة الجديدة.",foot_contact:"تواصل",zoom:"زووم",menu:"القائمة",close:"اقفل"
 },
 en:{
-  tour_tag:"Home tour",tour_h:"Step inside.",tour_p:"Drag to orbit the apartment. Pick a room, then click and hold to step in and watch its devices work.",
-  tour_drag:"Drag to explore",tour_hold_hint:"Click & hold a room to enter",tour_tap_hint:"Press & hold a room, or tap its name",tour_hold:"Hold",
-  tour_devices:"devices",tour_drag_room:"Drag to look around",tour_back:"Back to the apartment",tour_next:"Next room",tour_rooms:"Rooms",tour_in_room:"Devices in this room",tour_again:"Run it",
   nav_home:"Home",nav_shop:"Collection",nav_bundles:"Bundles",nav_xp:"3D Home",nav_about:"About",cart:"Cart",lang:"ع",lang_label:"التحويل للعربي",
   cats:{screens:"Control screens",switches:"Switches & sockets",security:"Security & sensors",voice:"Voice & hub",bundles:"Bundles"},
   cur:"EGP",pieces:"items",
@@ -43,8 +35,7 @@ en:{
   s5_tag:"05 · How we work",s5_h:"From the site visit to your first \"good night\".",
   steps:[["Site visit","We visit and map out switches, sensors and the lock."],["Quote","A clear quote for devices and installation, or a ready bundle."],["Install","Professional installation in your existing wall boxes."],["Set up","We connect the app and Alexa and build your scenes."]],
   fin_h:"Come see the home in action.",fin_addr:"Value Mall · Fifth Settlement",fin_addr2:"Our showroom in New Cairo",wa:"Chat on WhatsApp",wa_hi:"Hi Techi, I'd like to know more about smart homes",
-  t3d_title:"The Techi smart home",t3d_p:"Drag to orbit, zoom in, and tap any number.",t3d_hint:"Drag to orbit · tap the numbers",
-  day:"Day",night:"Night",pins:"Numbers",whole:"Whole home",sc_sleep:"Good night",sc_away:"Away",sc_home:"Coming home",
+  night:"Night",
   no3d:"This device can't show 3D. Try another browser.",
   all:"All",search:"Search devices…",
   empty:"Nothing matches that. Try another word.",
@@ -52,7 +43,6 @@ en:{
   crumbs_home:"Home",qty_less:"Decrease",qty_more:"Increase",order_wa:"WhatsApp",see3d:"See it work in the 3D home",
   perks:[["Pro installation","Our team installs and sets up"],["Showroom","Value Mall, New Cairo"],["Tuya","One app for everything"]],specs:"Specifications",pairs:"Works well with.",pairs_tag:"You may also like",
   wa_order:"Hi Techi, I'd like to order: ",
-  xp_tag:"Every number is a product",xp_h:"Every number in the home is a device you can order.",xp_p:"Tap a device and the camera flies to it and switches it on.",
   ab_tag:"About Techi",ab_p:"An Egyptian smart-home company with a showroom in Value Mall, Fifth Settlement.",
   ab_big:"We pick TYSH and Amazon devices that run on Tuya and Zigbee 3.0, then install and tune them until your whole home lives in one app.",
   facts:[["Showroom","Value Mall, Fifth Settlement, New Cairo"],["Installation","Professional install in your existing wall boxes, with the app and Alexa set up for you."],["Warranty","The switches & sensors package carries a 5-year warranty."],["Platform","Tuya · Zigbee 3.0 · Alexa · Google Home"]],

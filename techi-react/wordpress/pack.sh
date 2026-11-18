@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 npx vite build
 OUT=wordpress/build; rm -rf "$OUT"; mkdir -p "$OUT"
 cp dist/index.html "$OUT/techi-app.html"
-cp -r dist/techi-assets dist/techi-img "$OUT/"
+cp -r dist/techi-assets dist/techi-img dist/techi-3d "$OUT/"
 cp -r wordpress/wp-content wordpress/techi-setup "$OUT/"
 rm -f techi-site.zip; (cd "$OUT" && zip -qr ../../techi-site.zip .)
 rm -rf "$OUT"
