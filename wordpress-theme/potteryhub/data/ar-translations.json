@@ -1,0 +1,245 @@
+{
+ "products": [
+  {
+   "name": "Beige Speckled Ceramic Skillet Set",
+   "name_ar": "طقم مقالي سيراميك بيج منقّط",
+   "desc_ar": "طقم من ثلاث مقالي سيراميك بيج بلمسة منقّطة ريفية ويد مستديرة، للطهي والخَبز والتقديم على السفرة."
+  },
+  {
+   "name": "Black & White Speckled Ceramic Mug",
+   "name_ar": "مج سيراميك منقّط أسود وأبيض",
+   "desc_ar": "مج بلمسة سوداء مطفية من أعلى ووسط منقّط وقاعدة بيضاء، بشكل عصري مصنوع يدويًا."
+  },
+  {
+   "name": "Black Ceramic Coffee Cup & Saucer",
+   "name_ar": "فنجان قهوة وصحن سيراميك أسود",
+   "desc_ar": "فنجان قهوة أسود أنيق مع صحنه، بلمعة غنية وملمس رقيق."
+  },
+  {
+   "name": "Black Speckled Ceramic Mixing Bowl",
+   "name_ar": "بول خلط سيراميك أسود منقّط",
+   "desc_ar": "بول أسود منقّط لامع بفوهة للصب، للخلط والتقديم والاستخدام اليومي."
+  },
+  {
+   "name": "Blue & Cream Bloom Ceramic Serving Bowl",
+   "name_ar": "بول تقديم «بلوم» أزرق وكريمي",
+   "desc_ar": "بول تقديم بحواف متموجة وطلاء مقسوم بين الأزرق والكريمي مع تفاصيل بارزة رقيقة."
+  },
+  {
+   "name": "Blue & White Ceramic Serving Set",
+   "name_ar": "طقم تقديم سيراميك أزرق وأبيض",
+   "desc_ar": "طقم تقديم بطلاء ثنائي اللون وأشكال معاصرة مميزة."
+  },
+  {
+   "name": "Blue & White Glazed Ceramic Cup & Saucer",
+   "name_ar": "فنجان وصحن مزجج أزرق وأبيض",
+   "desc_ar": "فنجان وصحن بطلاء أزرق وأبيض نابض ولمسة يدوية فريدة."
+  },
+  {
+   "name": "Blue & White Ribbed Ceramic Bowl Set",
+   "name_ar": "طقم بولات مضلّعة أزرق وأبيض",
+   "desc_ar": "ثلاث بولات متداخلة بتفاصيل مضلّعة وطلاء أزرق وأبيض منقّط."
+  },
+  {
+   "name": "Blue Ceramic Serving & Bowl Set",
+   "name_ar": "طقم تقديم وبولات سيراميك أزرق",
+   "desc_ar": "أطباق تقديم وبولات متدرجة بطلاء كوبالت غني وتفاصيل بارزة، مع بول بيد."
+  },
+  {
+   "name": "Blue Glazed Ceramic Cup & Saucer",
+   "name_ar": "فنجان وصحن مزجج أزرق",
+   "desc_ar": "فنجان وصحن بدرجات أزرق غنية وطلاء لامع ولمسة يدوية مميزة."
+  },
+  {
+   "name": "Blue Speckled Ceramic Bowl Set",
+   "name_ar": "طقم بولات أزرق منقّط",
+   "desc_ar": "بولتان بلون الكوبالت مع نقش منقّط وتفاصيل مضلّعة."
+  },
+  {
+   "name": "Blue Speckled Ceramic Tumbler with Stainless Steel Straw",
+   "name_ar": "كوب أزرق منقّط بشفّاطة ستانلس",
+   "desc_ar": "كوب أزرق وأبيض منقّط بطلاء فريد وشفّاطة ستانلس للمشروبات الباردة."
+  },
+  {
+   "name": "Brown Speckled Ceramic Mug",
+   "name_ar": "مج سيراميك بني منقّط",
+   "desc_ar": "مج بطلاء بني دافئ منقّط ولمسات كريمية وشكل دائري مريح."
+  },
+  {
+   "name": "Brown Speckled Ceramic Mug Set",
+   "name_ar": "طقم مجات بني منقّط",
+   "desc_ar": "مجّان بطبقات بنية دافئة ولمعة بطابع يدوي."
+  },
+  {
+   "name": "Celadon Ceramic Citrus Juicer",
+   "name_ar": "عصّارة حمضيات سيراميك سيلادون",
+   "desc_ar": "عصّارة بمصفاة مدمجة ويد جانبية وطلاء أخضر سيلادون مميز."
+  },
+  {
+   "name": "Ceramic Black Mug",
+   "name_ar": "مج سيراميك أسود",
+   "desc_ar": "مج أسود كلاسيكي لقهوتك أو شايك اليومي، بتصميم بسيط يناسب أي مطبخ."
+  },
+  {
+   "name": "Classic Beige Ceramic Lidded Bowl",
+   "name_ar": "بول بغطاء سيراميك بيج",
+   "desc_ar": "بول بيج أنيق بغطاء مطابق، للتقديم والحفظ."
+  },
+  {
+   "name": "Classic Sage Green Ceramic Teapot",
+   "name_ar": "براد شاي سيراميك أخضر مريمية",
+   "desc_ar": "براد شاي بلون المريمية بشكل دائري ساحر، لجلسات الشاي الهادئة."
+  },
+  {
+   "name": "Cream Speckled Ceramic Serving Bowl Set",
+   "name_ar": "طقم بولات تقديم كريمي منقّط",
+   "desc_ar": "بولات تقديم كريمية أنيقة بنقش منقّط ناعم."
+  },
+  {
+   "name": "Deep Blue Reactive Glaze Ceramic Mug",
+   "name_ar": "مج بطلاء أزرق تفاعلي",
+   "desc_ar": "مج بطلاء أزرق عميق تتداخل ألوانه بشكل مختلف في كل قطعة."
+  },
+  {
+   "name": "Forest Green Ceramic Casserole Dish",
+   "name_ar": "كاسرولة سيراميك أخضر غامق",
+   "desc_ar": "كاسرولة بغطاء وتصميم جميل، من الفرن للسفرة مباشرة."
+  },
+  {
+   "name": "Forest Green Ruffled Ceramic Serving Bowl",
+   "name_ar": "بول تقديم متموّج أخضر غامق",
+   "desc_ar": "بول تقديم أخضر عميق بحواف متموجة."
+  },
+  {
+   "name": "Green Speckled Ceramic Cup & Saucer",
+   "name_ar": "فنجان وصحن أخضر منقّط",
+   "desc_ar": "فنجان وصحن بلون أخضر منعش ونقش منقّط أنيق."
+  },
+  {
+   "name": "Green Speckled Ceramic Tumbler with Stainless Steel Straw",
+   "name_ar": "كوب أخضر منقّط بشفّاطة ستانلس",
+   "desc_ar": "كوب أخضر وكريمي منقّط بملمس مميز وشفّاطة ستانلس."
+  },
+  {
+   "name": "Green Speckled Ribbed Ceramic Tumbler",
+   "name_ar": "كوب سيراميك أخضر مضلّع",
+   "desc_ar": "كوب أخضر منقّط بتضليع أنيق للمشروبات اليومية."
+  },
+  {
+   "name": "Handcrafted Terracotta Bottle & Jar Set",
+   "name_ar": "طقم قوارير وبرطمانات تيراكوتا",
+   "desc_ar": "ثلاث قطع تيراكوتا مصنوعة يدويًا بأحجام مختلفة."
+  },
+  {
+   "name": "Midnight Blue Ceramic Mug",
+   "name_ar": "مج سيراميك أزرق ليلي",
+   "desc_ar": "مج لامع بدرجات الفحمي والأزرق العميق."
+  },
+  {
+   "name": "Mint Green Speckled Ceramic Skillet Set",
+   "name_ar": "طقم مقالي سيراميك أخضر نعناعي",
+   "desc_ar": "ثلاث مقالي بلون النعناع ونقش منقّط ويد مستديرة."
+  },
+  {
+   "name": "Navy Blue Ceramic Serving Platter Set",
+   "name_ar": "طقم أطباق تقديم كحلي",
+   "desc_ar": "ثلاث أطباق تقديم متداخلة بلون كحلي راقٍ."
+  },
+  {
+   "name": "Olive Green Ceramic Lidded Bowl Set – 2 Pieces",
+   "name_ar": "طقم بولات بغطاء زيتوني – قطعتان",
+   "desc_ar": "بولتان بلون الزيتون بأغطية مطابقة."
+  },
+  {
+   "name": "Olive Green Fluted Ceramic Bowl Set",
+   "name_ar": "طقم بولات مضلّعة زيتوني",
+   "desc_ar": "ثلاث بولات متداخلة بتضليع ناعم ولون زيتوني."
+  },
+  {
+   "name": "Olive Green Nested Ceramic Bowl Set",
+   "name_ar": "طقم بولات متداخلة زيتوني",
+   "desc_ar": "ثلاث بولات متداخلة بطلاء زيتوني أنيق."
+  },
+  {
+   "name": "Olive Wave Ceramic Bowl",
+   "name_ar": "بول «موجة» زيتوني",
+   "desc_ar": "بول بتموّج ناعم ولون زيتوني دافئ."
+  },
+  {
+   "name": "Pink Speckled Ceramic Mug",
+   "name_ar": "مج سيراميك وردي منقّط",
+   "desc_ar": "مج وردي لامع بنقش منقّط ساحر."
+  },
+  {
+   "name": "Pink Speckled Ceramic Skillet Set",
+   "name_ar": "طقم مقالي سيراميك وردي منقّط",
+   "desc_ar": "ثلاث مقالي وردية لامعة بنقش منقّط ويد مستديرة."
+  },
+  {
+   "name": "Purple Glazed Ceramic Cup & Saucer",
+   "name_ar": "فنجان وصحن مزجج بنفسجي",
+   "desc_ar": "فنجان وصحن بطلاء بنفسجي ساحر."
+  },
+  {
+   "name": "Rustic Brown Ceramic Coffee Cup & Saucer",
+   "name_ar": "فنجان قهوة وصحن بني ريفي",
+   "desc_ar": "فنجان وصحن بني مزجج بطابع ريفي دافئ."
+  },
+  {
+   "name": "Sage Green Ceramic Bottle & Cup Set",
+   "name_ar": "طقم قارورة وكوب أخضر مريمية",
+   "desc_ar": "قارورة سيراميك مع كوب مطابق بلون المريمية."
+  },
+  {
+   "name": "Sage Green Ceramic Chip & Dip Serving Set",
+   "name_ar": "طقم تقديم أخضر مريمية",
+   "desc_ar": "طبق تقديم بلون المريمية مع بول للصوص في المنتصف."
+  },
+  {
+   "name": "Speckled Beige Ceramic Round Mug",
+   "name_ar": "مج دائري بيج منقّط",
+   "desc_ar": "مج دائري بطلاء بيج دافئ ونقش منقّط."
+  },
+  {
+   "name": "Speckled Deep Green Ceramic Bowl",
+   "name_ar": "بول أخضر غامق منقّط",
+   "desc_ar": "بول أخضر عميق بنقش منقّط."
+  },
+  {
+   "name": "Speckled Ribbed Ceramic Tumbler with Stainless Steel Straw",
+   "name_ar": "كوب مضلّع منقّط بشفّاطة ستانلس",
+   "desc_ar": "كوب مضلّع بدرجات دافئة وشفّاطة ستانلس."
+  },
+  {
+   "name": "Teal Green Ceramic Bowl Set",
+   "name_ar": "طقم بولات أخضر مزرق",
+   "desc_ar": "ثلاث بولات متداخلة بلون أخضر مزرق."
+  },
+  {
+   "name": "Teal Speckled Ceramic Serving Set",
+   "name_ar": "طقم تقديم أخضر مزرق منقّط",
+   "desc_ar": "طقم تقديم بنقش منقّط ولون أخضر مزرق."
+  },
+  {
+   "name": "White Speckled Ceramic Bowl Set",
+   "name_ar": "طقم بولات أبيض منقّط",
+   "desc_ar": "ثلاث بولات بيضاء أنيقة بنقش منقّط."
+  },
+  {
+   "name": "White Speckled Ceramic Casserole Dish",
+   "name_ar": "كاسرولة سيراميك بيضاء منقّطة",
+   "desc_ar": "كاسرولة بيضاء منقّطة بغطاء، من الفرن للسفرة."
+  }
+ ],
+ "categories": {
+  "Mugs": "مجات",
+  "Bowls": "بولات",
+  "Coffee Cup & Saucer": "فناجين وصحون",
+  "Plates and Tajin": "أطباق وطواجن",
+  "Skillet": "مقالي",
+  "Casserole": "كاسرولات",
+  "Pots": "أكواب",
+  "TeaPot": "براريد شاي",
+  "Bottle & Jar": "قوارير وبرطمانات"
+ }
+}

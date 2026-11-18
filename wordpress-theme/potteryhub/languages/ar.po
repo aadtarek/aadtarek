@@ -1,0 +1,371 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Pottery Hub 1.0.0\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=(n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 ? 4 : 5);\n"
+
+msgid "Results for “%s”"
+msgstr "نتائج البحث عن “%s”"
+
+msgid "Journal"
+msgstr "المدونة"
+
+msgid "Nothing found."
+msgstr "لا توجد نتائج."
+
+msgid "View"
+msgstr "عرض"
+
+msgid "Featured piece"
+msgstr "قطعة مختارة"
+
+msgid "Buy now"
+msgstr "اشترِ الآن"
+
+msgid "Add to cart"
+msgstr "أضف للحقيبة"
+
+msgid "Save to wishlist"
+msgstr "أضف للمفضلة"
+
+msgid "Shop"
+msgstr "المتجر"
+
+msgid "Explore"
+msgstr "اكتشف"
+
+msgid "The studio"
+msgstr "الاستوديو"
+
+msgid "Pottery<br>workshops"
+msgstr "ورش<br>الفخار"
+
+msgid "Collections"
+msgstr "المجموعات"
+
+msgid "Shop by category"
+msgstr "تسوّق حسب الفئة"
+
+msgid "Previous"
+msgstr "السابق"
+
+msgid "Next"
+msgstr "التالي"
+
+msgid "The collection"
+msgstr "المجموعة"
+
+msgid "Popular of the Week"
+msgstr "الأكثر طلبًا هذا الأسبوع"
+
+msgid "The most loved pieces, shaped and glazed by hand"
+msgstr "أكثر القطع حبًا، مشكّلة ومزجّجة باليد"
+
+msgid "Shop all"
+msgstr "تسوّق الكل"
+
+msgid "All"
+msgstr "الكل"
+
+msgid "House of Pottery"
+msgstr "بيت الفخار"
+
+msgid "Handmade ceramics"
+msgstr "فخار مصنوع يدويًا"
+
+msgid "Help"
+msgstr "المساعدة"
+
+msgid "All products"
+msgstr "كل المنتجات"
+
+msgid "Your cart"
+msgstr "حقيبتك"
+
+msgid "Wishlist"
+msgstr "المفضلة"
+
+msgid "My account"
+msgstr "حسابي"
+
+msgid "Stay in the loop"
+msgstr "خليك متابع"
+
+msgid "New glazes, restocks and workshop dates — first."
+msgstr "ألوان جديدة، ومنتجات عائدة، ومواعيد الورش — أول بأول."
+
+msgid "Close"
+msgstr "إغلاق"
+
+msgid "Cart"
+msgstr "الحقيبة"
+
+msgid "Home"
+msgstr "الرئيسية"
+
+msgid "Search mugs, bowls, teapots…"
+msgstr "ابحث عن مجات، بولات، براريد…"
+
+msgid "Search"
+msgstr "بحث"
+
+msgid "Popular:"
+msgstr "الأكثر بحثًا:"
+
+msgid "This page wandered off"
+msgstr "الصفحة دي مش موجودة"
+
+msgid "The page you’re looking for doesn’t exist."
+msgstr "الصفحة اللي بتدور عليها مش موجودة."
+
+msgid "Go to shop"
+msgstr "روح المتجر"
+
+msgid "Menu"
+msgstr "القائمة"
+
+msgid "Main"
+msgstr "الرئيسية"
+
+msgid "Every piece is handmade — small variations make it yours."
+msgstr "كل قطعة مصنوعة يدويًا — والاختلافات الصغيرة بتخليها ليك وحدك."
+
+msgid "Any price"
+msgstr "أي سعر"
+
+msgid "Under %s"
+msgstr "أقل من %s"
+
+msgid "%s & up"
+msgstr "%s فأكثر"
+
+msgid "Search the shop"
+msgstr "ابحث في المتجر"
+
+msgid "Category"
+msgstr "الفئة"
+
+msgid "All ceramics"
+msgstr "كل القطع"
+
+msgid "Price"
+msgstr "السعر"
+
+msgid "Show results"
+msgstr "عرض النتائج"
+
+msgid "Filters"
+msgstr "الفلاتر"
+
+msgid "Nothing here yet"
+msgstr "لا توجد نتائج"
+
+msgid "Try another category or clear your filters."
+msgstr "جرّب فئة أخرى أو امسح الفلاتر."
+
+msgid "Clear filters"
+msgstr "مسح الفلاتر"
+
+msgid "+%d more"
+msgstr "+%d أخرى"
+
+msgid "Save %d%%"
+msgstr "وفّر %d%%"
+
+msgid "Description"
+msgstr "الوصف"
+
+msgid "Details"
+msgstr "التفاصيل"
+
+msgid "Care"
+msgstr "العناية"
+
+msgid "Delivery"
+msgstr "التوصيل"
+
+msgid "You may also like"
+msgstr "قد يعجبك أيضًا"
+
+msgid "Similar Pieces"
+msgstr "قطع مشابهة"
+
+msgid "Add to Cart"
+msgstr "أضف للحقيبة"
+
+msgid "added to your cart"
+msgstr "اتضافت لحقيبتك"
+
+msgid "View cart"
+msgstr "عرض الحقيبة"
+
+msgid "Saved to your wishlist"
+msgstr "اتحفظت في المفضلة"
+
+msgid "Removed from your wishlist"
+msgstr "اتشالت من المفضلة"
+
+msgid "Moved to your cart"
+msgstr "اتنقلت للحقيبة"
+
+msgid "No saved pieces"
+msgstr "مفيش قطع محفوظة"
+
+msgid "Tap the heart on any piece to keep it here."
+msgstr "اضغط على القلب في أي قطعة عشان تحفظها هنا."
+
+msgid "Browse the shop"
+msgstr "تصفّح المتجر"
+
+msgid "Remove"
+msgstr "إزالة"
+
+msgid "No pieces match"
+msgstr "مفيش نتائج لـ"
+
+msgid "See all results"
+msgstr "كل النتائج"
+
+msgid "Something went wrong — please try again."
+msgstr "حصلت مشكلة — جرّب تاني."
+
+msgid "You’re on the list"
+msgstr "اتسجلت معانا"
+
+msgid "Please enter a valid email"
+msgstr "اكتب بريد إلكتروني صحيح"
+
+msgid "Workshops"
+msgstr "الورش"
+
+msgid "About"
+msgstr "من نحن"
+
+msgid "Quantity"
+msgstr "الكمية"
+
+msgid "Less"
+msgstr "أقل"
+
+msgid "More"
+msgstr "أكثر"
+
+msgid "You save"
+msgstr "وفّرت"
+
+msgid "Subtotal"
+msgstr "المجموع الفرعي"
+
+msgid "Checkout"
+msgstr "إتمام الطلب"
+
+msgid "Your cart is empty"
+msgstr "حقيبتك فاضية"
+
+msgid "Find a piece you love."
+msgstr "اختار قطعة تعجبك."
+
+msgid "Start shopping"
+msgstr "ابدأ التسوق"
+
+msgid "Your email"
+msgstr "بريدك الإلكتروني"
+
+msgid "Email"
+msgstr "البريد الإلكتروني"
+
+msgid "Subscribe"
+msgstr "اشترك"
+
+msgid "Sold out"
+msgstr "نفدت الكمية"
+
+msgid "Add"
+msgstr "أضف"
+
+msgid "Choose options"
+msgstr "اختار"
+
+msgid "%s piece"
+msgid_plural "%s pieces"
+msgstr[0] "%s قطعة"
+msgstr[1] "%s قطعة"
+msgstr[2] "%s قطعة"
+msgstr[3] "%s قطعة"
+msgstr[4] "%s قطعة"
+msgstr[5] "%s قطعة"
+
+msgid "Handmade in Egypt"
+msgstr "صُنع يدويًا في مصر"
+
+msgid "Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story."
+msgstr "سيراميك مشكَّل ومزجَّج ومحروق باليد — قطع فيها دفء وطابع وحكاية."
+
+msgid "Shop the collection"
+msgstr "تسوّق المجموعة"
+
+msgid "Bowls & serving"
+msgstr "بولات وتقديم"
+
+msgid "Made for full tables"
+msgstr "لسفرة عامرة"
+
+msgid "Speckled, ribbed and scalloped pieces that turn every dinner into an occasion."
+msgstr "قطع منقّطة ومضلّعة ومتموّجة تحوّل كل عشاء لمناسبة."
+
+msgid "Shop bowls"
+msgstr "تسوّق البولات"
+
+msgid "Mugs & cups"
+msgstr "مجات وفناجين"
+
+msgid "For slow mornings"
+msgstr "لصباحات هادئة"
+
+msgid "Hand-thrown mugs, cups and saucers for the first quiet hour of the day."
+msgstr "مجات وفناجين مشكّلة على العجلة لأول ساعة هادئة في يومك."
+
+msgid "Shop mugs"
+msgstr "تسوّق المجات"
+
+msgid "Sets & bundles"
+msgstr "أطقم وتقديم"
+
+msgid "Serve it all, together"
+msgstr "قدّم كل شيء معًا"
+
+msgid "Nested bowl sets and serving platters, matched by hand for full tables."
+msgstr "أطقم بولات وأطباق تقديم متناسقة لسفرة عامرة."
+
+msgid "Shop sets"
+msgstr "تسوّق الأطقم"
+
+msgid "Everyday pieces"
+msgstr "قطع للاستخدام اليومي"
+
+msgid "Mugs for every morning"
+msgstr "مجات لكل صباح"
+
+msgid "Speckled, reactive and matte glazes for every morning."
+msgstr "ألوان منقّطة ولامعة ومطفية لكل صباح."
+
+msgid "Get to know pottery"
+msgstr "اكتشف عالم الفخار"
+
+msgid "Sit at the wheel, feel the clay and leave with a piece you made yourself."
+msgstr "اجلس على العجلة، المس الطين، واخرج بقطعة صنعتها بيدك."
+
+msgid "Ask about the next class"
+msgstr "اسأل عن الورشة القادمة"
+
+msgid "Where creativity meets craftsmanship. We make handmade ceramics that bring warmth, character and artistic charm to everyday life — shaped and glazed in Egypt."
+msgstr "حيث يلتقي الإبداع بالحِرفة. نصنع قطع سيراميك يدوية تضيف الدفء والطابع والجمال لحياتك اليومية — مشكّلة ومزجّجة في مصر."
+
+msgid "Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing."
+msgstr "اغسلها برفق بماء دافئ وإسفنجة ناعمة، وتجنّب التغيّر المفاجئ في الحرارة، وسيبها تبرد قبل الغسيل."
+
+msgid "We call you to confirm your order and delivery details."
+msgstr "هنتصل بيك لتأكيد الطلب وتفاصيل التوصيل."

@@ -1,0 +1,504 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Pottery Hub 1.0.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Results for “%s”"
+msgstr ""
+
+msgid "Journal"
+msgstr ""
+
+msgid "Nothing found."
+msgstr ""
+
+msgid "Please activate WooCommerce."
+msgstr ""
+
+msgid "View"
+msgstr ""
+
+msgid "Featured piece"
+msgstr ""
+
+msgid "Buy now"
+msgstr ""
+
+msgid "Add to cart"
+msgstr ""
+
+msgid "Save to wishlist"
+msgstr ""
+
+msgid "Shop"
+msgstr ""
+
+msgid "Explore"
+msgstr ""
+
+msgid "The studio"
+msgstr ""
+
+msgid "Pottery<br>workshops"
+msgstr ""
+
+msgid "Collections"
+msgstr ""
+
+msgid "Shop by category"
+msgstr ""
+
+msgid "Previous"
+msgstr ""
+
+msgid "Next"
+msgstr ""
+
+msgid "The collection"
+msgstr ""
+
+msgid "Popular of the Week"
+msgstr ""
+
+msgid "The most loved pieces, shaped and glazed by hand"
+msgstr ""
+
+msgid "Shop all"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "House of Pottery"
+msgstr ""
+
+msgid "Handmade ceramics"
+msgstr ""
+
+msgid "Help"
+msgstr ""
+
+msgid "All products"
+msgstr ""
+
+msgid "Your cart"
+msgstr ""
+
+msgid "Wishlist"
+msgstr ""
+
+msgid "My account"
+msgstr ""
+
+msgid "Stay in the loop"
+msgstr ""
+
+msgid "New glazes, restocks and workshop dates — first."
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Cart"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Search mugs, bowls, teapots…"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Popular:"
+msgstr ""
+
+msgid "This page wandered off"
+msgstr ""
+
+msgid "The page you’re looking for doesn’t exist."
+msgstr ""
+
+msgid "Go to shop"
+msgstr ""
+
+msgid "Menu"
+msgstr ""
+
+msgid "Main"
+msgstr ""
+
+msgid "Every piece is handmade — small variations make it yours."
+msgstr ""
+
+msgid "Any price"
+msgstr ""
+
+msgid "Under %s"
+msgstr ""
+
+msgid "%s & up"
+msgstr ""
+
+msgid "Search the shop"
+msgstr ""
+
+msgid "Category"
+msgstr ""
+
+msgid "All ceramics"
+msgstr ""
+
+msgid "Price"
+msgstr ""
+
+msgid "Show results"
+msgstr ""
+
+msgid "Filters"
+msgstr ""
+
+msgid "Nothing here yet"
+msgstr ""
+
+msgid "Try another category or clear your filters."
+msgstr ""
+
+msgid "Clear filters"
+msgstr ""
+
+msgid "+%d more"
+msgstr ""
+
+msgid "Save %d%%"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "Care"
+msgstr ""
+
+msgid "Delivery"
+msgstr ""
+
+msgid "You may also like"
+msgstr ""
+
+msgid "Similar Pieces"
+msgstr ""
+
+msgid "Add to Cart"
+msgstr ""
+
+msgid "— Whole shop —"
+msgstr ""
+
+msgid "Pottery Hub"
+msgstr ""
+
+msgid "Arabic"
+msgstr ""
+
+msgid "Hero slide %d"
+msgstr ""
+
+msgid "Photo (wide, 2400px+)"
+msgstr ""
+
+msgid "Focus point, left → right (%)"
+msgstr ""
+
+msgid "Small label"
+msgstr ""
+
+msgid "Title"
+msgstr ""
+
+msgid "Text"
+msgstr ""
+
+msgid "Button"
+msgstr ""
+
+msgid "Button opens"
+msgstr ""
+
+msgid "Promo banner %d"
+msgstr ""
+
+msgid "Image (optional — defaults to the category image)"
+msgstr ""
+
+msgid "Workshops section"
+msgstr ""
+
+msgid "Photo"
+msgstr ""
+
+msgid "Button link"
+msgstr ""
+
+msgid "Footer & product page texts"
+msgstr ""
+
+msgid "Footer text"
+msgstr ""
+
+msgid "Product page — Care"
+msgstr ""
+
+msgid "Product page — Delivery"
+msgstr ""
+
+msgid "Social links"
+msgstr ""
+
+msgid "Arabic name"
+msgstr ""
+
+msgid "Arabic description"
+msgstr ""
+
+msgid "Header menu"
+msgstr ""
+
+msgid "Footer help menu"
+msgstr ""
+
+msgid "added to your cart"
+msgstr ""
+
+msgid "View cart"
+msgstr ""
+
+msgid "Saved to your wishlist"
+msgstr ""
+
+msgid "Removed from your wishlist"
+msgstr ""
+
+msgid "Moved to your cart"
+msgstr ""
+
+msgid "No saved pieces"
+msgstr ""
+
+msgid "Tap the heart on any piece to keep it here."
+msgstr ""
+
+msgid "Browse the shop"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
+
+msgid "No pieces match"
+msgstr ""
+
+msgid "See all results"
+msgstr ""
+
+msgid "Something went wrong — please try again."
+msgstr ""
+
+msgid "You’re on the list"
+msgstr ""
+
+msgid "Please enter a valid email"
+msgstr ""
+
+msgid "Workshops"
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "Quantity"
+msgstr ""
+
+msgid "Less"
+msgstr ""
+
+msgid "More"
+msgstr ""
+
+msgid "You save"
+msgstr ""
+
+msgid "Subtotal"
+msgstr ""
+
+msgid "Checkout"
+msgstr ""
+
+msgid "Your cart is empty"
+msgstr ""
+
+msgid "Find a piece you love."
+msgstr ""
+
+msgid "Start shopping"
+msgstr ""
+
+msgid "Your email"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Subscribe"
+msgstr ""
+
+msgid "Sold out"
+msgstr ""
+
+msgid "Add"
+msgstr ""
+
+msgid "Choose options"
+msgstr ""
+
+msgid "%s piece"
+msgid_plural "%s pieces"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Arabic names added to %1$d products and %2$d categories. Existing Arabic names were kept."
+msgstr ""
+
+msgid "Updated %d pages to the theme’s cart & checkout design."
+msgstr ""
+
+msgid "This server can’t install languages automatically. Go to Settings → General, choose العربية as Site Language, save, then switch back to English."
+msgstr ""
+
+msgid "Arabic language installed for WordPress and WooCommerce."
+msgstr ""
+
+msgid "Couldn’t download the Arabic language. Try again later, or install it from Settings → General."
+msgstr ""
+
+msgid "Texts, hero photos and banners are edited in Appearance → Customize → Pottery Hub."
+msgstr ""
+
+msgid "1. Cart & checkout design"
+msgstr ""
+
+msgid "Switches the Cart and Checkout pages to the classic WooCommerce forms that this theme styles."
+msgstr ""
+
+msgid "Use theme cart & checkout"
+msgstr ""
+
+msgid "2. Arabic language"
+msgstr ""
+
+msgid "Arabic is installed. Run again to refresh WooCommerce’s Arabic translations."
+msgstr ""
+
+msgid "Installs Arabic for WordPress and WooCommerce so the Arabic site (?lang=ar) shows Arabic checkout, account and notices. The site language stays English."
+msgstr ""
+
+msgid "Install Arabic"
+msgstr ""
+
+msgid "3. Arabic product names"
+msgstr ""
+
+msgid "Fills the \"Arabic name\" and \"Arabic description\" fields of the current 46 products and their categories. New products: fill the fields on the product edit screen."
+msgstr ""
+
+msgid "Add Arabic names"
+msgstr ""
+
+msgid "Newsletter subscribers"
+msgstr ""
+
+msgid "Download CSV"
+msgstr ""
+
+msgid "No subscribers yet."
+msgstr ""
+
+msgid "Pottery Hub is active. Finish setup in Appearance → Pottery Hub (3 one-click steps)."
+msgstr ""
+
+msgid "Open"
+msgstr ""
+
+msgid "Handmade in Egypt"
+msgstr ""
+
+msgid "Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story."
+msgstr ""
+
+msgid "Shop the collection"
+msgstr ""
+
+msgid "Bowls & serving"
+msgstr ""
+
+msgid "Made for full tables"
+msgstr ""
+
+msgid "Speckled, ribbed and scalloped pieces that turn every dinner into an occasion."
+msgstr ""
+
+msgid "Shop bowls"
+msgstr ""
+
+msgid "Mugs & cups"
+msgstr ""
+
+msgid "For slow mornings"
+msgstr ""
+
+msgid "Hand-thrown mugs, cups and saucers for the first quiet hour of the day."
+msgstr ""
+
+msgid "Shop mugs"
+msgstr ""
+
+msgid "Sets & bundles"
+msgstr ""
+
+msgid "Serve it all, together"
+msgstr ""
+
+msgid "Nested bowl sets and serving platters, matched by hand for full tables."
+msgstr ""
+
+msgid "Shop sets"
+msgstr ""
+
+msgid "Everyday pieces"
+msgstr ""
+
+msgid "Mugs for every morning"
+msgstr ""
+
+msgid "Speckled, reactive and matte glazes for every morning."
+msgstr ""
+
+msgid "Get to know pottery"
+msgstr ""
+
+msgid "Sit at the wheel, feel the clay and leave with a piece you made yourself."
+msgstr ""
+
+msgid "Ask about the next class"
+msgstr ""
+
+msgid "Where creativity meets craftsmanship. We make handmade ceramics that bring warmth, character and artistic charm to everyday life — shaped and glazed in Egypt."
+msgstr ""
+
+msgid "Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing."
+msgstr ""
+
+msgid "We call you to confirm your order and delivery details."
+msgstr ""
