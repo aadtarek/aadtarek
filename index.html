@@ -8,6 +8,12 @@
 <meta name="theme-color" content="#ba4a2f">
 <link rel="icon" href="assets/img/favicon.png">
 <link rel="preload" as="image" href="assets/img/emblem-light.png">
+<script>
+(function(){var q=new URLSearchParams(location.search).get('lang'),l=q||(function(){try{return localStorage.getItem('ph_lang')}catch(e){return null}})()||'en';
+if(l!=='ar')l='en';try{localStorage.setItem('ph_lang',l)}catch(e){}
+var h=document.documentElement;h.lang=l;h.dir=l==='ar'?'rtl':'ltr';window.LANG=l;
+if(l==='ar'){document.title='بوتري هب — فخار مصنوع يدويًا';document.write('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap">')}})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
@@ -24,14 +30,14 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--cream)}
-body{font-family:"DM Sans",system-ui,sans-serif;color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+body{font-family:"DM Sans","IBM Plex Sans Arabic",system-ui,sans-serif;color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
   background:linear-gradient(180deg,#f5efe6 0,#f5efe6 115vh,#f2ebe1 175vh,#f8f4ee 100%);min-height:100vh}
 body.lock{overflow:hidden}
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:none;border:0}
 a{color:inherit;text-decoration:none}
 img{display:block;max-width:100%}
-.serif{font-family:"Fraunces",Georgia,serif;font-weight:300;font-variation-settings:"SOFT" 50,"WONK" 0;letter-spacing:-.015em}
+.serif{font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-variation-settings:"SOFT" 50,"WONK" 0;letter-spacing:-.015em}
 .ic{flex:none}
 
 /* cursor */
@@ -124,7 +130,7 @@ img{display:block;max-width:100%}
 .bfeat .fx{padding:clamp(20px,2.2vw,30px);display:flex;flex-direction:column;justify-content:space-between;gap:12px;position:relative;z-index:2;min-width:0}
 .bfeat .pl{align-self:flex-start;background:var(--forest);color:var(--cream);font-size:10.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;border-radius:30px;padding:6px 12px}
 .bfeat .ct{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--light);font-weight:700}
-.bfeat h3{font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:clamp(20px,1.8vw,30px);line-height:1.15;color:var(--forest);margin-top:6px}
+.bfeat h3{font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:clamp(20px,1.8vw,30px);line-height:1.15;color:var(--forest);margin-top:6px}
 .bfeat .pr{color:var(--terra);font-weight:800;font-size:clamp(17px,1.4vw,21px);margin-top:8px}
 .bfeat .pr s{color:var(--light);font-weight:500;font-size:13px;margin-left:6px}
 .bfeat .fb{display:flex;gap:8px;align-items:center}
@@ -143,7 +149,7 @@ img{display:block;max-width:100%}
 .bfeat.chg .fi img{opacity:0;transform:translateX(30px) scale(.94)}
 .bcat{grid-column:4/5;grid-row:2/3;background:var(--sage);color:var(--forest);padding:clamp(18px,2vw,26px);display:flex;flex-direction:column;justify-content:space-between}
 .bwk{grid-column:5/6;grid-row:2/3;background:var(--terra);color:var(--cream);padding:clamp(18px,2vw,26px);display:flex;flex-direction:column;justify-content:space-between}
-.bcat h4,.bwk h4{font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:clamp(22px,2vw,34px);line-height:1.05;position:relative;z-index:2}
+.bcat h4,.bwk h4{font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:clamp(22px,2vw,34px);line-height:1.05;position:relative;z-index:2}
 .bcat small,.bwk small{font-weight:700;font-size:12.5px;position:relative;z-index:2;letter-spacing:.04em}
 .bcat .ci{position:absolute;inset:0;z-index:1}
 .bcat{background:var(--sage)}
@@ -197,7 +203,7 @@ img{display:block;max-width:100%}
 .cat .cw img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply;transition:transform 1.2s var(--out)}
 .cat:hover .cw{transform:translateY(-6px);box-shadow:0 26px 50px -20px rgba(60,40,30,.35)}
 .cat:hover .cw img{transform:scale(1.07)}
-.cat b{display:block;font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:19px;margin-top:14px;color:var(--forest)}
+.cat b{display:block;font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:19px;margin-top:14px;color:var(--forest)}
 .cat small{color:var(--light);font-size:12.5px;font-weight:600}
 .arrows{display:flex;gap:8px}
 .arrows button{width:44px;height:44px;border-radius:50%;border:1.4px solid var(--line);display:grid;place-items:center;color:var(--forest);transition:background .3s,color .3s,border-color .3s}
@@ -238,7 +244,7 @@ img{display:block;max-width:100%}
 @media (hover:none){.quick{transform:none;opacity:1}.quick .qa span{display:none}.quick .qa{flex:0 0 44px}.quick button{height:40px}}
 .info{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 4px 0}
 .info .cat-l{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--light);font-weight:700}
-.info h4{font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:18px;line-height:1.25;margin-top:5px;color:var(--ink)}
+.info h4{font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:18px;line-height:1.25;margin-top:5px;color:var(--ink)}
 .info .pr{text-align:right;white-space:nowrap;padding-top:14px}
 .info .pr b{display:block;color:var(--terra);font-size:16px;font-weight:700}
 .info .pr s{font-size:12px;color:var(--light)}
@@ -259,7 +265,7 @@ img{display:block;max-width:100%}
 .promo .pw{position:absolute;right:28px;top:28px;bottom:28px;width:46%;border-radius:999px 999px 20px 20px;background:var(--sand);overflow:hidden;z-index:-1;transition:transform .9s var(--out)}
 .promo:hover .pw{transform:translateY(-8px)}
 .promo .pw img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
-.promo h3{font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:clamp(26px,2.4vw,36px);line-height:1.1;max-width:50%}
+.promo h3{font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:clamp(26px,2.4vw,36px);line-height:1.1;max-width:50%}
 .promo p{opacity:.85;margin:10px 0 22px;max-width:46%;font-size:14.5px;line-height:1.55}
 .wbtn{display:inline-flex;align-items:center;gap:10px;background:#fff;color:var(--ink);border-radius:30px;padding:12px 22px;font-weight:700;font-size:14px;align-self:flex-start;transition:transform .35s var(--out)}
 .wbtn:hover{transform:translateY(-2px)}
@@ -326,7 +332,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .fbtn{display:none!important}
 .shop-grid{grid-template-columns:repeat(3,1fr)}
 .empty{grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--muted)}
-.empty b{display:block;font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:26px;color:var(--forest);margin-bottom:6px}
+.empty b{display:block;font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:26px;color:var(--forest);margin-bottom:6px}
 .empty button{margin-top:16px}
 
 /* detail */
@@ -379,7 +385,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .sbar .si{width:52px;height:52px;border-radius:14px;background:var(--sand);overflow:hidden;flex:none}
 .sbar .si img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
 .sbar .sn{flex:1;min-width:0}
-.sbar .sn b{display:block;font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbar .sn b{display:block;font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sbar .sn small{color:var(--terra);font-weight:700;font-size:14px}
 .sbar .booknow,.sbar .buy{height:48px;padding:0 22px;border-radius:14px;font-size:14.5px}
 .acc{border-top:1px solid var(--line)}
@@ -414,7 +420,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 @keyframes lin{from{opacity:0;transform:translateX(20px)}}
 .line .li{width:76px;height:86px;border-radius:14px;background:var(--sand);overflow:hidden}
 .line .li img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
-.line b{display:block;font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:16px;line-height:1.25}
+.line b{display:block;font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:16px;line-height:1.25}
 .line small{color:var(--light);font-size:12px}
 .line .lp{color:var(--terra);font-weight:700;font-size:14.5px;margin-top:6px}
 .line .step{margin-top:8px;gap:10px}
@@ -429,11 +435,11 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .tot.big{font-size:18px;color:var(--ink);font-weight:700;margin:10px 0 16px}
 .dempty{text-align:center;padding:60px 10px;color:var(--muted)}
 .dempty .eb{width:84px;height:84px;border-radius:50%;background:var(--sand);display:grid;place-items:center;margin:0 auto 18px;color:var(--terra)}
-.dempty b{display:block;font-family:"Fraunces",Georgia,serif;font-weight:300;font-size:22px;color:var(--forest);margin-bottom:6px}
+.dempty b{display:block;font-family:"Fraunces","Amiri",Georgia,serif;font-weight:300;font-size:22px;color:var(--forest);margin-bottom:6px}
 .dempty .btn{margin-top:18px}
 .menu-l{display:grid;gap:4px;padding:16px 24px;overflow:auto}
-.menu-l button,.menu-l a{display:flex;justify-content:space-between;align-items:center;padding:16px 4px;border-bottom:1px solid var(--line);font-family:"Fraunces",serif;font-size:24px;color:var(--forest);text-align:left}
-.menu-l small{font-family:"DM Sans";font-size:12px;color:var(--light);font-weight:600}
+.menu-l button,.menu-l a{display:flex;justify-content:space-between;align-items:center;padding:16px 4px;border-bottom:1px solid var(--line);font-family:"Fraunces","Amiri",serif;font-size:24px;color:var(--forest);text-align:left}
+.menu-l small{font-family:"DM Sans","IBM Plex Sans Arabic";font-size:12px;color:var(--light);font-weight:600}
 
 /* search overlay */
 .sov{position:fixed;left:0;right:0;top:0;z-index:150;background:var(--paper);padding:26px var(--pad) 34px;transform:translateY(-105%);visibility:hidden;transition:transform .6s var(--out),visibility 0s .6s;max-height:90vh;overflow:auto}
@@ -495,7 +501,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .pre-logo img{position:absolute;inset:0;width:100%;height:100%}
 .pre-logo .g{opacity:.18}
 .pre-logo .f{-webkit-mask-image:conic-gradient(from 200deg at 50% 52%,#000 var(--a,0deg),transparent calc(var(--a,0deg) + 1deg));mask-image:conic-gradient(from 200deg at 50% 52%,#000 var(--a,0deg),transparent calc(var(--a,0deg) + 1deg))}
-.pre-word{display:flex;font-family:"Fraunces",serif;font-size:clamp(34px,4.6vw,58px);letter-spacing:.12em;line-height:1}
+.pre-word{display:flex;font-family:"Fraunces","Amiri",serif;font-size:clamp(34px,4.6vw,58px);letter-spacing:.12em;line-height:1}
 .pre-word span{display:inline-block;overflow:hidden;padding-bottom:.05em}
 .pre-word i{display:inline-block;font-style:normal;transform:translateY(110%);transition:transform 1s var(--out);transition-delay:calc(var(--i)*55ms + .2s)}
 #pre.go .pre-word i{transform:none}
@@ -503,7 +509,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 #pre.go .pre-sub{opacity:.75}
 .pre-bar{width:200px;height:1px;background:rgba(245,239,230,.25);margin-top:8px}
 .pre-bar i{display:block;height:100%;background:var(--cream);transform-origin:left;transform:scaleX(0)}
-.pre-n{position:absolute;right:var(--pad);bottom:36px;font-family:"Fraunces",serif;font-size:clamp(64px,10vw,150px);line-height:1;opacity:.92}
+.pre-n{position:absolute;right:var(--pad);bottom:36px;font-family:"Fraunces","Amiri",serif;font-size:clamp(64px,10vw,150px);line-height:1;opacity:.92}
 .pre-n sup{font-size:.3em;vertical-align:top;margin-left:4px;opacity:.7}
 .pre-c{position:absolute;left:var(--pad);bottom:46px;font-size:12px;letter-spacing:.3em;text-transform:uppercase;font-weight:600;opacity:.7}
 .spark{position:absolute;width:16px;height:16px;color:var(--cream);animation:twk 2.4s ease-in-out infinite}
@@ -512,7 +518,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 /* marquee */
 .marq{position:relative;z-index:2;overflow:hidden;padding:30px 0;margin:0 0 100px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .marq .tr{display:flex;width:max-content;will-change:transform}
-.marq .it{display:flex;align-items:center;gap:44px;padding-right:44px;font-family:"Fraunces",serif;font-size:clamp(42px,6.4vw,100px);line-height:1.05;white-space:nowrap;color:var(--forest)}
+.marq .it{display:flex;align-items:center;gap:44px;padding-right:44px;font-family:"Fraunces","Amiri",serif;font-size:clamp(42px,6.4vw,100px);line-height:1.05;white-space:nowrap;color:var(--forest)}
 .marq .it .o{color:transparent;-webkit-text-stroke:1.2px var(--terra)}
 .marq .st{width:.42em;height:.42em;color:var(--terra);animation:spin 9s linear infinite;flex:none}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -543,7 +549,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .chip:hover::before,.chip.on::before{transform:none}
 .btn,.wbtn,.see{position:relative;overflow:hidden}
 .flyer{position:fixed;z-index:400;pointer-events:none;object-fit:cover;border-radius:50%;background:var(--sand);box-shadow:0 10px 30px rgba(0,0,0,.25)}
-.giant{position:relative;display:block;margin-top:56px;font-family:"Fraunces",serif;font-size:11.2vw;line-height:.9;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:1px rgba(245,239,230,.32);white-space:nowrap;text-align:center;user-select:none}
+.giant{position:relative;display:block;margin-top:56px;font-family:"Fraunces","Amiri",serif;font-size:11.2vw;line-height:.9;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:1px rgba(245,239,230,.32);white-space:nowrap;text-align:center;user-select:none}
 .foot{overflow:hidden}
 .foot .spark{color:#e9a48f}
 html.lenis,html.lenis body{height:auto}
@@ -635,6 +641,36 @@ html.lenis,html.lenis body{height:auto}
   .bbtns{grid-template-columns:1fr}
   .pwrap{padding-top:92px}
 }
+
+/* RTL / Arabic */
+[dir=rtl] *{letter-spacing:0!important}
+[dir=rtl] .flipx{transform:scaleX(-1)}
+[dir=rtl] .bt,[dir=rtl] .tag,[dir=rtl] .opts button,[dir=rtl] .sugg button,[dir=rtl] .menu-l button{text-align:right}
+[dir=rtl] .serif,[dir=rtl] h1,[dir=rtl] h2,[dir=rtl] h3,[dir=rtl] h4,[dir=rtl] .bth{line-height:1.35}
+[dir=rtl] .eyebrow{text-transform:none;font-size:13px}
+[dir=rtl] .eyebrow::before{transform-origin:right}
+[dir=rtl] .nav.solid{padding:0 30px 0 10px}
+[dir=rtl] .info .pr{text-align:left}
+[dir=rtl] .badge{left:auto;right:14px}
+[dir=rtl] .heart{right:auto;left:14px}
+[dir=rtl] .barr{right:auto;left:clamp(14px,1.6vw,22px)}
+[dir=rtl] .bt:hover .barr{transform:rotate(45deg)}
+[dir=rtl] .bwk .wi{right:auto;left:-8%}
+[dir=rtl] .bfeat .fi::before{left:auto;right:0;background:linear-gradient(-90deg,var(--sand),rgba(236,227,214,0))}
+[dir=rtl] .promo .pw{right:auto;left:28px}
+[dir=rtl] .band::before{background:linear-gradient(-90deg,rgba(35,45,38,.92),rgba(35,45,38,.5) 60%,rgba(35,45,38,.15))}
+[dir=rtl] .cnt{right:auto;left:-2px}
+[dir=rtl] .drawer{right:auto;left:0;transform:translateX(-105%)}
+[dir=rtl] .drawer.on{transform:none}
+[dir=rtl] .drawer.left{left:auto;right:0;transform:translateX(105%)}
+[dir=rtl] .drawer.left.on{transform:none}
+[dir=rtl] .pre-word{direction:ltr}
+[dir=rtl] .pre-n{right:auto;left:var(--pad)}
+[dir=rtl] .off,[dir=rtl] .badge{direction:ltr;unicode-bidi:isolate}
+[dir=rtl] input[type=tel],[dir=rtl] input[type=email]{direction:ltr;text-align:right}
+.lang{font-size:13px;font-weight:600;margin-inline-end:6px;padding:4px 2px}
+[dir=ltr] .lang{font-family:"IBM Plex Sans Arabic",sans-serif;font-size:14px}
+@media (max-width:640px){.lang{font-size:12px;margin-inline-end:2px}}
 </style>
 </head>
 <body>
@@ -666,6 +702,7 @@ html.lenis,html.lenis body{height:auto}
   </div>
   <a href="#" class="brand" data-home aria-label="Pottery Hub — home"><img class="lt" src="assets/img/logo-light.png" alt="Pottery Hub"><img class="dk" src="assets/img/logo-dark.png" alt=""></a>
   <div class="r">
+    <button class="lang ul" id="langBtn">عربي</button>
     <button class="ibtn" id="openSearch" aria-label="Search"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
     <button class="ibtn hide-m" id="openWish" aria-label="Wishlist"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg><i class="cnt" id="wishN">0</i></button>
     <button class="ibtn" id="openCart" aria-label="Cart"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/></svg><i class="cnt" id="bagN">0</i></button>
@@ -875,9 +912,135 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 if(location.search.includes('rec'))document.documentElement.classList.add('rec');
 
 const stack=[],L={},OVER=['drawer','menu','search'];
+/* ---------- i18n (Arabic) ---------- */
+const AR=window.LANG==='ar';
+const DICT={
+'Shop':'المتجر','Collections':'المجموعات','Workshops':'الورش','About':'عن بوتري هب','Menu':'القائمة','Search':'بحث','Wishlist':'المفضلة','Cart':'الحقيبة',
+'Featured piece':'قطعة مختارة','Buy now':'اشترِ الآن','Add to cart':'أضف للحقيبة','Add to Cart':'أضف للحقيبة','Add':'أضف','Added ✓':'اتضافت ✓','Save to wishlist':'أضف للمفضلة',
+'The studio':'الاستوديو','Pottery':'ورش','workshops':'الفخار','Collections':'المجموعات','Shop by category':'تسوّق حسب الفئة','The collection':'المجموعة',
+'Popular of the Week':'الأكثر طلبًا هذا الأسبوع','The most loved pieces, shaped and glazed by hand':'أكثر القطع حبًا، مشكّلة ومزجّجة باليد','Shop all':'تسوّق الكل','All':'الكل',
+'Sets & bundles':'أطقم وتقديم','Sets &amp; bundles':'أطقم وتقديم','Serve it all, together':'قدّم كل شيء معًا','Nested bowl sets and serving platters, matched by hand for full tables.':'أطقم بولات وأطباق تقديم متناسقة لسفرة عامرة.',
+'Shop sets':'تسوّق الأطقم','Everyday pieces':'قطع للاستخدام اليومي','Mugs from EGP 300':'مجات من 300 ج.م','Speckled, reactive and matte glazes for every morning.':'ألوان منقّطة ولامعة ومطفية لكل صباح.','Shop mugs':'تسوّق المجات',
+'Workshops':'الورش','Get to know pottery':'اكتشف عالم الفخار','Sit at the wheel, feel the clay and leave with a piece you made yourself.':'اجلس على العجلة، المس الطين، واخرج بقطعة صنعتها بيدك.','Ask about the next class':'اسأل عن الورشة القادمة',
+'Where creativity meets craftsmanship. We make handmade ceramics that bring warmth, character and artistic charm to everyday life — shaped and glazed in Egypt.':'حيث يلتقي الإبداع بالحِرفة. نصنع قطع سيراميك يدوية تضيف الدفء والطابع والجمال لحياتك اليومية — مشكّلة ومزجّجة في مصر.',
+'Help':'المساعدة','All products':'كل المنتجات','Your cart':'حقيبتك','Contact us':'تواصل معنا','Stay in the loop':'خليك متابع','New glazes, restocks and workshop dates — first.':'ألوان جديدة، ومنتجات عائدة، ومواعيد الورش — أول بأول.','Subscribe':'اشترك','Your email':'بريدك الإلكتروني',
+'© 2026 Pottery Hub':'© 2026 بوتري هب','House of Pottery':'بيت الفخار','HOUSE OF POTTERY':'بيت الفخار','Home':'الرئيسية','Filters':'الفلاتر','Sort:':'الترتيب:','Search the shop':'ابحث في المتجر','Category':'الفئة',
+'Show results':'عرض النتائج','Quantity':'الكمية','Care':'العناية','Delivery':'التوصيل','Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing.':'اغسلها برفق بماء دافئ وإسفنجة ناعمة، وتجنّب التغيّر المفاجئ في الحرارة، وسيبها تبرد قبل الغسيل.',
+'We call you to confirm your order and delivery details.':'هنتصل بيك لتأكيد الطلب وتفاصيل التوصيل.','You may also like':'قد يعجبك أيضًا','Similar Pieces':'قطع مشابهة','Price':'السعر',
+'All ceramics':'كل القطع','Most popular':'الأكثر طلبًا','Price: low to high':'السعر: من الأقل للأعلى','Price: high to low':'السعر: من الأعلى للأقل','Biggest savings':'أكبر خصم','Name: A–Z':'الاسم: أ–ي',
+'Any price':'أي سعر','Under EGP 500':'أقل من 500 ج.م','EGP 500 – 1,000':'500 – 1,000 ج.م','EGP 1,000 – 1,500':'1,000 – 1,500 ج.م','EGP 1,500 & up':'1,500 ج.م فأكثر',
+'Every piece is handmade — small variations make it yours.':'كل قطعة مصنوعة يدويًا — والاختلافات الصغيرة بتخليها ليك وحدك.','Search results':'نتائج البحث','piece':'قطعة','pieces':'قطعة',
+'Nothing here yet':'لا توجد نتائج','Try another category or clear your filters.':'جرّب فئة أخرى أو امسح الفلاتر.','Clear filters':'مسح الفلاتر',
+'Your cart is empty':'حقيبتك فاضية','Find a piece you love — every order ships free.':'اختار قطعة تعجبك.','Find a piece you love.':'اختار قطعة تعجبك.','Start shopping':'ابدأ التسوق','No saved pieces':'مفيش قطع محفوظة',
+'Tap the heart on any piece to keep it here.':'اضغط على القلب في أي قطعة عشان تحفظها هنا.','Browse the shop':'تصفّح المتجر','Subtotal':'المجموع الفرعي','You save':'وفّرت','Checkout':'إتمام الطلب','Remove':'إزالة',
+'Saved to your wishlist':'اتحفظت في المفضلة','Removed from your wishlist':'اتشالت من المفضلة','Moved to your cart':'اتنقلت للحقيبة','View cart':'عرض الحقيبة','Popular:':'الأكثر بحثًا:',
+'Mug':'مج','Bowl set':'طقم بولات','Teapot':'براد','Skillet':'مقلاة','Blue':'أزرق','Green':'أخضر',
+'Contact':'بيانات التواصل','Full name':'الاسم بالكامل','Your name':'اسمك','Please enter your name':'من فضلك اكتب اسمك','Mobile number':'رقم الموبايل','Enter a valid Egyptian mobile number':'اكتب رقم موبايل مصري صحيح','Email (optional)':'البريد الإلكتروني (اختياري)','Enter a valid email':'اكتب بريد صحيح',
+'Delivery address':'عنوان التوصيل','Governorate':'المحافظة','Select…':'اختار…','Choose your governorate':'اختار المحافظة','City / Area':'المدينة / المنطقة','e.g. Maadi':'مثلًا: المعادي','Enter your city or area':'اكتب المدينة أو المنطقة','Street address':'العنوان','Building, street, floor, apartment':'العمارة، الشارع، الدور، الشقة','Enter your full address':'اكتب العنوان بالكامل',
+'Delivery notes (optional)':'ملاحظات التوصيل (اختياري)','Landmark, best time to call…':'علامة مميزة، أنسب وقت للاتصال…','Payment':'الدفع','Cash on delivery':'الدفع عند الاستلام','Pay when your order arrives':'ادفع لما الطلب يوصلك','Card payment':'الدفع بالكارت','Visa, Mastercard or Meeza':'فيزا، ماستركارد أو ميزة','Mobile wallet':'محفظة إلكترونية','Pay from your mobile wallet':'ادفع من محفظة الموبايل',
+'Order summary':'ملخص الطلب','Gift card or discount code':'كود الخصم','Discount code':'كود الخصم','Apply':'تطبيق','Shipping':'الشحن','Confirmed by phone':'يتأكد بالتليفون','Total':'الإجمالي','Enter a code first':'اكتب الكود الأول',
+'Back to home':'العودة للرئيسية','Add a piece to check out.':'ضيف قطعة عشان تكمل الطلب.','Go to shop':'روح المتجر','Close':'إغلاق','Less':'أقل','More':'أكثر','Next':'التالي','Previous':'السابق','Email':'البريد',
+'Search mugs, bowls, teapots…':'ابحث عن مجات، بولات، براريد…','Pottery Hub — home':'بوتري هب — الرئيسية','View':'عرض','Book':'احجز','Facebook':'فيسبوك',
+'House of Pottery':'بيت الفخار','Handmade in Egypt':'صُنع يدويًا في مصر','Bowls & serving':'بولات وتقديم','Made for full tables':'لسفرة عامرة','Mugs & cups':'مجات وفناجين','For slow mornings':'لصباحات هادئة',
+'Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story.':'سيراميك مشكَّل ومزجَّج ومحروق باليد — قطع فيها دفء وطابع وحكاية.',
+'Speckled, ribbed and scalloped pieces that turn every dinner into an occasion.':'قطع منقّطة ومضلّعة ومتموّجة تحوّل كل عشاء لمناسبة.',
+'Hand-thrown mugs, cups and saucers for the first quiet hour of the day.':'مجات وفناجين مشكّلة على العجلة لأول ساعة هادئة في يومك.',
+'Shop the collection':'تسوّق المجموعة','Shop bowls':'تسوّق البولات','You’re on the list — welcome to Pottery Hub':'اتسجلت معانا — أهلًا بيك في بوتري هب'
+};
+const RULES=[
+ [/^(\d+) × (.+) added( to your cart)?( ·)?$/,'$1 × $2 — اتضافت لحقيبتك$4'],
+ [/^Place order · /,'تأكيد الطلب · '],
+ [/^Save (\d+)%$/,'وفّر $1%'],
+ [/^\+(\d+) more$/,'+$1 أخرى'],
+ [/^(\d+) pieces?$/,'$1 قطعة'],
+ [/^No pieces match “(.*)”$/,'مفيش نتائج لـ “$1”'],
+ [/^Pieces matching “(.*)”$/,'نتائج البحث عن “$1”'],
+ [/^Popular: $/,'الأكثر بحثًا: '],
+ [/^“(.*)” isn’t a valid code$/,'“$1” كود غير صالح'],
+ [/^Order (PH-\d+)$/,'طلب رقم $1'],
+ [/^Thank you, (.*)!$/,'شكرًا يا $1!'],
+ [/^Your order of (\d+) handmade pieces? \((.*)\) has been received\. We’ll call you on (.*) to confirm delivery to (.*)\.$/,'طلبك ($1 قطعة، $2) وصلنا. هنتصل بيك على $3 عشان نأكد التوصيل لـ $4.'],
+ [/EGP\s?([\d,]+)/g,'$1 ج.م']
+];
+const tr=s=>AR&&DICT[s]?DICT[s]:s;
+function trText(v){
+  const t=v.trim();if(!t)return v;
+  if(DICT[t])return v.replace(t,DICT[t]);
+  let o=t;for(const [re,rep] of RULES)o=o.replace(re,rep);
+  return o===t?v:v.replace(t,o);
+}
+const ARROW=/^M(5 12h14|19 12H5|21 3 10\.5)/;
+function trNode(root){
+  if(root.nodeType===3){const n=trText(root.nodeValue);if(n!==root.nodeValue)root.nodeValue=n;return}
+  if(root.nodeType!==1||/^(SCRIPT|STYLE)$/.test(root.tagName))return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement&&!/SCRIPT|STYLE/.test(n.parentElement.tagName)?1:2});
+  const ns=[];while(w.nextNode())ns.push(w.currentNode);
+  ns.forEach(n=>{const v=trText(n.nodeValue);if(v!==n.nodeValue)n.nodeValue=v});
+  [root,...root.querySelectorAll('[placeholder],[aria-label],[data-cur],path')].forEach(e=>{
+    if(e.tagName==='path'){const d=e.getAttribute('d')||'';if(ARROW.test(d)){const s=e.closest('svg');if(s)s.classList.add('flipx')}return}
+    ['placeholder','aria-label'].forEach(a=>{const v=e.getAttribute&&e.getAttribute(a);if(v){const n=trText(v);if(n!==v)e.setAttribute(a,n)}});
+    if(e.dataset&&e.dataset.cur&&DICT[e.dataset.cur])e.dataset.cur=DICT[e.dataset.cur];
+  });
+}
+if(AR){
+  trNode(document.body);
+  new MutationObserver(ms=>ms.forEach(m=>{if(m.type==='characterData')trNode(m.target);else m.addedNodes.forEach(trNode)})).observe(document.body,{childList:true,subtree:true,characterData:true});
+}
+
+const AR_P=[
+['طقم مقالي سيراميك بيج منقّط','طقم من ثلاث مقالي سيراميك بيج بلمسة منقّطة ريفية ويد مستديرة، للطهي والخَبز والتقديم على السفرة.'],
+['مج سيراميك منقّط أسود وأبيض','مج بلمسة سوداء مطفية من أعلى ووسط منقّط وقاعدة بيضاء، بشكل عصري مصنوع يدويًا.'],
+['فنجان قهوة وصحن سيراميك أسود','فنجان قهوة أسود أنيق مع صحنه، بلمعة غنية وملمس رقيق.'],
+['بول خلط سيراميك أسود منقّط','بول أسود منقّط لامع بفوهة للصب، للخلط والتقديم والاستخدام اليومي.'],
+['بول تقديم «بلوم» أزرق وكريمي','بول تقديم بحواف متموجة وطلاء مقسوم بين الأزرق والكريمي مع تفاصيل بارزة رقيقة.'],
+['طقم تقديم سيراميك أزرق وأبيض','طقم تقديم بطلاء ثنائي اللون وأشكال معاصرة مميزة.'],
+['فنجان وصحن مزجج أزرق وأبيض','فنجان وصحن بطلاء أزرق وأبيض نابض ولمسة يدوية فريدة.'],
+['طقم بولات مضلّعة أزرق وأبيض','ثلاث بولات متداخلة بتفاصيل مضلّعة وطلاء أزرق وأبيض منقّط.'],
+['طقم تقديم وبولات سيراميك أزرق','أطباق تقديم وبولات متدرجة بطلاء كوبالت غني وتفاصيل بارزة، مع بول بيد.'],
+['فنجان وصحن مزجج أزرق','فنجان وصحن بدرجات أزرق غنية وطلاء لامع ولمسة يدوية مميزة.'],
+['طقم بولات أزرق منقّط','بولتان بلون الكوبالت مع نقش منقّط وتفاصيل مضلّعة.'],
+['كوب أزرق منقّط بشفّاطة ستانلس','كوب أزرق وأبيض منقّط بطلاء فريد وشفّاطة ستانلس للمشروبات الباردة.'],
+['مج سيراميك بني منقّط','مج بطلاء بني دافئ منقّط ولمسات كريمية وشكل دائري مريح.'],
+['طقم مجات بني منقّط','مجّان بطبقات بنية دافئة ولمعة بطابع يدوي.'],
+['عصّارة حمضيات سيراميك سيلادون','عصّارة بمصفاة مدمجة ويد جانبية وطلاء أخضر سيلادون مميز.'],
+['مج سيراميك أسود','مج أسود كلاسيكي لقهوتك أو شايك اليومي، بتصميم بسيط يناسب أي مطبخ.'],
+['بول بغطاء سيراميك بيج','بول بيج أنيق بغطاء مطابق، للتقديم والحفظ.'],
+['براد شاي سيراميك أخضر مريمية','براد شاي بلون المريمية بشكل دائري ساحر، لجلسات الشاي الهادئة.'],
+['طقم بولات تقديم كريمي منقّط','بولات تقديم كريمية أنيقة بنقش منقّط ناعم.'],
+['مج بطلاء أزرق تفاعلي','مج بطلاء أزرق عميق تتداخل ألوانه بشكل مختلف في كل قطعة.'],
+['كاسرولة سيراميك أخضر غامق','كاسرولة بغطاء وتصميم جميل، من الفرن للسفرة مباشرة.'],
+['بول تقديم متموّج أخضر غامق','بول تقديم أخضر عميق بحواف متموجة.'],
+['فنجان وصحن أخضر منقّط','فنجان وصحن بلون أخضر منعش ونقش منقّط أنيق.'],
+['كوب أخضر منقّط بشفّاطة ستانلس','كوب أخضر وكريمي منقّط بملمس مميز وشفّاطة ستانلس.'],
+['كوب سيراميك أخضر مضلّع','كوب أخضر منقّط بتضليع أنيق للمشروبات اليومية.'],
+['طقم قوارير وبرطمانات تيراكوتا','ثلاث قطع تيراكوتا مصنوعة يدويًا بأحجام مختلفة.'],
+['مج سيراميك أزرق ليلي','مج لامع بدرجات الفحمي والأزرق العميق.'],
+['طقم مقالي سيراميك أخضر نعناعي','ثلاث مقالي بلون النعناع ونقش منقّط ويد مستديرة.'],
+['طقم أطباق تقديم كحلي','ثلاث أطباق تقديم متداخلة بلون كحلي راقٍ.'],
+['طقم بولات بغطاء زيتوني – قطعتان','بولتان بلون الزيتون بأغطية مطابقة.'],
+['طقم بولات مضلّعة زيتوني','ثلاث بولات متداخلة بتضليع ناعم ولون زيتوني.'],
+['طقم بولات متداخلة زيتوني','ثلاث بولات متداخلة بطلاء زيتوني أنيق.'],
+['بول «موجة» زيتوني','بول بتموّج ناعم ولون زيتوني دافئ.'],
+['مج سيراميك وردي منقّط','مج وردي لامع بنقش منقّط ساحر.'],
+['طقم مقالي سيراميك وردي منقّط','ثلاث مقالي وردية لامعة بنقش منقّط ويد مستديرة.'],
+['فنجان وصحن مزجج بنفسجي','فنجان وصحن بطلاء بنفسجي ساحر.'],
+['فنجان قهوة وصحن بني ريفي','فنجان وصحن بني مزجج بطابع ريفي دافئ.'],
+['طقم قارورة وكوب أخضر مريمية','قارورة سيراميك مع كوب مطابق بلون المريمية.'],
+['طقم تقديم أخضر مريمية','طبق تقديم بلون المريمية مع بول للصوص في المنتصف.'],
+['مج دائري بيج منقّط','مج دائري بطلاء بيج دافئ ونقش منقّط.'],
+['بول أخضر غامق منقّط','بول أخضر عميق بنقش منقّط.'],
+['كوب مضلّع منقّط بشفّاطة ستانلس','كوب مضلّع بدرجات دافئة وشفّاطة ستانلس.'],
+['طقم بولات أخضر مزرق','ثلاث بولات متداخلة بلون أخضر مزرق.'],
+['طقم تقديم أخضر مزرق منقّط','طقم تقديم بنقش منقّط ولون أخضر مزرق.'],
+['طقم بولات أبيض منقّط','ثلاث بولات بيضاء أنيقة بنقش منقّط.'],
+['كاسرولة سيراميك بيضاء منقّطة','كاسرولة بيضاء منقّطة بغطاء، من الفرن للسفرة.']];
+$('#langBtn').textContent=AR?'EN':'عربي';
+$('#langBtn').onclick=()=>{const u=new URL(location.href);u.searchParams.set('lang',AR?'en':'ar');location.href=u.toString()};
 /* ---------- catalog ---------- */
-const CATN={'Mugs':'Mugs','Bowls':'Bowls','Coffee Cup & Saucer':'Cups & Saucers','Plates and Tajin':'Plates & Tajin','Skillet':'Skillets','Casserole':'Casseroles','Pots':'Tumblers','TeaPot':'Teapots','Bottle & Jar':'Bottles & Jars'};
-const P=RAW.map((r,i)=>({id:i,base:r[0],name:r[1],cats:r[2],cat:r[2][0],old:r[3],now:r[4],desc:r[5],
+const CATN0={'Mugs':'Mugs','Bowls':'Bowls','Coffee Cup & Saucer':'Cups & Saucers','Plates and Tajin':'Plates & Tajin','Skillet':'Skillets','Casserole':'Casseroles','Pots':'Tumblers','TeaPot':'Teapots','Bottle & Jar':'Bottles & Jars'};
+const CATN_AR={'Mugs':'مجات','Bowls':'بولات','Coffee Cup & Saucer':'فناجين وصحون','Plates and Tajin':'أطباق وطواجن','Skillet':'مقالي','Casserole':'كاسرولات','Pots':'أكواب','TeaPot':'براريد شاي','Bottle & Jar':'قوارير وبرطمانات'};
+const CATN=AR?CATN_AR:CATN0;
+const P=RAW.map((r,i)=>({id:i,base:r[0],name:AR&&AR_P[i]?AR_P[i][0]:r[1],cats:r[2],cat:r[2][0],old:r[3],now:r[4],desc:AR&&AR_P[i]?AR_P[i][1]:r[5],
   sm:U+r[0]+'-768x878.png',lg:U+r[0]+'-896x1024.png',th:U+r[0]+'-262x300.png'}));
 const POP=['39-1','90-1','95-1','28-1','102-1','111-1','120','45-1','75-1','25-1','64-1','118-1'];
 const kOf=p=>p.base.split('/').pop();
@@ -889,7 +1052,7 @@ const PRICES=[['Any price',0,1e9],['Under EGP 500',0,500],['EGP 500 – 1,000',5
 const SORTS=[['pop','Most popular'],['low','Price: low to high'],['high','Price: high to low'],['save','Biggest savings'],['az','Name: A–Z']];
 function filterP({q='',cat=null,price=0,sort='pop'}){
   const t=q.trim().toLowerCase(),[,lo,hi]=PRICES[price]||PRICES[0];
-  const l=P.filter(p=>(!cat||p.cats.includes(cat))&&p.now>=lo&&p.now<hi&&(!t||t.split(/\s+/).every(w=>(p.name+' '+p.cats.map(c=>CATN[c]).join(' ')+' '+p.desc).toLowerCase().includes(w))));
+  const l=P.filter(p=>(!cat||p.cats.includes(cat))&&p.now>=lo&&p.now<hi&&(!t||t.split(/\s+/).every(w=>(p.name+' '+RAW[p.id][1]+' '+p.cats.map(c=>CATN0[c]+' '+CATN_AR[c]).join(' ')+' '+p.desc).toLowerCase().includes(w))));
   const f={pop:(a,b)=>rank(a)-rank(b),low:(a,b)=>a.now-b.now,high:(a,b)=>b.now-a.now,save:(a,b)=>off(b)-off(a),az:(a,b)=>a.name.localeCompare(b.name)}[sort]||((a,b)=>rank(a)-rank(b));
   return l.sort(f);
 }
@@ -967,11 +1130,12 @@ $$('.promo img').forEach(i=>{const p=byK(i.dataset.k);if(p)i.src=p.sm});
 
 /* ---------- hero: bento ---------- */
 /* Hero photos: assets/img/hero-*.jpg (2400x1350). fx/fy = focal point kept in view when the tile crops the photo. */
-const HERO=[
+const HERO0=[
   {img:'assets/img/hero-1.jpg',fx:80,fy:55,eb:'House of Pottery',t:'Handmade in Egypt',p:'Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story.',cta:'Shop the collection',cat:null},
   {img:'assets/img/hero-2.jpg',fx:64,fy:62,eb:'Bowls & serving',t:'Made for full tables',p:'Speckled, ribbed and scalloped pieces that turn every dinner into an occasion.',cta:'Shop bowls',cat:'Bowls'},
   {img:'assets/img/hero-3.jpg',fx:42,fy:45,eb:'Mugs & cups',t:'For slow mornings',p:'Hand-thrown mugs, cups and saucers for the first quiet hour of the day.',cta:'Shop mugs',cat:'Mugs'}
 ];
+const HERO=HERO0.map(h=>({...h,eb:tr(h.eb),t:tr(h.t),p:tr(h.p),cta:tr(h.cta)}));
 const hero=$('#hero'),bBig=$('#bBig'),BDUR=6000;
 let bi=-1,btimer=null;
 HERO.forEach(h=>{
@@ -1186,9 +1350,9 @@ $('#fCart').onclick=()=>openDrawer('cart');$('#fWish').onclick=()=>openDrawer('w
 const menu=$('#menu');
 $('#menuL').innerHTML='<button data-m="home">Home</button><button data-m="shop">Shop all<small>'+P.length+' pieces</small></button>'+
   catList.slice(0,6).map(x=>'<button data-m="cat" data-c="'+esc(x.c)+'">'+x.n+'<small>'+x.items.length+'</small></button>').join('')+
-  '<button data-m="wish">Wishlist</button><button data-m="cart">Cart</button><a href="https://www.facebook.com/profile.php?id=61595757980356" target="_blank" rel="noopener">Contact<small>Facebook</small></a>';
+  '<button data-m="wish">Wishlist</button><button data-m="cart">Cart</button><button data-m="lang">'+(AR?'English':'العربية')+'</button><a href="https://www.facebook.com/profile.php?id=61595757980356" target="_blank" rel="noopener">Contact<small>Facebook</small></a>';
 $('#menuL').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;const m=b.dataset.m;
-  if(m==='home')closeAll();else if(m==='shop')openShop({});else if(m==='cat')openShop({cat:b.dataset.c});else openDrawer(m)});
+  if(m==='home')closeAll();else if(m==='shop')openShop({});else if(m==='cat')openShop({cat:b.dataset.c});else if(m==='lang')$('#langBtn').click();else openDrawer(m)});
 L.menu={hide:()=>menu.classList.remove('on')};
 $('#openMenu').onclick=$('#openMenuM').onclick=()=>{if(push('menu'))menu.classList.add('on')};
 
@@ -1196,7 +1360,7 @@ $('#openMenu').onclick=$('#openMenuM').onclick=()=>{if(push('menu'))menu.classLi
 const sov=$('#sov');
 L.search={hide:()=>{sov.classList.remove('on');$('#sovQ').blur()}};
 function renderSov(){const q=$('#sovQ').value.trim();$('#sovRes').innerHTML=q?suggHTML(q,12):''}
-$('#sovHint').innerHTML='Popular: '+['Mug','Bowl set','Teapot','Skillet','Blue','Green'].map(t=>'<button class="chip" data-t="'+t+'">'+t+'</button>').join('');
+$('#sovHint').innerHTML='Popular: '+['Mug','Bowl set','Teapot','Skillet','Blue','Green'].map(t=>'<button class="chip" data-t="'+tr(t)+'">'+t+'</button>').join('');
 $$('#sovHint .chip').forEach(c=>c.onclick=()=>{$('#sovQ').value=c.dataset.t;renderSov()});
 $('#sovQ').addEventListener('input',renderSov);
 $('#sovQ').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('#sovQ').value.trim())openShop({q:$('#sovQ').value})});
@@ -1205,7 +1369,9 @@ $('#openSearch').onclick=()=>{closePops();if(push('search')){sov.classList.add('
 
 /* ---------- checkout ---------- */
 const coEl=$('#checkout');
-const GOV=['Cairo','Giza','Alexandria','Qalyubia','Sharqia','Dakahlia','Gharbia','Monufia','Beheira','Kafr El Sheikh','Damietta','Port Said','Ismailia','Suez','Faiyum','Beni Suef','Minya','Asyut','Sohag','Qena','Luxor','Aswan','Red Sea','Matrouh','North Sinai','South Sinai','New Valley'];
+const GOV_EN=['Cairo','Giza','Alexandria','Qalyubia','Sharqia','Dakahlia','Gharbia','Monufia','Beheira','Kafr El Sheikh','Damietta','Port Said','Ismailia','Suez','Faiyum','Beni Suef','Minya','Asyut','Sohag','Qena','Luxor','Aswan','Red Sea','Matrouh','North Sinai','South Sinai','New Valley'];
+const GOV_AR=['القاهرة','الجيزة','الإسكندرية','القليوبية','الشرقية','الدقهلية','الغربية','المنوفية','البحيرة','كفر الشيخ','دمياط','بورسعيد','الإسماعيلية','السويس','الفيوم','بني سويف','المنيا','أسيوط','سوهاج','قنا','الأقصر','أسوان','البحر الأحمر','مطروح','شمال سيناء','جنوب سيناء','الوادي الجديد'];
+const GOV=AR?GOV_AR:GOV_EN;
 const form={name:'',phone:'',email:'',gov:'',city:'',addr:'',notes:'',pay:'cod'};
 function fi(k,label,type,ph,err,extra){return '<label class="fi" data-k="'+k+'"><span>'+label+'</span><input name="'+k+'" type="'+type+'" placeholder="'+ph+'" value="'+esc(form[k])+'" '+(extra||'')+'><em>'+err+'</em></label>'}
 function sumHTML(){
