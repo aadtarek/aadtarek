@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Pottery Hub — Handmade Ceramics, Made in Egypt</title>
-<meta name="description" content="Shop handmade ceramics from Egypt: mugs, bowls, cups and saucers, tajin, skillets and teapots. Free shipping on every order.">
+<meta name="description" content="Shop handmade ceramics from Egypt: mugs, bowls, cups and saucers, tajin, skillets and teapots.">
 <meta name="theme-color" content="#ba4a2f">
 <link rel="icon" href="assets/img/favicon.png">
 <link rel="preload" as="image" href="assets/img/emblem-light.png">
@@ -341,7 +341,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .minis img{width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply}
 .minis .more{position:absolute;inset:0;background:rgba(47,59,51,.62);color:#fff;display:grid;place-items:center;font-size:18px;font-weight:600}
 .dcat{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;color:var(--terra);margin-bottom:10px}
-.dname{font-size:clamp(28px,2.7vw,40px);line-height:1.12;color:var(--forest)}
+.dname{font-size:clamp(28px,2.7vw,40px);line-height:1.12;color:var(--forest);margin-bottom:22px}
 .host{display:flex;align-items:center;gap:9px;margin:12px 0 22px;font-size:13.5px;color:var(--muted)}
 .host .mk{width:22px;height:22px;border-radius:50%;background:var(--terra);color:#fff;font-size:9px;font-weight:700;display:grid;place-items:center}
 .host b{color:var(--ink);font-weight:600}
@@ -650,7 +650,6 @@ html.lenis,html.lenis body{height:auto}
     <div class="pre-sub">HOUSE OF POTTERY</div>
     <div class="pre-bar"><i id="preBar"></i></div>
   </div>
-  <div class="pre-c">Handmade in Egypt</div>
   <div class="pre-n"><span id="preN">0</span><sup>%</sup></div>
 </div>
 <div id="prog"></div>
@@ -704,13 +703,21 @@ html.lenis,html.lenis body{height:auto}
     </button>
     <button class="bt bwk" data-go="classes" style="--d:320ms" data-cur="Book">
       <span class="barr"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
-      <small>Small groups</small><h4>Pottery<br>workshops</h4>
+      <small>The studio</small><h4>Pottery<br>workshops</h4>
       <img class="wi" src="assets/img/emblem-light.png" alt="">
     </button>
   </div>
 </section>
 
-<main class="sec stays" id="popular">
+<section class="sec stays" id="cats">
+  <div class="sec-h">
+    <div><div class="eyebrow">Collections</div><h2 class="serif">Shop by category</h2></div>
+    <div class="arrows"><button data-sc="-1" aria-label="Previous"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button data-sc="1" aria-label="Next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+  </div>
+  <div class="cats" id="catRow"></div>
+</section>
+
+<main class="sec" id="popular">
   <div class="sec-h">
     <div><div class="eyebrow">The collection</div><h2 class="serif">Popular of the Week</h2><p>The most loved pieces, shaped and glazed by hand</p></div>
     <button class="see" data-shop>Shop all <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
@@ -721,17 +728,7 @@ html.lenis,html.lenis body{height:auto}
 
 <div class="marq" id="marq" aria-hidden="true"><div class="tr" id="marqT"></div></div>
 
-<section class="sec" id="cats">
-  <div class="sec-h">
-    <div><div class="eyebrow">Collections</div><h2 class="serif">Shop by category</h2></div>
-    <div class="arrows"><button data-sc="-1" aria-label="Previous"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button><button data-sc="1" aria-label="Next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
-  </div>
-  <div class="cats" id="catRow"></div>
-</section>
 
-<section class="sec">
-  <div class="perks" id="perks"></div>
-</section>
 
 <section class="sec">
   <div class="promos">
@@ -749,7 +746,7 @@ html.lenis,html.lenis body{height:auto}
   <div class="bt">
     <div class="eyebrow">Workshops</div>
     <h2 class="serif">Get to know pottery</h2>
-    <p>Sit at the wheel, feel the clay and leave with a piece you made yourself. Small groups, every tool provided.</p>
+    <p>Sit at the wheel, feel the clay and leave with a piece you made yourself.</p>
     <a class="btn" href="https://www.facebook.com/profile.php?id=61595757980356" target="_blank" rel="noopener">Ask about the next class
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
   </div>
@@ -766,7 +763,7 @@ html.lenis,html.lenis body{height:auto}
   <div class="giant sp" id="giant" data-par="-.08">House of Pottery</div>
   <svg class="spark" style="left:8%;bottom:30%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
   <svg class="spark" style="right:12%;bottom:46%;animation-delay:-1.2s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
-  <div class="bot"><span>© 2026 Pottery Hub. Handmade in Egypt.</span><span>Free shipping on every order</span></div>
+  <div class="bot"><span>© 2026 Pottery Hub</span><span>House of Pottery</span></div>
 </footer>
 
 <!-- SHOP -->
@@ -812,21 +809,18 @@ html.lenis,html.lenis body{height:auto}
       <div>
         <div class="dcat rv" id="dcatL"></div>
         <h1 class="dname serif rv" id="dname"></h1>
-        <div class="host rv"><span class="mk">PH</span>Handmade by <b>Pottery Hub Studio</b></div>
         <div class="dabout rv"><p id="dabP"></p></div>
         <div class="book rv">
           <div class="pr" id="dprice"></div>
-          <div class="dates"><div><small>Category</small><b id="dcat"></b></div><div><small>Shipping</small><b>Free</b></div></div>
+          
           <div class="qty">Quantity<div class="step" id="dqty"><button data-d="-1" aria-label="Less">−</button><output>1</output><button data-d="1" aria-label="More">+</button></div></div>
           <div class="bbtns"><button class="booknow" id="addCart">Add to Cart</button><button class="buy" id="buyNow">Buy now <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
-          <div class="trust"><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2.5 6.5h11v9h-11zM13.5 9.5h4l3 3v3h-7z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>Free shipping</span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg>Secure checkout</span><span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>Handmade</span></div>
         </div>
         <div class="acc rv">
-          <details open><summary>Handmade details</summary><p>Each piece is thrown or hand-built, then glazed by hand in our studio. Speckles, drips and tone vary slightly from piece to piece — that's the mark of the maker, not a flaw.</p></details>
-          <details><summary>Care</summary><p>Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing.</p></details>
-          <details><summary>Shipping</summary><p>Free shipping on every order. Pieces are wrapped carefully to arrive safely at your door.</p></details>
+          
+          <details open><summary>Care</summary><p>Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing.</p></details>
+          <details><summary>Delivery</summary><p>We call you to confirm your order and delivery details.</p></details>
         </div>
-        <ul class="amen rv" id="amen"></ul>
       </div>
     </div>
     <div class="similar">
@@ -969,8 +963,6 @@ const catImg={Mugs:'28-1',Bowls:'95-1','Coffee Cup & Saucer':'109-1','Plates and
 $('#catRow').innerHTML=catList.map(x=>{const p=byK(catImg[x.c])||x.items[0];return '<button class="cat" data-shop-cat="'+esc(x.c)+'"><div class="cw"><img src="'+p.sm+'" alt="" loading="lazy"></div><b>'+x.n+'</b><small>'+x.items.length+(x.items.length>1?' pieces':' piece')+'</small></button>'}).join('');
 $$('[data-sc]').forEach(b=>b.onclick=()=>{const r=$('#catRow');r.scrollBy({left:+b.dataset.sc*r.clientWidth*.8,behavior:'smooth'})});
 $('#footCats').innerHTML=catList.slice(0,6).map(x=>'<li><button data-shop-cat="'+esc(x.c)+'">'+x.n+'</button></li>').join('');
-$('#perks').innerHTML=[[IC.truck,'Free shipping','On every order'],[IC.hand,'Handmade','Thrown and glazed by hand'],[IC.box,'Packed with care','Wrapped to arrive safely'],[IC.gift,'Gift ready','Pieces that feel personal']]
-  .map(([i,b,s])=>'<div class="perk"><i>'+svg(i)+'</i><div><b>'+b+'</b><small>'+s+'</small></div></div>').join('');
 $$('.promo img').forEach(i=>{const p=byK(i.dataset.k);if(p)i.src=p.sm});
 
 /* ---------- hero: bento ---------- */
@@ -1110,14 +1102,12 @@ function openShop(f){
 
 /* ---------- product detail ---------- */
 const detail=$('#detail'),main=$('#main');let curP=null,qty=1;
-$('#amen').innerHTML=[[IC.hand,'Handmade'],[IC.star,'One of a kind'],[IC.pin,'Made in Egypt'],[IC.truck,'Free shipping'],[IC.gift,'Gift ready'],[IC.box,'Careful packing']]
-  .map(([d,t])=>'<li>'+svg(d,20)+t+'</li>').join('');
 function populate(p){
   curP=p;qty=1;$('output',$('#dqty')).textContent=1;
   $('#crumb').innerHTML='<a href="#" data-home>Home</a>›<button data-shop>Shop</button>›<button data-shop-cat="'+esc(p.cat)+'">'+CATN[p.cat]+'</button>›<span>'+esc(p.name)+'</span>';
   $('#dcatL').textContent=CATN[p.cat];$('#dname').textContent=p.name;$('#dabP').textContent=p.desc;
   $('#dprice').innerHTML='EGP '+fmt(p.now)+'<s>EGP '+fmt(p.old)+'</s><i>Save '+off(p)+'%</i>';
-  $('#dcat').textContent=CATN[p.cat];
+  
   const ab=$('#addCart');ab.classList.remove('done');ab.textContent='Add to Cart';
   const others=P.filter(q=>q.id!==p.id),rel=others.filter(q=>q.cats.some(c=>p.cats.includes(c))).concat(others.filter(q=>!q.cats.some(c=>p.cats.includes(c))));
   const more=P.filter(q=>q.cats.includes(p.cat)).length-1-2;
@@ -1165,7 +1155,7 @@ function renderDrawer(){
     body.innerHTML=cart.map((x,i)=>{const p=P[x.id];return '<div class="line"><button class="li" data-pid="'+p.id+'"><img src="'+p.th+'" alt=""></button><div><b>'+esc(p.name)+'</b><small>'+CATN[p.cat]+'</small><div class="lp">EGP '+fmt(p.now*x.q)+'</div>'+
       '<div class="step" data-i="'+i+'"><button data-d="-1" aria-label="Less">−</button><output>'+x.q+'</output><button data-d="1" aria-label="More">+</button></div></div><button class="rm" data-rm="'+i+'">Remove</button></div>'}).join('');
     foot.style.display='';
-    foot.innerHTML='<div class="shipbar">'+svg(IC.truck,18)+'Free shipping on this order</div>'+
+    foot.innerHTML=
       '<div class="tot"><span>You save</span><span>EGP '+fmt(savings())+'</span></div><div class="tot big"><span>Subtotal</span><span>EGP '+fmt(subtotal())+'</span></div>'+
       '<button class="btn" id="goCheckout" style="width:100%;height:54px;border-radius:16px">Checkout '+IC.arrow+'</button>';
     $('#goCheckout').onclick=openCheckout;
@@ -1221,7 +1211,7 @@ function fi(k,label,type,ph,err,extra){return '<label class="fi" data-k="'+k+'">
 function sumHTML(){
   return '<div class="blk sum"><h3>Order summary</h3>'+cart.map(x=>{const p=P[x.id];return '<div class="line"><div class="li"><img src="'+p.th+'" alt=""><i>'+x.q+'</i></div><div><b>'+esc(p.name)+'</b><small>'+CATN[p.cat]+'</small></div><div class="lp" style="margin:0">EGP '+fmt(p.now*x.q)+'</div></div>'}).join('')+
    '<form class="coupon" id="coupon"><input placeholder="Gift card or discount code" aria-label="Discount code"><button>Apply</button></form>'+
-   '<div class="tot"><span>Subtotal</span><span>EGP '+fmt(subtotal())+'</span></div><div class="tot"><span>Shipping</span><span style="color:var(--forest);font-weight:700">Free</span></div><div class="tot"><span>You save</span><span>EGP '+fmt(savings())+'</span></div>'+
+   '<div class="tot"><span>Subtotal</span><span>EGP '+fmt(subtotal())+'</span></div><div class="tot"><span>Shipping</span><span>Confirmed by phone</span></div><div class="tot"><span>You save</span><span>EGP '+fmt(savings())+'</span></div>'+
    '<div class="tot big"><span>Total</span><span>EGP '+fmt(subtotal())+'</span></div></div>';
 }
 function bindCoupon(){const c=$('#coupon');if(c)c.onsubmit=e=>{e.preventDefault();const v=$('input',c).value.trim();toast(v?'“'+v+'” isn’t a valid code':'Enter a code first')}}
@@ -1296,7 +1286,6 @@ function split(el){if(el.dataset.split===el.textContent)return;const words=el.te
 $$('.sec-h h2, .band h2, .promo h3, #giant').forEach(split);
 const rio=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');rio.unobserve(e.target)}}),{threshold:.15,rootMargin:'0px 0px -6% 0px'});
 function watch(root){$$('[data-rv],.sp,.eyebrow,.cat',root||document).forEach(el=>{if(!el.classList.contains('in'))rio.observe(el)})}
-$$('#perks .perk').forEach((p,i)=>{p.setAttribute('data-rv','');p.style.setProperty('--d',i*110+'ms')});
 $$('#catRow .cat').forEach((c,i)=>{c.setAttribute('data-rv','');c.dataset.cur='Shop';c.style.setProperty('--d',Math.min(i,5)*90+'ms')});
 $$('.sec-h p, .sec-h .see, .sec-h .arrows, .chips, .band p, .band .btn, .promo p, .promo .wbtn, .foot .fg>div').forEach((el,i)=>{el.setAttribute('data-rv','');el.style.setProperty('--d',(el.matches('.foot .fg>div')?(i%4)*100:150)+'ms')});
 watch();
@@ -1304,7 +1293,7 @@ const _fill=fill;fill=function(g,l){_fill(g,l);watch(g)};
 new MutationObserver(()=>{['#shopTitle'].forEach(sel=>{const el=$(sel);if(el&&el.dataset.split!==el.textContent){el.classList.remove('in');split(el);requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('in')))}})}).observe($('#shopTitle'),{childList:true,characterData:true,subtree:true});
 
 /* marquee */
-const MQ=['Handmade in Egypt','House of Pottery','Free shipping','One of a kind','Glazed by hand'];
+const MQ=['Pottery Hub','House of Pottery','Pottery Hub','House of Pottery'];
 const star='<svg class="st" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>';
 const half='<div class="it">'+MQ.map((t,i)=>'<span class="'+(i%2?'o':'')+'">'+t+'</span>'+star).join('')+'</div>';
 $('#marqT').innerHTML=half+half;
