@@ -369,7 +369,7 @@ else {
   (function tick(now) {
     const el = now - t0, goal = Math.max(Math.min(done / total, el / 1900, 1), el > 7000 ? 1 : 0);
     shown += (goal - shown) * .07; if (goal >= 1 && shown > .995) shown = 1;
-    $('#preN').textContent = Math.round(shown * 100); $('#preBar').style.transform = 'scaleX(' + shown + ')'; $('#preF').style.setProperty('--a', (shown * 360) + 'deg');
+    $('#preBar').style.transform = 'scaleX(' + shown + ')'; $('#preF').style.setProperty('--a', (shown * 360) + 'deg');
     if (shown < 1) return requestAnimationFrame(tick);
     if (fin) return; fin = true;
     setTimeout(() => { pre.classList.add('out'); document.documentElement.style.overflow = ''; if (lenis && !open.size) lenis.start(); setTimeout(intro, 450); setTimeout(() => pre.remove(), 1400); }, 350);

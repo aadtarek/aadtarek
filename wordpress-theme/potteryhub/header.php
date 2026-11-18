@@ -28,7 +28,6 @@ $ph_wc = class_exists( 'WooCommerce' );
 		<div class="pre-sub"><?php esc_html_e( 'House of Pottery', 'potteryhub' ); ?></div>
 		<div class="pre-bar"><i id="preBar"></i></div>
 	</div>
-	<div class="pre-n"><span id="preN">0</span><sup>%</sup></div>
 </div>
 <div id="prog"></div>
 

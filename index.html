@@ -686,7 +686,6 @@ html.lenis,html.lenis body{height:auto}
     <div class="pre-sub">HOUSE OF POTTERY</div>
     <div class="pre-bar"><i id="preBar"></i></div>
   </div>
-  <div class="pre-n"><span id="preN">0</span><sup>%</sup></div>
 </div>
 <div id="prog"></div>
 
@@ -1513,7 +1512,7 @@ badges();onScroll();
   (function tick(now){
     const el=now-t0,goal=Math.min(done/total,el/1900,1),force=el>7000?1:0;
     shown+=((Math.max(goal,force))-shown)*.07;if(Math.max(goal,force)>=1&&shown>.995)shown=1;
-    $('#preN').textContent=Math.round(shown*100);$('#preBar').style.transform='scaleX('+shown+')';
+    $('#preBar').style.transform='scaleX('+shown+')';
     $('#preF').style.setProperty('--a',(shown*360)+'deg');
     if(shown<1)return requestAnimationFrame(tick);
     if(fin)return;fin=true;
