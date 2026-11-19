@@ -10007,3 +10007,960 @@ function rfaheya_menus_page() {
 	</script>
 	<?php
 }
+
+/* -------------------------------------------------------------------------
+ * Claude connection (Tools → Claude connection ✦): an MCP server, so Claude can run the
+ * store when asked — read the products, orders and offers, and (in "full control") change them.
+ * Off until switched on. Reached with a secret address (or the same key as a Bearer token);
+ * every call is written to the activity log on that page.
+ * ------------------------------------------------------------------------- */
+
+define( 'RFAHEYA_MCP', 'rfaheya_mcp' );
+
+/** The connection's settings: on, mode (read / full), the key's hash, the user it acts as. */
+function rfaheya_mcp_options() {
+	$o = get_option( RFAHEYA_MCP, array() );
+	return array_merge(
+		array(
+			'on'   => false,
+			'mode' => 'read',
+			'hash' => '',
+			'hint' => '',
+			'user' => 0,
+		),
+		is_array( $o ) ? $o : array()
+	);
+}
+
+/** A new secret key: only its hash is kept; the key itself is shown once. */
+function rfaheya_mcp_new_key() {
+	$key = wp_generate_password( 40, false, false );
+	$o   = rfaheya_mcp_options();
+	$o['hash'] = hash_hmac( 'sha256', $key, wp_salt( 'auth' ) );
+	$o['hint'] = substr( $key, -4 );
+	update_option( RFAHEYA_MCP, $o, false );
+	return $key;
+}
+
+function rfaheya_mcp_key_ok( $key ) {
+	$o = rfaheya_mcp_options();
+	return $o['on'] && $o['hash'] && is_string( $key ) && strlen( $key ) >= 30 && hash_equals( $o['hash'], hash_hmac( 'sha256', $key, wp_salt( 'auth' ) ) );
+}
+
+/** One line in the activity log (the last 300 are kept). */
+function rfaheya_mcp_log( $tool, $args, $ok, $note = '' ) {
+	$log = get_option( 'rfaheya_mcp_log', array() );
+	$log = is_array( $log ) ? $log : array();
+	array_unshift(
+		$log,
+		array(
+			't'    => time(),
+			'tool' => $tool,
+			'args' => mb_substr( wp_json_encode( $args, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ), 0, 400 ),
+			'ok'   => (bool) $ok,
+			'note' => mb_substr( (string) $note, 0, 200 ),
+			'ip'   => function_exists( 'rfaheya_client_ip' ) ? rfaheya_client_ip() : '',
+		)
+	);
+	update_option( 'rfaheya_mcp_log', array_slice( $log, 0, 300 ), false );
+}
+
+add_action(
+	'rest_api_init',
+	function () {
+		$args = array(
+			'methods'             => array( 'GET', 'POST', 'DELETE' ),
+			'callback'            => 'rfaheya_mcp_handle',
+			'permission_callback' => '__return_true', // the key is checked in the handler (a JSON-RPC answer, not a WordPress one)
+		);
+		register_rest_route( 'rfaheya/v1', '/mcp', $args );
+		register_rest_route( 'rfaheya/v1', '/mcp/(?P<key>[A-Za-z0-9]{30,64})', $args );
+	}
+);
+
+/** The key from the address or from "Authorization: Bearer …". */
+function rfaheya_mcp_request_key( WP_REST_Request $r ) {
+	if ( $r->get_param( 'key' ) ) {
+		return (string) $r->get_param( 'key' );
+	}
+	$auth = (string) $r->get_header( 'authorization' );
+	return preg_match( '/^Bearer\s+(\S+)$/i', $auth, $m ) ? $m[1] : '';
+}
+
+function rfaheya_mcp_handle( WP_REST_Request $r ) {
+	nocache_headers();
+	if ( function_exists( 'rfaheya_limit_count' ) && rfaheya_limit_count( 'mcp', rfaheya_client_ip() ) > 30 ) {
+		return new WP_REST_Response( array( 'error' => 'Too many wrong attempts. Try again later.' ), 429 );
+	}
+	if ( ! rfaheya_mcp_key_ok( rfaheya_mcp_request_key( $r ) ) ) {
+		// Wrong keys are rate limited like sign-ins.
+		if ( function_exists( 'rfaheya_limit_hit' ) ) {
+			rfaheya_limit_hit( 'mcp', rfaheya_client_ip(), HOUR_IN_SECONDS );
+		}
+		return new WP_REST_Response( array( 'error' => 'Not connected: the connection is off or the address is wrong.' ), 401 );
+	}
+	if ( 'POST' !== $r->get_method() ) {
+		// No server-sent stream and no sessions: every answer comes back on its own request.
+		return new WP_REST_Response( null, 'DELETE' === $r->get_method() ? 200 : 405 );
+	}
+	$o = rfaheya_mcp_options();
+	if ( $o['user'] ) {
+		wp_set_current_user( (int) $o['user'] );
+	}
+	$body = json_decode( $r->get_body(), true );
+	if ( ! is_array( $body ) ) {
+		return new WP_REST_Response( array( 'jsonrpc' => '2.0', 'id' => null, 'error' => array( 'code' => -32700, 'message' => 'Parse error' ) ), 400 );
+	}
+	$batch = isset( $body[0] );
+	$out   = array();
+	foreach ( $batch ? $body : array( $body ) as $msg ) {
+		$res = rfaheya_mcp_message( is_array( $msg ) ? $msg : array() );
+		if ( null !== $res ) {
+			$out[] = $res;
+		}
+	}
+	if ( ! $out ) {
+		return new WP_REST_Response( null, 202 ); // notifications only
+	}
+	return new WP_REST_Response( $batch ? $out : $out[0], 200 );
+}
+
+/** One JSON-RPC message → its answer (null for a notification). */
+function rfaheya_mcp_message( $msg ) {
+	$id     = $msg['id'] ?? null;
+	$method = (string) ( $msg['method'] ?? '' );
+	$params = is_array( $msg['params'] ?? null ) ? $msg['params'] : array();
+	$answer = fn( $result ) => array( 'jsonrpc' => '2.0', 'id' => $id, 'result' => $result );
+	$error  = fn( $code, $text ) => array( 'jsonrpc' => '2.0', 'id' => $id, 'error' => array( 'code' => $code, 'message' => $text ) );
+	if ( ! array_key_exists( 'id', $msg ) ) {
+		return null; // notifications/initialized, cancelled…
+	}
+	switch ( $method ) {
+		case 'initialize':
+			$asked = (string) ( $params['protocolVersion'] ?? '' );
+			$known = array( '2025-11-25', '2025-06-18', '2025-03-26', '2024-11-05' );
+			return $answer(
+				array(
+					'protocolVersion' => in_array( $asked, $known, true ) ? $asked : '2025-06-18',
+					'capabilities'    => array( 'tools' => array( 'listChanged' => false ) ),
+					'serverInfo'      => array(
+						'name'    => 'rfaheya-store',
+						'title'   => get_bloginfo( 'name' ) . ' store',
+						'version' => '1.0.0',
+					),
+					'instructions'    => 'The ' . get_bloginfo( 'name' ) . ' WooCommerce store (prices in EGP). Read before you change anything; for changes, say what you will do and get the owner\'s go-ahead first. '
+						. ( 'full' === rfaheya_mcp_options()['mode'] ? 'Full control is on.' : 'Read-only: the owner allows reading only.' ),
+				)
+			);
+		case 'ping':
+			return $answer( new stdClass() );
+		case 'tools/list':
+			$tools = array();
+			$full  = 'full' === rfaheya_mcp_options()['mode'];
+			foreach ( rfaheya_mcp_tools() as $name => $t ) {
+				if ( $t['write'] && ! $full ) {
+					continue;
+				}
+				$tools[] = array(
+					'name'        => $name,
+					'description' => $t['desc'],
+					'inputSchema' => array(
+						'type'       => 'object',
+						'properties' => $t['props'] ? $t['props'] : new stdClass(),
+						'required'   => $t['required'] ?? array(),
+					),
+					'annotations' => array(
+						'readOnlyHint'    => ! $t['write'],
+						'destructiveHint' => ! empty( $t['destructive'] ),
+					),
+				);
+			}
+			return $answer( array( 'tools' => $tools ) );
+		case 'tools/call':
+			$name  = (string) ( $params['name'] ?? '' );
+			$args  = is_array( $params['arguments'] ?? null ) ? $params['arguments'] : array();
+			$tools = rfaheya_mcp_tools();
+			if ( ! isset( $tools[ $name ] ) ) {
+				return $error( -32602, 'Unknown tool: ' . $name );
+			}
+			if ( $tools[ $name ]['write'] && 'full' !== rfaheya_mcp_options()['mode'] ) {
+				rfaheya_mcp_log( $name, $args, false, 'read-only' );
+				return $answer( array( 'content' => array( array( 'type' => 'text', 'text' => 'The store owner allows reading only (Tools → Claude connection ✦ → Full control turns changes on).' ) ), 'isError' => true ) );
+			}
+			try {
+				$result = call_user_func( $tools[ $name ]['run'], $args );
+				if ( is_wp_error( $result ) ) {
+					throw new Exception( $result->get_error_message() );
+				}
+				rfaheya_mcp_log( $name, $args, true );
+				return $answer(
+					array(
+						'content' => array( array( 'type' => 'text', 'text' => wp_json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) ) ),
+					)
+				);
+			} catch ( Throwable $e ) {
+				rfaheya_mcp_log( $name, $args, false, $e->getMessage() );
+				return $answer( array( 'content' => array( array( 'type' => 'text', 'text' => 'Error: ' . $e->getMessage() ) ), 'isError' => true ) );
+			}
+	}
+	return $error( -32601, 'Method not found: ' . $method );
+}
+
+// ---------------------------------------------------------------- what the tools return
+
+function rfaheya_mcp_money( $n ) {
+	return round( (float) $n, 2 );
+}
+
+function rfaheya_mcp_product( $p, $full = false ) {
+	$out = array(
+		'id'     => $p->get_id(),
+		'name'   => html_entity_decode( $p->get_name(), ENT_QUOTES, 'UTF-8' ),
+		'slug'   => $p->get_slug(),
+		'status' => $p->get_status(),
+		'type'   => $p->get_type(),
+		'url'    => home_url( '/shop/' . $p->get_slug() ),
+		'sizes'  => array(),
+	);
+	$vars = $p->is_type( 'variable' ) ? array_filter( array_map( 'wc_get_product', $p->get_children() ) ) : array( $p );
+	foreach ( $vars as $v ) {
+		$out['sizes'][] = array(
+			'id'            => $v->get_id(),
+			'size'          => $p->is_type( 'variable' ) ? implode( ', ', array_filter( array_map( 'strval', $v->get_variation_attributes( false ) ) ) ) : '',
+			'regular_price' => rfaheya_mcp_money( $v->get_regular_price( 'edit' ) ),
+			'sale_price'    => '' === $v->get_sale_price( 'edit' ) ? null : rfaheya_mcp_money( $v->get_sale_price( 'edit' ) ),
+			'price_now'     => rfaheya_mcp_money( $v->get_price() ),
+			'stock_status'  => $v->get_stock_status(),
+			'stock'         => $v->managing_stock() ? $v->get_stock_quantity() : null,
+		);
+	}
+	if ( $full ) {
+		$out['categories']        = array_values( array_map( fn( $id ) => html_entity_decode( get_term( $id )->name ?? '', ENT_QUOTES, 'UTF-8' ), $p->get_category_ids() ) );
+		$out['short_description'] = $p->get_short_description();
+		$out['description']       = $p->get_description();
+		$out['total_sales']       = (int) $p->get_total_sales();
+		$out['rating']            = (float) $p->get_average_rating();
+		$out['reviews']           = (int) $p->get_review_count();
+		$out['visibility']        = $p->get_catalog_visibility();
+	}
+	return $out;
+}
+
+function rfaheya_mcp_order( $o, $full = false ) {
+	$out = array(
+		'id'       => $o->get_id(),
+		'number'   => $o->get_order_number(),
+		'date'     => $o->get_date_created() ? $o->get_date_created()->date_i18n( 'Y-m-d H:i' ) : '',
+		'status'   => $o->get_status(),
+		'total'    => rfaheya_mcp_money( $o->get_total() ),
+		'customer' => trim( $o->get_billing_first_name() . ' ' . $o->get_billing_last_name() ),
+		'phone'    => $o->get_billing_phone(),
+		'city'     => trim( $o->get_billing_city() . ', ' . $o->get_billing_state(), ', ' ),
+		'payment'  => $o->get_payment_method_title(),
+		'items'    => array_values( array_map( fn( $i ) => $i->get_quantity() . ' × ' . $i->get_name(), $o->get_items() ) ),
+	);
+	if ( $full ) {
+		$out['email']    = $o->get_billing_email();
+		$out['address']  = trim( $o->get_billing_address_1() . ' ' . $o->get_billing_address_2() );
+		$out['shipping'] = rfaheya_mcp_money( $o->get_shipping_total() );
+		$out['discount'] = rfaheya_mcp_money( $o->get_discount_total() );
+		$out['fees']     = array_values( array_map( fn( $f ) => $f->get_name() . ': ' . rfaheya_mcp_money( $f->get_total() ), $o->get_fees() ) );
+		$out['note']     = $o->get_customer_note();
+		$out['notes']    = array_map( fn( $n ) => $n->date_created->date_i18n( 'Y-m-d H:i' ) . ' — ' . wp_strip_all_tags( $n->content ), wc_get_order_notes( array( 'order_id' => $o->get_id(), 'limit' => 10 ) ) );
+		$out['admin']    = admin_url( 'post.php?post=' . $o->get_id() . '&action=edit' );
+	}
+	return $out;
+}
+
+function rfaheya_mcp_find_product( $a ) {
+	$p = ! empty( $a['id'] ) ? wc_get_product( (int) $a['id'] ) : null;
+	if ( ! $p && ! empty( $a['slug'] ) ) {
+		$post = get_page_by_path( sanitize_title( $a['slug'] ), OBJECT, 'product' );
+		$p    = $post ? wc_get_product( $post->ID ) : null;
+	}
+	if ( ! $p ) {
+		throw new Exception( 'Product not found.' );
+	}
+	return $p;
+}
+
+function rfaheya_mcp_sales( $days ) {
+	$from   = gmdate( 'Y-m-d', time() - max( 1, (int) $days ) * DAY_IN_SECONDS + DAY_IN_SECONDS );
+	$orders = wc_get_orders(
+		array(
+			'status'       => array( 'wc-processing', 'wc-completed', 'wc-on-hold' ),
+			'date_created' => '>=' . $from,
+			'limit'        => -1,
+		)
+	);
+	$total = 0;
+	$top   = array();
+	foreach ( $orders as $o ) {
+		$total += (float) $o->get_total();
+		foreach ( $o->get_items() as $i ) {
+			$n         = $i->get_name();
+			$top[ $n ] = ( $top[ $n ] ?? 0 ) + $i->get_quantity();
+		}
+	}
+	arsort( $top );
+	return array(
+		'days'          => (int) $days,
+		'orders'        => count( $orders ),
+		'revenue'       => rfaheya_mcp_money( $total ),
+		'average_order' => $orders ? rfaheya_mcp_money( $total / count( $orders ) ) : 0,
+		'top_items'     => array_slice( $top, 0, 10, true ),
+	);
+}
+
+/** The tools: name → description, inputs, whether it changes the store, and what it runs. */
+function rfaheya_mcp_tools() {
+	$s   = fn( $d ) => array( 'type' => 'string', 'description' => $d );
+	$n   = fn( $d ) => array( 'type' => 'number', 'description' => $d );
+	$i   = fn( $d ) => array( 'type' => 'integer', 'description' => $d );
+	$b   = fn( $d ) => array( 'type' => 'boolean', 'description' => $d );
+	$e   = fn( $d, $v ) => array( 'type' => 'string', 'enum' => $v, 'description' => $d );
+	$obj = fn( $d ) => array( 'type' => 'object', 'description' => $d );
+	return array(
+		// ---------------- reading
+		'store_overview'     => array(
+			'desc'  => 'A snapshot of the store: today\'s and this week\'s sales, orders waiting by status, products out of / low in stock, the offers running now, reviews waiting.',
+			'props' => array(),
+			'write' => false,
+			'run'   => function () {
+				$counts = array();
+				foreach ( array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ) as $st ) {
+					$counts[ $st ] = (int) wc_orders_count( $st );
+				}
+				$out = array();
+				$low = array();
+				foreach ( wc_get_products( array( 'limit' => -1, 'status' => 'publish', 'type' => array( 'simple', 'variable' ) ) ) as $p ) {
+					foreach ( $p->is_type( 'variable' ) ? array_filter( array_map( 'wc_get_product', $p->get_children() ) ) : array( $p ) as $v ) {
+						if ( 'outofstock' === $v->get_stock_status() ) {
+							$out[] = $v->get_name();
+						} elseif ( $v->managing_stock() && null !== $v->get_stock_quantity() && $v->get_stock_quantity() <= 3 ) {
+							$low[] = $v->get_name() . ' (' . $v->get_stock_quantity() . ')';
+						}
+					}
+				}
+				return array(
+					'store'           => get_bloginfo( 'name' ),
+					'url'             => home_url( '/' ),
+					'today'           => rfaheya_mcp_sales( 1 ),
+					'last_7_days'     => rfaheya_mcp_sales( 7 ),
+					'orders_by_status' => $counts,
+					'out_of_stock'    => $out,
+					'low_stock'       => $low,
+					'offers_running'  => array_values( array_map( 'rfaheya_offer_summary', array_filter( rfaheya_discount_rules(), 'rfaheya_rule_live' ) ) ),
+					'reviews_waiting' => (int) get_comments( array( 'type' => 'review', 'status' => 'hold', 'count' => true ) ),
+				);
+			},
+		),
+		'sales_report'       => array(
+			'desc'     => 'Sales for the last N days: orders, revenue (EGP), average order, best-selling items.',
+			'props'    => array( 'days' => $i( 'How many days back (1 = today).' ) ),
+			'required' => array( 'days' ),
+			'write'    => false,
+			'run'      => fn( $a ) => rfaheya_mcp_sales( min( 366, max( 1, (int) $a['days'] ) ) ),
+		),
+		'search_products'    => array(
+			'desc'  => 'Find products by name (empty = all), with each size\'s id, price, sale price and stock.',
+			'props' => array(
+				'query'  => $s( 'Words in the name.' ),
+				'status' => $e( 'Default publish.', array( 'publish', 'draft', 'private', 'any' ) ),
+				'limit'  => $i( 'Default 30, at most 100.' ),
+			),
+			'write' => false,
+			'run'   => function ( $a ) {
+				$st = $a['status'] ?? 'publish';
+				$q  = array( 'limit' => min( 100, max( 1, (int) ( $a['limit'] ?? 30 ) ) ), 'status' => 'any' === $st ? array( 'publish', 'draft', 'private', 'pending' ) : $st, 'type' => array( 'simple', 'variable' ), 'orderby' => 'title', 'order' => 'ASC' );
+				if ( ! empty( $a['query'] ) ) {
+					$q['s'] = sanitize_text_field( $a['query'] );
+				}
+				return array_map( 'rfaheya_mcp_product', wc_get_products( $q ) );
+			},
+		),
+		'get_product'        => array(
+			'desc'  => 'One product in full (sizes, prices, stock, description, categories, sales, rating) by id or slug.',
+			'props' => array( 'id' => $i( 'Product id.' ), 'slug' => $s( 'Or its slug.' ) ),
+			'write' => false,
+			'run'   => fn( $a ) => rfaheya_mcp_product( rfaheya_mcp_find_product( $a ), true ),
+		),
+		'list_orders'        => array(
+			'desc'  => 'Recent orders, newest first. Filter by status or search a name / phone / email.',
+			'props' => array(
+				'status' => $e( 'Default any.', array( 'any', 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ) ),
+				'search' => $s( 'Name, phone or email.' ),
+				'limit'  => $i( 'Default 20, at most 100.' ),
+			),
+			'write' => false,
+			'run'   => function ( $a ) {
+				$limit  = min( 100, max( 1, (int) ( $a['limit'] ?? 20 ) ) );
+				$status = ! empty( $a['status'] ) && 'any' !== $a['status'] ? sanitize_key( $a['status'] ) : '';
+				if ( ! empty( $a['search'] ) ) {
+					$ids = array_map( 'intval', (array) wc_order_search( sanitize_text_field( $a['search'] ) ) );
+					rsort( $ids );
+					$found = array();
+					foreach ( $ids as $oid ) {
+						$o = wc_get_order( $oid );
+						if ( $o && ( ! $status || $o->get_status() === $status ) ) {
+							$found[] = rfaheya_mcp_order( $o );
+						}
+						if ( count( $found ) >= $limit ) {
+							break;
+						}
+					}
+					return $found;
+				}
+				$q = array( 'limit' => $limit, 'orderby' => 'date', 'order' => 'DESC' );
+				if ( $status ) {
+					$q['status'] = 'wc-' . $status;
+				}
+				return array_map( 'rfaheya_mcp_order', wc_get_orders( $q ) );
+			},
+		),
+		'get_order'          => array(
+			'desc'     => 'One order in full (customer, address, items, shipping, discounts, notes).',
+			'props'    => array( 'id' => $i( 'Order id.' ) ),
+			'required' => array( 'id' ),
+			'write'    => false,
+			'run'      => function ( $a ) {
+				$o = wc_get_order( (int) $a['id'] );
+				if ( ! $o ) {
+					throw new Exception( 'Order not found.' );
+				}
+				return rfaheya_mcp_order( $o, true );
+			},
+		),
+		'list_offers'        => array(
+			'desc'  => 'Every offer in Products → Offers & discounts, with its id, settings, and whether it is running now. Kinds: percent, amount, fixed (price offers); bogo, set_price, qty_tiers, spend, gift, free_shipping (cart offers).',
+			'props' => array(),
+			'write' => false,
+			'run'   => fn() => array_map(
+				fn( $r ) => array_merge( $r, array( 'summary' => rfaheya_offer_summary( $r ), 'running' => rfaheya_rule_live( $r ) ) ),
+				rfaheya_offers_with_ids()
+			),
+		),
+		'get_settings'       => array(
+			'desc'  => 'The store settings (Settings → Rfaheya Store), by group: contact, social, home, shipping (free shipping, minimum order, spend-more offer), bundle, discovery, campaigns, loyalty, seo…',
+			'props' => array( 'group' => $s( 'One group, or empty for all.' ) ),
+			'write' => false,
+			'run'   => function ( $a ) {
+				$o = rfaheya_options();
+				$g = sanitize_key( $a['group'] ?? '' );
+				if ( $g && ! isset( $o[ $g ] ) ) {
+					throw new Exception( 'No such group. Groups: ' . implode( ', ', array_keys( $o ) ) );
+				}
+				$labels = array();
+				foreach ( rfaheya_fields() as $group => $fields ) {
+					foreach ( $fields as $k => $f ) {
+						$labels[ $group ][ $k ] = $f[0];
+					}
+				}
+				$pick = $g ? array( $g => $o[ $g ] ) : $o;
+				$out  = array();
+				foreach ( $pick as $group => $vals ) {
+					foreach ( $vals as $k => $v ) {
+						$out[ $group ][ $k ] = array( 'value' => $v, 'label' => $labels[ $group ][ $k ] ?? '' );
+					}
+				}
+				return $out;
+			},
+		),
+		'get_menus'          => array(
+			'desc'  => 'The header and footer menus (Appearance → Menus ✦).',
+			'props' => array(),
+			'write' => false,
+			'run'   => fn() => array(
+				'customised' => (bool) rfaheya_menus_saved(),
+				'menus'      => rfaheya_menus_saved() ? rfaheya_menus_saved() : rfaheya_menus_default(),
+			),
+		),
+		'list_reviews'       => array(
+			'desc'  => 'Product reviews: waiting for approval (hold) or approved.',
+			'props' => array( 'status' => $e( 'Default hold.', array( 'hold', 'approve', 'all' ) ), 'limit' => $i( 'Default 20.' ) ),
+			'write' => false,
+			'run'   => fn( $a ) => array_map(
+				fn( $c ) => array(
+					'id'      => (int) $c->comment_ID,
+					'product' => get_the_title( $c->comment_post_ID ),
+					'author'  => $c->comment_author,
+					'rating'  => (int) get_comment_meta( $c->comment_ID, 'rating', true ),
+					'date'    => $c->comment_date,
+					'status'  => wp_get_comment_status( $c ),
+					'text'    => $c->comment_content,
+				),
+				get_comments( array( 'type' => 'review', 'status' => $a['status'] ?? 'hold', 'number' => min( 100, (int) ( $a['limit'] ?? 20 ) ) ) )
+			),
+		),
+		'list_posts'         => array(
+			'desc'  => 'Blog articles (all languages), newest first.',
+			'props' => array( 'status' => $e( 'Default any.', array( 'any', 'publish', 'draft' ) ), 'limit' => $i( 'Default 20.' ) ),
+			'write' => false,
+			'run'   => fn( $a ) => array_map(
+				fn( $p ) => array( 'id' => $p->ID, 'title' => get_the_title( $p ), 'status' => $p->post_status, 'date' => $p->post_date, 'url' => get_permalink( $p ) ),
+				get_posts( array( 'post_type' => 'post', 'post_status' => ( $a['status'] ?? 'any' ) === 'any' ? array( 'publish', 'draft', 'pending', 'future' ) : $a['status'], 'numberposts' => min( 100, (int) ( $a['limit'] ?? 20 ) ), 'suppress_filters' => true ) )
+			),
+		),
+		'list_coupons'       => array(
+			'desc'  => 'Coupon codes with their discount, usage and expiry.',
+			'props' => array(),
+			'write' => false,
+			'run'   => fn() => array_map(
+				function ( $p ) {
+					$c = new WC_Coupon( $p->ID );
+					return array( 'id' => $c->get_id(), 'code' => $c->get_code(), 'type' => $c->get_discount_type(), 'amount' => rfaheya_mcp_money( $c->get_amount() ), 'used' => $c->get_usage_count(), 'limit' => $c->get_usage_limit(), 'expires' => $c->get_date_expires() ? $c->get_date_expires()->date( 'Y-m-d' ) : null, 'status' => $p->post_status );
+				},
+				get_posts( array( 'post_type' => 'shop_coupon', 'post_status' => array( 'publish', 'draft' ), 'numberposts' => 100 ) )
+			),
+		),
+
+		// ---------------- changing (full control only)
+		'update_product'     => array(
+			'desc'  => 'Change a product or one of its sizes (use the size id from search_products for prices / stock). Only the fields given change. sale_price "" removes the sale.',
+			'props' => array(
+				'id'                => $i( 'Product id, or a size (variation) id.' ),
+				'name'              => $s( 'New name.' ),
+				'status'            => $e( 'publish = on the store, draft = hidden.', array( 'publish', 'draft', 'private' ) ),
+				'regular_price'     => $s( 'Price in EGP.' ),
+				'sale_price'        => $s( 'Sale price in EGP, or "" to end the sale.' ),
+				'stock_status'      => $e( 'Stock status.', array( 'instock', 'outofstock', 'onbackorder' ) ),
+				'stock_quantity'    => $i( 'Units in stock (turns stock counting on).' ),
+				'short_description' => $s( 'Short description (HTML allowed).' ),
+				'description'       => $s( 'Full description (HTML allowed).' ),
+			),
+			'required' => array( 'id' ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				$p = wc_get_product( (int) $a['id'] );
+				if ( ! $p ) {
+					throw new Exception( 'Product not found.' );
+				}
+				if ( isset( $a['name'] ) && ! $p->is_type( 'variation' ) ) {
+					$p->set_name( sanitize_text_field( $a['name'] ) );
+				}
+				if ( isset( $a['status'] ) ) {
+					$p->set_status( sanitize_key( $a['status'] ) );
+				}
+				foreach ( array( 'regular_price', 'sale_price' ) as $k ) {
+					if ( isset( $a[ $k ] ) ) {
+						$v = '' === trim( (string) $a[ $k ] ) ? '' : (string) max( 0, (float) $a[ $k ] );
+						if ( $p->is_type( 'variable' ) ) {
+							throw new Exception( 'Prices belong to the sizes: use a size id from search_products.' );
+						}
+						$p->{'set_' . $k}( $v );
+					}
+				}
+				if ( isset( $a['stock_quantity'] ) ) {
+					$p->set_manage_stock( true );
+					$p->set_stock_quantity( (int) $a['stock_quantity'] );
+				}
+				if ( isset( $a['stock_status'] ) ) {
+					$p->set_stock_status( sanitize_key( $a['stock_status'] ) );
+				}
+				if ( isset( $a['short_description'] ) && ! $p->is_type( 'variation' ) ) {
+					$p->set_short_description( wp_kses_post( $a['short_description'] ) );
+				}
+				if ( isset( $a['description'] ) ) {
+					$p->set_description( wp_kses_post( $a['description'] ) );
+				}
+				$p->save();
+				if ( $p->is_type( 'variation' ) ) {
+					WC_Product_Variable::sync( $p->get_parent_id() );
+					return rfaheya_mcp_product( wc_get_product( $p->get_parent_id() ) );
+				}
+				return rfaheya_mcp_product( wc_get_product( $p->get_id() ) );
+			},
+		),
+		'update_order'       => array(
+			'desc'  => 'Change an order\'s status and / or add a note (a customer note is emailed to them).',
+			'props' => array(
+				'id'            => $i( 'Order id.' ),
+				'status'        => $e( 'New status.', array( 'pending', 'processing', 'on-hold', 'completed', 'cancelled', 'refunded', 'failed' ) ),
+				'note'          => $s( 'A note on the order.' ),
+				'note_customer' => $b( 'Send the note to the customer too.' ),
+			),
+			'required' => array( 'id' ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				$o = wc_get_order( (int) $a['id'] );
+				if ( ! $o ) {
+					throw new Exception( 'Order not found.' );
+				}
+				if ( ! empty( $a['note'] ) ) {
+					$o->add_order_note( sanitize_textarea_field( $a['note'] ), ! empty( $a['note_customer'] ), true );
+				}
+				if ( ! empty( $a['status'] ) ) {
+					$o->update_status( sanitize_key( $a['status'] ), 'Changed by Claude. ', true );
+				}
+				return rfaheya_mcp_order( wc_get_order( $o->get_id() ), true );
+			},
+		),
+		'save_offer'         => array(
+			'desc'  => 'Add an offer (no id) or change one (its id from list_offers; only the fields given change). Fields as in list_offers: name, kind, enabled, stack (adds up with other discounts), value, value_type (percent|amount, for spend), buy, get, get_off (% off the free ones, 100 = free), get_other, limit, tiers ("2 = 10\n3 = 15"), min_spend, min_qty, gift (product / size id), products / sizes / categories (and get_products… for get_other), start / end (YYYY-MM-DD), note.',
+			'props' => array( 'id' => $s( 'Offer id to change; empty adds a new one.' ), 'offer' => $obj( 'The offer\'s fields.' ) ),
+			'required' => array( 'offer' ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				$rules = rfaheya_offers_with_ids();
+				$id    = sanitize_key( $a['id'] ?? '' );
+				$base  = array();
+				foreach ( $rules as $r ) {
+					if ( $id && $r['id'] === $id ) {
+						$base = $r;
+					}
+				}
+				if ( $id && ! $base ) {
+					throw new Exception( 'Offer not found.' );
+				}
+				$offer = rfaheya_clean_offer( array_merge( $base, (array) $a['offer'] ), $id );
+				$found = false;
+				foreach ( $rules as $k => $r ) {
+					if ( $r['id'] === $offer['id'] ) {
+						$rules[ $k ] = $offer;
+						$found       = true;
+					}
+				}
+				if ( ! $found ) {
+					$rules[] = $offer;
+				}
+				rfaheya_store_offers( $rules );
+				return array_merge( $offer, array( 'summary' => rfaheya_offer_summary( $offer ), 'running' => rfaheya_rule_live( $offer ) ) );
+			},
+		),
+		'delete_offer'       => array(
+			'desc'        => 'Delete an offer for good (to pause it, save_offer with enabled false instead).',
+			'props'       => array( 'id' => $s( 'Offer id.' ) ),
+			'required'    => array( 'id' ),
+			'write'       => true,
+			'destructive' => true,
+			'run'         => function ( $a ) {
+				$rules = rfaheya_offers_with_ids();
+				$left  = array_values( array_filter( $rules, fn( $r ) => $r['id'] !== sanitize_key( $a['id'] ) ) );
+				if ( count( $left ) === count( $rules ) ) {
+					throw new Exception( 'Offer not found.' );
+				}
+				rfaheya_store_offers( $left );
+				return array( 'deleted' => $a['id'] );
+			},
+		),
+		'update_settings'    => array(
+			'desc'     => 'Change store settings in one group (see get_settings for the groups, keys and current values). Only the keys given change. Yes/no settings take "yes" or "no".',
+			'props'    => array( 'group' => $s( 'The group, e.g. shipping.' ), 'values' => $obj( 'key → new value.' ) ),
+			'required' => array( 'group', 'values' ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				$g      = sanitize_key( $a['group'] );
+				$fields = rfaheya_fields();
+				if ( ! isset( $fields[ $g ] ) ) {
+					throw new Exception( 'No such group. Groups: ' . implode( ', ', array_keys( $fields ) ) );
+				}
+				$bad = array_diff( array_keys( (array) $a['values'] ), array_keys( $fields[ $g ] ) );
+				if ( $bad ) {
+					throw new Exception( 'Unknown keys in ' . $g . ': ' . implode( ', ', $bad ) . '. Keys: ' . implode( ', ', array_keys( $fields[ $g ] ) ) );
+				}
+				$saved       = get_option( RFAHEYA_OPTION, array() );
+				$saved       = is_array( $saved ) ? $saved : array();
+				$merged      = rfaheya_options();
+				foreach ( $saved as $sg => $vals ) {
+					if ( is_array( $vals ) ) {
+						$merged[ $sg ] = array_merge( $merged[ $sg ] ?? array(), $vals );
+					}
+				}
+				$merged[ $g ] = array_merge( $merged[ $g ] ?? array(), array_map( fn( $v ) => is_bool( $v ) ? ( $v ? 'yes' : 'no' ) : $v, (array) $a['values'] ) );
+				update_option( RFAHEYA_OPTION, rfaheya_clean_settings( $merged ) );
+				delete_transient( 'rfaheya_bootstrap' );
+				rfaheya_purge_page_cache();
+				return array( $g => rfaheya_options()[ $g ] );
+			},
+		),
+		'save_menus'         => array(
+			'desc'     => 'Replace the header and footer menus. Shape: {header:[{label,to,on}], footer:[{title,on,links:[{label,to,on}]}]} — read get_menus first and send the whole thing back changed. "to" is a store path (/shop) or a full https address.',
+			'props'    => array( 'menus' => $obj( 'The whole menus.' ) ),
+			'required' => array( 'menus' ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				update_option( RFAHEYA_MENUS, rfaheya_menus_clean( (array) $a['menus'] ), true );
+				delete_transient( 'rfaheya_bootstrap' );
+				rfaheya_purge_page_cache();
+				return rfaheya_menus_saved();
+			},
+		),
+		'moderate_review'    => array(
+			'desc'     => 'Approve, hide, mark as spam or bin a review; optionally reply to it as the store.',
+			'props'    => array( 'id' => $i( 'Review id.' ), 'action' => $e( 'What to do.', array( 'approve', 'hold', 'spam', 'trash', 'reply' ) ), 'reply' => $s( 'The reply text (action reply).' ) ),
+			'required' => array( 'id', 'action' ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				$c = get_comment( (int) $a['id'] );
+				if ( ! $c ) {
+					throw new Exception( 'Review not found.' );
+				}
+				if ( 'reply' === $a['action'] ) {
+					$u   = wp_get_current_user();
+					$rid = wp_insert_comment(
+						array(
+							'comment_post_ID'  => $c->comment_post_ID,
+							'comment_parent'   => $c->comment_ID,
+							'comment_content'  => wp_kses_post( (string) ( $a['reply'] ?? '' ) ),
+							'comment_author'   => get_bloginfo( 'name' ),
+							'user_id'          => $u->ID,
+							'comment_approved' => 1,
+							'comment_type'     => 'review',
+						)
+					);
+					return array( 'reply' => $rid );
+				}
+				wp_set_comment_status( $c->comment_ID, $a['action'] );
+				return array( 'id' => (int) $c->comment_ID, 'status' => wp_get_comment_status( $c->comment_ID ) );
+			},
+		),
+		'save_post'          => array(
+			'desc'     => 'Write a blog article (new, no id) or change one. Saved as a draft unless status publish is asked for.',
+			'props'    => array( 'id' => $i( 'Article id to change.' ), 'title' => $s( 'Title.' ), 'content' => $s( 'Body (HTML).' ), 'excerpt' => $s( 'Short summary.' ), 'status' => $e( 'Default draft.', array( 'draft', 'publish' ) ) ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				$post = array( 'post_type' => 'post' );
+				if ( ! empty( $a['id'] ) ) {
+					$post['ID'] = (int) $a['id'];
+					if ( 'post' !== get_post_type( $post['ID'] ) ) {
+						throw new Exception( 'Article not found.' );
+					}
+				} else {
+					$post['post_status'] = 'draft';
+				}
+				foreach ( array( 'title' => 'post_title', 'content' => 'post_content', 'excerpt' => 'post_excerpt' ) as $k => $f ) {
+					if ( isset( $a[ $k ] ) ) {
+						$post[ $f ] = 'title' === $k ? sanitize_text_field( $a[ $k ] ) : wp_kses_post( $a[ $k ] );
+					}
+				}
+				if ( ! empty( $a['status'] ) ) {
+					$post['post_status'] = 'publish' === $a['status'] ? 'publish' : 'draft';
+				}
+				$id = ! empty( $post['ID'] ) ? wp_update_post( $post, true ) : wp_insert_post( $post, true );
+				if ( is_wp_error( $id ) ) {
+					return $id;
+				}
+				return array( 'id' => $id, 'status' => get_post_status( $id ), 'url' => get_permalink( $id ), 'edit' => admin_url( 'post.php?post=' . $id . '&action=edit' ) );
+			},
+		),
+		'create_coupon'      => array(
+			'desc'     => 'Make a coupon code.',
+			'props'    => array(
+				'code'        => $s( 'The code customers type.' ),
+				'type'        => $e( 'percent = % off the order, fixed_cart = EGP off the order.', array( 'percent', 'fixed_cart' ) ),
+				'amount'      => $n( 'The % or the EGP.' ),
+				'expires'     => $s( 'Last day, YYYY-MM-DD (optional).' ),
+				'usage_limit' => $i( 'How many times in all (optional).' ),
+				'per_user'    => $i( 'How many times per customer (optional).' ),
+				'minimum'     => $n( 'Smallest order it works on, EGP (optional).' ),
+			),
+			'required' => array( 'code', 'type', 'amount' ),
+			'write'    => true,
+			'run'      => function ( $a ) {
+				$code = wc_format_coupon_code( (string) $a['code'] );
+				if ( '' === $code || wc_get_coupon_id_by_code( $code ) ) {
+					throw new Exception( 'That code is empty or already exists.' );
+				}
+				$c = new WC_Coupon();
+				$c->set_code( $code );
+				$c->set_discount_type( 'fixed_cart' === $a['type'] ? 'fixed_cart' : 'percent' );
+				$c->set_amount( max( 0, (float) $a['amount'] ) );
+				if ( ! empty( $a['expires'] ) && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $a['expires'] ) ) {
+					$c->set_date_expires( $a['expires'] . ' 23:59:59' );
+				}
+				if ( ! empty( $a['usage_limit'] ) ) {
+					$c->set_usage_limit( (int) $a['usage_limit'] );
+				}
+				if ( ! empty( $a['per_user'] ) ) {
+					$c->set_usage_limit_per_user( (int) $a['per_user'] );
+				}
+				if ( ! empty( $a['minimum'] ) ) {
+					$c->set_minimum_amount( (float) $a['minimum'] );
+				}
+				$c->save();
+				return array( 'id' => $c->get_id(), 'code' => $c->get_code() );
+			},
+		),
+		'refresh_store'      => array(
+			'desc'  => 'Rebuild the storefront\'s copy of the catalogue and clear the page cache (after many changes, or when the store shows something old).',
+			'props' => array(),
+			'write' => true,
+			'run'   => function () {
+				delete_transient( 'rfaheya_bootstrap' );
+				if ( function_exists( 'wc_delete_product_transients' ) ) {
+					wc_delete_product_transients();
+				}
+				rfaheya_purge_page_cache();
+				return array( 'refreshed' => true );
+			},
+		),
+	);
+}
+
+// ---------------------------------------------------------------- the page
+
+add_action(
+	'admin_menu',
+	function () {
+		add_management_page( 'Claude connection', 'Claude connection ✦', 'manage_options', 'rfaheya-claude', 'rfaheya_mcp_page' );
+	}
+);
+
+add_action(
+	'admin_post_rfaheya_mcp',
+	function () {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Sorry, you are not allowed to change this.' );
+		}
+		check_admin_referer( 'rfaheya_mcp' );
+		$o    = rfaheya_mcp_options();
+		$do   = isset( $_POST['do'] ) ? sanitize_key( wp_unslash( $_POST['do'] ) ) : '';
+		$args = array();
+		if ( 'on' === $do || 'newkey' === $do ) {
+			$o['on']   = true;
+			$o['user'] = get_current_user_id();
+			update_option( RFAHEYA_MCP, $o, false );
+			if ( 'newkey' === $do || ! $o['hash'] ) {
+				// Shown once, on the next screen only.
+				set_transient( 'rfaheya_mcp_key_' . get_current_user_id(), rfaheya_mcp_new_key(), 10 * MINUTE_IN_SECONDS );
+			}
+		} elseif ( 'off' === $do ) {
+			$o['on'] = false;
+			update_option( RFAHEYA_MCP, $o, false );
+		} elseif ( 'mode' === $do ) {
+			$o['mode'] = isset( $_POST['mode'] ) && 'full' === $_POST['mode'] ? 'full' : 'read';
+			update_option( RFAHEYA_MCP, $o, false );
+		} elseif ( 'clearlog' === $do ) {
+			delete_option( 'rfaheya_mcp_log' );
+		}
+		wp_safe_redirect( add_query_arg( 'page', 'rfaheya-claude', admin_url( 'tools.php' ) ) );
+		exit;
+	}
+);
+
+function rfaheya_mcp_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	$o    = rfaheya_mcp_options();
+	$key  = get_transient( 'rfaheya_mcp_key_' . get_current_user_id() );
+	if ( $key ) {
+		delete_transient( 'rfaheya_mcp_key_' . get_current_user_id() );
+	}
+	$url  = rest_url( 'rfaheya/v1/mcp/' );
+	$log  = get_option( 'rfaheya_mcp_log', array() );
+	$form = function ( $do, $label, $class = '', $extra = '' ) {
+		echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" style="display:inline">';
+		echo '<input type="hidden" name="action" value="rfaheya_mcp"><input type="hidden" name="do" value="' . esc_attr( $do ) . '">';
+		wp_nonce_field( 'rfaheya_mcp' );
+		echo $extra; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- fixed markup
+		echo '<button type="submit" class="' . esc_attr( $class ) . '">' . esc_html( $label ) . '</button></form>';
+	};
+	?>
+	<div class="wrap rfk">
+		<header class="rfk-hero">
+			<p class="rfk-eyebrow">Rfaheya · Tools</p>
+			<h1>Claude connection</h1>
+			<p>Connect Claude to the store so you can just ask: “how were sales this week?”, “put Vanilla Oud 100 ML at 1,450”, “start a buy 1 get 1 on the 50 ML until Friday”, “mark order 1234 as shipped”. Claude reads first and tells you what it will change before it does.</p>
+		</header>
+
+		<section class="rfk-card">
+			<div class="rfk-row">
+				<div>
+					<h2>Connection <span class="rfk-pill <?php echo $o['on'] ? 'is-on' : ''; ?>"><?php echo $o['on'] ? 'On' : 'Off'; ?></span></h2>
+					<p class="rfk-muted"><?php echo $o['on'] ? 'Claude can reach the store with the secret address below.' : 'Nobody can reach the store this way. Switch it on to get the address.'; ?></p>
+				</div>
+				<div><?php $o['on'] ? $form( 'off', 'Switch off', 'rfk-btn rfk-ghost' ) : $form( 'on', 'Switch on', 'rfk-btn' ); ?></div>
+			</div>
+
+			<?php if ( $o['on'] ) : ?>
+				<div class="rfk-key">
+					<?php if ( $key ) : ?>
+						<p><b>Your connection address</b> — copy it now: for safety it is shown only this once.</p>
+						<div class="rfk-copy"><input type="text" readonly id="rfk-url" value="<?php echo esc_attr( $url . $key ); ?>"><button type="button" class="rfk-btn" onclick="var i=document.getElementById('rfk-url');i.select();navigator.clipboard&&navigator.clipboard.writeText(i.value);this.textContent='Copied ✓'">Copy</button></div>
+					<?php else : ?>
+						<p><b>Connection address:</b> <code><?php echo esc_html( $url ); ?>…<?php echo esc_html( $o['hint'] ); ?></code> (hidden for safety). Lost it? Make a new one — the old address stops working at once.</p>
+					<?php endif; ?>
+					<p class="rfk-warn">Treat this address like a password: whoever has it can do what the mode below allows. Don't post it anywhere.</p>
+					<?php $form( 'newkey', 'Make a new address', 'rfk-btn rfk-ghost', '' ); ?>
+				</div>
+			<?php endif; ?>
+		</section>
+
+		<section class="rfk-card">
+			<h2>What Claude may do</h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="rfk-modes">
+				<input type="hidden" name="action" value="rfaheya_mcp"><input type="hidden" name="do" value="mode">
+				<?php wp_nonce_field( 'rfaheya_mcp' ); ?>
+				<label class="rfk-mode"><input type="radio" name="mode" value="read" <?php checked( 'read', $o['mode'] ); ?> onchange="this.form.submit()"><span><b>Read only</b><small>Sales, orders, products, offers, settings, reviews — look, don't touch.</small></span></label>
+				<label class="rfk-mode"><input type="radio" name="mode" value="full" <?php checked( 'full', $o['mode'] ); ?> onchange="this.form.submit()"><span><b>Full control</b><small>Also change prices, stock, products, offers, coupons, order status, settings, menus, reviews and blog drafts. Nothing is ever deleted except an offer you ask to delete.</small></span></label>
+			</form>
+		</section>
+
+		<section class="rfk-card">
+			<h2>Add it to Claude</h2>
+			<ol class="rfk-steps">
+				<li>On <b>claude.ai</b> (or the Claude app): <b>Settings → Connectors → Add custom connector</b>.</li>
+				<li>Name: <b>Rfaheya store</b>. URL: paste the connection address. Leave the advanced options empty → <b>Add</b>.</li>
+				<li>In a chat, turn on <b>Rfaheya store</b> from the tools menu, and ask.</li>
+			</ol>
+			<p class="rfk-muted">Claude Code: <code>claude mcp add --transport http rfaheya &lt;the address&gt;</code></p>
+		</section>
+
+		<section class="rfk-card">
+			<div class="rfk-row"><h2>Activity</h2><?php if ( $log ) { $form( 'clearlog', 'Clear', 'rfk-link' ); } ?></div>
+			<?php if ( ! $log ) : ?>
+				<p class="rfk-muted">Nothing yet. Everything Claude reads or changes shows here.</p>
+			<?php else : ?>
+				<table class="rfk-log">
+					<thead><tr><th>When</th><th>What</th><th>Details</th><th></th></tr></thead>
+					<tbody>
+					<?php foreach ( array_slice( $log, 0, 100 ) as $l ) : ?>
+						<tr>
+							<td><?php echo esc_html( wp_date( 'j M · H:i', $l['t'] ) ); ?></td>
+							<td><code><?php echo esc_html( $l['tool'] ); ?></code></td>
+							<td class="rfk-args"><?php echo esc_html( '[]' === $l['args'] ? '' : $l['args'] ); ?><?php echo $l['note'] ? '<br><em>' . esc_html( $l['note'] ) . '</em>' : ''; ?></td>
+							<td><?php echo $l['ok'] ? '<span class="rfk-ok">✓</span>' : '<span class="rfk-no">✗</span>'; ?></td>
+						</tr>
+					<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</section>
+	</div>
+	<style>
+		.rfk{max-width:980px;margin:20px 20px 0 0;color:#1d1a16;font-size:14px}
+		.rfk-hero{border-radius:26px;padding:30px 34px;background:radial-gradient(120% 140% at 0% 0%,#5a3d17 0%,#2a1d0d 45%,#16110b 100%);color:#d9cbb4}
+		.rfk-eyebrow{margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#e6a43a}
+		.rfk-hero h1{margin:0;color:#fff;font-size:32px;font-weight:600}
+		.rfk-hero p{max-width:680px;line-height:1.55;font-size:14.5px}
+		.rfk-card{background:#fff;border:1px solid #eadfcd;border-radius:22px;padding:20px 22px;margin-top:16px}
+		.rfk-card h2{margin:0 0 6px;font-size:19px;display:flex;align-items:center;gap:10px}
+		.rfk-row{display:flex;justify-content:space-between;align-items:center;gap:16px}
+		.rfk-muted{color:#7a6f61;margin:4px 0}
+		.rfk-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#eee6d8;color:#7a6f61;text-transform:uppercase;letter-spacing:.08em}
+		.rfk-pill.is-on{background:#e3f1d8;color:#2f6a1f}
+		.rfk-btn{border:0;border-radius:999px;background:#e39a2b;color:#1d1a16;font-weight:700;padding:10px 22px;cursor:pointer}
+		.rfk-btn:hover{background:#d48b1d}
+		.rfk-ghost{background:#f4ede1}
+		.rfk-ghost:hover{background:#ecdcc0}
+		.rfk-link{border:0;background:none;color:#8a7e6c;text-decoration:underline;cursor:pointer}
+		.rfk-key{margin-top:16px;padding:16px;border-radius:16px;background:#fbf7f0;border:1px solid #efe3cf}
+		.rfk-copy{display:flex;gap:8px;margin:8px 0}
+		.rfk-copy input{flex:1;font-family:monospace;font-size:13px;border:1px solid #e3d8c6;border-radius:10px;padding:8px 10px;background:#fff}
+		.rfk-warn{color:#9a5b00;font-size:12.5px}
+		.rfk-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+		.rfk-mode{display:flex;gap:10px;align-items:flex-start;border:1px solid #eadfcd;border-radius:16px;padding:14px;cursor:pointer}
+		.rfk-mode:has(input:checked){border-color:#e39a2b;background:#fff8ec;box-shadow:0 0 0 2px rgba(227,154,43,.2)}
+		.rfk-mode input{margin-top:3px;accent-color:#e39a2b}
+		.rfk-mode small{display:block;color:#7a6f61;margin-top:3px;line-height:1.45}
+		.rfk-steps{margin:8px 0 8px 20px;line-height:1.8}
+		.rfk-log{width:100%;border-collapse:collapse;margin-top:8px}
+		.rfk-log th{text-align:left;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8a7e6c;padding:6px 8px;border-bottom:1px solid #eadfcd}
+		.rfk-log td{padding:7px 8px;border-bottom:1px solid #f3ece0;vertical-align:top}.rfk-log td:first-child{white-space:nowrap}
+		.rfk-args{font-family:monospace;font-size:12px;color:#5f5444;word-break:break-all}
+		.rfk-ok{color:#2f8a2f;font-weight:700}.rfk-no{color:#c33;font-weight:700}
+		@media (max-width:782px){.rfk-modes{grid-template-columns:1fr}}
+	</style>
+	<?php
+}
