@@ -10027,9 +10027,29 @@ function rfaheya_mcp_options() {
 			'hash' => '',
 			'hint' => '',
 			'user' => 0,
+			'until' => 0,
 		),
 		is_array( $o ) ? $o : array()
 	);
+}
+
+/**
+ * What Claude may do now: read, full (store data) or admin (also files and plugins). Admin lasts
+ * only until the time chosen on the page, then falls back to full control on its own.
+ */
+function rfaheya_mcp_level() {
+	$o = rfaheya_mcp_options();
+	if ( 'admin' === $o['mode'] ) {
+		return ! empty( $o['until'] ) && time() > (int) $o['until'] ? 'full' : 'admin';
+	}
+	return 'full' === $o['mode'] ? 'full' : 'read';
+}
+
+/** Whether a tool may run at the current level. */
+function rfaheya_mcp_allowed( $tool ) {
+	$need = ! empty( $tool['admin'] ) ? 2 : ( $tool['write'] ? 1 : 0 );
+	$have = array( 'read' => 0, 'full' => 1, 'admin' => 2 )[ rfaheya_mcp_level() ];
+	return $have >= $need;
 }
 
 /** A new secret key: only its hash is kept; the key itself is shown once. */
@@ -10149,16 +10169,19 @@ function rfaheya_mcp_message( $msg ) {
 						'version' => '1.0.0',
 					),
 					'instructions'    => 'The ' . get_bloginfo( 'name' ) . ' WooCommerce store (prices in EGP). Read before you change anything; for changes, say what you will do and get the owner\'s go-ahead first. '
-						. ( 'full' === rfaheya_mcp_options()['mode'] ? 'Full control is on.' : 'Read-only: the owner allows reading only.' ),
+						. array(
+							'read'  => 'Read-only: the owner allows reading only.',
+							'full'  => 'Full control of the store data is on.',
+							'admin' => 'Admin is on: store data, site files and plugins. Files you overwrite or delete are backed up first (list_backups / restore_backup).',
+						)[ rfaheya_mcp_level() ],
 				)
 			);
 		case 'ping':
 			return $answer( new stdClass() );
 		case 'tools/list':
 			$tools = array();
-			$full  = 'full' === rfaheya_mcp_options()['mode'];
 			foreach ( rfaheya_mcp_tools() as $name => $t ) {
-				if ( $t['write'] && ! $full ) {
+				if ( ! rfaheya_mcp_allowed( $t ) ) {
 					continue;
 				}
 				$tools[] = array(
@@ -10183,9 +10206,9 @@ function rfaheya_mcp_message( $msg ) {
 			if ( ! isset( $tools[ $name ] ) ) {
 				return $error( -32602, 'Unknown tool: ' . $name );
 			}
-			if ( $tools[ $name ]['write'] && 'full' !== rfaheya_mcp_options()['mode'] ) {
-				rfaheya_mcp_log( $name, $args, false, 'read-only' );
-				return $answer( array( 'content' => array( array( 'type' => 'text', 'text' => 'The store owner allows reading only (Tools → Claude connection ✦ → Full control turns changes on).' ) ), 'isError' => true ) );
+			if ( ! rfaheya_mcp_allowed( $tools[ $name ] ) ) {
+				rfaheya_mcp_log( $name, $args, false, 'not allowed at ' . rfaheya_mcp_level() );
+				return $answer( array( 'content' => array( array( 'type' => 'text', 'text' => 'The store owner hasn\'t allowed this (Tools → Claude connection ✦ → ' . ( empty( $tools[ $name ]['admin'] ) ? 'Full control' : 'Admin' ) . ').' ) ), 'isError' => true ) );
 			}
 			try {
 				$result = call_user_func( $tools[ $name ]['run'], $args );
@@ -10794,6 +10817,216 @@ function rfaheya_mcp_tools() {
 				return array( 'refreshed' => true );
 			},
 		),
+
+		// ---------------- admin: files and plugins (only while Admin is on)
+		'list_files'         => array(
+			'desc'  => 'The files and folders in a folder of the site (path relative to the WordPress root, e.g. "" or "wp-content/plugins").',
+			'props' => array( 'path' => $s( 'Folder, relative to the site root.' ) ),
+			'write' => false,
+			'admin' => true,
+			'run'   => function ( $a ) {
+				$dir = rfaheya_mcp_path( $a['path'] ?? '', true );
+				$out = array();
+				foreach ( (array) scandir( $dir ) as $f ) {
+					if ( '.' === $f || '..' === $f ) {
+						continue;
+					}
+					$full  = $dir . '/' . $f;
+					$out[] = array( 'name' => $f, 'type' => is_dir( $full ) ? 'dir' : 'file', 'size' => is_file( $full ) ? filesize( $full ) : null, 'modified' => gmdate( 'Y-m-d H:i', (int) filemtime( $full ) ) );
+				}
+				return $out;
+			},
+		),
+		'read_file'          => array(
+			'desc'     => 'A text file of the site (up to 1 MB). wp-config.php and other secret files are never shown.',
+			'props'    => array( 'path' => $s( 'File, relative to the site root.' ) ),
+			'required' => array( 'path' ),
+			'write'    => false,
+			'admin'    => true,
+			'run'      => function ( $a ) {
+				$file = rfaheya_mcp_path( $a['path'] );
+				if ( ! is_file( $file ) ) {
+					throw new Exception( 'No such file.' );
+				}
+				if ( filesize( $file ) > MB_IN_BYTES ) {
+					throw new Exception( 'Too big to read here (over 1 MB).' );
+				}
+				return array( 'path' => rfaheya_mcp_rel( $file ), 'content' => (string) file_get_contents( $file ) );
+			},
+		),
+		'write_file'         => array(
+			'desc'     => 'Write a file of the site (made if new, replaced if there; the old one is backed up first). Text as "content", or binary as "base64".',
+			'props'    => array( 'path' => $s( 'File, relative to the site root.' ), 'content' => $s( 'Text content.' ), 'base64' => $s( 'Or the bytes, base64.' ) ),
+			'required' => array( 'path' ),
+			'write'    => true,
+			'admin'    => true,
+			'run'      => function ( $a ) {
+				$file = rfaheya_mcp_path( $a['path'] );
+				$data = isset( $a['base64'] ) ? base64_decode( (string) $a['base64'], true ) : (string) ( $a['content'] ?? '' );
+				if ( false === $data ) {
+					throw new Exception( 'The base64 is not valid.' );
+				}
+				$backup = rfaheya_mcp_backup( array( $file ), 'write ' . rfaheya_mcp_rel( $file ) );
+				wp_mkdir_p( dirname( $file ) );
+				if ( false === file_put_contents( $file, $data ) ) {
+					throw new Exception( 'Could not write the file (permissions?).' );
+				}
+				if ( function_exists( 'opcache_invalidate' ) && preg_match( '/\.php$/', $file ) ) {
+					opcache_invalidate( $file, true );
+				}
+				return array( 'path' => rfaheya_mcp_rel( $file ), 'bytes' => strlen( $data ), 'backup' => $backup );
+			},
+		),
+		'delete_file'        => array(
+			'desc'        => 'Remove a file of the site (it is moved to a backup, so restore_backup brings it back).',
+			'props'       => array( 'path' => $s( 'File, relative to the site root.' ) ),
+			'required'    => array( 'path' ),
+			'write'       => true,
+			'admin'       => true,
+			'destructive' => true,
+			'run'         => function ( $a ) {
+				$file = rfaheya_mcp_path( $a['path'] );
+				if ( ! is_file( $file ) ) {
+					throw new Exception( 'No such file.' );
+				}
+				$backup = rfaheya_mcp_backup( array( $file ), 'delete ' . rfaheya_mcp_rel( $file ) );
+				unlink( $file );
+				return array( 'deleted' => rfaheya_mcp_rel( $file ), 'backup' => $backup );
+			},
+		),
+		'list_backups'       => array(
+			'desc'  => 'The backups made before files were changed or deleted (newest first).',
+			'props' => array(),
+			'write' => false,
+			'admin' => true,
+			'run'   => fn() => array_slice( (array) get_option( 'rfaheya_mcp_backups', array() ), 0, 50 ),
+		),
+		'restore_backup'     => array(
+			'desc'     => 'Put back the files of a backup (as they were before the change).',
+			'props'    => array( 'id' => $s( 'Backup id from list_backups.' ) ),
+			'required' => array( 'id' ),
+			'write'    => true,
+			'admin'    => true,
+			'run'      => function ( $a ) {
+				$id  = sanitize_key( $a['id'] );
+				$dir = rfaheya_mcp_backup_dir() . '/' . $id;
+				$map = is_readable( $dir . '/files.json' ) ? json_decode( (string) file_get_contents( $dir . '/files.json' ), true ) : null;
+				if ( ! $id || ! is_array( $map ) ) {
+					throw new Exception( 'Backup not found.' );
+				}
+				$done = array();
+				foreach ( $map as $rel => $info ) {
+					$target = rfaheya_mcp_path( $rel );
+					if ( empty( $info['existed'] ) ) {
+						if ( is_file( $target ) ) {
+							unlink( $target ); // it was new: restoring removes it
+						}
+					} else {
+						wp_mkdir_p( dirname( $target ) );
+						copy( $dir . '/' . $info['copy'], $target );
+					}
+					$done[] = $rel;
+				}
+				return array( 'restored' => $done );
+			},
+		),
+		'list_plugins'       => array(
+			'desc'  => 'The installed plugins, active or not, with versions.',
+			'props' => array(),
+			'write' => false,
+			'admin' => true,
+			'run'   => function () {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+				$out = array();
+				foreach ( get_plugins() as $file => $p ) {
+					$out[] = array( 'file' => $file, 'name' => $p['Name'], 'version' => $p['Version'], 'active' => is_plugin_active( $file ) );
+				}
+				foreach ( get_mu_plugins() as $file => $p ) {
+					$out[] = array( 'file' => 'mu-plugins/' . $file, 'name' => $p['Name'] ? $p['Name'] : $file, 'version' => $p['Version'], 'active' => true, 'must_use' => true );
+				}
+				return $out;
+			},
+		),
+		'upload_chunk'       => array(
+			'desc'     => 'Send a zip (a plugin, or a store update) in pieces of base64: same upload_id for every piece, index 0, 1, 2… Then install_zip with that upload_id.',
+			'props'    => array( 'upload_id' => $s( 'Your name for this upload (letters / digits).' ), 'index' => $i( 'Piece number, from 0.' ), 'base64' => $s( 'The piece.' ) ),
+			'required' => array( 'upload_id', 'index', 'base64' ),
+			'write'    => true,
+			'admin'    => true,
+			'run'      => function ( $a ) {
+				$id   = sanitize_key( $a['upload_id'] );
+				$data = base64_decode( (string) $a['base64'], true );
+				if ( ! $id || false === $data ) {
+					throw new Exception( 'Bad upload id or base64.' );
+				}
+				$file = rfaheya_mcp_backup_dir() . '/upload-' . $id . '.zip';
+				if ( 0 === (int) $a['index'] && is_file( $file ) ) {
+					unlink( $file );
+				}
+				file_put_contents( $file, $data, FILE_APPEND );
+				return array( 'upload_id' => $id, 'bytes' => filesize( $file ), 'md5' => md5_file( $file ) );
+			},
+		),
+		'install_zip'        => array(
+			'desc'     => 'Install an uploaded zip as a plugin (replacing the installed copy, like Plugins → Upload → Replace). The store update (rfaheya-storefront.zip) puts the new storefront and store plugin in place this way.',
+			'props'    => array( 'upload_id' => $s( 'From upload_chunk.' ), 'md5' => $s( 'Optional: the zip\'s md5, to check it arrived whole.' ), 'activate' => $b( 'Switch the plugin on after (default true).' ) ),
+			'required' => array( 'upload_id' ),
+			'write'    => true,
+			'admin'    => true,
+			'run'      => function ( $a ) {
+				$file = rfaheya_mcp_backup_dir() . '/upload-' . sanitize_key( $a['upload_id'] ) . '.zip';
+				if ( ! is_file( $file ) ) {
+					throw new Exception( 'No such upload.' );
+				}
+				if ( ! empty( $a['md5'] ) && md5_file( $file ) !== strtolower( (string) $a['md5'] ) ) {
+					throw new Exception( 'The zip didn\'t arrive whole (md5 differs). Send it again.' );
+				}
+				$result = rfaheya_mcp_install_plugin( $file, ! isset( $a['activate'] ) || ! empty( $a['activate'] ) );
+				unlink( $file );
+				return $result;
+			},
+		),
+		'install_plugin'     => array(
+			'desc'     => 'Install a plugin from wordpress.org by its slug (e.g. "redirection") and switch it on.',
+			'props'    => array( 'slug' => $s( 'The plugin\'s slug on wordpress.org.' ), 'activate' => $b( 'Default true.' ) ),
+			'required' => array( 'slug' ),
+			'write'    => true,
+			'admin'    => true,
+			'run'      => function ( $a ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
+				$api = plugins_api( 'plugin_information', array( 'slug' => sanitize_key( $a['slug'] ), 'fields' => array( 'sections' => false ) ) );
+				if ( is_wp_error( $api ) ) {
+					return $api;
+				}
+				return rfaheya_mcp_install_plugin( $api->download_link, ! isset( $a['activate'] ) || ! empty( $a['activate'] ) );
+			},
+		),
+		'set_plugin_active'  => array(
+			'desc'     => 'Switch an installed plugin on or off (its file from list_plugins).',
+			'props'    => array( 'file' => $s( 'e.g. redirection/redirection.php' ), 'active' => $b( 'On or off.' ) ),
+			'required' => array( 'file', 'active' ),
+			'write'    => true,
+			'admin'    => true,
+			'run'      => function ( $a ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+				$file = plugin_basename( (string) $a['file'] );
+				if ( ! isset( get_plugins()[ $file ] ) ) {
+					throw new Exception( 'No such plugin.' );
+				}
+				if ( 'woocommerce/woocommerce.php' === $file && empty( $a['active'] ) ) {
+					throw new Exception( 'WooCommerce stays on (the store needs it). Do this in the dashboard if you really mean it.' );
+				}
+				if ( ! empty( $a['active'] ) ) {
+					$r = activate_plugin( $file );
+					if ( is_wp_error( $r ) ) {
+						return $r;
+					}
+				} else {
+					deactivate_plugins( $file );
+				}
+				return array( 'file' => $file, 'active' => is_plugin_active( $file ) );
+			},
+		),
 	);
 }
 
@@ -10828,7 +11061,10 @@ add_action(
 			$o['on'] = false;
 			update_option( RFAHEYA_MCP, $o, false );
 		} elseif ( 'mode' === $do ) {
-			$o['mode'] = isset( $_POST['mode'] ) && 'full' === $_POST['mode'] ? 'full' : 'read';
+			$mode      = isset( $_POST['mode'] ) ? sanitize_key( wp_unslash( $_POST['mode'] ) ) : 'read';
+			$o['mode'] = in_array( $mode, array( 'read', 'full', 'admin' ), true ) ? $mode : 'read';
+			$hours     = isset( $_POST['hours'] ) ? (int) $_POST['hours'] : 24;
+			$o['until'] = 'admin' === $o['mode'] && $hours > 0 ? time() + $hours * HOUR_IN_SECONDS : 0;
 			update_option( RFAHEYA_MCP, $o, false );
 		} elseif ( 'clearlog' === $do ) {
 			delete_option( 'rfaheya_mcp_log' );
@@ -10894,6 +11130,16 @@ function rfaheya_mcp_page() {
 				<?php wp_nonce_field( 'rfaheya_mcp' ); ?>
 				<label class="rfk-mode"><input type="radio" name="mode" value="read" <?php checked( 'read', $o['mode'] ); ?> onchange="this.form.submit()"><span><b>Read only</b><small>Sales, orders, products, offers, settings, reviews — look, don't touch.</small></span></label>
 				<label class="rfk-mode"><input type="radio" name="mode" value="full" <?php checked( 'full', $o['mode'] ); ?> onchange="this.form.submit()"><span><b>Full control</b><small>Also change prices, stock, products, offers, coupons, order status, settings, menus, reviews and blog drafts. Nothing is ever deleted except an offer you ask to delete.</small></span></label>
+				<label class="rfk-mode rfk-admin"><input type="radio" name="mode" value="admin" <?php checked( 'admin', $o['mode'] ); ?> onchange="this.form.submit()"><span><b>Admin — like you</b><small>Everything above, plus the site's files and plugins: edit files, install / update / switch plugins, put store updates in place (no more uploading zips). Every file changed or deleted is backed up first and can be put back. wp-config.php (the database password) stays out of reach.</small>
+					<span class="rfk-for">For <select name="hours" onchange="if(this.form.querySelector('[value=admin]').checked)this.form.submit()">
+						<?php foreach ( array( 2 => '2 hours', 24 => '24 hours', 168 => '7 days', 0 => 'until I switch it back' ) as $h => $label ) : ?>
+							<option value="<?php echo esc_attr( $h ); ?>" <?php selected( 24 === $h ); ?>><?php echo esc_html( $label ); ?></option>
+						<?php endforeach; ?>
+					</select>, then back to Full control on its own.</span>
+					<?php if ( 'admin' === $o['mode'] ) : ?>
+						<em class="rfk-left"><?php echo 'admin' === rfaheya_mcp_level() ? ( empty( $o['until'] ) ? 'On until you switch it back.' : 'On until ' . esc_html( wp_date( 'j M, H:i', (int) $o['until'] ) ) . '.' ) : 'Ended — Claude is on Full control now. Choose Admin again to renew.'; ?></em>
+					<?php endif; ?>
+				</span></label>
 			</form>
 		</section>
 
@@ -10949,7 +11195,7 @@ function rfaheya_mcp_page() {
 		.rfk-copy{display:flex;gap:8px;margin:8px 0}
 		.rfk-copy input{flex:1;font-family:monospace;font-size:13px;border:1px solid #e3d8c6;border-radius:10px;padding:8px 10px;background:#fff}
 		.rfk-warn{color:#9a5b00;font-size:12.5px}
-		.rfk-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+		.rfk-modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.rfk-admin{grid-column:1/-1}.rfk-for{display:block;margin-top:8px;font-size:12.5px;color:#5f5444}.rfk-for select{min-height:28px;border-radius:8px}.rfk-left{display:block;margin-top:6px;color:#9a5b00;font-style:normal;font-weight:600}
 		.rfk-mode{display:flex;gap:10px;align-items:flex-start;border:1px solid #eadfcd;border-radius:16px;padding:14px;cursor:pointer}
 		.rfk-mode:has(input:checked){border-color:#e39a2b;background:#fff8ec;box-shadow:0 0 0 2px rgba(227,154,43,.2)}
 		.rfk-mode input{margin-top:3px;accent-color:#e39a2b}
@@ -10963,4 +11209,102 @@ function rfaheya_mcp_page() {
 		@media (max-width:782px){.rfk-modes{grid-template-columns:1fr}}
 	</style>
 	<?php
+}
+
+// ---------------------------------------------------------------- admin helpers (files, backups, plugins)
+
+/** Files Claude never reads or writes: the database password and other secrets. */
+function rfaheya_mcp_secret( $rel ) {
+	$base = strtolower( basename( $rel ) );
+	return in_array( $base, array( 'wp-config.php', 'wp-config-sample.php', '.env', '.htpasswd', '.user.ini', 'php.ini', 'auth.json' ), true ) || 0 === strpos( ltrim( $rel, '/' ), 'wp-content/rfaheya-backups' );
+}
+
+/** A path inside the site (never outside it, never a secret file). */
+function rfaheya_mcp_path( $rel, $dir = false ) {
+	$rel  = ltrim( str_replace( '\\', '/', (string) $rel ), '/' );
+	$root = rtrim( str_replace( '\\', '/', realpath( ABSPATH ) ), '/' );
+	if ( preg_match( '#(^|/)\.\.(/|$)#', $rel ) || false !== strpos( $rel, "\0" ) ) {
+		throw new Exception( 'That path leaves the site.' );
+	}
+	$full = '' === $rel ? $root : $root . '/' . $rel;
+	$real = realpath( $dir ? $full : dirname( $full ) );
+	if ( $real && 0 !== strpos( str_replace( '\\', '/', $real ) . '/', $root . '/' ) ) {
+		throw new Exception( 'That path leaves the site.' );
+	}
+	if ( ! $dir && rfaheya_mcp_secret( $rel ) ) {
+		throw new Exception( 'That file holds secrets: it stays out of reach.' );
+	}
+	if ( $dir && ! is_dir( $full ) ) {
+		throw new Exception( 'No such folder.' );
+	}
+	return $full;
+}
+
+function rfaheya_mcp_rel( $full ) {
+	return ltrim( substr( str_replace( '\\', '/', $full ), strlen( rtrim( str_replace( '\\', '/', realpath( ABSPATH ) ), '/' ) ) ), '/' );
+}
+
+/** The backups folder (closed to the web). */
+function rfaheya_mcp_backup_dir() {
+	$dir = WP_CONTENT_DIR . '/rfaheya-backups';
+	if ( ! is_dir( $dir ) ) {
+		wp_mkdir_p( $dir );
+	}
+	if ( ! is_file( $dir . '/.htaccess' ) ) {
+		file_put_contents( $dir . '/.htaccess', "Require all denied\nDeny from all\n" );
+		file_put_contents( $dir . '/index.php', "<?php // Silence.\n" );
+	}
+	return $dir;
+}
+
+/** Copies files before a change; returns the backup id. */
+function rfaheya_mcp_backup( $files, $what ) {
+	$id  = gmdate( 'Ymd-His' ) . '-' . strtolower( wp_generate_password( 4, false ) );
+	$dir = rfaheya_mcp_backup_dir() . '/' . $id;
+	wp_mkdir_p( $dir );
+	$map = array();
+	foreach ( $files as $n => $file ) {
+		$rel         = rfaheya_mcp_rel( $file );
+		$map[ $rel ] = array( 'existed' => is_file( $file ), 'copy' => 'f' . $n );
+		if ( is_file( $file ) ) {
+			copy( $file, $dir . '/f' . $n );
+		}
+	}
+	file_put_contents( $dir . '/files.json', wp_json_encode( $map ) );
+	$list = (array) get_option( 'rfaheya_mcp_backups', array() );
+	array_unshift( $list, array( 'id' => $id, 'what' => $what, 'when' => wp_date( 'Y-m-d H:i' ) ) );
+	update_option( 'rfaheya_mcp_backups', array_slice( $list, 0, 200 ), false );
+	return $id;
+}
+
+/** Installs a plugin zip (a file or a download link), replacing the installed copy. */
+function rfaheya_mcp_install_plugin( $package, $activate ) {
+	require_once ABSPATH . 'wp-admin/includes/file.php';
+	require_once ABSPATH . 'wp-admin/includes/misc.php';
+	require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+	if ( ! WP_Filesystem() ) {
+		throw new Exception( 'WordPress can\'t write files on this server (filesystem method).' );
+	}
+	$skin     = new WP_Ajax_Upgrader_Skin();
+	$upgrader = new Plugin_Upgrader( $skin );
+	$ok       = $upgrader->install( $package, array( 'overwrite_package' => true ) );
+	if ( is_wp_error( $ok ) ) {
+		return $ok;
+	}
+	if ( ! $ok ) {
+		$errors = $skin->get_errors();
+		throw new Exception( 'Install failed: ' . ( is_wp_error( $errors ) && $errors->has_errors() ? $errors->get_error_message() : implode( ' ', $skin->get_error_messages() ) ) );
+	}
+	$file = $upgrader->plugin_info();
+	if ( $activate && $file && ! is_plugin_active( $file ) ) {
+		$r = activate_plugin( $file );
+		if ( is_wp_error( $r ) ) {
+			return $r;
+		}
+	}
+	delete_transient( 'rfaheya_bootstrap' );
+	rfaheya_purge_page_cache();
+	$data = $file ? get_plugin_data( WP_PLUGIN_DIR . '/' . $file, false, false ) : array();
+	return array( 'installed' => $file, 'name' => $data['Name'] ?? '', 'version' => $data['Version'] ?? '', 'active' => $file ? is_plugin_active( $file ) : false );
 }
