@@ -252,6 +252,12 @@ msgstr ""
 msgid "Add to Cart"
 msgstr ""
 
+msgid "Delivery details"
+msgstr ""
+
+msgid "Anything else?"
+msgstr ""
+
 msgid "Read"
 msgstr ""
 
@@ -460,6 +466,27 @@ msgid "Find a piece you love."
 msgstr ""
 
 msgid "Start shopping"
+msgstr ""
+
+msgid "Landmark, best time to call, gift note…"
+msgstr ""
+
+msgid "Governorate"
+msgstr ""
+
+msgid "City / Area"
+msgstr ""
+
+msgid "Have a coupon?"
+msgstr ""
+
+msgid "Coupon code"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Place order"
 msgstr ""
 
 msgid "Your email"

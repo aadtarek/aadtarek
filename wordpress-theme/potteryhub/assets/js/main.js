@@ -407,4 +407,27 @@ else {
     setTimeout(() => { pre.classList.add('out'); document.documentElement.style.overflow = ''; if (lenis && !open.size) lenis.start(); setTimeout(intro, 450); setTimeout(() => pre.remove(), 1400); }, 350);
   })(t0);
 }
+
+/* ---------- checkout: coupon inside the order summary ---------- */
+(() => {
+  const btn = $('#phCouponApply'), inp = $('#phCoupon');
+  if (!btn || !inp || !window.jQuery || !window.wc_checkout_params) return;
+  const apply = async () => {
+    const code = inp.value.trim(); if (!code) { inp.focus(); return; }
+    btn.classList.add('loading');
+    try {
+      const r = await fetch(wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'apply_coupon'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ security: wc_checkout_params.apply_coupon_nonce, coupon_code: code }) });
+      const html = await r.text();
+      const box = document.createElement('div'); box.innerHTML = html;
+      const msg = box.textContent.trim();
+      const ok = !box.querySelector('.woocommerce-error,[role="alert"].is-error,.wc-block-components-notice-banner.is-error');
+      if (msg) toast(msg);
+      if (ok) { inp.value = ''; jQuery(document.body).trigger('applied_coupon_in_checkout', [code]); jQuery(document.body).trigger('update_checkout', { update_shipping_method: false }); }
+    } catch (e) { toast(T('error')); }
+    btn.classList.remove('loading');
+  };
+  btn.addEventListener('click', apply);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
+})();
+
 })();

@@ -253,17 +253,148 @@ add_action(
 add_action( 'woocommerce_before_quantity_input_field', fn() => print '<button type="button" class="qminus" aria-label="' . esc_attr__( 'Less', 'potteryhub' ) . '">−</button>' );
 add_action( 'woocommerce_after_quantity_input_field', fn() => print '<button type="button" class="qplus" aria-label="' . esc_attr__( 'More', 'potteryhub' ) . '">+</button>' );
 
-/** Checkout: show Cash on delivery first, keep fields tidy. */
+/* Checkout ------------------------------------------------------------------ */
+
+/** Checkout fields: phone required (we call to confirm), no company, Egyptian-friendly order. */
 add_filter(
 	'woocommerce_checkout_fields',
 	function ( $f ) {
-		if ( isset( $f['billing']['billing_company'] ) ) {
-			unset( $f['billing']['billing_company'] );
+		unset( $f['billing']['billing_company'], $f['shipping']['shipping_company'] );
+		$order = array(
+			'first_name' => 10,
+			'last_name'  => 20,
+			'phone'      => 30,
+			'email'      => 40,
+			'country'    => 50,
+			'state'      => 60,
+			'city'       => 70,
+			'address_1'  => 80,
+			'address_2'  => 90,
+			'postcode'   => 100,
+		);
+		foreach ( array( 'billing', 'shipping' ) as $g ) {
+			foreach ( $order as $k => $prio ) {
+				if ( isset( $f[ $g ][ $g . '_' . $k ] ) ) {
+					$f[ $g ][ $g . '_' . $k ]['priority'] = $prio;
+				}
+			}
 		}
-		if ( isset( $f['billing']['billing_postcode'] ) ) {
-			$f['billing']['billing_postcode']['required'] = false;
+		if ( isset( $f['billing']['billing_phone'] ) ) {
+			$f['billing']['billing_phone']['required'] = true;
+			$f['billing']['billing_phone']['class']    = array( 'form-row-first' );
+		}
+		if ( isset( $f['billing']['billing_email'] ) ) {
+			$f['billing']['billing_email']['class'] = array( 'form-row-last' );
+		}
+		if ( isset( $f['order']['order_comments'] ) ) {
+			$f['order']['order_comments']['placeholder'] = __( 'Landmark, best time to call, gift note…', 'potteryhub' );
 		}
 		return $f;
+	}
+);
+
+/** Egypt: no postcode, governorate + city side by side. */
+add_filter(
+	'woocommerce_get_country_locale',
+	function ( $l ) {
+		$l['EG'] = array_merge(
+			isset( $l['EG'] ) ? $l['EG'] : array(),
+			array(
+				'postcode' => array(
+					'required' => false,
+					'hidden'   => true,
+				),
+				'state'    => array(
+					'label'    => __( 'Governorate', 'potteryhub' ),
+					'required' => true,
+					'class'    => array( 'form-row-first', 'address-field' ),
+				),
+				'city'     => array(
+					'label' => __( 'City / Area', 'potteryhub' ),
+					'class' => array( 'form-row-last', 'address-field' ),
+				),
+			)
+		);
+		return $l;
+	}
+);
+
+/** Keep our field order after WooCommerce's address script re-sorts by country; phone is required. */
+add_filter(
+	'woocommerce_get_country_locale_default',
+	function ( $d ) {
+		$prio = array(
+			'first_name' => 10,
+			'last_name'  => 20,
+			'phone'      => 30,
+			'country'    => 50,
+			'state'      => 60,
+			'city'       => 70,
+			'address_1'  => 80,
+			'address_2'  => 90,
+			'postcode'   => 100,
+		);
+		foreach ( $prio as $k => $p ) {
+			$d[ $k ]             = isset( $d[ $k ] ) ? $d[ $k ] : array();
+			$d[ $k ]['priority'] = $p;
+		}
+		$d['phone']['required'] = true;
+		return $d;
+	},
+	20
+);
+
+/** Arabic checkout privacy note (when the store still uses WooCommerce's default English text). */
+add_filter(
+	'woocommerce_get_privacy_policy_text',
+	function ( $text, $type ) {
+		if ( ph_is_ar() && false !== strpos( $text, 'Your personal data will be used' ) ) {
+			return 'checkout' === $type
+				? 'هنستخدم بياناتك الشخصية عشان ننفّذ طلبك ونحسّن تجربتك على الموقع، وللأغراض الموضحة في [privacy_policy].'
+				: 'هنستخدم بياناتك الشخصية لإدارة حسابك وللأغراض الموضحة في [privacy_policy].';
+		}
+		return $text;
+	},
+	10,
+	2
+);
+
+/** "Delivery" instead of "Shipping"/"Shipment" in the order summary. */
+add_filter( 'woocommerce_shipping_package_name', fn() => __( 'Delivery', 'potteryhub' ) );
+
+/** Buy now goes straight to checkout: skip the "added to your cart" notice there. */
+add_filter(
+	'woocommerce_add_to_cart_redirect',
+	function ( $url ) {
+		if ( ! empty( $_REQUEST['ph_buy_now'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			wc_clear_notices();
+		}
+		return $url;
+	},
+	100
+);
+
+/** Coupon field inside the order summary (fills WooCommerce's own coupon form). */
+remove_action( 'woocommerce_before_checkout_form', 'woocommerce_checkout_coupon_form', 10 );
+add_action(
+	'woocommerce_checkout_before_order_review',
+	function () {
+		if ( ! wc_coupons_enabled() ) {
+			return;
+		}
+		echo '<details class="co-coupon"><summary>' . esc_html__( 'Have a coupon?', 'potteryhub' ) . '</summary><div class="co-cpn"><input type="text" id="phCoupon" placeholder="' . esc_attr__( 'Coupon code', 'potteryhub' ) . '" autocomplete="off"><button type="button" id="phCouponApply">' . esc_html__( 'Apply', 'potteryhub' ) . '</button></div></details>';
+	}
+);
+
+/** Place order button shows the total. */
+add_filter(
+	'woocommerce_order_button_html',
+	function ( $html ) {
+		if ( ! WC()->cart ) {
+			return $html;
+		}
+		$label = __( 'Place order', 'potteryhub' ) . ' · ' . ph_plain_price( WC()->cart->get_total( 'edit' ) );
+		return '<button type="submit" class="button alt" name="woocommerce_checkout_place_order" id="place_order" value="' . esc_attr( $label ) . '" data-value="' . esc_attr( $label ) . '">' . ph_icon( 'check', 18, 2 ) . ' ' . esc_html( $label ) . '</button>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 );
 

@@ -253,6 +253,12 @@ msgstr "قطع مشابهة"
 msgid "Add to Cart"
 msgstr "أضف للحقيبة"
 
+msgid "Delivery details"
+msgstr "بيانات التوصيل"
+
+msgid "Anything else?"
+msgstr "حاجة كمان؟"
+
 msgid "Read"
 msgstr "اقرأ"
 
@@ -357,6 +363,27 @@ msgstr "اختار قطعة تعجبك."
 
 msgid "Start shopping"
 msgstr "ابدأ التسوق"
+
+msgid "Landmark, best time to call, gift note…"
+msgstr "علامة مميزة، أنسب وقت نكلمك فيه، رسالة هدية…"
+
+msgid "Governorate"
+msgstr "المحافظة"
+
+msgid "City / Area"
+msgstr "المدينة / المنطقة"
+
+msgid "Have a coupon?"
+msgstr "معاك كوبون خصم؟"
+
+msgid "Coupon code"
+msgstr "كود الكوبون"
+
+msgid "Apply"
+msgstr "تطبيق"
+
+msgid "Place order"
+msgstr "تأكيد الطلب"
 
 msgid "Your email"
 msgstr "بريدك الإلكتروني"
