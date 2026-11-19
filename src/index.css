@@ -1917,3 +1917,33 @@ html.rf-has-adminbar .vx,
 html.rf-has-adminbar .vx-empty {
   top: 32px;
 }
+
+/* Reviews as written: the blank lines between paragraphs, the line breaks inside them, and each
+   line in its own direction (Arabic right to left, English left to right, even in one review). */
+.rf-review-text > p {
+  white-space: pre-line;
+  unicode-bidi: plaintext;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+.rf-review-text > p + p {
+  margin-top: 0.75em;
+}
+.rf-review-text > p:dir(rtl) {
+  font-family: 'Cairo', 'Noto Naskh Arabic', 'Segoe UI', Tahoma, sans-serif;
+  line-height: 1.6;
+}
+
+/* The product's description as written in WooCommerce, at the story's size. */
+.rf-product-desc .wp-content { font-size: inherit; line-height: inherit; color: inherit; }
+.rf-product-desc .wp-content > :first-child { margin-top: 0; }
+.rf-product-desc .wp-content p { margin: 0 0 1em; unicode-bidi: plaintext; }
+.rf-product-desc .wp-content h2,
+.rf-product-desc .wp-content h3,
+.rf-product-desc .wp-content h4 { font-size: 1.25em; margin: 1.2em 0 0.4em; }
+.rf-product-desc .wp-content ul,
+.rf-product-desc .wp-content ol { margin: 0 0 1em; padding-inline-start: 1.3em; }
+.rf-product-desc .wp-content ul { list-style: disc; }
+.rf-product-desc .wp-content ol { list-style: decimal; }
+.rf-product-desc .wp-content a { color: var(--color-gold, #b8862b); text-decoration: underline; text-underline-offset: 3px; }
+.rf-product-desc .wp-content img { max-width: 100%; height: auto; border-radius: 16px; }

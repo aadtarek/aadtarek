@@ -366,6 +366,7 @@ async function loadExtra(url: string, settings: StoreSettings) {
       const html = texts[String(p.id)]
       if (!html) continue
       p.description = stripHtml(html)
+      p.descriptionHtml = html
       p.story = paragraphs(html)
     }
     reviews = mapReviews(x.reviews ?? []).filter((r) => products.some((p) => p.id === r.productId))

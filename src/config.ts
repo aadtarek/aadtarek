@@ -262,6 +262,25 @@ export const CAMPAIGNS: Campaign[] = [
 ]
 
 /** The Vitrine's characters as saved in the dashboard (Products → Vitrine characters); null = the built-in ones. */
+/** Discovery sets: any 10 samples for one price, 20 for another (Settings → Orders & offers). */
+export const DISCOVERY = { enabled: true, set10: 650, set20: 1000 }
+
+/**
+ * What a number of samples costs as a discovery set: with 20 or more, the 20 dearest at the
+ * set-of-20 price; with 10 to 19, the 10 dearest at the set-of-10 price and the rest at their
+ * own. Never more than they cost one by one (the same rule as the cart, rfaheya.php).
+ */
+export function discoveryPrice(prices: number[]) {
+  const normal = prices.reduce((a, b) => a + b, 0)
+  const n = prices.length
+  const size = !DISCOVERY.enabled ? 0 : n >= 20 && DISCOVERY.set20 > 0 ? 20 : n >= 10 && DISCOVERY.set10 > 0 ? 10 : 0
+  if (!size) return { normal, total: normal, size: 0, off: 0 }
+  const sorted = [...prices].sort((a, b) => b - a)
+  const covered = sorted.slice(0, size).reduce((a, b) => a + b, 0)
+  const off = Math.max(0, Math.round(covered - (size === 20 ? DISCOVERY.set20 : DISCOVERY.set10)))
+  return { normal, total: normal - off, size: off > 0 ? size : 0, off }
+}
+
 export const VITRINE: { characters: { id?: string; name?: string; tagline?: string; image?: string; products?: number[] }[] | null } = { characters: null }
 
 /** Pictures chosen in the dashboard (Settings → Site images), by key; empty keeps the built-in one. */
@@ -271,6 +290,11 @@ export const siteImage = (key: string, fallback: string) => SITE_IMAGES[key] || 
 
 export function applyStoreSettings(settings: StoreSettings) {
   if (Array.isArray(settings.characters)) VITRINE.characters = settings.characters
+  if (settings.discovery) {
+    if (typeof settings.discovery.enabled === 'boolean') DISCOVERY.enabled = settings.discovery.enabled
+    if (Number(settings.discovery.set10) > 0) DISCOVERY.set10 = Number(settings.discovery.set10)
+    if (Number(settings.discovery.set20) > 0) DISCOVERY.set20 = Number(settings.discovery.set20)
+  }
   for (const c of CAMPAIGNS) {
     const own = settings.campaigns?.[c.slug]
     if (!own) continue

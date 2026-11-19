@@ -1,6 +1,6 @@
 import type { FamilySlug, Gender, Longevity, Occasion, Presence, Product, ProductVariation, Review, Season, StandardKey } from '../types'
 import type { ProductDetails } from './content'
-import { money, storeApi, stripHtml } from './wp'
+import { money, storeApi, stripHtml, stripHtmlLines } from './wp'
 
 /**
  * Maps WooCommerce Store API responses onto the storefront's types.
@@ -221,6 +221,7 @@ function mapProduct(
     name: stripHtml(p.name),
     tagline: stripHtml(p.short_description),
     description: stripHtml(p.description),
+    descriptionHtml: p.description || undefined,
     story: paragraphs(p.description),
     badge: d.badge?.trim() ?? '',
     tags: (p.tags ?? []).map((t) => stripHtml(t.name)).filter(Boolean),
@@ -304,7 +305,7 @@ export function mapReviews(raw: RawReview[]): Review[] {
     size: r.size ?? '',
     author: stripHtml(r.reviewer),
     rating: r.rating,
-    text: stripHtml(r.review),
+    text: stripHtmlLines(r.review),
     verified: r.verified,
     date: r.date_created.slice(0, 10),
     images: r.images ?? [],

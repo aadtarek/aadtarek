@@ -42,6 +42,8 @@ export interface Product {
   tagline: string
   description: string
   /** Long description as paragraphs ("The fragrance" section) */
+  /** The description as written in WooCommerce (headings, lists, bold, links), for the product page */
+  descriptionHtml?: string
   story: string[]
   /** Small label on the image, e.g. "Best Seller" or "New" */
   badge: string

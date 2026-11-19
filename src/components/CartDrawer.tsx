@@ -2,7 +2,7 @@ import { Gift, Handbag, Lock, Minus, Plus, X } from 'lucide-react'
 import { useState, type CSSProperties } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getAllProducts, isGiftBoxProduct, sampleVariation } from '../api/catalog'
-import { ORDER_MIN } from '../config'
+import { DISCOVERY, ORDER_MIN } from '../config'
 import { formatPrice } from '../lib/format'
 import { tintFor } from '../lib/tints'
 import { useCart } from '../store/cart'
@@ -27,6 +27,13 @@ export function CartDrawer() {
   const wrapAmount = wrap.available && wrap.on ? wrap.price : 0
   const total = Math.max(0, cart.subtotal - cart.discount - cart.offerDiscount - rewards.couponTotal) + wrapAmount
   const short = ORDER_MIN.min > 0 ? Math.max(0, Math.ceil(ORDER_MIN.min - (cart.subtotal - cart.discount))) : 0
+  // Samples (5 ml) in the bag: how many more for the discovery set price.
+  const sampleCount = cart.lines.reduce((n, l) => n + (/^\s*([0-9.]+)\s*ml/i.test(l.variation.size) && parseFloat(l.variation.size) <= 10 ? l.quantity : 0), 0)
+  const setHint = !DISCOVERY.enabled || sampleCount === 0 || sampleCount >= 20
+    ? ''
+    : sampleCount < 10
+      ? `Add ${10 - sampleCount} more ${10 - sampleCount === 1 ? 'sample' : 'samples'} — any 10 for ${formatPrice(DISCOVERY.set10)}`
+      : `Add ${20 - sampleCount} more ${20 - sampleCount === 1 ? 'sample' : 'samples'} — any 20 for ${formatPrice(DISCOVERY.set20)}`
   // 5 ml samples of fragrances that aren't in the cart yet.
   const inCart = new Set(cart.lines.map((l) => l.productId))
   const samples = getAllProducts()
@@ -85,6 +92,16 @@ export function CartDrawer() {
           <>
             <div className="no-scrollbar flex-1 overflow-y-auto">
               <OfferBar amount={cart.subtotal - cart.discount} className="rf-white mx-3 rounded-[20px] border border-line px-4 pt-3.5 [--rf-offer-ring:#fff] sm:mx-4" />
+              {setHint && (
+                <Link
+                  to="/collections/discovery-sets"
+                  onClick={cart.close}
+                  className="mx-3 mt-2 flex items-center justify-between gap-3 rounded-[16px] bg-[#14110d] px-4 py-3 text-[12.5px] font-medium text-white transition hover:bg-[#241c14] sm:mx-4"
+                >
+                  <span>{setHint}</span>
+                  <span className="shrink-0 text-[11px] font-semibold tracking-[0.12em] text-[#f0c27a] uppercase">Pick →</span>
+                </Link>
+              )}
 
               <ul className="px-3 sm:px-4">
                 {cart.lines.map((line, i) => (

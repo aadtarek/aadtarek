@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { findByVariationId, findProductById, useCatalogVersion } from '../api/catalog'
 import { isWoo, money, storeApi } from '../api/wp'
-import { bundleDiscount, GIFT_WRAP, SPEND_OFFER, spendDiscount } from '../config'
+import { bundleDiscount, DISCOVERY, discoveryPrice, GIFT_WRAP, SPEND_OFFER, spendDiscount } from '../config'
 import { usePersistentState } from '../lib/storage'
 import type { CartItem, Product, ProductVariation } from '../types'
 
@@ -404,17 +404,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const spendOff = spendDiscount(subtotal)
     const discount = backend.discount ?? (bundleOff >= spendOff ? bundleOff : 0)
     const demoSpend = bundleOff >= spendOff ? 0 : spendOff
+    // The discovery set (any 10 or 20 samples at a set price); WooCommerce works it out itself.
+    const set = discoveryPrice(
+      backend.lines.flatMap((l) => (/^\s*([0-9.]+)\s*ml/i.test(l.variation.size) && parseFloat(l.variation.size) <= 10 ? Array<number>(l.quantity).fill(l.variation.price) : [])),
+    )
     return {
       lines: backend.lines,
       count: backend.lines.reduce((n, l) => n + l.quantity, 0),
       subtotal,
       discount,
-      offerDiscount: backend.offerDiscount ?? demoSpend,
+      offerDiscount: backend.offerDiscount ?? demoSpend + set.off,
       offerLines:
         backend.offerLines ??
         [
           { id: 'bundle-discount', name: 'Bundle discount', amount: discount },
           { id: 'spend', name: `${SPEND_OFFER.percent}% off over ${SPEND_OFFER.min.toLocaleString('en-US')} EGP`, amount: demoSpend },
+          { id: 'discovery', name: `Discovery set · ${set.size} for ${(set.size === 20 ? DISCOVERY.set20 : DISCOVERY.set10).toLocaleString('en-US')} EGP`, amount: set.off },
         ].filter((l) => l.amount > 0),
       add,
       addMany,

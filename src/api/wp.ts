@@ -44,6 +44,8 @@ export interface StoreSettings {
   }
   /** The Vitrine's characters (Products → Vitrine characters) */
   characters?: { id?: string; name?: string; tagline?: string; image?: string; products?: number[] }[] | null
+  /** Discovery sets at a set price (Settings → Orders & offers) */
+  discovery?: { enabled?: boolean; set10?: number; set20?: number }
   /** Campaign texts (Settings → Campaigns), by campaign slug */
   campaigns?: Record<string, { label?: string; title?: string; text?: string; products?: number[] }>
   /** Site images chosen in Settings → Site images: key => URL */
@@ -196,6 +198,28 @@ export function stripHtml(html: string): string {
     .replace(/<[^>]*>/g, '')
     .replace(/&(#x?[0-9a-f]+|[a-z][a-z0-9]*);/gi, entity)
     .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * Like stripHtml, but keeps the writer's line breaks and paragraphs (a review typed with Enter):
+ * paragraphs are separated by a blank line, a <br> is a line break.
+ */
+export function stripHtmlLines(html: string): string {
+  if (!html) return ''
+  return html
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<!--[\s\S]*?-->/g, ' ')
+    .replace(/\s*\n\s*/g, ' ') // in HTML a line break in the source is only a space; <br> and </p> make the breaks
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/(p|div|li|h[1-6]|blockquote)>/gi, '\n\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&(#x?[0-9a-f]+|[a-z][a-z0-9]*);/gi, entity)
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((l) => l.replace(/[ \t\u00a0]+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
     .trim()
 }
 

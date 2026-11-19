@@ -5,7 +5,7 @@ import { fullSizeVariations, getAllProducts, giftBoxProduct, sampleVariation } f
 import { PageHeader } from '../components/PageHeader'
 import { ProductCard } from '../components/ProductCard'
 import { SizePicker } from '../components/SizePicker'
-import { GIFT_BOX } from '../config'
+import { DISCOVERY, GIFT_BOX, discoveryPrice } from '../config'
 import { collections, findCollection, type Collection } from '../data/collections'
 import { formatPrice } from '../lib/format'
 import { flyToCart } from '../lib/fx'
@@ -153,17 +153,30 @@ function DiscoveryBuilder() {
   const full = picked.length >= max
   const toggle = (id: number) => setPicked((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= max ? p : [...p, id]))
   const selected = picked.flatMap((id) => products.filter((p) => p.id === id))
-  const total = selected.reduce((n, p) => n + (fiveMl(p)?.price ?? 0), 0)
-  const ready = SET_SIZES.includes(selected.length)
-  const next = SET_SIZES.find((n) => n > selected.length) ?? max
+  const price = discoveryPrice(selected.map((p) => fiveMl(p)?.price ?? 0))
+  const total = price.total
+  const n = selected.length
+  // With set prices, any number from 10 up goes (10 at the set price, the rest at their own);
+  // without them, a set is exactly 10 or 20.
+  const ready = DISCOVERY.enabled ? n >= SET_SIZES[0] : SET_SIZES.includes(n)
+  const next = SET_SIZES.find((x) => x > n) ?? max
   const q = query.trim().toLowerCase()
   const matching = products.filter((p) => !q || p.name.toLowerCase().includes(q) || (p.inspiredBy ?? '').toLowerCase().includes(q))
   const size = selected[0] ? fiveMl(selected[0])?.size.replace(/\s*ML$/i, ' ml') : products[0] ? fiveMl(products[0])?.size.replace(/\s*ML$/i, ' ml') : ''
-  const hint = ready
-    ? selected.length < max
-      ? `Your set of ${selected.length} is ready — or keep going to ${max}.`
-      : `Your set of ${max} is ready.`
-    : `Pick ${next - selected.length} more for a set of ${next}.`
+  const egp = (x: number) => formatPrice(x)
+  const hint = DISCOVERY.enabled
+    ? n >= 10 && price.off === 0
+      ? `These ${n} cost less one by one: ${egp(total)}.`
+      : n < 10
+      ? `Pick ${10 - n} more and get 10 for ${egp(DISCOVERY.set10)}.`
+      : n < 20
+        ? `${n > 10 ? `10 for ${egp(DISCOVERY.set10)} + ${n - 10} at their price. ` : `Your set of 10 is ${egp(DISCOVERY.set10)}. `}Add ${20 - n} more and get 20 for ${egp(DISCOVERY.set20)}.`
+        : `Your set of 20 is ${egp(DISCOVERY.set20)} — the best price.`
+    : ready
+      ? n < max
+        ? `Your set of ${n} is ready — or keep going to ${max}.`
+        : `Your set of ${max} is ready.`
+      : `Pick ${next - n} more for a set of ${next}.`
 
   const add = (e: React.MouseEvent<HTMLElement>) => {
     if (!ready) return
@@ -177,7 +190,16 @@ function DiscoveryBuilder() {
       <div>
         <h2 className="font-serif text-[30px] sm:text-[38px]">Choose your samples</h2>
         <p className="mt-1 text-ink-soft">
-          A discovery set is <strong className="font-semibold text-ink">10 or 20</strong> fragrances{size ? ` in ${size}` : ''}. Pick the ones you want to live with.
+          {DISCOVERY.enabled ? (
+            <>
+              Any <strong className="font-semibold text-ink">10 for {formatPrice(DISCOVERY.set10)}</strong> or <strong className="font-semibold text-ink">20 for {formatPrice(DISCOVERY.set20)}</strong>
+              {size ? ` in ${size}` : ''}. Pick the ones you want to live with.
+            </>
+          ) : (
+            <>
+              A discovery set is <strong className="font-semibold text-ink">10 or 20</strong> fragrances{size ? ` in ${size}` : ''}. Pick the ones you want to live with.
+            </>
+          )}
         </p>
         <SetProgress count={selected.length} className="mt-5" />
         <input
@@ -275,17 +297,21 @@ function DiscoveryBuilder() {
             ))}
           </ul>
         )}
-        <p className="mt-4 flex justify-between border-t border-line pt-4 text-[17px] font-semibold">
+        <p className="mt-4 flex items-baseline justify-between border-t border-line pt-4 text-[17px] font-semibold">
           <span>Total</span>
-          <span>{formatPrice(total)}</span>
+          <span>
+            {price.off > 0 && <s className="mr-2 text-[14px] font-normal text-muted">{formatPrice(price.normal)}</s>}
+            {formatPrice(total)}
+          </span>
         </p>
+        {price.off > 0 && <p className="mt-1 text-right text-[12.5px] font-medium text-[#55662a]">You save {formatPrice(price.off)}</p>}
         <button
           type="button"
           disabled={!ready}
           onClick={add}
           className="mt-5 h-[52px] w-full rounded-full bg-olive text-[12.5px] font-semibold tracking-[0.12em] text-on-accent uppercase transition hover:bg-olive-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {ready ? `Add set of ${selected.length} to cart` : `Pick ${next - selected.length} more`}
+          {ready ? `Add ${n} to cart · ${formatPrice(total)}` : `Pick ${(DISCOVERY.enabled ? 10 : next) - n} more`}
         </button>
       </aside>
     </div>
@@ -295,14 +321,14 @@ function DiscoveryBuilder() {
 /** A bar from 0 to 20 with the 10 and 20 stops marked; it turns green on a stop. */
 function SetProgress({ count, dark = false, className = '' }: { count: number; dark?: boolean; className?: string }) {
   const max = SET_SIZES[SET_SIZES.length - 1]
-  const ready = SET_SIZES.includes(count)
+  const ready = DISCOVERY.enabled ? count >= SET_SIZES[0] : SET_SIZES.includes(count)
   return (
     <div className={className} role="progressbar" aria-valuemin={0} aria-valuemax={max} aria-valuenow={count} aria-label="Samples in your set">
       <div className="flex items-baseline justify-between text-[12px] font-semibold tabular-nums">
         <span className={dark ? 'text-white' : 'text-ink'}>
           {count} <span className={dark ? 'text-white/50' : 'text-muted'}>/ {count <= SET_SIZES[0] ? SET_SIZES[0] : max} samples</span>
         </span>
-        <span className={dark ? 'text-white/50' : 'text-muted'}>10 or 20</span>
+        <span className={dark ? 'text-white/50' : 'text-muted'}>{DISCOVERY.enabled ? `10 · ${formatPrice(DISCOVERY.set10)}  ·  20 · ${formatPrice(DISCOVERY.set20)}` : '10 or 20'}</span>
       </div>
       <div className={`relative mt-2 h-2.5 rounded-full ${dark ? 'bg-white/15' : 'bg-chip'}`}>
         <span

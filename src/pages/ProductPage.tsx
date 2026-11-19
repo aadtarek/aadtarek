@@ -1,3 +1,4 @@
+import { WpHtml } from '../components/WpHtml'
 import { ArrowRight, ChevronLeft, ChevronRight, Heart, Minus, Play, Plus, ShieldCheck, ShoppingBag, Sparkles, Truck, Gift } from 'lucide-react'
 import { Deferred } from '../components/Deferred'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
@@ -446,7 +447,7 @@ function InspiredBy({ product }: { product: Product }) {
   const name = title || product.inspiredBy
   return (
     <div className="mt-5 flex items-center gap-3.5 overflow-hidden rounded-[20px] bg-chip p-2.5 pr-[18px]">
-      {product.dnaImage && <img src={product.dnaImage} alt={`${name}${by ? ` by ${by}` : ''}`} loading="lazy" className="h-[84px] w-[64px] shrink-0 rounded-[14px] bg-white object-cover" />}
+      {product.dnaImage && <img src={product.dnaImage} alt={`${name}${by ? ` by ${by}` : ''}`} loading="lazy" className="h-[84px] w-[64px] shrink-0 object-contain drop-shadow-[0_6px_10px_rgba(0,0,0,0.18)]" />}
       <span className={`min-w-0 flex-1 ${product.dnaImage ? '' : 'py-2 pl-2'}`}>
         <span className="block truncate font-serif text-[23px] leading-none">{name}</span>
         {by && <span className="mt-1 block truncate text-[13px] text-muted">by {by}</span>}
@@ -528,11 +529,18 @@ function Story({ product }: { product: Product }) {
         <h2 id="story-title" className="mt-3 font-serif text-[32px] leading-[1.08] sm:text-[46px]">
           {product.tagline ? `“${product.tagline}”` : product.name}
         </h2>
-        <div className="mt-5 space-y-4 text-[15px] leading-[1.7] text-ink-soft sm:text-[16px]">
-          {paragraphs.map((p) => (
-            <p key={p}>{p}</p>
-          ))}
-        </div>
+        {product.descriptionHtml?.trim() ? (
+          // As written in WooCommerce: its headings, lists, bold text and links.
+          <div dir="auto" className="rf-product-desc mt-5 text-[15px] leading-[1.7] text-ink-soft sm:text-[16px]">
+            <WpHtml html={product.descriptionHtml} />
+          </div>
+        ) : (
+          <div className="mt-5 space-y-4 text-[15px] leading-[1.7] text-ink-soft sm:text-[16px]">
+            {paragraphs.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+          </div>
+        )}
         {chips.length > 0 && (
           <ul className="mt-6 flex flex-wrap gap-2">
             {chips.map(({ label }) => (

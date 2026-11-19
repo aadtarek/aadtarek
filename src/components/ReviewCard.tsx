@@ -1,3 +1,4 @@
+import { ReviewText } from './ReviewText'
 import { BadgeCheck, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -25,7 +26,9 @@ export function ReviewCard({ review }: { review: Review }) {
         <Stars rating={review.rating} className="size-[15px]" />
         <span className="text-[12px] font-semibold text-muted tabular-nums">{review.rating.toFixed(1)}</span>
       </div>
-      <blockquote className="relative mt-4 flex-1 font-serif text-[20px] leading-[1.32] text-ink sm:text-[22px]">{review.text}</blockquote>
+      <blockquote className="relative mt-4 flex-1 font-serif text-[20px] leading-[1.32] text-ink sm:text-[22px]">
+        <ReviewText text={review.text} />
+      </blockquote>
       {review.images && review.images.length > 0 && <ReviewPhotos images={review.images} author={review.author} />}
 
       <div className="relative mt-6 flex flex-wrap items-center gap-x-3 gap-y-3 border-t border-line pt-5">
