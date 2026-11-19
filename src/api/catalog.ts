@@ -129,7 +129,8 @@ export function restoreCatalog(): boolean {
     products = s.products
     reviews = Array.isArray(s.reviews) ? s.reviews : []
     videos = Array.isArray(s.videos) ? s.videos : []
-    applyStoreSettings(s.settings ?? {})
+    // The page's own settings are newer than the browser's copy (a change in the dashboard shows at once).
+    applyStoreSettings(window.__rfSettings ?? s.settings ?? {})
     for (const f of Array.isArray(s.families) ? s.families : []) {
       const family = families.find((x) => x.slug === f.slug)
       if (family) Object.assign(family, f)

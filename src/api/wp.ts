@@ -46,6 +46,8 @@ export interface StoreSettings {
   characters?: { id?: string; name?: string; tagline?: string; image?: string; products?: number[] }[] | null
   /** Discovery sets at a set price (Settings → Orders & offers) */
   discovery?: { enabled?: boolean; set10?: number; set20?: number }
+  /** Appearance → Menus ✦ (null until saved there: the built-in menus stay) */
+  menus?: { header?: { label?: string; to?: string; wide?: boolean }[]; footer?: { title?: string; links?: { label?: string; to?: string }[] }[] } | null
   /** Campaign texts (Settings → Campaigns), by campaign slug */
   campaigns?: Record<string, { label?: string; title?: string; text?: string; products?: number[] }>
   /** Site images chosen in Settings → Site images: key => URL */

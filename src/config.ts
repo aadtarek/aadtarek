@@ -288,7 +288,28 @@ export const SITE_IMAGES: Record<string, string> = {}
 /** A dashboard picture, or the built-in one. */
 export const siteImage = (key: string, fallback: string) => SITE_IMAGES[key] || fallback
 
+export interface MenuLink {
+  label: string
+  to: string
+  /** Header only: shown on wide screens (it stays in the phone menu) */
+  wide?: boolean
+}
+/** Header and footer links from the dashboard (Appearance → Menus ✦); null keeps the built-in ones. */
+export const MENUS: { header: MenuLink[] | null; footer: { title: string; links: MenuLink[] }[] | null } = { header: null, footer: null }
+
 export function applyStoreSettings(settings: StoreSettings) {
+  // null: never saved in the dashboard, or reset there → the built-in menus.
+  if (settings.menus === null) {
+    MENUS.header = null
+    MENUS.footer = null
+  }
+  if (settings.menus) {
+    const link = (l: { label?: string; to?: string; wide?: boolean }): MenuLink => ({ label: String(l.label ?? ''), to: String(l.to ?? ''), wide: Boolean(l.wide) })
+    const ok = (l: MenuLink) => l.label !== '' && l.to !== ''
+    if (Array.isArray(settings.menus.header)) MENUS.header = settings.menus.header.map(link).filter(ok)
+    if (Array.isArray(settings.menus.footer))
+      MENUS.footer = settings.menus.footer.map((c) => ({ title: String(c.title ?? ''), links: (c.links ?? []).map(link).filter(ok) })).filter((c) => c.links.length)
+  }
   if (Array.isArray(settings.characters)) VITRINE.characters = settings.characters
   if (settings.discovery) {
     if (typeof settings.discovery.enabled === 'boolean') DISCOVERY.enabled = settings.discovery.enabled

@@ -2035,6 +2035,7 @@ function rfaheya_settings_data() {
 			'images'       => rfaheya_site_images_data(),
 			'characters'   => rfaheya_characters_data(),
 			'discovery'    => rfaheya_discovery_prices(),
+			'menus'        => rfaheya_menus_data(),
 			'campaigns'    => array(
 				'vanilla-redefined'  => array(
 					'label' => $o['campaigns']['vanilla_label'],
@@ -9578,6 +9579,430 @@ function rfaheya_new_order_page() {
 		});
 		$('#rfo-account').addEventListener('change', totals);
 		draw(); accountState();
+	})();
+	</script>
+	<?php
+}
+
+/* -------------------------------------------------------------------------
+ * Menus (Appearance → Menus ✦): the header and footer links, chosen in the dashboard.
+ * Until they are saved once, the storefront keeps its own built-in menus (the same as the defaults below).
+ * ------------------------------------------------------------------------- */
+
+define( 'RFAHEYA_MENUS', 'rfaheya_menus' );
+
+/** The built-in menus (kept the same as the storefront's own). */
+function rfaheya_menus_default() {
+	$o = rfaheya_options()['campaigns'];
+	return array(
+		'header' => array(
+			array( 'label' => 'Shop', 'to' => '/shop', 'on' => true ),
+			array( 'label' => 'Best Sellers', 'to' => '/shop?sort=best-sellers', 'on' => true, 'wide' => true ),
+			array( 'label' => $o['vanilla_label'] ? $o['vanilla_label'] : 'Vanilla Redefined', 'to' => '/vanilla-redefined', 'on' => true ),
+			array( 'label' => $o['oudrose_label'] ? $o['oudrose_label'] : 'Oud & Rose Redefined', 'to' => '/oud-rose-redefined', 'on' => true ),
+			array( 'label' => 'Rfaheya Finder', 'to' => '/finder/quiz', 'on' => true ),
+			array( 'label' => 'Collections', 'to' => '/collections', 'on' => true, 'wide' => true ),
+			array( 'label' => 'The Vitrine', 'to' => '/vitrine', 'on' => true ),
+		),
+		'footer' => array(
+			array(
+				'title' => 'Shop',
+				'on'    => true,
+				'links' => array(
+					array( 'label' => 'All Fragrances', 'to' => '/shop', 'on' => true ),
+					array( 'label' => 'New Arrivals', 'to' => '/shop?sort=newest', 'on' => true ),
+					array( 'label' => 'Best Sellers', 'to' => '/shop?sort=best-sellers', 'on' => true ),
+					array( 'label' => 'Perfume Lab (Inspired)', 'to' => '/collections/perfume-lab', 'on' => true ),
+					array( 'label' => 'Ledger (Men)', 'to' => '/collections/ledger', 'on' => true ),
+					array( 'label' => 'Serenity (Women)', 'to' => '/collections/serenity', 'on' => true ),
+					array( 'label' => 'Discovery Sets', 'to' => '/collections/discovery-sets', 'on' => true ),
+					array( 'label' => 'Gift Boxes', 'to' => '/collections/gift-boxes', 'on' => true ),
+				),
+			),
+			array(
+				'title' => 'About',
+				'on'    => true,
+				'links' => array(
+					array( 'label' => 'Our Story', 'to' => '/about', 'on' => true ),
+					array( 'label' => 'Rfaheya Standard™', 'to' => '/our-standard', 'on' => true ),
+					array( 'label' => 'Blog', 'to' => '/journal', 'on' => true ),
+					array( 'label' => 'Contact Us', 'to' => '/contact', 'on' => true ),
+				),
+			),
+			array(
+				'title' => 'Help',
+				'on'    => true,
+				'links' => array(
+					array( 'label' => 'FAQs', 'to' => '/faqs', 'on' => true ),
+					array( 'label' => 'Returns & Refunds', 'to' => '/returns', 'on' => true ),
+					array( 'label' => 'Track Your Order', 'to' => '/track-order', 'on' => true ),
+					array( 'label' => 'Privacy Policy', 'to' => '/privacy', 'on' => true ),
+				),
+			),
+		),
+	);
+}
+
+/** A link as typed: a path on the store (/shop), or a full web address (https://…). */
+function rfaheya_menu_link( $to ) {
+	$to = trim( (string) $to );
+	if ( '' === $to ) {
+		return '';
+	}
+	if ( preg_match( '#^(https?:)?//#i', $to ) || preg_match( '#^(mailto|tel):#i', $to ) ) {
+		$url = esc_url_raw( $to, array( 'http', 'https', 'mailto', 'tel' ) );
+		// A link to this same site is kept as a path, so it opens inside the store.
+		$home = wp_parse_url( home_url() );
+		$p    = wp_parse_url( $url );
+		if ( $url && ! empty( $p['host'] ) && ! empty( $home['host'] ) && strtolower( $p['host'] ) === strtolower( $home['host'] ) ) {
+			$url = ( $p['path'] ?? '/' ) . ( isset( $p['query'] ) ? '?' . $p['query'] : '' );
+		}
+		return $url;
+	}
+	$to = '/' . ltrim( $to, '/' );
+	return preg_replace( '/[^A-Za-z0-9\/\-_.~?&=%#+]/', '', $to );
+}
+
+/** Cleans menus sent from the page. */
+function rfaheya_menus_clean( $m ) {
+	$item = function ( $l ) {
+		$label = sanitize_text_field( $l['label'] ?? '' );
+		$to    = rfaheya_menu_link( $l['to'] ?? '' );
+		if ( '' === $label || '' === $to ) {
+			return null;
+		}
+		return array(
+			'label' => $label,
+			'to'    => $to,
+			'on'    => ! empty( $l['on'] ),
+			'wide'  => ! empty( $l['wide'] ),
+		);
+	};
+	$out = array( 'header' => array(), 'footer' => array() );
+	foreach ( array_slice( (array) ( $m['header'] ?? array() ), 0, 20 ) as $l ) {
+		$i = is_array( $l ) ? $item( $l ) : null;
+		if ( $i ) {
+			$out['header'][] = $i;
+		}
+	}
+	foreach ( array_slice( (array) ( $m['footer'] ?? array() ), 0, 6 ) as $c ) {
+		if ( ! is_array( $c ) ) {
+			continue;
+		}
+		$col = array(
+			'title' => sanitize_text_field( $c['title'] ?? '' ),
+			'on'    => ! empty( $c['on'] ),
+			'links' => array(),
+		);
+		foreach ( array_slice( (array) ( $c['links'] ?? array() ), 0, 30 ) as $l ) {
+			$i = is_array( $l ) ? $item( $l ) : null;
+			if ( $i ) {
+				$col['links'][] = $i;
+			}
+		}
+		if ( '' !== $col['title'] || $col['links'] ) {
+			$out['footer'][] = $col;
+		}
+	}
+	return $out;
+}
+
+/** The menus as saved, or null for the storefront's own (never saved, or reset). */
+function rfaheya_menus_saved() {
+	$m = get_option( RFAHEYA_MENUS, null );
+	return is_array( $m ) && isset( $m['header'], $m['footer'] ) ? $m : null;
+}
+
+/** For the storefront: only the links that are switched on. */
+function rfaheya_menus_data() {
+	$m = rfaheya_menus_saved();
+	if ( ! $m ) {
+		return null;
+	}
+	$on = fn( $l ) => ! empty( $l['on'] );
+	$strip = fn( $l ) => array( 'label' => $l['label'], 'to' => $l['to'], 'wide' => ! empty( $l['wide'] ) );
+	$footer = array();
+	foreach ( $m['footer'] as $c ) {
+		if ( empty( $c['on'] ) ) {
+			continue;
+		}
+		$links = array_values( array_map( $strip, array_filter( $c['links'], $on ) ) );
+		if ( $links ) {
+			$footer[] = array( 'title' => $c['title'], 'links' => $links );
+		}
+	}
+	return array(
+		'header' => array_values( array_map( $strip, array_filter( $m['header'], $on ) ) ),
+		'footer' => $footer,
+	);
+}
+
+function rfaheya_menus_url( $args = array() ) {
+	return add_query_arg( array_merge( array( 'page' => 'rfaheya-menus' ), $args ), admin_url( 'themes.php' ) );
+}
+
+add_action(
+	'admin_menu',
+	function () {
+		add_theme_page( 'Header & footer menus', 'Menus ✦', 'edit_theme_options', 'rfaheya-menus', 'rfaheya_menus_page' );
+	}
+);
+
+add_action(
+	'admin_post_rfaheya_save_menus',
+	function () {
+		if ( ! current_user_can( 'edit_theme_options' ) ) {
+			wp_die( 'Sorry, you are not allowed to change the menus.' );
+		}
+		check_admin_referer( 'rfaheya_save_menus' );
+		if ( ! empty( $_POST['reset'] ) ) {
+			delete_option( RFAHEYA_MENUS );
+		} else {
+			$raw = isset( $_POST['menus'] ) ? json_decode( wp_unslash( $_POST['menus'] ), true ) : null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- cleaned in rfaheya_menus_clean
+			if ( is_array( $raw ) ) {
+				update_option( RFAHEYA_MENUS, rfaheya_menus_clean( $raw ), true );
+			}
+		}
+		delete_transient( 'rfaheya_bootstrap' );
+		rfaheya_purge_page_cache();
+		wp_safe_redirect( rfaheya_menus_url( array( 'saved' => empty( $_POST['reset'] ) ? 1 : 2 ) ) );
+		exit;
+	}
+);
+
+/** Pages of the store to pick from when adding a link. */
+function rfaheya_menu_suggestions() {
+	$o   = rfaheya_options()['campaigns'];
+	$out = array(
+		'/shop'                        => 'Shop — all fragrances',
+		'/shop?sort=best-sellers'      => 'Best sellers',
+		'/shop?sort=newest'            => 'New arrivals',
+		'/finder/quiz'                 => 'Rfaheya Finder (starts the quiz)',
+		'/collections'                 => 'Collections',
+		'/collections/perfume-lab'     => 'Perfume Lab (Inspired)',
+		'/collections/ledger'          => 'Ledger (Men)',
+		'/collections/serenity'        => 'Serenity (Women)',
+		'/collections/discovery-sets'  => 'Discovery sets',
+		'/collections/gift-boxes'      => 'Gift boxes',
+		'/vitrine'                     => 'The Vitrine',
+		'/vanilla-redefined'           => 'Campaign: ' . ( $o['vanilla_label'] ? $o['vanilla_label'] : 'Vanilla Redefined' ),
+		'/oud-rose-redefined'          => 'Campaign: ' . ( $o['oudrose_label'] ? $o['oudrose_label'] : 'Oud & Rose Redefined' ),
+		'/about'                       => 'Our story',
+		'/our-standard'                => 'Rfaheya Standard™',
+		'/journal'                     => 'Blog',
+		'/contact'                     => 'Contact us',
+		'/faqs'                        => 'FAQs',
+		'/returns'                     => 'Returns & refunds',
+		'/track-order'                 => 'Track your order',
+		'/privacy'                     => 'Privacy policy',
+		'/wishlist'                    => 'Wishlist',
+		'/account'                     => 'My account',
+	);
+	foreach ( array( 'men' => 'Men', 'women' => 'Women', 'unisex' => 'Unisex' ) as $k => $v ) {
+		$out[ '/shop?gender=' . $k ] = 'Shop: ' . $v;
+	}
+	foreach ( array( 'fresh', 'oriental', 'floral', 'fruity', 'sweet' ) as $k ) {
+		$out[ '/shop?family=' . $k ] = 'Shop: ' . ucfirst( $k ) . ' family';
+	}
+	return $out;
+}
+
+function rfaheya_menus_page() {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+	$saved = rfaheya_menus_saved();
+	$menus = $saved ? $saved : rfaheya_menus_default();
+	$done  = isset( $_GET['saved'] ) ? (int) $_GET['saved'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- a notice only
+	?>
+	<div class="wrap rfm">
+		<header class="rfm-hero">
+			<div>
+				<p class="rfm-eyebrow">Rfaheya · Appearance</p>
+				<h1>Header &amp; footer menus</h1>
+				<p>Rename, reorder (drag ⠿ or the arrows), hide or delete any link, and add your own — a page of the store or any web address. Save, and the store shows it at once.</p>
+			</div>
+		</header>
+		<?php if ( $done ) : ?>
+			<div class="rfm-note"><?php echo 1 === $done ? 'Menus saved — they’re live on the store.' : 'Back to the original menus.'; ?></div>
+		<?php endif; ?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="rfm-form">
+			<input type="hidden" name="action" value="rfaheya_save_menus">
+			<input type="hidden" name="menus" id="rfm-data">
+			<?php wp_nonce_field( 'rfaheya_save_menus' ); ?>
+			<div class="rfm-grid">
+				<section class="rfm-card">
+					<div class="rfm-card-head">
+						<h2>Header</h2>
+						<p>The links across the top (and in the phone menu).</p>
+					</div>
+					<div class="rfm-list" data-list="header"></div>
+					<button type="button" class="rfm-add" data-add="header">+ Add a link</button>
+				</section>
+				<section class="rfm-card">
+					<div class="rfm-card-head">
+						<h2>Footer</h2>
+						<p>Columns of links at the bottom of every page.</p>
+					</div>
+					<div id="rfm-cols"></div>
+					<button type="button" class="rfm-add" id="rfm-add-col">+ Add a column</button>
+				</section>
+			</div>
+			<div class="rfm-bar">
+				<button type="submit" name="reset" value="1" class="rfm-reset" onclick="return confirm('Go back to the original menus? Your changes here are lost.')">Reset to the original</button>
+				<span class="rfm-dirty">Unsaved changes</span>
+				<button type="submit" class="rfm-save">Save menus</button>
+			</div>
+		</form>
+		<datalist id="rfm-pages">
+			<?php foreach ( rfaheya_menu_suggestions() as $to => $label ) : ?>
+				<option value="<?php echo esc_attr( $to ); ?>"><?php echo esc_html( $label ); ?></option>
+			<?php endforeach; ?>
+		</datalist>
+	</div>
+	<style>
+		.rfm{max-width:1280px;margin:20px 20px 0 0;font-size:14px;color:#1d1a16}
+		.rfm-hero{border-radius:26px;padding:30px 34px;background:radial-gradient(120% 140% at 0% 0%,#5a3d17 0%,#2a1d0d 45%,#16110b 100%);color:#f4ead8}
+		.rfm-eyebrow{margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:#e6a43a}
+		.rfm-hero h1{margin:0;font-size:32px;line-height:1.15;color:#fff;font-weight:600}
+		.rfm-hero p{max-width:640px;margin:10px 0 0;color:#d9cbb4;font-size:14.5px;line-height:1.55}
+		.rfm-note{margin:16px 0 0;padding:12px 18px;border-radius:14px;background:#eaf3e2;color:#2f5a1f;font-weight:600}
+		.rfm-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:18px;margin-top:18px;align-items:start}
+		@media (max-width:1100px){.rfm-grid{grid-template-columns:1fr}}
+		.rfm-card{background:#fff;border:1px solid #eadfcd;border-radius:22px;padding:20px}
+		.rfm-card-head h2{margin:0;font-size:19px}
+		.rfm-card-head p{margin:4px 0 14px;color:#7a6f61}
+		.rfm-row{display:grid;grid-template-columns:22px minmax(0,1fr) minmax(0,1.1fr) auto;gap:8px;align-items:center;padding:7px 8px;border:1px solid #efe6d8;border-radius:14px;background:#fffdf9;margin-bottom:6px;transition:opacity .2s,box-shadow .2s}
+		.rfm-row.is-off{opacity:.5}
+		.rfm-row.is-drag{box-shadow:0 10px 30px rgba(0,0,0,.12);opacity:.8}
+		.rfm-handle{cursor:grab;color:#b3a48c;font-size:18px;text-align:center;user-select:none}
+		.rfm-row input[type=text]{width:100%;min-height:36px;border:1px solid #e3d8c6;border-radius:10px;padding:0 10px;background:#fff}
+		.rfm-row input[type=text]:focus{border-color:#e39a2b;box-shadow:0 0 0 2px rgba(227,154,43,.18);outline:0}
+		.rfm-tools{display:flex;gap:4px;align-items:center}
+		.rfm-tools button{width:30px;height:30px;border:0;border-radius:9px;background:#f4ede1;cursor:pointer;color:#5f5444;font-size:13px}
+		.rfm-tools button:hover{background:#ecdcc0}
+		.rfm-tools .rfm-del:hover{background:#f8d9d4;color:#b42318}
+		.rfm-eye{position:relative;display:inline-flex;align-items:center;cursor:pointer}
+		.rfm-eye input{position:absolute;opacity:0}
+		.rfm-eye span{width:34px;height:20px;border-radius:20px;background:#d8cdbb;position:relative;transition:background .2s}
+		.rfm-eye span:after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s}
+		.rfm-eye input:checked+span{background:#e39a2b}
+		.rfm-eye input:checked+span:after{transform:translateX(14px)}
+		.rfm-add{margin-top:6px;border:1px dashed #d9c39c;background:#fffaf1;color:#9a6512;border-radius:12px;padding:9px 14px;font-weight:600;cursor:pointer;width:100%}
+		.rfm-add:hover{background:#fff1da}
+		.rfm-col{border:1px solid #eadfcd;border-radius:18px;padding:12px;margin-bottom:12px;background:#fbf7f0}
+		.rfm-col.is-off{opacity:.55}
+		.rfm-col-head{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+		.rfm-col-head input[type=text]{flex:1;min-height:38px;border:1px solid #e3d8c6;border-radius:10px;padding:0 12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+		.rfm-hint{font-size:12px;color:#8a7e6c;margin:2px 0 8px 30px}
+		.rfm-bar{position:sticky;bottom:0;display:flex;gap:12px;align-items:center;justify-content:flex-end;margin-top:18px;padding:14px 18px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border:1px solid #eadfcd;border-radius:18px}
+		.rfm-reset{margin-right:auto;border:0;background:none;color:#8a7e6c;text-decoration:underline;cursor:pointer}
+		.rfm-dirty{display:none;color:#b56a00;font-weight:600}
+		.rfm-bar.is-dirty .rfm-dirty{display:inline}
+		.rfm-save{border:0;border-radius:999px;background:#e39a2b;color:#1d1a16;font-weight:700;padding:12px 26px;cursor:pointer;letter-spacing:.04em}
+		.rfm-save:hover{background:#d48b1d}
+		.rfm-ext{font-size:11px;color:#9a6512;margin-left:2px}
+	</style>
+	<script>
+	(function () {
+		var data = <?php echo wp_json_encode( $menus ); ?>;
+		var bar = document.querySelector('.rfm-bar');
+		function dirty() { bar.classList.add('is-dirty'); }
+		function el(tag, attrs, kids) {
+			var e = document.createElement(tag);
+			for (var k in attrs || {}) { if (k === 'text') e.textContent = attrs[k]; else if (k.slice(0, 2) === 'on') e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]); }
+			(kids || []).forEach(function (c) { if (c) e.appendChild(c); });
+			return e;
+		}
+		function toggle(on, change) {
+			var box = el('input', { type: 'checkbox', onchange: function () { change(box.checked); } });
+			box.checked = !!on;
+			return el('label', { class: 'rfm-eye', title: 'Show on the store' }, [box, el('span')]);
+		}
+		function move(list, i, d, redraw) {
+			var j = i + d;
+			if (j < 0 || j >= list.length) return;
+			var x = list[i]; list[i] = list[j]; list[j] = x; dirty(); redraw();
+		}
+		function rows(holder, list, redraw) {
+			holder.innerHTML = '';
+			list.forEach(function (l, i) {
+				var label = el('input', { type: 'text', value: l.label || '', placeholder: 'Name, e.g. Shop', 'aria-label': 'Link name', oninput: function () { l.label = label.value; dirty(); } });
+				var to = el('input', { type: 'text', value: l.to || '', placeholder: 'Page (pick) or https://…', list: 'rfm-pages', 'aria-label': 'Link', oninput: function () { l.to = to.value; dirty(); } });
+				var row = el('div', { class: 'rfm-row' + (l.on ? '' : ' is-off'), draggable: 'true' }, [
+					el('span', { class: 'rfm-handle', title: 'Drag to reorder', text: '⠿' }),
+					label,
+					to,
+					el('div', { class: 'rfm-tools' }, [
+						toggle(l.on, function (v) { l.on = v; row.classList.toggle('is-off', !v); dirty(); }),
+						el('button', { type: 'button', title: 'Move up', text: '↑', onclick: function () { move(list, i, -1, redraw); } }),
+						el('button', { type: 'button', title: 'Move down', text: '↓', onclick: function () { move(list, i, 1, redraw); } }),
+						el('button', { type: 'button', class: 'rfm-del', title: 'Delete', text: '✕', onclick: function () { list.splice(i, 1); dirty(); redraw(); } })
+					])
+				]);
+				// Drag only by the handle (the text boxes stay selectable).
+				row.addEventListener('dragstart', function (e) {
+					if (!e.target.classList || !row.dataset.grab) { e.preventDefault(); return; }
+					row.classList.add('is-drag'); e.dataTransfer.effectAllowed = 'move'; holder.dataset.from = i;
+				});
+				row.querySelector('.rfm-handle').addEventListener('mousedown', function () { row.dataset.grab = '1'; });
+				row.addEventListener('mouseup', function () { delete row.dataset.grab; });
+				row.addEventListener('dragend', function () { row.classList.remove('is-drag'); delete row.dataset.grab; });
+				row.addEventListener('dragover', function (e) { e.preventDefault(); });
+				row.addEventListener('drop', function (e) {
+					e.preventDefault();
+					var from = +holder.dataset.from;
+					if (isNaN(from) || from === i) return;
+					var x = list.splice(from, 1)[0]; list.splice(i, 0, x); dirty(); redraw();
+				});
+				holder.appendChild(row);
+			});
+		}
+		var head = document.querySelector('[data-list="header"]');
+		function drawHeader() { rows(head, data.header, drawHeader); }
+		document.querySelector('[data-add="header"]').addEventListener('click', function () {
+			data.header.push({ label: '', to: '', on: true }); dirty(); drawHeader();
+			var r = head.querySelectorAll('.rfm-row'); r[r.length - 1].querySelector('input').focus();
+		});
+		var cols = document.getElementById('rfm-cols');
+		function drawCols() {
+			cols.innerHTML = '';
+			data.footer.forEach(function (c, ci) {
+				var holder = el('div');
+				var title = el('input', { type: 'text', value: c.title || '', placeholder: 'Column title', 'aria-label': 'Column title', oninput: function () { c.title = title.value; dirty(); } });
+				var box = el('div', { class: 'rfm-col' + (c.on ? '' : ' is-off') }, [
+					el('div', { class: 'rfm-col-head' }, [
+						title,
+						el('div', { class: 'rfm-tools' }, [
+							toggle(c.on, function (v) { c.on = v; box.classList.toggle('is-off', !v); dirty(); }),
+							el('button', { type: 'button', title: 'Move column up', text: '↑', onclick: function () { move(data.footer, ci, -1, drawCols); } }),
+							el('button', { type: 'button', title: 'Move column down', text: '↓', onclick: function () { move(data.footer, ci, 1, drawCols); } }),
+							el('button', { type: 'button', class: 'rfm-del', title: 'Delete column', text: '✕', onclick: function () { if (confirm('Delete the column “' + (c.title || '') + '” and its links?')) { data.footer.splice(ci, 1); dirty(); drawCols(); } } })
+						])
+					]),
+					holder,
+					el('button', { type: 'button', class: 'rfm-add', text: '+ Add a link', onclick: function () {
+						c.links.push({ label: '', to: '', on: true }); dirty(); drawCols();
+						var r = cols.querySelectorAll('.rfm-col')[ci].querySelectorAll('.rfm-row'); r[r.length - 1].querySelector('input').focus();
+					} })
+				]);
+				c.links = c.links || [];
+				rows(holder, c.links, drawCols);
+				cols.appendChild(box);
+			});
+		}
+		document.getElementById('rfm-add-col').addEventListener('click', function () {
+			data.footer.push({ title: 'New column', on: true, links: [] }); dirty(); drawCols();
+		});
+		drawHeader(); drawCols();
+		document.getElementById('rfm-form').addEventListener('submit', function (e) {
+			if (e.submitter && e.submitter.name === 'reset') return;
+			var empty = [].concat(data.header, [].concat.apply([], data.footer.map(function (c) { return c.links; }))).filter(function (l) { return !(l.label || '').trim() || !(l.to || '').trim(); });
+			if (empty.length && !confirm(empty.length + ' link(s) have no name or no link and will be left out. Save anyway?')) { e.preventDefault(); return; }
+			document.getElementById('rfm-data').value = JSON.stringify(data);
+			bar.classList.remove('is-dirty');
+		});
+		window.addEventListener('beforeunload', function (e) { if (bar.classList.contains('is-dirty')) { e.preventDefault(); e.returnValue = ''; } });
 	})();
 	</script>
 	<?php

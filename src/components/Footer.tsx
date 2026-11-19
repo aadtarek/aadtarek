@@ -10,11 +10,12 @@ import mastercard from '../assets/payments/mastercard.webp'
 import meeza from '../assets/payments/meeza.webp'
 import valu from '../assets/payments/valu.webp'
 import visa from '../assets/payments/visa.webp'
-import { FREE_SHIPPING, HOME, SOCIAL_LINKS } from '../config'
+import { FREE_SHIPPING, HOME, MENUS, SOCIAL_LINKS } from '../config'
+import { MenuLink } from './MenuLink'
 import { usePersistentState } from '../lib/storage'
 import { FacebookIcon, InstagramIcon, TikTokIcon, YouTubeIcon } from './SocialIcons'
 
-const columns: { title: string; links: { label: string; to: string }[] }[] = [
+const builtInColumns: { title: string; links: { label: string; to: string }[] }[] = [
   {
     title: 'Shop',
     links: [
@@ -90,15 +91,15 @@ export function Footer({ showCta = true, compact = false }: { showCta?: boolean;
             <BrandColumn />
             <span aria-hidden className="hidden bg-line-strong/60 xl:block" />
             <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-[1.05fr_1fr_1fr] md:order-last md:col-span-2 xl:order-none xl:col-span-1 xl:gap-4 xl:pr-4 xl:pl-[41px]">
-              {columns.map((c) => (
-                <div key={c.title}>
+              {(MENUS.footer ?? builtInColumns).map((c, ci) => (
+                <div key={c.title + ci}>
                   <h2 className="text-[15px] font-medium tracking-[0.15em] uppercase">{c.title}</h2>
                   <ul className="mt-[13px] space-y-[7px]">
                     {c.links.map((l) => (
-                      <li key={l.label}>
-                        <Link to={l.to} className="text-[15.5px] leading-[21.5px] text-ink-soft transition hover:text-ink hover:underline hover:underline-offset-4">
+                      <li key={l.label + l.to}>
+                        <MenuLink to={l.to} className="text-[15.5px] leading-[21.5px] text-ink-soft transition hover:text-ink hover:underline hover:underline-offset-4">
                           {l.label}
-                        </Link>
+                        </MenuLink>
                       </li>
                     ))}
                   </ul>

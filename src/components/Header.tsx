@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { BagIcon, HeartIcon, MoonIcon, SearchIcon, SunIcon, UserIcon } from './LineIcons'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
-import { CAMPAIGNS } from '../config'
+import { CAMPAIGNS, MENUS, type MenuLink as MenuLinkData } from '../config'
+import { MenuLink } from './MenuLink'
 import { useTheme } from '../lib/theme'
 import { useCart } from '../store/cart'
 import { useWishlist } from '../store/wishlist'
@@ -13,9 +14,9 @@ import { useSwipeClose } from '../lib/useSwipeClose'
 const SearchOverlay = lazy(() => import('./SearchOverlay').then((m) => ({ default: m.SearchOverlay })))
 
 // About and Contact live in the footer. The campaigns' names can be changed in the dashboard.
-export const navLinks = [
+const builtInLinks = [
   { to: '/shop', label: 'Shop' },
-  { to: '/shop?sort=best-sellers', label: 'Best Sellers', roomy: true },
+  { to: '/shop?sort=best-sellers', label: 'Best Sellers', wide: true },
   ...CAMPAIGNS.map((c) => ({
     to: `/${c.slug}`,
     get label() {
@@ -23,9 +24,12 @@ export const navLinks = [
     },
   })),
   { to: '/finder/quiz', label: 'Rfaheya Finder' },
-  { to: '/collections', label: 'Collections', roomy: true },
+  { to: '/collections', label: 'Collections', wide: true },
   { to: '/vitrine', label: 'The Vitrine' },
-] as { to: string; label: string; roomy?: boolean }[]
+] as MenuLinkData[]
+
+/** The header links: the dashboard's (Appearance → Menus ✦) once saved there, else the built-in ones. */
+export const navLinks = (): MenuLinkData[] => MENUS.header ?? builtInLinks
 
 export function Header() {
   const { count, open } = useCart()
@@ -111,17 +115,17 @@ export function Header() {
 
         {/* Small laptops: the "roomy" links wait for a wider screen (they stay in the menu and footer). */}
         <nav aria-label="Main" className="ml-5 hidden items-center gap-4 lg:flex xl:ml-7 xl:gap-[18px] 2xl:ml-[4%] 2xl:gap-8">
-          {navLinks.map((l) => (
-            <Link
-              key={l.to}
+          {navLinks().map((l) => (
+            <MenuLink
+              key={l.to + l.label}
               to={l.to}
               aria-current={isActive(l.to) ? 'page' : undefined}
-              className={`${l.roomy ? 'hidden xl:inline-block' : ''} relative py-2 text-[11px] font-medium tracking-[0.07em] whitespace-nowrap uppercase transition 2xl:text-[11.5px] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-ink after:transition-transform hover:after:scale-x-100 ${
+              className={`${l.wide ? 'hidden xl:inline-block' : ''} relative py-2 text-[11px] font-medium tracking-[0.07em] whitespace-nowrap uppercase transition 2xl:text-[11.5px] after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-left after:bg-ink after:transition-transform hover:after:scale-x-100 ${
                 isActive(l.to) ? 'after:scale-x-100' : 'after:scale-x-0'
               }`}
             >
               {l.label}
-            </Link>
+            </MenuLink>
           ))}
         </nav>
 
@@ -187,11 +191,11 @@ export function Header() {
 
               <nav aria-label="Mobile" className="flex-1 overflow-y-auto px-3 pb-3">
                 <ul className="space-y-1">
-                  {navLinks.map((l, i) => {
+                  {navLinks().map((l, i) => {
                     const on = isActive(l.to)
                     return (
-                      <li key={l.to} className="animate-fade-in" style={{ animationDelay: `${60 + i * 40}ms`, animationFillMode: 'backwards' }}>
-                        <Link
+                      <li key={l.to + l.label} className="animate-fade-in" style={{ animationDelay: `${60 + i * 40}ms`, animationFillMode: 'backwards' }}>
+                        <MenuLink
                           to={l.to}
                           aria-current={on ? 'page' : undefined}
                           className={`group flex items-center justify-between rounded-[18px] px-4 py-3.5 transition ${on ? 'bg-olive text-on-accent' : 'hover:bg-chip'}`}
@@ -200,7 +204,7 @@ export function Header() {
                           <span className={`grid size-8 place-items-center rounded-full transition ${on ? 'bg-white/20' : 'bg-chip group-hover:bg-olive group-hover:text-on-accent'}`}>
                             <ArrowRight className="size-4" strokeWidth={1.6} />
                           </span>
-                        </Link>
+                        </MenuLink>
                       </li>
                     )
                   })}
