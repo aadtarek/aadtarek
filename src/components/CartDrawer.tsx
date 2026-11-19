@@ -91,7 +91,7 @@ export function CartDrawer() {
         ) : (
           <>
             <div className="no-scrollbar flex-1 overflow-y-auto">
-              <OfferBar amount={cart.subtotal - cart.discount} className="rf-white mx-3 rounded-[20px] border border-line px-4 pt-3.5 [--rf-offer-ring:#fff] sm:mx-4" />
+              <OfferBar amount={cart.bar?.amount ?? cart.subtotal - cart.discount} base={cart.bar?.base} freeShipping={cart.bar?.freeShipping} freeLabel={cart.bar?.freeLabel} className="rf-white mx-3 rounded-[20px] border border-line px-4 pt-3.5 [--rf-offer-ring:#fff] sm:mx-4" />
               {setHint && (
                 <Link
                   to="/collections/discovery-sets"

@@ -35,6 +35,19 @@ export interface WooCart {
   fees?: { id: string; name: string; totals: { total: string; currency_minor_unit: number } }[]
   coupons?: { code: string; totals: { total_discount: string; currency_minor_unit: number } }[]
   errors?: { code: string; message: string }[]
+  /** rfaheya.php: what the offers bar measures, as the server works it out */
+  extensions?: { rfaheya?: CartBar | [] }
+}
+
+/** The offers bar's amounts (WooCommerce works them out; the demo cart uses its own subtotal). */
+export interface CartBar {
+  /** After the order's discounts: the minimum order and free shipping in Cairo & Alexandria */
+  amount: number
+  /** What spend-more-save-more is measured on (before discounts) */
+  base: number
+  /** A free-shipping offer applies to this cart */
+  freeShipping: boolean
+  freeLabel?: string
 }
 
 type AddOptions = { giftMessage?: string; open?: boolean }
@@ -49,6 +62,8 @@ interface CartContextValue {
   offerDiscount: number
   /** Every discount line to show (bundle, spend more, buy X get Y, …), each with its own name */
   offerLines: { id: string; name: string; amount: number }[]
+  /** WooCommerce only: the offers bar's amounts from the server */
+  bar?: CartBar
   add: (productId: number, variationId: number, quantity?: number, options?: AddOptions) => void
   /** Add several lines at once (e.g. a discovery set) and open the cart once. */
   addMany: (lines: { productId: number; variationId: number; quantity?: number; giftMessage?: string }[]) => void
@@ -88,6 +103,7 @@ interface Backend {
   discount?: number
   offerDiscount?: number
   offerLines?: { id: string; name: string; amount: number }[]
+  bar?: CartBar
   woo?: CartContextValue['woo']
 }
 
@@ -350,8 +366,10 @@ function guessRemove(c: WooCart, key: string): WooCart {
 /** The negative fees WooCommerce adds (rfaheya.php): the bundle discount and the spend-more offer. */
 function wooDiscounts(cart: WooCart | null) {
   if (!cart) return { discount: 0, offerDiscount: 0, offerLines: [] }
+  const ext = cart.extensions?.rfaheya
+  const bar: CartBar | undefined = ext && !Array.isArray(ext) && typeof ext.amount === 'number' ? ext : undefined
   const total = Math.max(0, -money(cart.totals.total_fees ?? '0', cart.totals.currency_minor_unit))
-  if (!cart.fees) return { discount: total, offerDiscount: 0, offerLines: total ? [{ id: 'discount', name: 'Discount', amount: total }] : [] }
+  if (!cart.fees) return { discount: total, offerDiscount: 0, offerLines: total ? [{ id: 'discount', name: 'Discount', amount: total }] : [], bar }
   const bundle = cart.fees.filter((f) => f.id === 'bundle-discount').reduce((n, f) => n - money(f.totals.total, f.totals.currency_minor_unit), 0)
   const offer = cart.fees.filter((f) => f.id !== 'bundle-discount').reduce((n, f) => n - money(f.totals.total, f.totals.currency_minor_unit), 0)
   // Each discount with its own name (the first-order discount shows on its own at checkout).
@@ -359,7 +377,7 @@ function wooDiscounts(cart: WooCart | null) {
     .filter((f) => !/^first order/i.test(f.name))
     .map((f) => ({ id: f.id, name: f.name, amount: -money(f.totals.total, f.totals.currency_minor_unit) }))
     .filter((l) => l.amount > 0)
-  return { discount: Math.max(0, bundle), offerDiscount: Math.max(0, offer), offerLines }
+  return { discount: Math.max(0, bundle), offerDiscount: Math.max(0, offer), offerLines, bar }
 }
 
 const useBackend: () => Backend = isWoo ? useWooCart : useLocalCart
@@ -421,6 +439,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           { id: 'spend', name: `${SPEND_OFFER.percent}% off over ${SPEND_OFFER.min.toLocaleString('en-US')} EGP`, amount: demoSpend },
           { id: 'discovery', name: `Discovery set · ${set.size} for ${(set.size === 20 ? DISCOVERY.set20 : DISCOVERY.set10).toLocaleString('en-US')} EGP`, amount: set.off },
         ].filter((l) => l.amount > 0),
+      bar: backend.bar,
       add,
       addMany,
       setQuantity: (key, q) => report(backend.setQuantity(key, q)),

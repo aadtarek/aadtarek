@@ -383,7 +383,7 @@ export function Checkout() {
               {cart.count} {cart.count === 1 ? 'item' : 'items'}
             </span>
           </h2>
-          <OfferBar amount={itemsTotal - discount} className="mt-4 rounded-2xl bg-sand px-3.5 pt-3 [--rf-offer-ring:var(--color-sand)]" />
+          <OfferBar amount={cart.bar?.amount ?? itemsTotal - discount} base={cart.bar?.base} freeShipping={cart.bar?.freeShipping} freeLabel={cart.bar?.freeLabel} className="mt-4 rounded-2xl bg-sand px-3.5 pt-3 [--rf-offer-ring:var(--color-sand)]" />
           <ul className="mt-2">
             {cart.lines.map((l) => (
               <li key={l.key} className="flex items-center gap-3 py-2.5">

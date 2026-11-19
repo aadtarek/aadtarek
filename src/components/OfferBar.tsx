@@ -8,22 +8,41 @@ interface Milestone {
   at: number
   Icon: LucideIcon
   label: string
+  /** What this step is measured on (spend more save more counts before discounts) */
+  have: number
 }
 
 /**
  * Spend-more bar (Settings → Rfaheya Store → Free shipping & offers): free shipping at
  * the first amount, a discount plus free shipping at the second. `amount` is the
- * merchandise after the bundle discount, before coupons and the offer itself.
+ * merchandise after the order's discounts (what the minimum order and free shipping in
+ * Cairo & Alexandria are measured on); `base` is what the spend-more offer is measured on
+ * (before discounts). With WooCommerce both come from the server, so the bar and the
+ * checkout always agree. `freeShipping`: a free-shipping offer already applies.
  */
-export function OfferBar({ amount, className = '' }: { amount: number; className?: string }) {
+export function OfferBar({
+  amount,
+  base = amount,
+  freeShipping = false,
+  freeLabel,
+  className = '',
+}: {
+  amount: number
+  base?: number
+  freeShipping?: boolean
+  freeLabel?: string
+  className?: string
+}) {
   const milestones: Milestone[] = []
   // The smallest order comes first on the bar.
-  if (ORDER_MIN.min > 0) milestones.push({ at: ORDER_MIN.min, Icon: ShoppingBag, label: 'Minimum order' })
+  if (ORDER_MIN.min > 0) milestones.push({ at: ORDER_MIN.min, Icon: ShoppingBag, label: 'Minimum order', have: amount })
   if (FREE_SHIPPING.enabled && FREE_SHIPPING.min > 0 && (!SPEND_OFFER.enabled || FREE_SHIPPING.min < SPEND_OFFER.min))
-    milestones.push({ at: FREE_SHIPPING.min, Icon: Truck, label: 'Free shipping' })
-  if (SPEND_OFFER.enabled && SPEND_OFFER.min > 0) milestones.push({ at: SPEND_OFFER.min, Icon: BadgePercent, label: `${SPEND_OFFER.percent}% off + free shipping` })
+    milestones.push({ at: FREE_SHIPPING.min, Icon: Truck, label: 'Free shipping', have: freeShipping ? Infinity : amount })
+  if (SPEND_OFFER.enabled && SPEND_OFFER.min > 0) milestones.push({ at: SPEND_OFFER.min, Icon: BadgePercent, label: `${SPEND_OFFER.percent}% off + free shipping`, have: base })
 
-  const reached = milestones.filter((m) => amount >= m.at).length
+  // Steps are reached in order (the minimum order first).
+  let reached = 0
+  while (reached < milestones.length && milestones[reached].have >= milestones[reached].at) reached++
   // A little celebration when the cart crosses a milestone (not on first sight).
   const seen = useRef<number | null>(null)
   const mounted = useRef(0)
@@ -41,10 +60,12 @@ export function OfferBar({ amount, className = '' }: { amount: number; className
 
   if (!milestones.length) return null
   const max = milestones[milestones.length - 1].at
-  const progress = Math.min(100, (Math.max(0, amount) / max) * 100)
   const next = milestones[reached]
-  const offer = SPEND_OFFER.enabled && amount >= SPEND_OFFER.min
-  const savings = spendDiscount(amount)
+  // The bar fills to the next step: reached steps are full, then the way to the next one.
+  const progress = !next ? 100 : Math.min(100, (Math.max(reached ? milestones[reached - 1].at : 0, Math.min(next.have, next.at)) / max) * 100)
+  const offer = SPEND_OFFER.enabled && base >= SPEND_OFFER.min
+  const savings = spendDiscount(base)
+  const freeAnywhere = freeShipping && !offer
 
   return (
     <div className={`rf-offer flow-root ${className}`}>
@@ -62,15 +83,19 @@ export function OfferBar({ amount, className = '' }: { amount: number; className
             </>
           ) : next?.Icon === ShoppingBag ? (
             <>
-              Add <strong className="font-semibold text-ink">{formatPrice(next.at - Math.max(0, amount))}</strong> more to reach the{' '}
+              Add <strong className="font-semibold text-ink">{formatPrice(next.at - Math.max(0, next.have))}</strong> more to reach the{' '}
               <strong className="font-semibold text-ink">{formatPrice(next.at)} minimum order</strong>.
             </>
           ) : next ? (
             <>
-              {milestones[reached - 1]?.Icon === Truck && <strong className="font-semibold text-ink">Free shipping unlocked! </strong>}
-              Add <strong className="font-semibold text-ink">{formatPrice(next.at - Math.max(0, amount))}</strong> more for{' '}
+              {(milestones[reached - 1]?.Icon === Truck || freeAnywhere) && <strong className="font-semibold text-ink">Free shipping unlocked! </strong>}
+              Add <strong className="font-semibold text-ink">{formatPrice(next.at - Math.max(0, next.have))}</strong> more for{' '}
               <strong className="font-semibold text-ink">{next.Icon === Truck ? 'free shipping' : `${SPEND_OFFER.percent}% off + free shipping`}</strong>
               {next.Icon === Truck && ' in Cairo & Alexandria'}.
+            </>
+          ) : freeAnywhere ? (
+            <>
+              You’ve unlocked <strong className="font-semibold text-ink">{freeLabel || 'free shipping'}</strong>.
             </>
           ) : (
             <>
@@ -85,7 +110,7 @@ export function OfferBar({ amount, className = '' }: { amount: number; className
           <div className="rf-offer-fill h-full rounded-full" style={{ width: `${progress}%` }} />
         </div>
         {milestones.map((m, i) => {
-          const done = amount >= m.at
+          const done = m.have >= m.at
           const left = (m.at / max) * 100
           const last = i === milestones.length - 1
           return (

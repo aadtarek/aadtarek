@@ -6203,7 +6203,6 @@ function rfaheya_cart_offers( $kinds = null ) {
 	return $out;
 }
 
-/** Bottle by bottle, the cart lines an offer covers: array( array( 'price' => …, 'key' => … ) ). Free gifts never count. */
 /** Whether a product is on a sale (price offer) set not to take other discounts on top. */
 function rfaheya_on_sale_only( $product ) {
 	static $cache = array();
@@ -6223,6 +6222,7 @@ function rfaheya_on_sale_only( $product ) {
 	return $cache[ $id ];
 }
 
+/** Bottle by bottle, the cart lines an offer covers: array( array( 'price' => …, 'key' => … ) ). Free gifts never count. */
 function rfaheya_offer_units( $cart, $rule, $prefix = '' ) {
 	$units = array();
 	$set   = rfaheya_discovery_set( $cart )[3]; // samples already in a discovery set take no other offer
@@ -6276,13 +6276,35 @@ function rfaheya_offer_amount( $cart, $rule ) {
 				}
 				return round( $discount );
 			}
-			// Buy from one group, the reward from another: the cheapest of the reward group.
+			// Buy from one group, the reward from another: the cheapest of the reward group. A bottle
+			// in both groups is either bought or rewarded, never both (one bottle can't pay for itself).
+			$free = rfaheya_offer_units( $cart, $rule, 'get_' );
+			usort( $free, fn( $a, $b ) => $a['price'] <=> $b['price'] );
 			$sets = intdiv( count( $paid ), $buy );
 			if ( $limit ) {
 				$sets = min( $sets, $limit );
 			}
-			$free = rfaheya_offer_units( $cart, $rule, 'get_' );
-			usort( $free, fn( $a, $b ) => $a['price'] <=> $b['price'] );
+			for ( ; $sets > 0; $sets-- ) {
+				$reward = array_slice( $free, 0, $sets * $get );
+				if ( count( $reward ) < $sets * $get ) {
+					continue;
+				}
+				$taken = array();
+				foreach ( $reward as $u ) {
+					$taken[ $u['key'] ] = ( $taken[ $u['key'] ] ?? 0 ) + 1;
+				}
+				$left = 0;
+				foreach ( $paid as $u ) {
+					if ( ! empty( $taken[ $u['key'] ] ) ) {
+						--$taken[ $u['key'] ];
+						continue;
+					}
+					++$left;
+				}
+				if ( $left >= $sets * $buy ) {
+					break;
+				}
+			}
 			$discount = 0;
 			foreach ( array_slice( $free, 0, $sets * $get ) as $u ) {
 				$discount += $u['price'] * $off;
@@ -6547,6 +6569,49 @@ add_filter(
 		return $rates;
 	},
 	100
+);
+
+/**
+ * What the storefront's offers bar measures, worked out here so it always agrees with checkout:
+ * the amount after the order's discounts (minimum order, free shipping in Cairo & Alexandria),
+ * the amount the spend-more offer is measured on, and whether a free-shipping offer applies.
+ */
+function rfaheya_cart_bar() {
+	$cart = function_exists( 'WC' ) ? WC()->cart : null;
+	if ( ! $cart instanceof WC_Cart ) {
+		return array();
+	}
+	$free  = false;
+	$label = '';
+	foreach ( rfaheya_cart_offers( 'free_shipping' ) as $rule ) {
+		if ( rfaheya_offer_qualifies( $cart, $rule ) && ( ! empty( $rule['stack'] ) || ! rfaheya_cart_applied_discounts( $cart ) ) ) {
+			$free  = true;
+			$label = rfaheya_offer_label( $rule );
+			break;
+		}
+	}
+	return array(
+		'amount'       => round( max( 0, rfaheya_cart_merchandise( $cart ) - rfaheya_cart_discount_total( $cart ) ), 2 ),
+		'base'         => round( rfaheya_offer_base( $cart ), 2 ),
+		'freeShipping' => $free,
+		'freeLabel'    => $label,
+	);
+}
+add_action(
+	'woocommerce_blocks_loaded',
+	function () {
+		if ( function_exists( 'woocommerce_store_api_register_endpoint_data' ) ) {
+			woocommerce_store_api_register_endpoint_data(
+				array(
+					'endpoint'        => 'cart',
+					'namespace'       => 'rfaheya',
+					'data_callback'   => 'rfaheya_cart_bar',
+					'schema_callback' => fn() => array(),
+					'schema_type'     => ARRAY_A,
+				)
+			);
+		}
+	}
 );
 
 /** The live cart offers for the storefront (product page badges): label, what it covers. */
@@ -8954,7 +9019,7 @@ add_action(
 		}
 		// The store's own free shipping (Settings → Rfaheya Store → Orders & offers).
 		$o = rfaheya_options()['shipping'];
-		if ( 'no' !== $o['free_enabled'] && in_array( $state, array( 'EGC', 'EGALX', 'EGGZ' ), true ) && (float) $o['free_min'] > 0 && $total >= (float) $o['free_min'] ) {
+		if ( 'no' !== $o['free_enabled'] && in_array( $state, array( 'EGC', 'EGALX' ), true ) && (float) $o['free_min'] > 0 && $total >= (float) $o['free_min'] ) {
 			array_unshift( $out, array( 'title' => 'Free shipping', 'cost' => 0, 'method' => 'free_shipping' ) );
 		}
 		wp_send_json( $out );
