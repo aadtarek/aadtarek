@@ -1,9 +1,29 @@
 # Pottery Hub — WordPress / WooCommerce theme
 
 Upload `potteryhub.zip` in **Appearance → Themes → Add New → Upload Theme**, then activate.
+Cart & checkout switch to the theme's design automatically on activation.
 
-1. **Appearance → Pottery Hub**: switch cart/checkout to the classic layout, install the Arabic language pack, import Arabic product names.
-2. **Appearance → Customize → Pottery Hub**: hero slides, promos, texts (English + Arabic), social links.
-3. **Settings → Reading**: set a static front page (any page — the theme renders the home design).
+## One-click setup — Appearance → Pottery Hub
+1. Cart & checkout design (already done on activation; run again if needed)
+2. Arabic language for WordPress & WooCommerce
+3. Arabic product & category names
+4. About, Workshops, Contact & Journal pages (English + Arabic)
+5. Branded order emails (colours + logo)
+6. Delivery prices: Cairo & Giza / rest of Egypt
 
-Language switch: `?lang=ar` / `?lang=en` (button in the header). Arabic product/category names are fields on each product/category edit screen.
+Contact & workshop form messages and newsletter subscribers are listed on the same screen.
+
+## Customize → Pottery Hub
+Hero slides, promo banners, workshop section, footer & product texts, social links, **Contact details** (phone, WhatsApp, email, address, hours, map) — every text has an Arabic field.
+
+## Arabic site
+English: `example.com/shop/` · Arabic: `example.com/ar/shop/` (switch button in the header).
+Each URL has one language, so page caching is safe and Google gets `hreflang` tags.
+Arabic texts: product / category "Arabic name" fields, and the "Arabic version" box on pages and posts.
+
+## Before going live — test on a staging copy
+- Turn off WooCommerce "Coming soon" (WooCommerce → Settings → Site visibility) if it's on.
+- Cache plugin (LiteSpeed / WP Rocket…): keep WooCommerce's default exclusions for cart, checkout and my-account.
+- Place a test order (Cash on delivery) and check the email arrives.
+- Card / wallet payments: install a gateway plugin such as Paymob.
+- SEO: the theme prints basic description & sharing tags; an SEO plugin (Yoast / Rank Math) replaces them automatically.

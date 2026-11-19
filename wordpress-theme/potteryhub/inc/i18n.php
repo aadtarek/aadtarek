@@ -2,31 +2,37 @@
 /**
  * Built-in English / Arabic switch.
  *
- * Visitors switch with ?lang=ar or ?lang=en (stored in a cookie). The front end
- * then switches WordPress to Arabic (RTL). Theme strings come from
- * languages/ar.mo; WooCommerce strings need the Arabic language pack, which
- * Appearance → Pottery Hub can install. Product and category names use the
- * "Arabic name" fields added to the product / category edit screens.
+ * The Arabic site lives under /ar/ (example.com/ar/shop/). The language comes
+ * from the URL only, so every page has one fixed language — safe for page
+ * caching and for search engines (hreflang tags are printed in the head).
+ * Theme strings come from languages/ar.mo; WooCommerce strings need the Arabic
+ * language pack, which Appearance → Pottery Hub can install. Product, category,
+ * page and post texts use the "Arabic" fields on their edit screens.
  *
  * @package PotteryHub
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/** Current front-end language: 'ar' or 'en'. */
+/** Path of the site root ("/" or "/sub/"). */
+function ph_home_path() {
+	$p = wp_parse_url( get_option( 'home' ), PHP_URL_PATH );
+	return trailingslashit( $p ? $p : '/' );
+}
+
+/** Current front-end language: 'ar' or 'en'. Decided once, from the request URL. */
 function ph_lang() {
 	static $lang = null;
 	if ( null !== $lang ) {
 		return $lang;
 	}
-	$lang = 'en';
-	if ( isset( $_GET['lang'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-		$lang = 'ar' === sanitize_key( wp_unslash( $_GET['lang'] ) ) ? 'ar' : 'en'; // phpcs:ignore WordPress.Security.NonceVerification
-	} elseif ( isset( $_COOKIE['ph_lang'] ) ) {
-		$lang = 'ar' === sanitize_key( wp_unslash( $_COOKIE['ph_lang'] ) ) ? 'ar' : 'en';
-	}
+	$uri  = isset( $_SERVER['PH_ORIG_URI'] ) ? $_SERVER['PH_ORIG_URI'] : ( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$base = ph_home_path();
+	$lang = ( 0 === strpos( $path, $base . 'ar/' ) || rtrim( $base, '/' ) . '/ar' === $path ) ? 'ar' : 'en';
 	return $lang;
 }
+ph_lang();
 
 /** True when the visitor-facing site should be Arabic (never inside wp-admin). */
 function ph_is_ar() {
@@ -36,24 +42,100 @@ function ph_is_ar() {
 	return 'ar' === ph_lang();
 }
 
-/** URL of the current page in the other language. */
-function ph_switch_url() {
-	$scheme = is_ssl() ? 'https://' : 'http://';
-	$host   = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
-	$uri    = isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
-	$url    = remove_query_arg( array( 'lang', 'add-to-cart', 'ph_buy_now' ), $scheme . $host . $uri );
-	return add_query_arg( 'lang', ph_is_ar() ? 'en' : 'ar', $url );
+/** Turn any front-end URL into its English or Arabic version. */
+function ph_lang_url( $url, $lang ) {
+	$home = untrailingslashit( get_option( 'home' ) );
+	if ( 0 !== strpos( $url, $home ) ) {
+		// Relative URLs ("/shop/").
+		$home = untrailingslashit( ph_home_path() );
+		if ( '/' !== substr( $url, 0, 1 ) || '//' === substr( $url, 0, 2 ) || ( '' !== $home && 0 !== strpos( $url, $home ) ) ) {
+			return $url;
+		}
+	}
+	$rest = substr( $url, strlen( $home ) );
+	$rest = preg_replace( '#^/ar(?=/|$|\?|\#)#', '', $rest );
+	if ( 'ar' === $lang ) {
+		$rest = '/ar' . ( '' === $rest ? '/' : $rest );
+	}
+	return $home . ( '' === $rest ? '/' : $rest );
 }
 
-/** Remember the choice. */
+/** Current URL (as the visitor sees it). */
+function ph_current_url() {
+	$scheme = is_ssl() ? 'https://' : 'http://';
+	$host   = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
+	$uri    = isset( $_SERVER['PH_ORIG_URI'] ) ? $_SERVER['PH_ORIG_URI'] : ( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '/' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+	return remove_query_arg( array( 'lang', 'add-to-cart', 'ph_buy_now', 'ph_sub', 'ph_sent' ), $scheme . $host . esc_url_raw( $uri ) );
+}
+
+/** URL of the current page in the other language. */
+function ph_switch_url() {
+	return ph_lang_url( ph_current_url(), ph_is_ar() ? 'en' : 'ar' );
+}
+
+/** Let WordPress route /ar/... like the English URL, then put the real URL back. */
+add_filter(
+	'do_parse_request',
+	function ( $do ) {
+		if ( 'ar' === ph_lang() && isset( $_SERVER['REQUEST_URI'] ) ) {
+			$_SERVER['PH_ORIG_URI'] = $_SERVER['REQUEST_URI']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+			$base                   = ph_home_path();
+			$_SERVER['REQUEST_URI'] = preg_replace( '#^' . preg_quote( $base, '#' ) . 'ar(/|$|(?=\?))#', $base, $_SERVER['REQUEST_URI'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		}
+		return $do;
+	},
+	1
+);
 add_action(
-	'init',
+	'parse_request',
 	function () {
-		if ( isset( $_GET['lang'] ) && ! headers_sent() ) { // phpcs:ignore WordPress.Security.NonceVerification
-			setcookie( 'ph_lang', ph_lang(), time() + YEAR_IN_SECONDS, COOKIEPATH ? COOKIEPATH : '/', COOKIE_DOMAIN, is_ssl(), false );
+		if ( isset( $_SERVER['PH_ORIG_URI'] ) ) {
+			$_SERVER['REQUEST_URI'] = $_SERVER['PH_ORIG_URI']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		}
 	},
-	0
+	999
+);
+
+/** Every link on an Arabic page stays Arabic. */
+add_filter(
+	'home_url',
+	function ( $url, $path ) {
+		if ( ! ph_is_ar() || 0 === strpos( ltrim( (string) $path, '/' ), rest_get_url_prefix() ) ) {
+			return $url;
+		}
+		return ph_lang_url( $url, 'ar' );
+	},
+	10,
+	2
+);
+
+/** Old ?lang=ar / ?lang=en links → the right URL. */
+add_action(
+	'template_redirect',
+	function () {
+		if ( ! isset( $_GET['lang'] ) || wp_doing_ajax() ) { // phpcs:ignore WordPress.Security.NonceVerification
+			return;
+		}
+		$want = 'ar' === sanitize_key( wp_unslash( $_GET['lang'] ) ) ? 'ar' : 'en'; // phpcs:ignore WordPress.Security.NonceVerification
+		wp_safe_redirect( ph_lang_url( ph_current_url(), $want ), 301 );
+		exit;
+	},
+	1
+);
+
+/** hreflang alternates. */
+add_action(
+	'wp_head',
+	function () {
+		if ( is_404() || is_search() ) {
+			return;
+		}
+		$u = ph_current_url();
+		echo '<link rel="alternate" hreflang="en" href="' . esc_url( ph_lang_url( $u, 'en' ) ) . '">' . "\n";
+		echo '<link rel="alternate" hreflang="ar" href="' . esc_url( ph_lang_url( $u, 'ar' ) ) . '">' . "\n";
+		echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( ph_lang_url( $u, 'en' ) ) . '">' . "\n";
+	},
+	2
 );
 
 /** Switch WordPress to Arabic for the front end. */

@@ -144,7 +144,6 @@ add_filter(
 
 /** wc-ajax=ph_qty — change a cart line quantity. */
 function ph_ajax_qty() {
-	check_ajax_referer( 'ph_cart', 'nonce' );
 	$key = isset( $_POST['key'] ) ? wc_clean( wp_unslash( $_POST['key'] ) ) : '';
 	$qty = isset( $_POST['qty'] ) ? max( 0, (int) $_POST['qty'] ) : 0;
 	if ( $key && WC()->cart->get_cart_item( $key ) ) {
@@ -206,11 +205,44 @@ function ph_ajax_search() {
 }
 add_action( 'wc_ajax_ph_search', 'ph_ajax_search' );
 
-/** Nonce for the drawer quantity buttons. */
+/**
+ * wc-ajax=ph_wish — wishlist. Returns fresh card data for the given product ids.
+ * Logged-in shoppers: the list is merged with (or, with replace=1, saved to) their account.
+ */
+function ph_ajax_wish() {
+	// phpcs:disable WordPress.Security.NonceVerification -- checked below for logged-in writes; guests only read public product data.
+	$ids = isset( $_POST['ids'] ) ? array_filter( array_map( 'absint', explode( ',', sanitize_text_field( wp_unslash( $_POST['ids'] ) ) ) ) ) : array();
+	$uid = get_current_user_id();
+	if ( $uid ) {
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST['nonce'] ) ), 'ph_wish' ) ) {
+			wp_send_json_error( null, 403 );
+		}
+		$saved = array_filter( array_map( 'absint', (array) get_user_meta( $uid, 'ph_wishlist', true ) ) );
+		$ids   = empty( $_POST['replace'] ) ? array_merge( $saved, $ids ) : $ids;
+	}
+	// phpcs:enable
+	$ids = array_slice( array_values( array_unique( $ids ) ), 0, 100 );
+	$out = array();
+	foreach ( $ids as $id ) {
+		$p = wc_get_product( $id );
+		if ( $p && $p->is_visible() ) {
+			$out[] = json_decode( ph_wish_data( $p ), true );
+		}
+	}
+	if ( $uid ) {
+		update_user_meta( $uid, 'ph_wishlist', wp_list_pluck( $out, 'id' ) );
+	}
+	wp_send_json( $out );
+}
+add_action( 'wc_ajax_ph_wish', 'ph_ajax_wish' );
+
+/** Wishlist nonce for logged-in shoppers (their pages aren't cached). */
 add_action(
 	'wp_enqueue_scripts',
 	function () {
-		wp_add_inline_script( 'ph-main', 'window.PH=window.PH||{};PH.nonce=' . wp_json_encode( wp_create_nonce( 'ph_cart' ) ) . ';', 'before' );
+		if ( is_user_logged_in() ) {
+			wp_add_inline_script( 'ph-main', 'window.PH=window.PH||{};PH.user=1;PH.wnonce=' . wp_json_encode( wp_create_nonce( 'ph_wish' ) ) . ';', 'before' );
+		}
 	},
 	20
 );

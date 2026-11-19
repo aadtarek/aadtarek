@@ -30,6 +30,9 @@ $ph_wc = class_exists( 'WooCommerce' );
 				<li><button type="button" data-open="cart"><?php esc_html_e( 'Your cart', 'potteryhub' ); ?></button></li>
 				<li><button type="button" data-open="wish"><?php esc_html_e( 'Wishlist', 'potteryhub' ); ?></button></li>
 				<li><a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>"><?php esc_html_e( 'My account', 'potteryhub' ); ?></a></li>
+				<?php foreach ( array( 'template-about.php' => __( 'About', 'potteryhub' ), 'template-workshops.php' => __( 'Workshops', 'potteryhub' ), 'template-contact.php' => __( 'Contact', 'potteryhub' ) ) as $ph_tpl => $ph_lbl ) : ?>
+					<?php if ( ph_template_url( $ph_tpl ) ) : ?><li><a href="<?php echo esc_url( ph_template_url( $ph_tpl ) ); ?>"><?php echo esc_html( $ph_lbl ); ?></a></li><?php endif; ?>
+				<?php endforeach; ?>
 			<?php endif; ?>
 		</ul></div>
 		<div data-rv style="--d:300ms"><h5><?php esc_html_e( 'Stay in the loop', 'potteryhub' ); ?></h5><p><?php esc_html_e( 'New glazes, restocks and workshop dates — first.', 'potteryhub' ); ?></p>
@@ -65,6 +68,10 @@ $ph_wc = class_exists( 'WooCommerce' );
 			<button type="button" data-open="cart"><?php esc_html_e( 'Cart', 'potteryhub' ); ?></button>
 			<a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>"><?php esc_html_e( 'My account', 'potteryhub' ); ?></a>
 		<?php endif; ?>
+		<?php foreach ( array( 'template-workshops.php' => __( 'Workshops', 'potteryhub' ), 'template-about.php' => __( 'About', 'potteryhub' ), 'template-contact.php' => __( 'Contact', 'potteryhub' ) ) as $ph_tpl => $ph_lbl ) : ?>
+			<?php if ( ph_template_url( $ph_tpl ) ) : ?><a href="<?php echo esc_url( ph_template_url( $ph_tpl ) ); ?>"><?php echo esc_html( $ph_lbl ); ?></a><?php endif; ?>
+		<?php endforeach; ?>
+		<?php if ( ph_journal_url() && wp_count_posts()->publish ) : ?><a href="<?php echo esc_url( ph_journal_url() ); ?>"><?php esc_html_e( 'Journal', 'potteryhub' ); ?></a><?php endif; ?>
 		<a href="<?php echo esc_url( ph_switch_url() ); ?>"><?php echo ph_is_ar() ? 'English' : 'العربية'; ?></a>
 	</nav>
 </aside>
@@ -73,7 +80,6 @@ $ph_wc = class_exists( 'WooCommerce' );
 	<form class="sform" role="search" action="<?php echo esc_url( home_url( '/' ) ); ?>" method="get">
 		<label class="sbox" style="flex:1"><?php echo ph_icon( 'search', 20, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><input id="sovQ" name="s" placeholder="<?php esc_attr_e( 'Search mugs, bowls, teapots…', 'potteryhub' ); ?>" autocomplete="off" aria-label="<?php esc_attr_e( 'Search', 'potteryhub' ); ?>"></label>
 		<input type="hidden" name="post_type" value="product">
-		<?php if ( ph_is_ar() ) : ?><input type="hidden" name="lang" value="ar"><?php endif; ?>
 		<button class="x" type="button" data-close aria-label="<?php esc_attr_e( 'Close', 'potteryhub' ); ?>"><?php echo ph_icon( 'close', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 	</form>
 	<div class="hint" id="sovHint"><?php esc_html_e( 'Popular:', 'potteryhub' ); ?>

@@ -25,7 +25,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('a[href*="#"]');
   if (!a) return;
   const u = new URL(a.href, location.href);
-  if (u.pathname === location.pathname && u.hash.length > 1) { const t = document.getElementById(u.hash.slice(1)); if (t) { e.preventDefault(); closeAll(); smoothTo(t); } }
+  if (u.pathname === location.pathname && u.hash.length > 1) { const t = document.getElementById(u.hash.slice(1)); if (t) { e.preventDefault(); closeAll(); const d = t.closest('details'); if (d) d.open = true; smoothTo(t); } }
 });
 
 /* ---------- header ---------- */
@@ -74,12 +74,11 @@ async function post(name, data) {
   const r = await fetch(ep(name), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(data) });
   return r.json();
 }
-function applyFragments(fr) {
+function applyFragments(fr, quiet) {
   if (!fr) return;
   Object.keys(fr).forEach(sel => $$(sel).forEach(el => { el.outerHTML = fr[sel]; }));
   if (C.ar) $$('.ph-mini svg path').forEach(p => { if (/^M5 12h14/.test(p.getAttribute('d') || '')) p.closest('svg').classList.add('flipx'); });
-  const n = $('i.ph-bag-n'); if (n) { n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
-  if (window.jQuery) jQuery(document.body).trigger('wc_fragment_refresh');
+  const n = $('i.ph-bag-n'); if (n && !quiet) { n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
 }
 function flyToCart(src, done) {
   const tgt = $('#openCart'), r = src && src.getBoundingClientRect();
@@ -122,16 +121,25 @@ document.addEventListener('click', async e => {
   try {
     let r;
     if (rm) r = await post('remove_from_cart', { cart_item_key: rm.dataset.rm });
-    else { const q = Math.max(0, +$('output', line).textContent + +st.dataset.q); r = await post('ph_qty', { key: line.dataset.key, qty: q, nonce: C.nonce || '' }); }
+    else { const q = Math.max(0, +$('output', line).textContent + +st.dataset.q); r = await post('ph_qty', { key: line.dataset.key, qty: q }); }
     applyFragments(r.fragments);
   } catch (err) { line.classList.remove('busy'); toast(T('error')); }
 });
 
-/* ---------- wishlist (stored in this browser) ---------- */
+/* cached pages may show another visitor's (empty) cart: refresh it when this browser has one */
+(() => {
+  const has = /(^|;\s*)woocommerce_items_in_cart=1/.test(document.cookie), bag = $('i.ph-bag-n');
+  if (C.ajax && bag && (has || +bag.textContent > 0)) post('get_refreshed_fragments', {}).then(r => applyFragments(r && r.fragments, true)).catch(() => {});
+})();
+
+/* ---------- wishlist (this browser; synced to the account when logged in) ---------- */
 const WK = 'ph_wish_v1';
 let wish = [];
 try { wish = JSON.parse(localStorage.getItem(WK) || '[]'); } catch (e) { wish = []; }
-const saveWish = () => { try { localStorage.setItem(WK, JSON.stringify(wish)); } catch (e) {} };
+const saveWish = (local) => {
+  try { localStorage.setItem(WK, JSON.stringify(wish)); } catch (e) {}
+  if (!local && C.user) post('ph_wish', { ids: wish.map(w => w.id).join(','), replace: 1, nonce: C.wnonce }).catch(() => {});
+};
 const inWish = id => wish.some(w => +w.id === +id);
 function syncHearts() {
   $$('[data-wish]').forEach(h => { try { h.classList.toggle('on', inWish(JSON.parse(h.dataset.wish).id)); } catch (e) {} });
@@ -160,6 +168,12 @@ document.addEventListener('click', e => {
   if (mv) { const d = wish.find(w => +w.id === +mv.dataset.mv); if (!d) return; wish = wish.filter(w => w !== d); saveWish(); syncHearts(); renderWish(); addToCart(d.id, 1, $('img', mv.closest('.line')), d.name); }
 });
 syncHearts();
+/* refresh saved pieces (current language & prices) and merge with the account */
+if (C.ajax && (wish.length || C.user)) post('ph_wish', { ids: wish.map(w => w.id).join(','), nonce: C.wnonce || '' }).then(r => {
+  if (!Array.isArray(r)) return;
+  wish = r; saveWish(true); syncHearts();
+  if (drawer && !$('[data-pane="wish"]', drawer).hidden) renderWish();
+}).catch(() => {});
 
 /* ---------- search overlay ---------- */
 const sq = $('#sovQ'), sres = $('#sovRes');
@@ -173,7 +187,7 @@ sq && sq.addEventListener('input', () => {
     try {
       const r = await (await fetch(ep('ph_search') + '&q=' + encodeURIComponent(q), { credentials: 'same-origin' })).json();
       if (id !== sReq) return;
-      sres.innerHTML = r.length ? r.map(p => '<a href="' + esc(p.url) + '"><span class="si"><img src="' + esc(p.img) + '" alt=""></span><span><b>' + esc(p.name) + '</b><small>' + esc(p.price) + '</small></span></a>').join('') + '<a class="all" href="' + esc(C.search + '?post_type=product&s=' + encodeURIComponent(q) + (C.ar ? '&lang=ar' : '')) + '">' + esc(T('seeAll')) + ' ' + icon.arrow + '</a>'
+      sres.innerHTML = r.length ? r.map(p => '<a href="' + esc(p.url) + '"><span class="si"><img src="' + esc(p.img) + '" alt=""></span><span><b>' + esc(p.name) + '</b><small>' + esc(p.price) + '</small></span></a>').join('') + '<a class="all" href="' + esc(C.search + '?post_type=product&s=' + encodeURIComponent(q)) + '">' + esc(T('seeAll')) + ' ' + icon.arrow + '</a>'
         : '<div class="none">' + esc(T('noMatch')) + ' “' + esc(q) + '”</div>';
     } catch (e) {}
   }, 220);
@@ -330,6 +344,24 @@ if (form && !form.classList.contains('variations_form') && !form.classList.conta
     const qty = +($('input.qty', form) || { value: 1 }).value || 1;
     addToCart(addBtn.value, qty, $('#mainImg'), $('.dname') ? $('.dname').textContent : '', addBtn);
   });
+}
+/* variable products: AJAX add of the chosen variation, image swap, Buy now only once a choice is made */
+if (form && form.classList.contains('variations_form')) {
+  const addBtn = $('.single_add_to_cart_button', form), buy = $('#buyNow'), mi = $('#mainImg'), orig = mi && mi.src;
+  const vid = () => +(($('input.variation_id', form) || {}).value || 0);
+  if (buy) buy.disabled = true;
+  form.addEventListener('submit', e => {
+    if (e.submitter && e.submitter.name === 'ph_buy_now') return;
+    if (!vid() || (addBtn && addBtn.classList.contains('disabled'))) return;
+    e.preventDefault();
+    const qty = +($('input.qty', form) || { value: 1 }).value || 1;
+    addToCart(vid(), qty, mi, $('.dname') ? $('.dname').textContent : '', addBtn);
+  });
+  const swap = src => { if (!mi || !src || mi.src === src) return; mi.style.opacity = 0; setTimeout(() => { mi.src = src; mi.style.opacity = ''; }, 200); };
+  if (window.jQuery) {
+    jQuery(form).on('show_variation', (ev, v) => { if (buy) buy.disabled = !v.is_purchasable || !v.is_in_stock; if (v.image && v.image.full_src) swap(v.image.full_src); });
+    jQuery(form).on('hide_variation reset_data', () => { if (buy) buy.disabled = true; swap(orig); });
+  }
 }
 $$('.minis button[data-full]').forEach((b, i) => {
   if (!i) b.classList.add('on');

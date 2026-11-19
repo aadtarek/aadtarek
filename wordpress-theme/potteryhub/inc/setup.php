@@ -98,10 +98,18 @@ function ph_menu_fallback() {
 	$home  = home_url( '/' );
 	$items = array(
 		array( class_exists( 'WooCommerce' ) ? wc_get_page_permalink( 'shop' ) : $home, __( 'Shop', 'potteryhub' ) ),
-		array( $home . '#cats', __( 'Collections', 'potteryhub' ) ),
-		array( $home . '#classes', __( 'Workshops', 'potteryhub' ) ),
-		array( $home . '#about', __( 'About', 'potteryhub' ) ),
+		array( ph_template_url( 'template-workshops.php' ) ? ph_template_url( 'template-workshops.php' ) : $home . '#classes', __( 'Workshops', 'potteryhub' ) ),
+		array( ph_template_url( 'template-about.php' ) ? ph_template_url( 'template-about.php' ) : $home . '#about', __( 'About', 'potteryhub' ) ),
 	);
+	if ( ! ph_template_url( 'template-about.php' ) ) {
+		array_splice( $items, 1, 0, array( array( $home . '#cats', __( 'Collections', 'potteryhub' ) ) ) );
+	}
+	if ( ph_journal_url() && wp_count_posts()->publish ) {
+		$items[] = array( ph_journal_url(), __( 'Journal', 'potteryhub' ) );
+	}
+	if ( ph_template_url( 'template-contact.php' ) ) {
+		$items[] = array( ph_template_url( 'template-contact.php' ), __( 'Contact', 'potteryhub' ) );
+	}
 	foreach ( $items as $it ) {
 		echo '<a class="ul" href="' . esc_url( $it[0] ) . '">' . esc_html( $it[1] ) . '</a>';
 	}

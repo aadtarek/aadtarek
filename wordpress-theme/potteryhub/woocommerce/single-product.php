@@ -61,6 +61,9 @@ while ( have_posts() ) :
 				<div class="pinfo">
 					<div class="dcat rv"><?php echo esc_html( ph_product_cat( $product ) ); ?></div>
 					<h1 class="dname serif rv"><?php echo esc_html( $product->get_name() ); ?></h1>
+					<?php if ( wc_review_ratings_enabled() && $product->get_review_count() ) : ?>
+						<a class="drate rv" href="#ph-reviews"><?php echo ph_stars( $product->get_average_rating() ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php echo esc_html( number_format_i18n( (float) $product->get_average_rating(), 1 ) ); ?> · <?php /* translators: %s: number of reviews */ echo esc_html( sprintf( _n( '%s review', '%s reviews', $product->get_review_count(), 'potteryhub' ), number_format_i18n( $product->get_review_count() ) ) ); ?></span></a>
+					<?php endif; ?>
 					<?php if ( $ph_desc ) : ?><div class="dabout rv"><?php echo wp_kses_post( wpautop( $ph_desc ) ); ?></div><?php endif; ?>
 					<div class="book rv">
 						<div class="pr"><?php echo $product->get_price_html(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
@@ -80,6 +83,10 @@ while ( have_posts() ) :
 						<?php endif; ?>
 						<details<?php echo $ph_long && $ph_long !== $ph_desc ? '' : ' open'; ?>><summary><?php esc_html_e( 'Care', 'potteryhub' ); ?></summary><p><?php echo esc_html( ph_mod( 'ph_care' ) ); ?></p></details>
 						<details><summary><?php esc_html_e( 'Delivery', 'potteryhub' ); ?></summary><p><?php echo esc_html( ph_mod( 'ph_delivery' ) ); ?></p></details>
+						<?php if ( comments_open() || $product->get_review_count() ) : ?>
+							<?php /* translators: %d: number of reviews */ ?>
+							<details id="ph-reviews"><summary><?php echo esc_html( sprintf( __( 'Reviews (%d)', 'potteryhub' ), $product->get_review_count() ) ); ?></summary><div class="accb ph-reviews"><?php comments_template(); ?></div></details>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>

@@ -22,6 +22,11 @@ function ph_icon( $name, $size = 16, $stroke = 1.8 ) {
 		'fb'     => '<path d="M14 8h3V4h-3a4 4 0 0 0-4 4v3H7v4h3v6h4v-6h3l1-4h-4V8.5a.5.5 0 0 1 .5-.5z"/>',
 		'ig'     => '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.3" cy="6.7" r=".6" fill="currentColor"/>',
 		'check'  => '<path d="M5 12.5 10 17 19 7"/>',
+		'chat'   => '<path d="M20 11.5a8 8 0 0 1-11.7 7.1L4 20l1.4-4.1A8 8 0 1 1 20 11.5z"/><path d="M9 10.5c.3 1.6 1.9 3.3 3.6 3.8l1.2-1.1 1.7.8"/>',
+		'phone'  => '<path d="M5 4h3.5l1.5 4-2 1.3a10.5 10.5 0 0 0 6.7 6.7L16 14l4 1.5V19a1.5 1.5 0 0 1-1.6 1.5C10.6 20 4 13.4 3.5 5.6A1.5 1.5 0 0 1 5 4z"/>',
+		'mail'   => '<rect x="3.5" y="5.5" width="17" height="13" rx="2.5"/><path d="m4.5 7 7.5 6 7.5-6"/>',
+		'pin'    => '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+		'clock'  => '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
 	);
 	if ( ! isset( $p[ $name ] ) ) {
 		return '';
@@ -116,6 +121,13 @@ function ph_wish_data( $product ) {
 /** Price as plain text ("EGP 1,100.00"). */
 function ph_plain_price( $amount ) {
 	return html_entity_decode( wp_strip_all_tags( wc_price( $amount ) ), ENT_QUOTES, 'UTF-8' );
+}
+
+/** Five stars filled to the rating (0–5). */
+function ph_stars( $rating ) {
+	$w = max( 0, min( 100, (float) $rating / 5 * 100 ) );
+	/* translators: %s: average rating */
+	return '<span class="stars" role="img" aria-label="' . esc_attr( sprintf( __( 'Rated %s out of 5', 'potteryhub' ), number_format_i18n( (float) $rating, 1 ) ) ) . '"><i style="width:' . esc_attr( round( $w, 1 ) ) . '%"></i></span>';
 }
 
 /** Product card used on the homepage, shop and related products. */

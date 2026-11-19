@@ -3,13 +3,43 @@ msgstr ""
 "Project-Id-Version: Pottery Hub 1.0.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 
+msgid "We’d love to hear from you"
+msgstr ""
+
+msgid "WhatsApp"
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Studio"
+msgstr ""
+
+msgid "Opening hours"
+msgstr ""
+
+msgid "Send a message"
+msgstr ""
+
 msgid "Results for “%s”"
+msgstr ""
+
+msgid "Search"
 msgstr ""
 
 msgid "Journal"
 msgstr ""
 
+msgid "Stories from the studio"
+msgstr ""
+
 msgid "Nothing found."
+msgstr ""
+
+msgid "Home"
 msgstr ""
 
 msgid "Please activate WooCommerce."
@@ -75,6 +105,15 @@ msgstr ""
 msgid "Handmade ceramics"
 msgstr ""
 
+msgid "All stories"
+msgstr ""
+
+msgid "Shop the collection"
+msgstr ""
+
+msgid "Keep reading"
+msgstr ""
+
 msgid "Help"
 msgstr ""
 
@@ -90,6 +129,15 @@ msgstr ""
 msgid "My account"
 msgstr ""
 
+msgid "About"
+msgstr ""
+
+msgid "Workshops"
+msgstr ""
+
+msgid "Contact"
+msgstr ""
+
 msgid "Stay in the loop"
 msgstr ""
 
@@ -102,13 +150,7 @@ msgstr ""
 msgid "Cart"
 msgstr ""
 
-msgid "Home"
-msgstr ""
-
 msgid "Search mugs, bowls, teapots…"
-msgstr ""
-
-msgid "Search"
 msgstr ""
 
 msgid "Popular:"
@@ -121,6 +163,18 @@ msgid "The page you’re looking for doesn’t exist."
 msgstr ""
 
 msgid "Go to shop"
+msgstr ""
+
+msgid "Our story"
+msgstr ""
+
+msgid "Ask on WhatsApp"
+msgstr ""
+
+msgid "Book a place"
+msgstr ""
+
+msgid "Send your details and we’ll call you with the next dates."
 msgstr ""
 
 msgid "Menu"
@@ -186,6 +240,9 @@ msgstr ""
 msgid "Delivery"
 msgstr ""
 
+msgid "Reviews (%d)"
+msgstr ""
+
 msgid "You may also like"
 msgstr ""
 
@@ -193,6 +250,12 @@ msgid "Similar Pieces"
 msgstr ""
 
 msgid "Add to Cart"
+msgstr ""
+
+msgid "Read"
+msgstr ""
+
+msgid "Read more"
 msgstr ""
 
 msgid "— Whole shop —"
@@ -264,6 +327,9 @@ msgstr ""
 msgid "Arabic description"
 msgstr ""
 
+msgid "Checkout"
+msgstr ""
+
 msgid "Header menu"
 msgstr ""
 
@@ -312,10 +378,64 @@ msgstr ""
 msgid "Please enter a valid email"
 msgstr ""
 
-msgid "Workshops"
+msgid "Arabic version"
 msgstr ""
 
-msgid "About"
+msgid "Arabic title"
+msgstr ""
+
+msgid "Arabic content"
+msgstr ""
+
+msgid "Arabic excerpt (optional)"
+msgstr ""
+
+msgid "Shown on the Arabic site (/ar/). Leave empty to show the English text."
+msgstr ""
+
+msgid "Contact details"
+msgstr ""
+
+msgid "WhatsApp number (with country code, e.g. 201001234567)"
+msgstr ""
+
+msgid "Email (also receives the forms)"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Google Maps link (optional)"
+msgstr ""
+
+msgid "Thanks! We’ll call you to confirm your place."
+msgstr ""
+
+msgid "Thanks! We’ll get back to you soon."
+msgstr ""
+
+msgid "Please add your name and a phone number or email."
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Preferred date"
+msgstr ""
+
+msgid "People"
+msgstr ""
+
+msgid "Anything we should know?"
+msgstr ""
+
+msgid "Message"
+msgstr ""
+
+msgid "Request a place"
+msgstr ""
+
+msgid "Send message"
 msgstr ""
 
 msgid "Quantity"
@@ -333,9 +453,6 @@ msgstr ""
 msgid "Subtotal"
 msgstr ""
 
-msgid "Checkout"
-msgstr ""
-
 msgid "Your cart is empty"
 msgstr ""
 
@@ -348,10 +465,10 @@ msgstr ""
 msgid "Your email"
 msgstr ""
 
-msgid "Email"
+msgid "Subscribe"
 msgstr ""
 
-msgid "Subscribe"
+msgid "Rated %s out of 5"
 msgstr ""
 
 msgid "Sold out"
@@ -363,15 +480,22 @@ msgstr ""
 msgid "Choose options"
 msgstr ""
 
-msgid "%s piece"
-msgid_plural "%s pieces"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid "Arabic names added to %1$d products and %2$d categories. Existing Arabic names were kept."
 msgstr ""
 
 msgid "Updated %d pages to the theme’s cart & checkout design."
+msgstr ""
+
+msgid "Created %d pages (About, Workshops, Contact, Journal) with English and Arabic text. Edit them in Pages."
+msgstr ""
+
+msgid "The pages already exist."
+msgstr ""
+
+msgid "Order emails now use the shop’s colours and logo. Preview them in WooCommerce → Settings → Emails."
+msgstr ""
+
+msgid "Enter both delivery prices."
 msgstr ""
 
 msgid "This server can’t install languages automatically. Go to Settings → General, choose العربية as Site Language, save, then switch back to English."
@@ -381,6 +505,18 @@ msgid "Arabic language installed for WordPress and WooCommerce."
 msgstr ""
 
 msgid "Couldn’t download the Arabic language. Try again later, or install it from Settings → General."
+msgstr ""
+
+msgid "Cairo & Giza"
+msgstr ""
+
+msgid "Rest of Egypt"
+msgstr ""
+
+msgid "Home delivery"
+msgstr ""
+
+msgid "Delivery set: Cairo & Giza %1$s, other governorates %2$s. Fine-tune in WooCommerce → Settings → Shipping."
 msgstr ""
 
 msgid "Texts, hero photos and banners are edited in Appearance → Customize → Pottery Hub."
@@ -401,7 +537,7 @@ msgstr ""
 msgid "Arabic is installed. Run again to refresh WooCommerce’s Arabic translations."
 msgstr ""
 
-msgid "Installs Arabic for WordPress and WooCommerce so the Arabic site (?lang=ar) shows Arabic checkout, account and notices. The site language stays English."
+msgid "Installs Arabic for WordPress and WooCommerce so the Arabic site (/ar/) shows Arabic checkout, account and notices. The site language stays English."
 msgstr ""
 
 msgid "Install Arabic"
@@ -416,6 +552,54 @@ msgstr ""
 msgid "Add Arabic names"
 msgstr ""
 
+msgid "4. About, Workshops & Contact pages"
+msgstr ""
+
+msgid "Creates the three pages with their designs and starter text in English and Arabic, and adds them to the menu and footer. Your phone, WhatsApp and address go in Customize → Pottery Hub → Contact details."
+msgstr ""
+
+msgid "Create pages"
+msgstr ""
+
+msgid "5. Branded order emails"
+msgstr ""
+
+msgid "Gives WooCommerce’s order emails the shop’s colours and logo."
+msgstr ""
+
+msgid "Apply brand to emails"
+msgstr ""
+
+msgid "6. Delivery prices in Egypt"
+msgstr ""
+
+msgid "Creates two delivery zones — Cairo & Giza, and the rest of Egypt — each with its own price. Running it again replaces these two zones."
+msgstr ""
+
+msgid "Save delivery prices"
+msgstr ""
+
+msgid "Other governorates"
+msgstr ""
+
+msgid "Messages & workshop requests"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "From"
+msgstr ""
+
+msgid "Workshop"
+msgstr ""
+
+msgid "No messages yet. Forms on the Contact and Workshops pages arrive here and by email."
+msgstr ""
+
 msgid "Newsletter subscribers"
 msgstr ""
 
@@ -425,7 +609,7 @@ msgstr ""
 msgid "No subscribers yet."
 msgstr ""
 
-msgid "Pottery Hub is active. Finish setup in Appearance → Pottery Hub (3 one-click steps)."
+msgid "Pottery Hub is active. Finish setup in Appearance → Pottery Hub (one-click setup)."
 msgstr ""
 
 msgid "Open"
@@ -435,9 +619,6 @@ msgid "Handmade in Egypt"
 msgstr ""
 
 msgid "Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story."
-msgstr ""
-
-msgid "Shop the collection"
 msgstr ""
 
 msgid "Bowls & serving"
@@ -502,3 +683,18 @@ msgstr ""
 
 msgid "We call you to confirm your order and delivery details."
 msgstr ""
+
+msgid "%d min read"
+msgid_plural "%d min read"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%s review"
+msgid_plural "%s reviews"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%s piece"
+msgid_plural "%s pieces"
+msgstr[0] ""
+msgstr[1] ""

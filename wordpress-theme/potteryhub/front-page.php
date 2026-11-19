@@ -99,7 +99,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 			<span class="ci"><img id="bCi" src="<?php echo esc_url( $ph_c0['img'] ); ?>" alt=""></span>
 		</a>
 		<?php endif; ?>
-		<a class="bt bwk" href="#classes" style="--d:320ms" data-cur="<?php esc_attr_e( 'Explore', 'potteryhub' ); ?>">
+		<a class="bt bwk" href="<?php echo esc_url( ph_template_url( 'template-workshops.php' ) ? ph_template_url( 'template-workshops.php' ) : '#classes' ); ?>" style="--d:320ms" data-cur="<?php esc_attr_e( 'Explore', 'potteryhub' ); ?>">
 			<span class="barr"><?php echo ph_icon( 'arrow', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 			<small><?php esc_html_e( 'The studio', 'potteryhub' ); ?></small><h4><?php echo wp_kses( __( 'Pottery<br>workshops', 'potteryhub' ), array( 'br' => array() ) ); ?></h4>
 			<img class="wi" src="<?php echo esc_url( ph_img( 'emblem-light.png' ) ); ?>" alt="">
@@ -173,7 +173,8 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 		<div class="eyebrow"><?php echo esc_html( ph_mod( 'ph_band_eb' ) ); ?></div>
 		<h2 class="serif"><?php echo esc_html( ph_mod( 'ph_band_t' ) ); ?></h2>
 		<p><?php echo esc_html( ph_mod( 'ph_band_p' ) ); ?></p>
-		<a class="btn" href="<?php echo esc_url( get_theme_mod( 'ph_band_url', 'https://www.facebook.com/profile.php?id=61595757980356' ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( ph_mod( 'ph_band_cta' ) ); ?> <?php echo ph_icon( 'arrow', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
+		<?php $ph_wk = ph_template_url( 'template-workshops.php' ); ?>
+		<a class="btn" href="<?php echo esc_url( $ph_wk ? $ph_wk : get_theme_mod( 'ph_band_url', 'https://www.facebook.com/profile.php?id=61595757980356' ) ); ?>"<?php echo $ph_wk ? '' : ' target="_blank" rel="noopener"'; ?>><?php echo esc_html( ph_mod( 'ph_band_cta' ) ); ?> <?php echo ph_icon( 'arrow', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
 	</div>
 </section>
 <?php
