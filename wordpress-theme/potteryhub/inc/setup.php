@@ -62,6 +62,8 @@ add_action(
 				'search'   => home_url( '/' ),
 				'ar'       => ph_is_ar() ? 1 : 0,
 				'front'    => is_front_page() ? 1 : 0,
+				'base'     => ph_home_path(),
+				'full'     => ph_full_load_paths(),
 				'i18n'     => array(
 					'added'      => __( 'added to your cart', 'potteryhub' ),
 					'viewCart'   => __( 'View cart', 'potteryhub' ),
@@ -85,6 +87,34 @@ add_action(
 		);
 	}
 );
+
+/**
+ * Pages that always open with a normal page load (the rest open instantly, without one):
+ * cart, checkout and account pages run WooCommerce's own scripts.
+ */
+function ph_full_load_paths() {
+	$out = array();
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return $out;
+	}
+	$base = ph_home_path();
+	foreach ( array( 'cart', 'checkout', 'myaccount' ) as $page ) {
+		$id = wc_get_page_id( $page );
+		if ( $id > 0 ) {
+			$path = (string) wp_parse_url( get_permalink( $id ), PHP_URL_PATH );
+			if ( 0 === strpos( $path, $base . 'ar/' ) ) {
+				$path = $base . substr( $path, strlen( $base . 'ar/' ) );
+			}
+			if ( $path && $path !== $base ) {
+				$out[] = $path;
+			}
+		}
+	}
+	return $out;
+}
+
+/* WordPress' own link pre-loading is not needed: main.js opens pages instantly. */
+add_filter( 'wp_speculation_rules_configuration', '__return_null' );
 
 /** Admin bar offset for the fixed header. */
 add_action(

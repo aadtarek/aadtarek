@@ -1189,11 +1189,7 @@ a.ci:hover{transform:translateY(-2px);background:#fff}
 .woocommerce-message:focus,.woocommerce-info:focus,.woocommerce-error:focus,.wc-block-components-notice-banner:focus{outline:0!important}
 .woocommerce-checkout .woocommerce-notices-wrapper .woocommerce-message{display:none!important}
 .ph-co #order_review{background:none!important;border:0!important;padding:0!important;position:static!important;box-shadow:none!important}
-.ph-co #billing_phone_field{grid-column:1!important}
-.ph-co #billing_email_field{grid-column:2!important}
-.ph-co #billing_country_field,.ph-co #billing_address_1_field,.ph-co #billing_address_2_field{grid-column:1/-1!important}
 @media (max-width:560px){
-  .ph-co #billing_phone_field,.ph-co #billing_email_field{grid-column:1!important}
   .ph-co #payment #place_order{font-size:15px!important;height:56px}
   .co-items li{grid-template-columns:54px minmax(0,1fr);row-gap:4px}
   .co-thumb{width:54px;height:54px}
@@ -1207,7 +1203,7 @@ a.ci:hover{transform:translateY(-2px);background:#fff}
 /* checkout: four fields */
 .ph-co .ph-hidden,.ph-co #billing_country_field{display:none!important}
 .ph-co .woocommerce-billing-fields__field-wrapper{grid-template-columns:1fr!important}
-.ph-co .woocommerce-billing-fields__field-wrapper>.form-row{grid-column:1!important}
+.ph-co .woocommerce-billing-fields__field-wrapper>.form-row{grid-column:1/-1!important;width:100%!important}
 .ph-co #billing_address_1{min-height:110px;padding-top:13px;line-height:1.6}
 .ph-co #billing_phone{direction:ltr}
 [dir=rtl] .ph-co #billing_phone{text-align:right}

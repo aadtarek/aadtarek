@@ -607,51 +607,7 @@ foreach ( array( 'woocommerce_update_product', 'woocommerce_new_product', 'wooco
 	add_action( $ph_hook, fn() => update_option( 'ph_sidx_ver', (int) get_option( 'ph_sidx_ver', 1 ) + 1, true ) );
 }
 
-/* Instant page loads -------------------------------------------------------- */
-
-/**
- * Browsers that support it start loading a page while the pointer rests on its
- * link, so the click shows it immediately. Cart, checkout, account, admin and
- * add-to-cart links are never pre-loaded.
- */
-add_action(
-	'wp_footer',
-	function () {
-		if ( is_admin() || is_customize_preview() ) {
-			return;
-		}
-		$rules = array(
-			'prerender' => array(
-				array(
-					'source'    => 'document',
-					'where'     => array(
-						'and' => array(
-							array( 'href_matches' => '/*' ),
-							array( 'not' => array( 'href_matches' => array( '/wp-*', '/*/wp-*', '*\\?*add-to-cart=*', '*\\?*ph_buy_now*', '*\\?*wc-ajax=*', '*\\?*customer-logout*', '/*/feed/*', '*.php*' ) ) ),
-							array( 'not' => array( 'selector_matches' => '[rel~=nofollow], [target=_blank], .no-prerender, a[download]' ) ),
-						),
-					),
-					'eagerness' => 'moderate',
-				),
-			),
-		);
-		$skip = array();
-		foreach ( array( 'cart', 'checkout', 'myaccount' ) as $page ) {
-			$id = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( $page ) : 0;
-			if ( $id > 0 ) {
-				$path = wp_parse_url( get_permalink( $id ), PHP_URL_PATH );
-				if ( $path ) {
-					$skip[] = rtrim( $path, '/' ) . '*';
-				}
-			}
-		}
-		if ( $skip ) {
-			$rules['prerender'][0]['where']['and'][] = array( 'not' => array( 'href_matches' => $skip ) );
-		}
-		echo '<script type="speculationrules">' . wp_json_encode( $rules, JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
-	},
-	99
-);
+/* Instant page loads: handled in main.js (pages open without a reload). */
 
 /**
  * Delivery prices by governorate, so the checkout total changes the moment a

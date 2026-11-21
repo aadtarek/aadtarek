@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 $ph_wc = class_exists( 'WooCommerce' );
 ?>
+</div><!-- #ph-main -->
 <footer class="foot" id="about">
 	<div class="fg">
 		<div data-rv>

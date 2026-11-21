@@ -3,17 +3,20 @@
 'use strict';
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const C = window.PH || {}, T = k => (C.i18n && C.i18n[k]) || k;
+C.ar = +C.ar === 1; C.front = +C.front === 1; // wp_localize_script sends "0" / "1" strings
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const eio = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const body = document.body, nav = $('#nav'), hero = $('#hero');
+const body = document.body, nav = $('#nav');
+let hero = $('#hero');
 const icon = {
   arrow: '<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   check: '<svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5 10 17 19 7"/></svg>',
   heart: '<svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>'
 };
-if (C.ar) $$('svg path').forEach(p => { if (/^M(5 12h14|19 12H5)/.test(p.getAttribute('d') || '')) p.closest('svg').classList.add('flipx'); });
+const flipArrows = root => { if (C.ar) $$('svg path', root).forEach(p => { if (/^M(5 12h14|19 12H5)/.test(p.getAttribute('d') || '')) p.closest('svg').classList.add('flipx'); }); };
+flipArrows(document);
 
 /* ---------- smooth scroll ---------- */
 let lenis = null;
@@ -30,7 +33,7 @@ document.addEventListener('click', e => {
 });
 
 /* ---------- header ---------- */
-const inner = !hero;
+let inner = !hero;
 function onScroll() { nav.classList.toggle('solid', inner || scrollY > innerHeight * .3); }
 addEventListener('scroll', onScroll, { passive: true });
 onScroll();
@@ -114,7 +117,7 @@ function addToCart(id, qty, src, name, btn) {
   qty = qty || 1;
   bumpBag(qty);
   pendingLine(src, name, qty);
-  openDrawer('cart');
+  flyToCart(src, () => openDrawer('cart'));
   if (btn) { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 900); }
   // requests run one after another so quick double-adds both count
   const job = cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty })).then(r => {
@@ -245,20 +248,6 @@ $('#openSearch') && $('#openSearch').addEventListener('click', loadIndex);
 // fetch the list quietly once the page is idle, so the first search is instant too
 (window.requestIdleCallback || (f => setTimeout(f, 2500)))(() => { if (C.ajax && !sIdx) loadIndex(); });
 
-/* ---------- instant pages for browsers without speculation rules: prefetch on hover / touch ---------- */
-(() => {
-  if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) return;
-  const done = new Set(), skip = /add-to-cart|ph_buy_now|wc-ajax|wp-admin|wp-login|customer-logout|\/(cart|checkout|my-account)\b|\.php/;
-  const go = e => {
-    const a = e.target.closest && e.target.closest('a[href]'); if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
-    let u; try { u = new URL(a.href, location.href); } catch (x) { return; }
-    if (u.origin !== location.origin || u.hash && u.pathname === location.pathname || skip.test(u.href) || done.has(u.href)) return;
-    done.add(u.href); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = u.href; document.head.appendChild(l);
-  };
-  document.addEventListener('pointerover', go, { passive: true });
-  document.addEventListener('touchstart', go, { passive: true });
-})();
-
 /* ---------- forms answer immediately (sent in the background) ---------- */
 document.addEventListener('submit', e => {
   const f = e.target;
@@ -297,26 +286,14 @@ function split(el) {
   el.innerHTML = words.map((w, i) => '<span class="wd"><i style="--i:' + i + '">' + esc(w) + '</i></span>').join(' ');
   el.dataset.split = 1; el.classList.add('sp');
 }
-$$('.sec-h h2, .band h2, .promo h3, #giant').forEach(split);
-$$('.sec-h p, .sec-h .see, .sec-h .arrows, .chips, .band p, .band .btn, .promo p, .promo .wbtn').forEach(el => { el.setAttribute('data-rv', ''); el.style.setProperty('--d', '150ms'); });
 const rio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); rio.unobserve(e.target); } }), { threshold: .12, rootMargin: '0px 0px -6% 0px' });
 const cio = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); cio.unobserve(e.target); } }), { threshold: .1 });
 function watch(root) { $$('[data-rv],.sp,.eyebrow,.cat', root).forEach(el => rio.observe(el)); $$('.card', root).forEach(el => cio.observe(el)); }
-watch(document);
-const rvs = $$('.rv');
-requestAnimationFrame(() => rvs.forEach((x, i) => { x.style.setProperty('--d', (150 + i * 70) + 'ms'); x.classList.add('go'); }));
 
 /* ---------- marquee, parallax, progress ---------- */
-const marq = $('#marqT');
-if (marq) {
-  let words = ['House of Pottery'];
-  try { words = JSON.parse($('#marq').dataset.words); } catch (e) {}
-  const star = '<svg class="st" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>';
-  const half = '<div class="it">' + words.concat(words).map((t, i) => '<span class="' + (i % 2 ? 'o' : '') + '">' + esc(t) + '</span>' + star).join('') + '</div>';
-  marq.innerHTML = half + half;
-}
-const pars = $$('[data-par]'), prog = $('#prog');
-let mx = 0, lastY = scrollY, vel = 0;
+let marq = null, pars = [], mx = 0;
+const prog = $('#prog');
+let lastY = scrollY, vel = 0;
 (function motion() {
   const y = scrollY, dy = y - lastY; lastY = y; vel += (dy - vel) * .1;
   if (marq && !reduce) {
@@ -354,7 +331,7 @@ document.addEventListener('click', e => {
 });
 
 /* ---------- homepage ---------- */
-if (hero) {
+function initHome() {
   let slides = [], feat = [], cats = [];
   try { slides = JSON.parse(hero.dataset.slides); feat = JSON.parse(hero.dataset.feat); cats = JSON.parse(hero.dataset.cats); } catch (e) {}
   const bBig = $('#bBig'), BDUR = 6000; let bi = -1, btimer = null;
@@ -367,7 +344,7 @@ if (hero) {
     slides.forEach(s => { let px = 50; if (ir > r) { const v = r / ir; px = clamp((s.fx / 100 - v / 2) / (1 - v), 0, 1) * 100; } s.el.style.backgroundPosition = px + '% 50%'; });
     if (slides.length) $('#bT').style.height = Math.max(...slides.map(s => s.tt.offsetHeight)) + 'px';
   }
-  addEventListener('resize', fitHero); if (document.fonts) document.fonts.ready.then(fitHero);
+  pOn(window, 'resize', fitHero); if (document.fonts) document.fonts.ready.then(fitHero);
   $('#bDots').innerHTML = slides.map((_, i) => '<button type="button" aria-label="' + (i + 1) + '"></button>').join('');
   $$('#bDots button').forEach((b, i) => b.onclick = () => go(i));
   function go(n) {
@@ -378,9 +355,9 @@ if (hero) {
     const p = $('#bP'), eb = $('#bEb'), cta = $('#bCta'); p.style.opacity = 0; p.style.transform = 'translateY(10px)'; eb.style.opacity = 0;
     setTimeout(() => { p.textContent = s.p; eb.textContent = s.eb; $('span', cta).textContent = s.cta; cta.href = s.url; p.style.opacity = ''; p.style.transform = ''; eb.style.opacity = ''; }, prev ? 380 : 0);
     $$('#bDots button').forEach((b, i) => { b.classList.remove('on'); if (i === n) { void b.offsetWidth; b.style.setProperty('--dur', BDUR + 'ms'); b.classList.add('on'); } });
-    bi = n; clearTimeout(btimer); btimer = setTimeout(tick, BDUR);
+    bi = n; clearTimeout(btimer); btimer = pT(tick, BDUR);
   }
-  function tick() { if (hero.classList.contains('paused') || open.size || document.hidden || scrollY > innerHeight * .8) { btimer = setTimeout(tick, 700); return; } go((bi + 1) % slides.length); }
+  function tick() { if (hero.classList.contains('paused') || open.size || document.hidden || scrollY > innerHeight * .8) { btimer = pT(tick, 700); return; } go((bi + 1) % slides.length); }
   bBig.addEventListener('pointerenter', () => hero.classList.add('paused')); bBig.addEventListener('pointerleave', () => hero.classList.remove('paused'));
 
   /* featured piece */
@@ -393,13 +370,13 @@ if (hero) {
   }
   if (bf && feat.length) {
     setFeat();
-    setInterval(() => { if (fpause || open.size || document.hidden || feat.length < 2) return; bf.classList.add('chg'); setTimeout(() => { fi = (fi + 1) % feat.length; setFeat(); bf.classList.remove('chg'); }, 480); }, 4500);
+    pI(() => { if (fpause || open.size || document.hidden || feat.length < 2) return; bf.classList.add('chg'); setTimeout(() => { fi = (fi + 1) % feat.length; setFeat(); bf.classList.remove('chg'); }, 480); }, 4500);
     bf.addEventListener('pointerenter', () => fpause = true); bf.addEventListener('pointerleave', () => fpause = false);
     $('#bFadd').onclick = () => addToCart(feat[fi].id, 1, $('#bFi'), feat[fi].name, $('#bFadd'));
   }
   /* rotating category tile */
   const bc = $('#bCat'); let ci = 0;
-  if (bc && cats.length > 1) setInterval(() => { if (open.size || document.hidden || bc.matches(':hover')) return; bc.classList.add('chg'); setTimeout(() => { ci = (ci + 1) % cats.length; const c = cats[ci]; $('#bCn').textContent = c.n; $('#bCh').textContent = c.name; $('#bCi').src = c.img; bc.href = c.url; bc.classList.remove('chg'); }, 480); }, 5200);
+  if (bc && cats.length > 1) pI(() => { if (open.size || document.hidden || bc.matches(':hover')) return; bc.classList.add('chg'); setTimeout(() => { ci = (ci + 1) % cats.length; const c = cats[ci]; $('#bCn').textContent = c.n; $('#bCh').textContent = c.name; $('#bCi').src = c.img; bc.href = c.url; bc.classList.remove('chg'); }, 480); }, 5200);
 
   /* category arrows */
   $$('[data-sc]').forEach(b => b.onclick = () => { const r = $('#catRow'); r.scrollBy({ left: (C.ar ? -1 : 1) * +b.dataset.sc * r.clientWidth * .8, behavior: 'smooth' }); });
@@ -412,7 +389,6 @@ if (hero) {
 }
 
 /* ---------- product page ---------- */
-const form = $('.book form.cart');
 /* quantity +/- (delegated, so it keeps working after WooCommerce refreshes the cart) */
 document.addEventListener('click', e => {
   const b = e.target.closest('.quantity .qminus, .quantity .qplus'); if (!b) return;
@@ -423,49 +399,80 @@ document.addEventListener('click', e => {
   inp.dispatchEvent(new Event('change', { bubbles: true }));
   if (window.jQuery) jQuery(inp).trigger('change');
 });
-if (form && !form.classList.contains('variations_form') && !form.classList.contains('grouped_form')) {
-  const addBtn = $('.single_add_to_cart_button', form);
-  form.addEventListener('submit', e => {
-    if (!addBtn || !addBtn.value) return;
-    e.preventDefault();
-    const qty = +($('input.qty', form) || { value: 1 }).value || 1;
-    if (e.submitter && e.submitter.name === 'ph_buy_now') { buyNow(addBtn.value, qty); return; }
-    addToCart(addBtn.value, qty, $('#mainImg'), $('.dname') ? $('.dname').textContent : '', addBtn);
+function initProduct() {
+  const form = $('.book form.cart');
+  if (form && !form.classList.contains('variations_form') && !form.classList.contains('grouped_form')) {
+    const addBtn = $('.single_add_to_cart_button', form);
+    form.addEventListener('submit', e => {
+      if (!addBtn || !addBtn.value) return;
+      e.preventDefault();
+      const qty = +($('input.qty', form) || { value: 1 }).value || 1;
+      if (e.submitter && e.submitter.name === 'ph_buy_now') { buyNow(addBtn.value, qty); return; }
+      addToCart(addBtn.value, qty, $('#mainImg'), $('.dname') ? $('.dname').textContent : '', addBtn);
+    });
+  }
+  /* variable products: AJAX add of the chosen variation, image swap, Buy now only once a choice is made */
+  if (form && form.classList.contains('variations_form')) {
+    const addBtn = $('.single_add_to_cart_button', form), buy = $('#buyNow'), mi = $('#mainImg'), orig = mi && mi.src;
+    const vid = () => +(($('input.variation_id', form) || {}).value || 0);
+    if (buy) buy.disabled = true;
+    form.addEventListener('submit', e => {
+      if (!vid() || (addBtn && addBtn.classList.contains('disabled'))) return;
+      e.preventDefault();
+      const qty = +($('input.qty', form) || { value: 1 }).value || 1;
+      if (e.submitter && e.submitter.name === 'ph_buy_now') { buyNow(vid(), qty); return; }
+      addToCart(vid(), qty, mi, $('.dname') ? $('.dname').textContent : '', addBtn);
+    });
+    const swap = src => { if (!mi || !src || mi.src === src) return; mi.style.opacity = 0; setTimeout(() => { mi.src = src; mi.style.opacity = ''; }, 200); };
+    if (window.jQuery) {
+      jQuery(form).on('show_variation', (ev, v) => { if (buy) buy.disabled = !v.is_purchasable || !v.is_in_stock; if (v.image && v.image.full_src) swap(v.image.full_src); });
+      jQuery(form).on('hide_variation reset_data', () => { if (buy) buy.disabled = true; swap(orig); });
+    }
+  }
+  $$('.minis button[data-full]').forEach((b, i) => {
+    if (!i) b.classList.add('on');
+    b.onclick = () => { const m = $('#mainImg'); m.style.opacity = 0; setTimeout(() => { m.src = b.dataset.full; m.style.opacity = ''; }, 200); $$('.minis button').forEach(x => x.classList.toggle('on', x === b)); };
   });
-}
-/* variable products: AJAX add of the chosen variation, image swap, Buy now only once a choice is made */
-if (form && form.classList.contains('variations_form')) {
-  const addBtn = $('.single_add_to_cart_button', form), buy = $('#buyNow'), mi = $('#mainImg'), orig = mi && mi.src;
-  const vid = () => +(($('input.variation_id', form) || {}).value || 0);
-  if (buy) buy.disabled = true;
-  form.addEventListener('submit', e => {
-    if (!vid() || (addBtn && addBtn.classList.contains('disabled'))) return;
-    e.preventDefault();
-    const qty = +($('input.qty', form) || { value: 1 }).value || 1;
-    if (e.submitter && e.submitter.name === 'ph_buy_now') { buyNow(vid(), qty); return; }
-    addToCart(vid(), qty, mi, $('.dname') ? $('.dname').textContent : '', addBtn);
-  });
-  const swap = src => { if (!mi || !src || mi.src === src) return; mi.style.opacity = 0; setTimeout(() => { mi.src = src; mi.style.opacity = ''; }, 200); };
-  if (window.jQuery) {
-    jQuery(form).on('show_variation', (ev, v) => { if (buy) buy.disabled = !v.is_purchasable || !v.is_in_stock; if (v.image && v.image.full_src) swap(v.image.full_src); });
-    jQuery(form).on('hide_variation reset_data', () => { if (buy) buy.disabled = true; swap(orig); });
+  const sbar = $('#sbar'), bookEl = $('.book');
+  if (sbar && bookEl) {
+    const sio = new IntersectionObserver(es => es.forEach(e => sbar.classList.toggle('on', !e.isIntersecting && e.boundingClientRect.top < 0)), { threshold: 0 }); sio.observe(bookEl); pg.off.push(() => sio.disconnect());
+    $('#sbAdd').onclick = () => { const b = $('.single_add_to_cart_button'); if (form && form.classList.contains('variations_form')) smoothTo(bookEl); else if (b) b.click(); };
+    $('#sbBuy').onclick = () => { const b = $('#buyNow'); if (form && form.classList.contains('variations_form')) smoothTo(bookEl); else if (b) b.click(); };
   }
 }
-$$('.minis button[data-full]').forEach((b, i) => {
-  if (!i) b.classList.add('on');
-  b.onclick = () => { const m = $('#mainImg'); m.style.opacity = 0; setTimeout(() => { m.src = b.dataset.full; m.style.opacity = ''; }, 200); $$('.minis button').forEach(x => x.classList.toggle('on', x === b)); };
-});
-const sbar = $('#sbar'), bookEl = $('.book');
-if (sbar && bookEl) {
-  new IntersectionObserver(es => es.forEach(e => sbar.classList.toggle('on', !e.isIntersecting && e.boundingClientRect.top < 0)), { threshold: 0 }).observe(bookEl);
-  $('#sbAdd').onclick = () => { const b = $('.single_add_to_cart_button'); if (form && form.classList.contains('variations_form')) smoothTo(bookEl); else if (b) b.click(); };
-  $('#sbBuy').onclick = () => { const b = $('#buyNow'); if (form && form.classList.contains('variations_form')) smoothTo(bookEl); else if (b) b.click(); };
-}
 
-/* ---------- shop: mobile filters ---------- */
-const side = $('#side');
-$('#openFilters') && ($('#openFilters').onclick = () => show(side));
-$('#sideDone') && ($('#sideDone').onclick = closeAll);
+/* ---------- per-page setup (runs on load and after every instant page change) ---------- */
+let pg = { t: [], i: [], off: [] };
+const pT = (f, ms) => { const id = setTimeout(f, ms); pg.t.push(id); return id; };
+const pI = (f, ms) => { const id = setInterval(f, ms); pg.i.push(id); return id; };
+const pOn = (el, ev, f, o) => { el.addEventListener(ev, f, o); pg.off.push(() => el.removeEventListener(ev, f, o)); };
+function teardown() { pg.t.forEach(clearTimeout); pg.i.forEach(clearInterval); pg.off.forEach(f => f()); pg = { t: [], i: [], off: [] }; }
+function initPage(root) {
+  hero = $('#hero'); inner = !hero; onScroll();
+  if (root !== document) flipArrows(root);
+  $$('.sec-h h2, .band h2, .promo h3, #giant', root).forEach(split);
+  $$('.sec-h p, .sec-h .see, .sec-h .arrows, .chips, .band p, .band .btn, .promo p, .promo .wbtn', root).forEach(el => { el.setAttribute('data-rv', ''); el.style.setProperty('--d', '150ms'); });
+  watch(root);
+  const rvs = $$('.rv', root);
+  requestAnimationFrame(() => rvs.forEach((x, i) => { x.style.setProperty('--d', (150 + i * 70) + 'ms'); x.classList.add('go'); }));
+  marq = $('#marqT'); mx = 0;
+  if (marq) {
+    let words = ['House of Pottery'];
+    try { words = JSON.parse($('#marq').dataset.words); } catch (e) {}
+    const star = '<svg class="st" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>';
+    const half = '<div class="it">' + words.concat(words).map((t, i) => '<span class="' + (i % 2 ? 'o' : '') + '">' + esc(t) + '</span>' + star).join('') + '</div>';
+    marq.innerHTML = half + half;
+  }
+  pars = $$('[data-par]');
+  if (hero) initHome();
+  initProduct();
+  const side = $('#side');
+  $('#openFilters') && ($('#openFilters').onclick = () => show(side));
+  $('#sideDone') && ($('#sideDone').onclick = closeAll);
+  syncHearts();
+}
+initPage(document);
+
 
 /* ---------- newsletter result ---------- */
 const sub = new URLSearchParams(location.search).get('ph_sub');
@@ -549,6 +556,164 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
   };
   btn.addEventListener('click', apply);
   inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
+})();
+
+/* ---------- instant pages: links open without a page reload ----------
+   The page is fetched while the pointer rests on (or a finger touches) a link,
+   so the click swaps the content at once. Cart, checkout and account pages,
+   language switches and anything outside the site still load normally. */
+(() => {
+  if (!$('#ph-main') || !window.fetch || !window.DOMParser || !history.pushState) return;
+  const base = C.base || '/', full = C.full || [];
+  const strip = p => p.indexOf(base + 'ar/') === 0 ? base + p.slice(base.length + 3) : (p === base + 'ar' ? base : p);
+  const isAr = p => p.indexOf(base + 'ar/') === 0 || p === base + 'ar';
+  const skip = /[?&](add-to-cart|ph_buy_now|wc-ajax|customer-logout|preview|ph_sub|ph_sent)=|\/wp-(admin|login|json|content|includes)|\.(php|xml|pdf|jpe?g|png|gif|webp|avif|svg|zip|txt)$|\/feed\/?$/i;
+  function allowed(u) {
+    if (u.origin !== location.origin || skip.test(u.pathname + u.search)) return false;
+    if (!!isAr(u.pathname) !== !!C.ar) return false; // other language: full load (texts & direction change)
+    const p = strip(u.pathname);
+    return !full.some(f => p.indexOf(f) === 0);
+  }
+  function linkUrl(a) {
+    if (!a || a.target && a.target !== '_self' || a.hasAttribute('download') || a.hasAttribute('data-no-instant') || /\bexternal\b/.test(a.rel) || a.closest('#wpadminbar')) return null;
+    let u; try { u = new URL(a.href, location.href); } catch (e) { return null; }
+    if (u.protocol !== location.protocol || !allowed(u)) return null;
+    if (u.hash && u.pathname === location.pathname && u.search === location.search) return null; // same-page anchor
+    return u;
+  }
+
+  /* fetched pages, kept briefly so hovering then clicking is instant */
+  const cache = new Map();
+  function get(url, maxAge) {
+    const k = url.split('#')[0], c = cache.get(k);
+    if (c && Date.now() - c.t < (maxAge || 60000)) return c.p;
+    const p = fetch(k, { credentials: 'same-origin', headers: { 'X-PH-Instant': '1' } }).then(r => {
+      if (r.status >= 500 || !/text\/html/.test(r.headers.get('content-type') || '')) throw new Error('skip');
+      return r.text().then(html => ({ url: r.url || k, html }));
+    });
+    p.catch(() => cache.delete(k));
+    cache.set(k, { t: Date.now(), p });
+    if (cache.size > 40) cache.delete(cache.keys().next().value);
+    return p;
+  }
+  let hov = null;
+  const warm = a => { const u = linkUrl(a); if (u) get(u.href).catch(() => {}); };
+  document.addEventListener('pointerover', e => {
+    const a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
+    clearTimeout(hov); hov = setTimeout(() => warm(a), e.pointerType === 'mouse' ? 60 : 0);
+  }, { passive: true });
+  document.addEventListener('pointerout', () => clearTimeout(hov), { passive: true });
+  document.addEventListener('touchstart', e => warm(e.target.closest && e.target.closest('a[href]')), { passive: true });
+  document.addEventListener('focusin', e => warm(e.target.closest && e.target.closest('a[href]')));
+  document.addEventListener('pointerdown', e => warm(e.target.closest && e.target.closest('a[href]')), { passive: true });
+
+  /* stylesheets / scripts the new page needs that this one has not loaded yet */
+  const key = u => (u || '').split('?')[0];
+  function addStyles(doc) {
+    const have = new Set($$('link[rel="stylesheet"]').map(l => key(l.href))), waits = [];
+    doc.querySelectorAll('link[rel="stylesheet"]').forEach(l => {
+      if (have.has(key(l.href))) return;
+      const n = document.createElement('link'); n.rel = 'stylesheet'; n.href = l.href; if (l.media) n.media = l.media; if (l.id) n.id = l.id;
+      waits.push(new Promise(r => { n.onload = n.onerror = r; setTimeout(r, 1200); }));
+      document.head.appendChild(n);
+    });
+    doc.querySelectorAll('head style[id]').forEach(st => { if (!document.getElementById(st.id)) document.head.appendChild(st.cloneNode(true)); });
+    return Promise.all(waits);
+  }
+  const runInline = (src, where) => { const n = document.createElement('script'); n.textContent = src.textContent; if (src.id) n.id = src.id; (where || document.body).appendChild(n); };
+  async function addScripts(doc) {
+    const have = new Set($$('script[src]').map(x => key(x.src))), fresh = new Set();
+    const list = [...doc.querySelectorAll('script')].filter(x => !x.closest('#ph-main'));
+    for (const x of list) {
+      if (!x.src || have.has(key(x.src)) || (x.type && !/javascript|module/.test(x.type))) continue;
+      const h = (x.id || '').replace(/-js$/, '');
+      ['-js-extra', '-js-before'].forEach(sfx => { const i = h && doc.getElementById(h + sfx); if (i && !document.getElementById(h + sfx)) runInline(i); });
+      await new Promise(r => { const n = document.createElement('script'); n.src = x.src; if (x.id) n.id = x.id; n.async = false; n.onload = n.onerror = r; document.body.appendChild(n); });
+      const af = h && doc.getElementById(h + '-js-after'); if (af && !document.getElementById(h + '-js-after')) runInline(af);
+      if (h) fresh.add(h);
+      have.add(key(x.src));
+    }
+    doc.querySelectorAll('script[type="text/template"][id]').forEach(t => { if (!document.getElementById(t.id)) document.body.appendChild(t.cloneNode(true)); });
+    return fresh;
+  }
+  function swapHead(doc) {
+    document.title = doc.title;
+    const sel = 'meta[name="description"],meta[name="robots"],link[rel="canonical"],link[rel="alternate"][hreflang],link[rel="prev"],link[rel="next"],meta[property^="og:"],meta[property^="article:"],meta[property^="product:"],meta[name^="twitter:"],script[type="application/ld+json"]';
+    $$(sel, document.head).forEach(n => n.remove());
+    doc.head.querySelectorAll(sel).forEach(n => document.head.appendChild(n.cloneNode(true)));
+  }
+
+  let navId = 0;
+  async function go(url, push, y) {
+    const id = ++navId, to = new URL(url, location.href);
+    closeAll();
+    let d; try { d = await get(to.href, push ? 60000 : 600000); } catch (e) { location.href = to.href; return; }
+    if (id !== navId) return;
+    const fin = new URL(d.url, location.href); fin.hash = to.hash;
+    if (!allowed(fin)) { location.href = fin.href; return; }
+    const doc = new DOMParser().parseFromString(d.html, 'text/html'), nm = doc.getElementById('ph-main');
+    if (!nm || doc.documentElement.lang !== document.documentElement.lang) { location.href = fin.href; return; }
+    await addStyles(doc);
+    if (id !== navId) return;
+    const from = location.href;
+    if (push) { history.replaceState(Object.assign({}, history.state, { ph: 1, y: scrollY }), ''); history.pushState({ ph: 1, y: 0 }, '', fin.href); }
+    const swap = () => {
+      teardown();
+      const cur = $('#ph-main');
+      cur.replaceWith(document.adoptNode(nm));
+      $$('script', nm).forEach(x => { if (!x.type || /javascript/.test(x.type)) { const n = document.createElement('script'); [...x.attributes].forEach(at => n.setAttribute(at.name, at.value)); n.textContent = x.textContent; x.replaceWith(n); } });
+      body.className = doc.body.className;
+      swapHead(doc);
+      const nc = doc.querySelector('#nav nav.c'), oc = $('#nav nav.c'); if (nc && oc) oc.innerHTML = nc.innerHTML;
+      const nl = doc.querySelector('#nav .lang'), ol = $('#nav .lang'); if (nl && ol) ol.href = nl.getAttribute('href');
+      const nmn = doc.querySelector('#menu .menu-l'), omn = $('#menu .menu-l'); if (nmn && omn) omn.innerHTML = nmn.innerHTML;
+      const nab = doc.getElementById('wpadminbar'), oab = $('#wpadminbar'); if (nab && oab) oab.replaceWith(document.adoptNode(nab));
+      const tgt = fin.hash.length > 1 && document.getElementById(decodeURIComponent(fin.hash.slice(1)));
+      const top = tgt ? tgt.getBoundingClientRect().top + scrollY - 90 : (y || 0);
+      if (lenis) { lenis.resize && lenis.resize(); lenis.scrollTo(top, { immediate: true, force: true }); } else scrollTo(0, top);
+      initPage($('#ph-main'));
+      nav.classList.remove('pre');
+      if (hero && hero.startIntro) hero.startIntro();
+    };
+    if (document.startViewTransition && !reduce) await document.startViewTransition(swap).updateCallbackDone.catch(() => {}); else swap();
+    get(from, 600000).catch(() => {}); // keep the page we left, so Back is instant too
+    const fresh = await addScripts(doc);
+    if (window.jQuery) {
+      const jq = window.jQuery, main = $('#ph-main');
+      if (!fresh.has('wc-add-to-cart-variation') && jq.fn.wc_variation_form) jq('.variations_form', main).each(function () { jq(this).wc_variation_form(); });
+      if (!fresh.has('wc-single-product')) jq('.wc-tabs-wrapper, .woocommerce-tabs, #rating', main).trigger('init');
+      jq(document.body).trigger('ph:page');
+    }
+    document.dispatchEvent(new CustomEvent('ph:page', { detail: { url: location.href } }));
+    try { if (window.fbq) fbq('track', 'PageView'); if (window.gtag) gtag('event', 'page_view', { page_location: location.href, page_title: document.title }); } catch (e) {}
+  }
+
+  history.scrollRestoration = 'manual';
+  history.replaceState(Object.assign({}, history.state, { ph: 1 }), '');
+  // the page we start on: kept so coming Back to it is instant
+  (window.requestIdleCallback || (f => setTimeout(f, 2000)))(() => get(location.href, 600000).catch(() => {}));
+  addEventListener('popstate', e => {
+    const u = new URL(location.href);
+    if (!e.state || !e.state.ph || !allowed(u)) { location.reload(); return; }
+    go(u.href, false, e.state.y || 0);
+  });
+  document.addEventListener('click', e => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest('a[href]'), u = linkUrl(a); if (!u) return;
+    e.preventDefault();
+    if (u.href === location.href) { closeAll(); return; }
+    go(u.href, true);
+  });
+  /* search and filter forms (GET) open the same way */
+  document.addEventListener('submit', e => {
+    const f = e.target;
+    if (e.defaultPrevented || (f.getAttribute('method') || 'get').toLowerCase() !== 'get' || f.closest('.woocommerce-cart-form,.checkout')) return;
+    let u; try { u = new URL(f.getAttribute('action') || location.href, location.href); } catch (x) { return; }
+    const q = new URLSearchParams(); new FormData(f).forEach((v, k) => { if (typeof v === 'string') q.append(k, v); });
+    u.search = q.toString();
+    if (!allowed(u)) return;
+    e.preventDefault(); go(u.href, true);
+  });
 })();
 
 })();
