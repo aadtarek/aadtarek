@@ -493,7 +493,7 @@ function ph_sort_menu() {
 	}
 	echo '<details class="sort"><summary><span class="sort-l">' . esc_html__( 'Sort', 'potteryhub' ) . '</span><b>' . esc_html( $opts[ $current ] ) . '</b><i class="sort-c" aria-hidden="true"></i></summary><div class="sort-m" role="menu">';
 	foreach ( $opts as $k => $label ) {
-		$url = remove_query_arg( array( 'paged', 'product-page' ), add_query_arg( 'orderby', $k ) );
+		$url = preg_replace( '#/page/\d+/?(?=\?|$)#', '/', remove_query_arg( array( 'paged', 'product-page' ), add_query_arg( 'orderby', $k ) ) );
 		$url = preg_replace( '#/page/\d+/?#', '/', $url );
 		echo '<a role="menuitem" href="' . esc_url( $url ) . '"' . ( $k === $current ? ' class="on" aria-current="true"' : '' ) . ' rel="nofollow">' . esc_html( $label ) . ( $k === $current ? ph_icon( 'check', 15, 2 ) : '' ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
@@ -649,15 +649,23 @@ function ph_ship_map() {
 add_action(
 	'wp_enqueue_scripts',
 	function () {
-		if ( function_exists( 'is_checkout' ) && is_checkout() ) {
-			wp_add_inline_script( 'ph-main', 'window.PH=window.PH||{};PH.ship=' . wp_json_encode( ph_ship_map() ) . ';', 'before' );
-		}
-		// Product-page scripts on every page, so all pages share the same scripts (and the same
-		// combined file under caching plugins) and pages can open without a reload.
-		if ( ! is_cart() && ! is_checkout() && ! is_account_page() ) {
-			wp_enqueue_script( 'wc-add-to-cart-variation' );
-			wp_enqueue_script( 'wc-single-product' );
-		}
+		// Every page loads the same scripts (and the same combined file under caching plugins), so
+		// any page — cart, checkout and account included — opens without a reload. Cart, checkout,
+		// address and password-meter scripts are replaced by the theme's own code in main.js.
+		wp_enqueue_script( 'wc-add-to-cart-variation' );
+		wp_enqueue_script( 'wc-single-product' );
 	},
 	21
+);
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		foreach ( array( 'wc-cart', 'wc-checkout', 'wc-country-select', 'wc-address-i18n', 'selectWoo', 'select2', 'wc-password-strength-meter', 'password-strength-meter', 'zxcvbn-async', 'wc-account-i18n' ) as $h ) {
+			wp_dequeue_script( $h );
+		}
+		foreach ( array( 'select2' ) as $h ) {
+			wp_dequeue_style( $h );
+		}
+	},
+	100
 );

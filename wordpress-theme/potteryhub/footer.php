@@ -29,7 +29,6 @@ $ph_wc = class_exists( 'WooCommerce' );
 			<?php elseif ( $ph_wc ) : ?>
 				<li><a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'All products', 'potteryhub' ); ?></a></li>
 				<li><button type="button" data-open="cart"><?php esc_html_e( 'Your cart', 'potteryhub' ); ?></button></li>
-				<li><button type="button" data-open="wish"><?php esc_html_e( 'Wishlist', 'potteryhub' ); ?></button></li>
 				<li><a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>"><?php esc_html_e( 'My account', 'potteryhub' ); ?></a></li>
 				<?php foreach ( array( 'template-about.php' => __( 'About', 'potteryhub' ), 'template-workshops.php' => __( 'Workshops', 'potteryhub' ), 'template-contact.php' => __( 'Contact', 'potteryhub' ) ) as $ph_tpl => $ph_lbl ) : ?>
 					<?php if ( ph_template_url( $ph_tpl ) ) : ?><li><a href="<?php echo esc_url( ph_template_url( $ph_tpl ) ); ?>"><?php echo esc_html( $ph_lbl ); ?></a></li><?php endif; ?>
@@ -39,10 +38,7 @@ $ph_wc = class_exists( 'WooCommerce' );
 		<div data-rv style="--d:300ms"><h5><?php esc_html_e( 'Stay in the loop', 'potteryhub' ); ?></h5><p><?php esc_html_e( 'New glazes, restocks and workshop dates — first.', 'potteryhub' ); ?></p>
 			<?php ph_newsletter_form(); ?></div>
 	</div>
-	<div class="giant sp" id="giant" data-par="-.08"><?php esc_html_e( 'House of Pottery', 'potteryhub' ); ?></div>
-	<svg class="spark" style="left:8%;bottom:30%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
-	<svg class="spark" style="right:12%;bottom:46%;animation-delay:-1.2s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
-	<div class="bot"><span>© <?php echo esc_html( gmdate( 'Y' ) ); ?></span><span><?php esc_html_e( 'House of Pottery', 'potteryhub' ); ?></span></div>
+	<div class="bot"><span>© <?php echo esc_html( gmdate( 'Y' ) ); ?> <?php echo esc_html( get_bloginfo( 'name' ) ); ?></span><span><?php esc_html_e( 'Handmade in Egypt', 'potteryhub' ); ?></span></div>
 </footer>
 
 <div class="scrim" id="scrim"></div>
@@ -50,31 +46,63 @@ $ph_wc = class_exists( 'WooCommerce' );
 <?php if ( $ph_wc ) : ?>
 <aside class="drawer" id="drawer" aria-hidden="true" data-lenis-prevent>
 	<div class="dh"><h3 class="serif" id="drTitle"><?php esc_html_e( 'Your cart', 'potteryhub' ); ?></h3><button class="x" type="button" data-close aria-label="<?php esc_attr_e( 'Close', 'potteryhub' ); ?>"><?php echo ph_icon( 'close', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button></div>
-	<div class="tabs"><button type="button" data-tab="cart" class="on"><?php esc_html_e( 'Cart', 'potteryhub' ); ?> <span class="ph-tabn"></span></button><button type="button" data-tab="wish"><?php esc_html_e( 'Wishlist', 'potteryhub' ); ?> <span id="tabWishN"></span></button></div>
 	<div class="pane" data-pane="cart"><?php echo ph_mini_cart(); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
-	<div class="pane" data-pane="wish" hidden><div class="dbody" id="wishBody" data-lenis-prevent></div></div>
 </aside>
 <?php endif; ?>
 
-<aside class="drawer left" id="menu" aria-hidden="true" data-lenis-prevent>
-	<div class="dh"><img src="<?php echo esc_url( ph_img( 'logo-dark.png' ) ); ?>" alt="" style="height:52px;width:auto"><button class="x" type="button" data-close aria-label="<?php esc_attr_e( 'Close', 'potteryhub' ); ?>"><?php echo ph_icon( 'close', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button></div>
-	<nav class="menu-l">
-		<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'potteryhub' ); ?></a>
+<aside class="drawer left mnav" id="menu" aria-hidden="true" data-lenis-prevent>
+	<div class="mn-top">
+		<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="mn-logo"><img src="<?php echo esc_url( ph_img( 'logo-dark.png' ) ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"></a>
+		<button class="x" type="button" data-close aria-label="<?php esc_attr_e( 'Close', 'potteryhub' ); ?>"><?php echo ph_icon( 'close', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+	</div>
+	<div class="mn-body" data-lenis-prevent>
+		<button class="mn-search" type="button" data-search><?php echo ph_icon( 'search', 18, 1.8 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php esc_html_e( 'Search mugs, bowls, teapots…', 'potteryhub' ); ?></span></button>
 		<?php if ( $ph_wc ) : ?>
-			<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Shop all', 'potteryhub' ); ?><small><?php echo esc_html( ph_pieces( (int) wp_count_posts( 'product' )->publish ) ); ?></small></a>
-			<?php foreach ( ph_categories( 6 ) as $ph_t ) : ?>
-				<a href="<?php echo esc_url( get_term_link( $ph_t ) ); ?>"><?php echo esc_html( $ph_t->name ); ?><small><?php echo (int) $ph_t->count; ?></small></a>
-			<?php endforeach; ?>
-			<button type="button" data-open="wish"><?php esc_html_e( 'Wishlist', 'potteryhub' ); ?></button>
-			<button type="button" data-open="cart"><?php esc_html_e( 'Cart', 'potteryhub' ); ?></button>
-			<a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>"><?php esc_html_e( 'My account', 'potteryhub' ); ?></a>
+			<div class="mn-h"><span><?php esc_html_e( 'Shop by category', 'potteryhub' ); ?></span><a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Shop all', 'potteryhub' ); ?> <?php echo ph_icon( 'arrow', 13, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a></div>
+			<div class="mn-cats">
+				<?php foreach ( ph_categories( 6 ) as $ph_t ) : ?>
+					<a class="mn-cat" href="<?php echo esc_url( get_term_link( $ph_t ) ); ?>">
+						<span class="mn-ci"><img src="<?php echo esc_url( ph_cat_img( $ph_t, 'woocommerce_thumbnail' ) ); ?>" alt="" loading="lazy"></span>
+						<b><?php echo esc_html( $ph_t->name ); ?></b><small><?php echo esc_html( ph_pieces( (int) $ph_t->count ) ); ?></small>
+					</a>
+				<?php endforeach; ?>
+			</div>
 		<?php endif; ?>
-		<?php foreach ( array( 'template-workshops.php' => __( 'Workshops', 'potteryhub' ), 'template-about.php' => __( 'About', 'potteryhub' ), 'template-contact.php' => __( 'Contact', 'potteryhub' ) ) as $ph_tpl => $ph_lbl ) : ?>
-			<?php if ( ph_template_url( $ph_tpl ) ) : ?><a href="<?php echo esc_url( ph_template_url( $ph_tpl ) ); ?>"><?php echo esc_html( $ph_lbl ); ?></a><?php endif; ?>
-		<?php endforeach; ?>
-		<?php if ( ph_journal_url() && wp_count_posts()->publish ) : ?><a href="<?php echo esc_url( ph_journal_url() ); ?>"><?php esc_html_e( 'Journal', 'potteryhub' ); ?></a><?php endif; ?>
-		<a href="<?php echo esc_url( ph_switch_url() ); ?>"><?php echo ph_is_ar() ? 'English' : 'العربية'; ?></a>
-	</nav>
+		<div class="mn-h"><span><?php esc_html_e( 'Explore', 'potteryhub' ); ?></span></div>
+		<nav class="mn-links">
+			<a href="<?php echo esc_url( home_url( '/' ) ); ?>"><i><?php echo ph_icon( 'home', 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></i><span><?php esc_html_e( 'Home', 'potteryhub' ); ?></span><?php echo ph_icon( 'arrow', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
+			<?php if ( $ph_wc ) : ?>
+				<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><i><?php echo ph_icon( 'grid', 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></i><span><?php esc_html_e( 'All products', 'potteryhub' ); ?></span><small><?php echo esc_html( (int) wp_count_posts( 'product' )->publish ); ?></small><?php echo ph_icon( 'arrow', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
+			<?php endif; ?>
+			<?php
+			$ph_pages = array(
+				array( ph_template_url( 'template-workshops.php' ), __( 'Workshops', 'potteryhub' ), 'clock' ),
+				array( ph_template_url( 'template-about.php' ), __( 'About us', 'potteryhub' ), 'info' ),
+				array( ph_template_url( 'template-contact.php' ), __( 'Contact', 'potteryhub' ), 'chat' ),
+				array( ph_journal_url() && wp_count_posts()->publish ? ph_journal_url() : '', __( 'Journal', 'potteryhub' ), 'book' ),
+			);
+			foreach ( $ph_pages as $ph_p ) :
+				if ( ! $ph_p[0] ) {
+					continue;
+				}
+				?>
+				<a href="<?php echo esc_url( $ph_p[0] ); ?>"><i><?php echo ph_icon( $ph_p[2], 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></i><span><?php echo esc_html( $ph_p[1] ); ?></span><?php echo ph_icon( 'arrow', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
+			<?php endforeach; ?>
+			<?php if ( $ph_wc ) : ?>
+				<a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>"><i><?php echo ph_icon( 'user', 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></i><span><?php echo is_user_logged_in() ? esc_html__( 'My account', 'potteryhub' ) : esc_html__( 'Sign in', 'potteryhub' ); ?></span><?php echo ph_icon( 'arrow', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
+			<?php endif; ?>
+		</nav>
+	</div>
+	<div class="mn-foot">
+		<?php if ( $ph_wc ) : ?>
+			<button class="mn-cart" type="button" data-open="cart"><?php echo ph_icon( 'bag', 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php esc_html_e( 'Your cart', 'potteryhub' ); ?></span><span class="ph-tabn"></span></button>
+		<?php endif; ?>
+		<div class="mn-row">
+			<a class="mn-lang" href="<?php echo esc_url( ph_switch_url() ); ?>" hreflang="<?php echo ph_is_ar() ? 'en' : 'ar'; ?>"><?php echo ph_is_ar() ? 'English' : 'العربية'; ?></a>
+			<?php if ( ph_whatsapp_url() ) : ?><a class="mn-wa" href="<?php echo esc_url( ph_whatsapp_url() ); ?>" target="_blank" rel="noopener"><?php echo ph_icon( 'chat', 16, 1.8 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> WhatsApp</a><?php endif; ?>
+			<div class="soc"><?php echo ph_socials(); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
+		</div>
+	</div>
 </aside>
 
 <div class="sov" id="sov" aria-hidden="true" data-lenis-prevent>

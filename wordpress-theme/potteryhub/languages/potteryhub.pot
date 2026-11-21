@@ -57,9 +57,6 @@ msgstr ""
 msgid "Add to cart"
 msgstr ""
 
-msgid "Save to wishlist"
-msgstr ""
-
 msgid "Shop"
 msgstr ""
 
@@ -99,12 +96,6 @@ msgstr ""
 msgid "All"
 msgstr ""
 
-msgid "House of Pottery"
-msgstr ""
-
-msgid "Handmade ceramics"
-msgstr ""
-
 msgid "All stories"
 msgstr ""
 
@@ -121,9 +112,6 @@ msgid "All products"
 msgstr ""
 
 msgid "Your cart"
-msgstr ""
-
-msgid "Wishlist"
 msgstr ""
 
 msgid "My account"
@@ -144,13 +132,19 @@ msgstr ""
 msgid "New glazes, restocks and workshop dates — first."
 msgstr ""
 
+msgid "Handmade in Egypt"
+msgstr ""
+
 msgid "Close"
 msgstr ""
 
-msgid "Cart"
+msgid "Search mugs, bowls, teapots…"
 msgstr ""
 
-msgid "Search mugs, bowls, teapots…"
+msgid "About us"
+msgstr ""
+
+msgid "Sign in"
 msgstr ""
 
 msgid "Popular:"
@@ -168,6 +162,114 @@ msgstr ""
 msgid "Our story"
 msgstr ""
 
+msgid "Handmade in Egypt, one piece at a time"
+msgstr ""
+
+msgid "Visit us"
+msgstr ""
+
+msgid "Handmade"
+msgstr ""
+
+msgid "Handmade pieces"
+msgstr ""
+
+msgid "Shaped & glazed by hand"
+msgstr ""
+
+msgid "Governorates we deliver to"
+msgstr ""
+
+msgid "Who we are"
+msgstr ""
+
+msgid "Where creativity meets craftsmanship"
+msgstr ""
+
+msgid "Pottery Hub started with a simple love for clay: the weight of a mug in your hands, the way a glaze catches the light, the table that feels warmer because of it."
+msgstr ""
+
+msgid "Every mug, bowl and plate is shaped by hand, so no two pieces are exactly alike — small variations in form and glaze are part of their charm, and part of what makes each one yours."
+msgstr ""
+
+msgid "From clay to your table"
+msgstr ""
+
+msgid "How a piece is made"
+msgstr ""
+
+msgid "Shaped"
+msgstr ""
+
+msgid "Each piece starts as a block of clay, thrown on the wheel or built by hand."
+msgstr ""
+
+msgid "Dried & trimmed"
+msgstr ""
+
+msgid "It dries slowly, then gets trimmed and smoothed until the form feels right."
+msgstr ""
+
+msgid "Glazed"
+msgstr ""
+
+msgid "Glazes are applied by hand — speckled, matte or glossy — so every finish is unique."
+msgstr ""
+
+msgid "Fired"
+msgstr ""
+
+msgid "The kiln melts the glaze into its final colour and makes the piece strong for daily use."
+msgstr ""
+
+msgid "Find your piece"
+msgstr ""
+
+msgid "Good to know"
+msgstr ""
+
+msgid "Questions, answered"
+msgstr ""
+
+msgid "Is everything really handmade?"
+msgstr ""
+
+msgid "Yes — every piece is shaped and glazed by hand. That’s why each one is a little different from the next."
+msgstr ""
+
+msgid "Do you deliver everywhere in Egypt?"
+msgstr ""
+
+msgid "Yes, to every governorate. The delivery fee shows at checkout as soon as you pick your governorate, and you pay cash on delivery."
+msgstr ""
+
+msgid "Can I order a custom piece?"
+msgstr ""
+
+msgid "Tell us what you have in mind on WhatsApp or by email, and we’ll let you know what’s possible."
+msgstr ""
+
+msgid "How do I care for my pottery?"
+msgstr ""
+
+msgid "Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing."
+msgstr ""
+
+msgid "Say hello"
+msgstr ""
+
+msgid "Come see the pieces in person"
+msgstr ""
+
+msgid "Address"
+msgstr ""
+
+msgid "Chat on WhatsApp"
+msgstr ""
+
+msgid "Send an email"
+msgstr ""
+
 msgid "Ask on WhatsApp"
 msgstr ""
 
@@ -177,10 +279,16 @@ msgstr ""
 msgid "Send your details and we’ll call you with the next dates."
 msgstr ""
 
+msgid "House of Pottery"
+msgstr ""
+
 msgid "Menu"
 msgstr ""
 
 msgid "Main"
+msgstr ""
+
+msgid "Cart"
 msgstr ""
 
 msgid "Every piece is handmade — small variations make it yours."
@@ -430,9 +538,6 @@ msgid "WhatsApp number (with country code, e.g. 201001234567)"
 msgstr ""
 
 msgid "Email (also receives the forms)"
-msgstr ""
-
-msgid "Address"
 msgstr ""
 
 msgid "Google Maps link (optional)"
@@ -768,9 +873,6 @@ msgstr ""
 msgid "Open"
 msgstr ""
 
-msgid "Handmade in Egypt"
-msgstr ""
-
 msgid "Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story."
 msgstr ""
 
@@ -829,9 +931,6 @@ msgid "Ask about the next class"
 msgstr ""
 
 msgid "Where creativity meets craftsmanship. We make handmade ceramics that bring warmth, character and artistic charm to everyday life — shaped and glazed in Egypt."
-msgstr ""
-
-msgid "Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing."
 msgstr ""
 
 msgid "We call you to confirm your order and delivery details."

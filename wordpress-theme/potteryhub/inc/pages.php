@@ -180,10 +180,42 @@ function ph_template_url( $template ) {
 				'fields'         => 'ids',
 			)
 		);
+		if ( ! $ids && isset( ph_template_slugs()[ $template ] ) ) {
+			foreach ( ph_template_slugs()[ $template ] as $slug ) {
+				$pg = get_page_by_path( $slug );
+				if ( $pg && 'publish' === $pg->post_status ) {
+					$ids = array( $pg->ID );
+					break;
+				}
+			}
+		}
 		$cache[ $template ] = $ids ? get_permalink( $ids[0] ) : '';
 	}
 	return $cache[ $template ];
 }
+
+/** Page slugs that get a template's design even when the template isn't picked in the editor. */
+function ph_template_slugs() {
+	return array(
+		'template-about.php' => array( 'about', 'about-us', 'about-me' ),
+	);
+}
+add_filter(
+	'template_include',
+	function ( $tpl ) {
+		if ( ! is_page() || get_page_template_slug() ) {
+			return $tpl;
+		}
+		$slug = get_post_field( 'post_name', get_queried_object_id() );
+		foreach ( ph_template_slugs() as $file => $slugs ) {
+			if ( in_array( $slug, $slugs, true ) ) {
+				$t = locate_template( $file );
+				return $t ? $t : $tpl;
+			}
+		}
+		return $tpl;
+	}
+);
 
 /** Big page header used by About / Workshops / Contact / Journal. */
 function ph_page_hero( $eyebrow, $title, $text = '', $img = '' ) {

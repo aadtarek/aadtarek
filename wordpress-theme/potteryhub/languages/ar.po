@@ -58,9 +58,6 @@ msgstr "اشترِ الآن"
 msgid "Add to cart"
 msgstr "أضف للحقيبة"
 
-msgid "Save to wishlist"
-msgstr "أضف للمفضلة"
-
 msgid "Shop"
 msgstr "المتجر"
 
@@ -100,12 +97,6 @@ msgstr "تسوّق الكل"
 msgid "All"
 msgstr "الكل"
 
-msgid "House of Pottery"
-msgstr "بيت الفخار"
-
-msgid "Handmade ceramics"
-msgstr "فخار مصنوع يدويًا"
-
 msgid "All stories"
 msgstr "كل المقالات"
 
@@ -123,9 +114,6 @@ msgstr "كل المنتجات"
 
 msgid "Your cart"
 msgstr "حقيبتك"
-
-msgid "Wishlist"
-msgstr "المفضلة"
 
 msgid "My account"
 msgstr "حسابي"
@@ -145,14 +133,20 @@ msgstr "خليك متابع"
 msgid "New glazes, restocks and workshop dates — first."
 msgstr "ألوان جديدة، ومنتجات عائدة، ومواعيد الورش — أول بأول."
 
+msgid "Handmade in Egypt"
+msgstr "صُنع يدويًا في مصر"
+
 msgid "Close"
 msgstr "إغلاق"
 
-msgid "Cart"
-msgstr "الحقيبة"
-
 msgid "Search mugs, bowls, teapots…"
 msgstr "ابحث عن مجات، بولات، براريد…"
+
+msgid "About us"
+msgstr "من نحن"
+
+msgid "Sign in"
+msgstr "تسجيل الدخول"
 
 msgid "Popular:"
 msgstr "الأكثر بحثًا:"
@@ -169,6 +163,114 @@ msgstr "روح المتجر"
 msgid "Our story"
 msgstr "حكايتنا"
 
+msgid "Handmade in Egypt, one piece at a time"
+msgstr "مصنوع يدويًا في مصر، قطعة قطعة"
+
+msgid "Visit us"
+msgstr "زورنا"
+
+msgid "Handmade"
+msgstr "يدوي"
+
+msgid "Handmade pieces"
+msgstr "قطعة يدوية"
+
+msgid "Shaped & glazed by hand"
+msgstr "مشكّلة ومزجّجة باليد"
+
+msgid "Governorates we deliver to"
+msgstr "محافظة بنوصل لها"
+
+msgid "Who we are"
+msgstr "إحنا مين"
+
+msgid "Where creativity meets craftsmanship"
+msgstr "حيث يلتقي الإبداع بالحِرفة"
+
+msgid "Pottery Hub started with a simple love for clay: the weight of a mug in your hands, the way a glaze catches the light, the table that feels warmer because of it."
+msgstr "بوتري هب بدأت من حب بسيط للطين: إحساس المج في إيدك، ولمعة الطلاء في النور، والسفرة اللي بتبقى أدفى بيه."
+
+msgid "Every mug, bowl and plate is shaped by hand, so no two pieces are exactly alike — small variations in form and glaze are part of their charm, and part of what makes each one yours."
+msgstr "كل مج وبول وطبق بيتشكّل باليد، فمفيش قطعتين شبه بعض بالظبط — والاختلافات الصغيرة في الشكل والطلاء جزء من جمالها، وجزء من اللي بيخلي كل قطعة ليك وحدك."
+
+msgid "From clay to your table"
+msgstr "من الطين لسفرتك"
+
+msgid "How a piece is made"
+msgstr "إزاي القطعة بتتعمل"
+
+msgid "Shaped"
+msgstr "التشكيل"
+
+msgid "Each piece starts as a block of clay, thrown on the wheel or built by hand."
+msgstr "كل قطعة بتبدأ كتلة طين، بتتشكّل على العجلة أو باليد."
+
+msgid "Dried & trimmed"
+msgstr "التجفيف والتشطيب"
+
+msgid "It dries slowly, then gets trimmed and smoothed until the form feels right."
+msgstr "بتنشف على مهلها، وبعدين بتتشطّب وتتنعّم لحد ما شكلها يبقى مظبوط."
+
+msgid "Glazed"
+msgstr "الطلاء"
+
+msgid "Glazes are applied by hand — speckled, matte or glossy — so every finish is unique."
+msgstr "الطلاء بيتحط باليد — منقّط أو مطفي أو لامع — فكل قطعة لها لمستها."
+
+msgid "Fired"
+msgstr "الحرق"
+
+msgid "The kiln melts the glaze into its final colour and makes the piece strong for daily use."
+msgstr "الفرن بيدوّب الطلاء للونه النهائي وبيخلي القطعة قوية للاستخدام اليومي."
+
+msgid "Find your piece"
+msgstr "لاقي قطعتك"
+
+msgid "Good to know"
+msgstr "معلومات تهمك"
+
+msgid "Questions, answered"
+msgstr "أسئلة وإجاباتها"
+
+msgid "Is everything really handmade?"
+msgstr "هل كل القطع فعلًا يدوية؟"
+
+msgid "Yes — every piece is shaped and glazed by hand. That’s why each one is a little different from the next."
+msgstr "أيوه — كل قطعة بتتشكّل وتتطلي باليد، وعشان كده كل واحدة مختلفة شوية عن التانية."
+
+msgid "Do you deliver everywhere in Egypt?"
+msgstr "بتوصلوا لكل مصر؟"
+
+msgid "Yes, to every governorate. The delivery fee shows at checkout as soon as you pick your governorate, and you pay cash on delivery."
+msgstr "أيوه، لكل المحافظات. مصاريف التوصيل بتظهر في صفحة الدفع أول ما تختار محافظتك، والدفع كاش عند الاستلام."
+
+msgid "Can I order a custom piece?"
+msgstr "ينفع أطلب قطعة مخصوص؟"
+
+msgid "Tell us what you have in mind on WhatsApp or by email, and we’ll let you know what’s possible."
+msgstr "قولنا فكرتك على واتساب أو بالإيميل، وهنقولك إيه اللي ينفع نعمله."
+
+msgid "How do I care for my pottery?"
+msgstr "إزاي أحافظ على قطعي؟"
+
+msgid "Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing."
+msgstr "اغسلها برفق بماء دافئ وإسفنجة ناعمة، وتجنّب التغيّر المفاجئ في الحرارة، وسيبها تبرد قبل الغسيل."
+
+msgid "Say hello"
+msgstr "كلمنا"
+
+msgid "Come see the pieces in person"
+msgstr "تعالى شوف القطع بنفسك"
+
+msgid "Address"
+msgstr "العنوان"
+
+msgid "Chat on WhatsApp"
+msgstr "كلمنا على واتساب"
+
+msgid "Send an email"
+msgstr "ابعت إيميل"
+
 msgid "Ask on WhatsApp"
 msgstr "اسأل على واتساب"
 
@@ -178,11 +280,17 @@ msgstr "احجز مكانك"
 msgid "Send your details and we’ll call you with the next dates."
 msgstr "ابعت بياناتك وهنكلمك بمواعيد الورش الجاية."
 
+msgid "House of Pottery"
+msgstr "بيت الفخار"
+
 msgid "Menu"
 msgstr "القائمة"
 
 msgid "Main"
 msgstr "الرئيسية"
+
+msgid "Cart"
+msgstr "الحقيبة"
 
 msgid "Every piece is handmade — small variations make it yours."
 msgstr "كل قطعة مصنوعة يدويًا — والاختلافات الصغيرة بتخليها ليك وحدك."
@@ -472,9 +580,6 @@ msgstr "التاريخ"
 msgid "Workshop"
 msgstr "ورشة"
 
-msgid "Handmade in Egypt"
-msgstr "صُنع يدويًا في مصر"
-
 msgid "Ceramics shaped, glazed and fired by hand — pieces with warmth, character and a story."
 msgstr "سيراميك مشكَّل ومزجَّج ومحروق باليد — قطع فيها دفء وطابع وحكاية."
 
@@ -534,9 +639,6 @@ msgstr "اسأل عن الورشة القادمة"
 
 msgid "Where creativity meets craftsmanship. We make handmade ceramics that bring warmth, character and artistic charm to everyday life — shaped and glazed in Egypt."
 msgstr "حيث يلتقي الإبداع بالحِرفة. نصنع قطع سيراميك يدوية تضيف الدفء والطابع والجمال لحياتك اليومية — مشكّلة ومزجّجة في مصر."
-
-msgid "Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing."
-msgstr "اغسلها برفق بماء دافئ وإسفنجة ناعمة، وتجنّب التغيّر المفاجئ في الحرارة، وسيبها تبرد قبل الغسيل."
 
 msgid "We call you to confirm your order and delivery details."
 msgstr "هنتصل بيك لتأكيد الطلب وتفاصيل التوصيل."

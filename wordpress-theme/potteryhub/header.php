@@ -16,8 +16,19 @@ $ph_wc = class_exists( 'WooCommerce' );
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<div id="cur"><span></span></div>
-
+<?php if ( is_front_page() ) : ?>
+<div id="pre" aria-hidden="true">
+	<svg class="spark" style="left:14%;top:22%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
+	<svg class="spark" style="right:18%;top:30%;animation-delay:-.8s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
+	<svg class="spark" style="left:26%;bottom:24%;animation-delay:-1.6s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
+	<div class="pre-in">
+		<div class="pre-logo"><img class="g" src="<?php echo esc_url( ph_img( 'emblem-light.png' ) ); ?>" alt=""><img class="f" id="preF" src="<?php echo esc_url( ph_img( 'emblem-light.png' ) ); ?>" alt=""></div>
+		<div class="pre-word" id="preWord"></div>
+		<div class="pre-sub"><?php esc_html_e( 'House of Pottery', 'potteryhub' ); ?></div>
+		<div class="pre-bar"><i id="preBar"></i></div>
+	</div>
+</div>
+<?php endif; ?>
 <div id="prog"></div>
 
 <header class="nav pre" id="nav">
@@ -29,7 +40,6 @@ $ph_wc = class_exists( 'WooCommerce' );
 	<div class="r">
 		<a class="lang ul" href="<?php echo esc_url( ph_switch_url() ); ?>" hreflang="<?php echo ph_is_ar() ? 'en' : 'ar'; ?>"><?php echo ph_is_ar() ? 'EN' : 'عربي'; ?></a>
 		<button class="ibtn" id="openSearch" type="button" aria-label="<?php esc_attr_e( 'Search', 'potteryhub' ); ?>"><?php echo ph_icon( 'search', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
-		<button class="ibtn hide-m" id="openWish" type="button" aria-label="<?php esc_attr_e( 'Wishlist', 'potteryhub' ); ?>"><?php echo ph_icon( 'heart', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><i class="cnt" id="wishN">0</i></button>
 		<?php if ( $ph_wc ) : ?>
 		<button class="ibtn" id="openCart" type="button" aria-label="<?php esc_attr_e( 'Cart', 'potteryhub' ); ?>"><?php echo ph_icon( 'bag', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo ph_cart_count(); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 		<?php endif; ?>

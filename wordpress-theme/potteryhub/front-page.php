@@ -52,7 +52,6 @@ foreach ( $ph_feat as $p ) {
 		'url'   => $p->get_permalink(),
 		'buy'   => ph_buy_url( $p ),
 		'add'   => ph_quick_addable( $p ) ? 1 : 0,
-		'wish'  => json_decode( ph_wish_data( $p ), true ),
 	);
 }
 
@@ -86,8 +85,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 				<span class="pl"><?php esc_html_e( 'Featured piece', 'potteryhub' ); ?></span>
 				<div class="swap"><div class="ct" id="bFc"><?php echo esc_html( $ph_f0['cat'] ); ?></div><h3 id="bFn"><?php echo esc_html( $ph_f0['name'] ); ?></h3><div class="pr" id="bFp"><?php echo $ph_f0['price']; // phpcs:ignore WordPress.Security.EscapeOutput ?></div></div>
 				<div class="fb"><a class="btn" id="bFbuy" href="<?php echo esc_url( $ph_f0['buy'] ); ?>" rel="nofollow"><?php esc_html_e( 'Buy now', 'potteryhub' ); ?></a>
-					<button class="rb" id="bFadd" type="button" aria-label="<?php esc_attr_e( 'Add to cart', 'potteryhub' ); ?>"><?php echo ph_icon( 'bag', 17, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
-					<button class="rb heart-b" id="bFwish" type="button" aria-label="<?php esc_attr_e( 'Save to wishlist', 'potteryhub' ); ?>"><?php echo ph_icon( 'heart', 17, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button></div>
+					<button class="rb" id="bFadd" type="button" aria-label="<?php esc_attr_e( 'Add to cart', 'potteryhub' ); ?>"><?php echo ph_icon( 'bag', 17, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button></div>
 			</div>
 			<div class="fi"><img id="bFi" src="<?php echo esc_url( $ph_f0['img'] ); ?>" alt=""></div>
 		</div>
@@ -146,7 +144,6 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 	<?php endforeach; ?>
 </main>
 
-<div class="marq" id="marq" aria-hidden="true" data-words="<?php echo esc_attr( wp_json_encode( array( __( 'House of Pottery', 'potteryhub' ), __( 'Handmade ceramics', 'potteryhub' ) ) ) ); ?>"><div class="tr" id="marqT"></div></div>
 
 <section class="sec">
 	<div class="promos">

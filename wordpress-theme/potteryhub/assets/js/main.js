@@ -61,8 +61,9 @@ const drawer = $('#drawer'), menu = $('#menu'), sov = $('#sov');
 function openDrawer(tab) {
   if (!drawer) return;
   $$('.tabs button', drawer).forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+  if (!$('[data-pane="' + tab + '"]', drawer)) tab = 'cart';
   $$('.pane', drawer).forEach(p => { p.hidden = p.dataset.pane !== tab; });
-  $('#drTitle').textContent = $('.tabs button.on', drawer).firstChild.textContent.trim();
+  const tb = $('.tabs button.on', drawer); if (tb) $('#drTitle').textContent = tb.firstChild.textContent.trim();
   if (tab === 'wish') renderWish();
   if (!drawer.classList.contains('on')) show(drawer);
 }
@@ -72,6 +73,7 @@ $('#openWish') && ($('#openWish').onclick = () => openDrawer('wish'));
 document.addEventListener('click', e => { const o = e.target.closest('[data-open]'); if (o) { e.preventDefault(); openDrawer(o.dataset.open); } });
 [$('#openMenu'), $('#openMenuM')].forEach(b => b && (b.onclick = () => show(menu)));
 $('#openSearch') && ($('#openSearch').onclick = () => { show(sov); setTimeout(() => $('#sovQ').focus(), 300); });
+document.addEventListener('click', e => { if (e.target.closest('[data-search]')) { show(sov); setTimeout(() => $('#sovQ').focus(), 300); } });
 
 /* ---------- cart (WooCommerce AJAX) ---------- */
 const ep = name => (C.ajax || '').replace('%%endpoint%%', name);
@@ -104,6 +106,7 @@ function bumpBag(n) {
   c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
 }
 let cartQueue = Promise.resolve();
+let dropPages = () => {}, instantGo = null; // set by the instant-pages code below
 /* Show the piece in the cart drawer straight away; the real line replaces it a moment later. */
 function pendingLine(src, name, qty) {
   const mini = $('.ph-mini'); if (!mini) return;
@@ -124,7 +127,7 @@ function addToCart(id, qty, src, name, btn) {
   const job = cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty })).then(r => {
     if (r && r.error && r.product_url) { bumpBag(0 - qty); location.href = r.product_url; return; }
     if (!r || !r.fragments) throw 0;
-    applyFragments(r.fragments, true);
+    applyFragments(r.fragments, true); dropPages();
     if (window.jQuery) jQuery(document.body).trigger('added_to_cart', [r.fragments, r.cart_hash]);
     return r;
   }).catch(() => { bumpBag(0 - qty); toast(T('error')); });
@@ -136,7 +139,8 @@ function buyNow(id, qty) {
   bumpBag(qty || 1);
   return cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty || 1 })).then(r => {
     if (r && r.error && r.product_url) { location.href = r.product_url; return; }
-    location.href = C.checkout;
+    dropPages();
+    if (instantGo) instantGo(C.checkout); else location.href = C.checkout;
   }).catch(() => { location.href = C.checkout; });
 }
 document.addEventListener('click', e => {
@@ -165,7 +169,7 @@ document.addEventListener('click', e => {
   if (!q) { line.style.height = line.offsetHeight + 'px'; requestAnimationFrame(() => line.classList.add('gone')); }
   clearTimeout(lineQ[key]);
   lineQ[key] = setTimeout(() => {
-    cartQueue = cartQueue.then(() => post('ph_qty', { key, qty: q })).then(r => applyFragments(r.fragments, true)).catch(() => { toast(T('error')); post('get_refreshed_fragments', {}).then(r => applyFragments(r.fragments, true)); });
+    cartQueue = cartQueue.then(() => post('ph_qty', { key, qty: q })).then(r => { applyFragments(r.fragments, true); dropPages(); }).catch(() => { toast(T('error')); post('get_refreshed_fragments', {}).then(r => applyFragments(r.fragments, true)); });
   }, q ? 300 : 0);
 });
 
@@ -212,7 +216,7 @@ document.addEventListener('click', e => {
 });
 syncHearts();
 /* refresh saved pieces (current language & prices) and merge with the account */
-if (C.ajax && (wish.length || C.user)) post('ph_wish', { ids: wish.map(w => w.id).join(','), nonce: C.wnonce || '' }).then(r => {
+if (C.ajax && $('#openWish') && (wish.length || C.user)) post('ph_wish', { ids: wish.map(w => w.id).join(','), nonce: C.wnonce || '' }).then(r => {
   if (!Array.isArray(r)) return;
   wish = r; saveWish(true); syncHearts();
   if (drawer && !$('[data-pane="wish"]', drawer).hidden) renderWish();
@@ -367,7 +371,7 @@ function initHome() {
     const f = feat[fi]; if (!f) return;
     $('#bFc').textContent = f.cat; $('#bFn').textContent = f.name; $('#bFp').innerHTML = f.price; $('#bFi').src = f.img;
     $('#bFurl').href = f.url; $('#bFurl').setAttribute('aria-label', f.name); $('#bFbuy').href = f.buy;
-    $('#bFadd').hidden = !f.add; $('#bFwish').dataset.wish = JSON.stringify(f.wish); syncHearts();
+    $('#bFadd').hidden = !f.add;
   }
   if (bf && feat.length) {
     setFeat();
@@ -509,71 +513,80 @@ document.addEventListener('click', e => { $$('details.sort[open]').forEach(d => 
 
 /* cart page: rows disappear instantly when removed */
 document.addEventListener('click', e => { const r = e.target.closest('.woocommerce-cart-form .product-remove > a'); if (r) { const row = r.closest('.cart_item'); if (row) row.classList.add('gone'); } });
-/* cart page: update totals as soon as a quantity changes (no "Update cart" click) */
-(() => {
-  if (!$('form.woocommerce-cart-form')) return;
-  let t;
-  document.body.addEventListener('change', e => {
-    if (!e.target.matches('.woocommerce-cart-form input.qty')) return;
-    clearTimeout(t); t = setTimeout(() => { const b = $('.woocommerce-cart-form [name="update_cart"]'); if (b) { b.disabled = false; b.click(); } }, 350);
-  });
-})();
+/* cart page: totals update as soon as a quantity changes (no "Update cart" click) */
+let cartT;
+document.addEventListener('change', e => {
+  if (!e.target.matches || !e.target.matches('.woocommerce-cart-form input.qty')) return;
+  clearTimeout(cartT); cartT = setTimeout(() => { const b = $('.woocommerce-cart-form [name="update_cart"]'); if (b) { b.disabled = false; b.click(); } }, 350);
+});
 
-/* checkout: delivery price and total change the moment a governorate is picked */
-(() => {
-  const sel = $('#billing_state'); if (!sel || !C.ship) return;
+/* ---------- checkout: the theme's own script (works when the page opens without a reload) ---------- */
+const coForm = () => $('form.checkout.ph-co');
+const money = v => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function coInstant(sel) {
+  const f = coForm(); if (!f || !sel.value) return;
+  let ship = null; try { ship = JSON.parse(f.dataset.ship || 'null'); } catch (e) {}
+  if (!ship) return;
+  const cost = sel.value in ship.s ? ship.s[sel.value] : ship.def; if (cost == null) return;
   const num = el => el ? parseFloat(el.textContent.replace(/[^\d.]/g, '')) || 0 : 0;
-  const setNum = (el, v) => { if (!el) return; const b = el.querySelector('bdi') || el; const t = b.textContent; b.lastChild && (b.innerHTML = b.innerHTML.replace(/[\d,]+(\.\d+)?/, v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))); };
-  const apply = () => {
-    const v = sel.value; if (!v) return;
-    const cost = v in C.ship.s ? C.ship.s[v] : C.ship.def; if (cost == null) return;
-    const shipEl = $('.co-totals .woocommerce-shipping-totals td .amount'), totEl = $('.co-totals .order-total td .amount');
-    if (!shipEl || !totEl) return;
-    const total = num(totEl) - num(shipEl) + cost;
-    setNum(shipEl, cost); setNum(totEl, total);
-    const btn = $('#place_order'); if (btn) btn.innerHTML = btn.innerHTML.replace(/[\d,]+\.\d{2}/, total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  };
-  sel.addEventListener('change', apply);
-  if (window.jQuery) jQuery(sel).on('change', apply);
-})();
+  const setNum = (el, v) => { if (!el) return; const b = el.querySelector('bdi') || el; b.innerHTML = b.innerHTML.replace(/[\d,]+(\.\d+)?/, money(v)); };
+  const shipEl = $('.co-totals .woocommerce-shipping-totals td .amount'), totEl = $('.co-totals .order-total td .amount');
+  if (!shipEl || !totEl) return;
+  const total = num(totEl) - num(shipEl) + cost;
+  setNum(shipEl, cost); setNum(totEl, total);
+  const btn = $('#place_order'); if (btn) btn.innerHTML = btn.innerHTML.replace(/[\d,]+\.\d{2}/, money(total));
+}
+let coReq = 0, coT;
+function coRefresh() { // totals confirmed by the store
+  const f = coForm(); if (!f || !C.ajax || !f.dataset.uor) return;
+  const id = ++coReq, el = f.elements, v = n => (el[n] && el[n].value) || '';
+  const pm = f.querySelector('[name="payment_method"]:checked');
+  const body = new URLSearchParams({ security: f.dataset.uor, payment_method: pm ? pm.value : '', country: v('billing_country') || 'EG', state: v('billing_state'), postcode: '', city: '', address: v('billing_address_1'), address_2: '', s_country: v('billing_country') || 'EG', s_state: v('billing_state'), s_postcode: '', s_city: '', s_address: v('billing_address_1'), s_address_2: '', has_full_address: 'true', post_data: new URLSearchParams(new FormData(f)).toString() });
+  fetch(ep('update_order_review'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body }).then(r => r.json()).then(d => {
+    if (id !== coReq || !d) return;
+    if (d.reload) { location.reload(); return; }
+    if (d.fragments) Object.keys(d.fragments).forEach(k => $$(k).forEach(x => { x.outerHTML = d.fragments[k]; }));
+    if (C.ar) flipArrows($('.ph-co-side'));
+  }).catch(() => {});
+}
+document.addEventListener('change', e => {
+  if (!e.target.matches || !e.target.matches('form.ph-co #billing_state, form.ph-co [name="payment_method"]')) return;
+  if (e.target.id === 'billing_state') coInstant(e.target);
+  clearTimeout(coT); coT = setTimeout(coRefresh, 120);
+});
+async function coCoupon(code, remove) {
+  const f = coForm(); if (!f) return;
+  const r = await fetch(ep(remove ? 'remove_coupon' : 'apply_coupon'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(remove ? { security: f.dataset.rcoupon, coupon: code } : { security: f.dataset.coupon, coupon_code: code }) });
+  const box = document.createElement('div'); box.innerHTML = await r.text();
+  const msg = box.textContent.trim(); if (msg) toast(msg);
+  coRefresh();
+  return !box.querySelector('.woocommerce-error,[role="alert"].is-error,.wc-block-components-notice-banner.is-error');
+}
+document.addEventListener('click', e => {
+  const ap = e.target.closest('#phCouponApply'), rm = e.target.closest('form.ph-co .woocommerce-remove-coupon');
+  if (ap) {
+    e.preventDefault(); const inp = $('#phCoupon'); const code = inp && inp.value.trim(); if (!code) { inp && inp.focus(); return; }
+    ap.classList.add('loading'); coCoupon(code).then(ok => { if (ok) inp.value = ''; }).catch(() => toast(T('error'))).finally(() => ap.classList.remove('loading'));
+  }
+  if (rm) { e.preventDefault(); coCoupon(rm.dataset.coupon, true).catch(() => toast(T('error'))); }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'phCoupon') { e.preventDefault(); const b = $('#phCouponApply'); if (b) b.click(); } });
 
-/* ---------- checkout: coupon inside the order summary ---------- */
-(() => {
-  const btn = $('#phCouponApply'), inp = $('#phCoupon');
-  if (!btn || !inp || !window.jQuery || !window.wc_checkout_params) return;
-  const apply = async () => {
-    const code = inp.value.trim(); if (!code) { inp.focus(); return; }
-    btn.classList.add('loading');
-    try {
-      const r = await fetch(wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'apply_coupon'), { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ security: wc_checkout_params.apply_coupon_nonce, coupon_code: code }) });
-      const html = await r.text();
-      const box = document.createElement('div'); box.innerHTML = html;
-      const msg = box.textContent.trim();
-      const ok = !box.querySelector('.woocommerce-error,[role="alert"].is-error,.wc-block-components-notice-banner.is-error');
-      if (msg) toast(msg);
-      if (ok) { inp.value = ''; jQuery(document.body).trigger('applied_coupon_in_checkout', [code]); jQuery(document.body).trigger('update_checkout', { update_shipping_method: false }); }
-    } catch (e) { toast(T('error')); }
-    btn.classList.remove('loading');
-  };
-  btn.addEventListener('click', apply);
-  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
-})();
-
-/* ---------- instant pages: links open without a page reload ----------
-   The page is fetched while the pointer rests on (or a finger touches) a link,
-   so the click swaps the content at once. Cart, checkout and account pages,
-   language switches and anything outside the site still load normally. */
+/* ---------- instant pages: every link, button and form opens without a page reload ----------
+   Pages are fetched while a link is on screen, under the pointer or under a finger, so a tap
+   swaps the content at once. Forms (cart, checkout, account) are sent in the background and the
+   answer is shown in place. Only another language or another site loads normally. */
 (() => {
   if (!$('#ph-main') || !window.fetch || !window.DOMParser || !history.pushState) return;
-  const base = C.base || '/', full = C.full || [];
+  const base = C.base || '/', dynP = C.dyn || [];
   const strip = p => p.indexOf(base + 'ar/') === 0 ? base + p.slice(base.length + 3) : (p === base + 'ar' ? base : p);
   const isAr = p => p.indexOf(base + 'ar/') === 0 || p === base + 'ar';
-  const skip = /[?&](add-to-cart|ph_buy_now|wc-ajax|customer-logout|preview|ph_sub|ph_sent)=|\/wp-(admin|login|json|content|includes)|\.(php|xml|pdf|jpe?g|png|gif|webp|avif|svg|zip|txt)$|\/feed\/?$/i;
+  const skip = /[?&](add-to-cart|ph_buy_now|wc-ajax|customer-logout|preview|ph_sub|ph_sent|download_file)=|\/wp-(admin|login|json|content|includes)|\.(php|xml|pdf|jpe?g|png|gif|webp|avif|svg|zip|txt)$|\/feed\/?$/i;
+  const unsafe = /[?&](remove_item|undo_item|remove_coupon|_wpnonce|order_again|cancel_order|action)=/i; // never fetched ahead of a tap
+  const isDyn = u => { const p = strip(u.pathname); return dynP.some(f => p.indexOf(f) === 0); };
   function allowed(u) {
     if (u.origin !== location.origin || skip.test(u.pathname + u.search)) return false;
-    if (!!isAr(u.pathname) !== !!C.ar) return false; // other language: full load (texts & direction change)
-    const p = strip(u.pathname);
-    return !full.some(f => p.indexOf(f) === 0);
+    return !!isAr(u.pathname) === !!C.ar; // other language: full load (texts & direction change)
   }
   function linkUrl(a) {
     if (!a || a.target && a.target !== '_self' || a.hasAttribute('download') || a.hasAttribute('data-no-instant') || /\bexternal\b/.test(a.rel) || a.closest('#wpadminbar')) return null;
@@ -583,32 +596,51 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     return u;
   }
 
-  /* fetched pages, kept briefly so hovering then clicking is instant */
+  /* fetched pages, kept briefly so a tap shows them at once */
   const cache = new Map();
+  dropPages = () => { for (const [k] of cache) if (isDyn(new URL(k))) cache.delete(k); };
   function get(url, maxAge) {
-    const k = url.split('#')[0], c = cache.get(k);
-    if (c && Date.now() - c.t < (maxAge || 60000)) return c.p;
+    const k = url.split('#')[0], c = cache.get(k), u = new URL(k);
+    const age = isDyn(u) ? Math.min(maxAge || 8000, 8000) : (maxAge || 60000);
+    if (c && Date.now() - c.t < age) return c.p;
     const p = fetch(k, { credentials: 'same-origin', headers: { 'X-PH-Instant': '1' } }).then(r => {
       if (r.status >= 500 || !/text\/html/.test(r.headers.get('content-type') || '')) throw new Error('skip');
       return r.text().then(html => ({ url: r.url || k, html }));
     });
     p.catch(() => cache.delete(k));
-    cache.set(k, { t: Date.now(), p });
-    if (cache.size > 40) cache.delete(cache.keys().next().value);
+    if (!unsafe.test(u.search)) { cache.set(k, { t: Date.now(), p }); if (cache.size > 60) cache.delete(cache.keys().next().value); }
     return p;
   }
+  const warmU = u => { if (u && !unsafe.test(u.search)) get(u.href).catch(() => {}); };
+  const warm = a => warmU(linkUrl(a));
   let hov = null;
-  const warm = a => { const u = linkUrl(a); if (u) get(u.href).catch(() => {}); };
   document.addEventListener('pointerover', e => {
     const a = e.target.closest && e.target.closest('a[href]'); if (!a) return;
-    clearTimeout(hov); hov = setTimeout(() => warm(a), e.pointerType === 'mouse' ? 60 : 0);
+    clearTimeout(hov); hov = setTimeout(() => warm(a), e.pointerType === 'mouse' ? 50 : 0);
   }, { passive: true });
   document.addEventListener('pointerout', () => clearTimeout(hov), { passive: true });
   document.addEventListener('touchstart', e => warm(e.target.closest && e.target.closest('a[href]')), { passive: true });
   document.addEventListener('focusin', e => warm(e.target.closest && e.target.closest('a[href]')));
   document.addEventListener('pointerdown', e => warm(e.target.closest && e.target.closest('a[href]')), { passive: true });
+  /* links on screen are fetched quietly in the background (a few at a time), so taps feel instant on phones too */
+  const conn = navigator.connection || {}, slow = conn.saveData || /(^|-)2g/.test(conn.effectiveType || '');
+  let queue = [], busy = 0, budget = 0;
+  const pump = () => {
+    while (busy < 2 && queue.length && budget > 0) {
+      const u = queue.shift(); if (cache.has(u.href.split('#')[0])) continue;
+      busy++; budget--; get(u.href).catch(() => {}).finally(() => { busy--; setTimeout(pump, 60); });
+    }
+  };
+  const vio = 'IntersectionObserver' in window && !slow ? new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return; vio.unobserve(e.target);
+    const u = linkUrl(e.target); if (u && !isDyn(u) && !unsafe.test(u.search)) { queue.push(u); (window.requestIdleCallback || (f => setTimeout(f, 300)))(pump); }
+  }), { rootMargin: '120px' }) : null;
+  function watchLinks() {
+    if (!vio) return; vio.disconnect(); budget = 14; queue = [];
+    $$('#ph-main a[href], #nav a[href]').forEach(a => vio.observe(a));
+  }
 
-  /* stylesheets / scripts the new page needs that this one has not loaded yet */
+  /* stylesheets the new page needs that this one has not loaded yet */
   const key = u => (u || '').split('?')[0];
   function addStyles(doc) {
     const have = new Set($$('link[rel="stylesheet"]').map(l => key(l.href))), waits = [];
@@ -635,21 +667,39 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     $$(sel, document.head).forEach(n => n.remove());
     doc.head.querySelectorAll(sel).forEach(n => document.head.appendChild(n.cloneNode(true)));
   }
+  const refreshBag = () => { if (C.ajax) post('get_refreshed_fragments', {}).then(r => applyFragments(r && r.fragments, true)).catch(() => {}); };
 
   let navId = 0;
-  async function go(url, push, y) {
+  /* opts: { push, y, post: FormData } */
+  async function go(url, opts) {
+    opts = opts || {};
     const id = ++navId, to = new URL(url, location.href);
     closeAll();
-    let d; try { d = await get(to.href, push ? 60000 : 600000); } catch (e) { location.href = to.href; return; }
+    let d;
+    try {
+      if (opts.post) {
+        const r = await fetch(to.href, { method: 'POST', body: opts.post, credentials: 'same-origin', headers: { 'X-PH-Instant': '1' } });
+        if (r.status >= 500 || !/text\/html/.test(r.headers.get('content-type') || '')) throw new Error('skip');
+        d = { url: r.url || to.href, html: await r.text() };
+        dropPages();
+      } else d = await get(to.href, opts.push ? 60000 : 600000);
+    } catch (e) { if (opts.post) { opts.fallback && opts.fallback(); return; } location.href = to.href; return; }
     if (id !== navId) return;
-    const fin = new URL(d.url, location.href); fin.hash = to.hash;
+    const fin = new URL(d.url, location.href); if (!opts.post || fin.href.split('#')[0] !== to.href.split('#')[0]) fin.hash = to.hash;
     if (!allowed(fin)) { location.href = fin.href; return; }
     const doc = new DOMParser().parseFromString(d.html, 'text/html'), nm = doc.getElementById('ph-main');
-    if (!nm || doc.documentElement.lang !== document.documentElement.lang || !sameScripts(doc)) { location.href = fin.href; return; }
+    if (!nm || doc.documentElement.lang !== document.documentElement.lang || !sameScripts(doc)) {
+      if (opts.post) { opts.fallback && opts.fallback(); return; }
+      location.href = fin.href; return;
+    }
     await addStyles(doc);
     if (id !== navId) return;
-    const from = location.href;
-    if (push) { history.replaceState(Object.assign({}, history.state, { ph: 1, y: scrollY }), ''); history.pushState({ ph: 1, y: 0 }, '', fin.href); }
+    const from = location.href, samePage = fin.href.split('#')[0] === from.split('#')[0];
+    if (opts.push || opts.post) {
+      history.replaceState(Object.assign({}, history.state, { ph: 1, y: scrollY }), '');
+      if (samePage) history.replaceState({ ph: 1, y: 0 }, '', fin.href); else history.pushState({ ph: 1, y: 0 }, '', fin.href);
+    }
+    const keepY = samePage ? scrollY : null;
     const swap = () => {
       teardown();
       const cur = $('#ph-main');
@@ -660,17 +710,21 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
       swapHead(doc);
       const nc = doc.querySelector('#nav nav.c'), oc = $('#nav nav.c'); if (nc && oc) oc.innerHTML = nc.innerHTML;
       const nl = doc.querySelector('#nav .lang'), ol = $('#nav .lang'); if (nl && ol) ol.href = nl.getAttribute('href');
-      const nmn = doc.querySelector('#menu .menu-l'), omn = $('#menu .menu-l'); if (nmn && omn) omn.innerHTML = nmn.innerHTML;
+      const nmn = doc.querySelector('#menu .mn-body'), omn = $('#menu .mn-body'); if (nmn && omn) omn.innerHTML = nmn.innerHTML;
+      const nml = doc.querySelector('#menu .mn-lang'), oml = $('#menu .mn-lang'); if (nml && oml) oml.href = nml.getAttribute('href');
       const nab = doc.getElementById('wpadminbar'), oab = $('#wpadminbar'); if (nab && oab) oab.replaceWith(document.adoptNode(nab));
+      const err = $('#ph-main .woocommerce-error, #ph-main .woocommerce-NoticeGroup-checkout, #ph-main .wc-block-components-notice-banner.is-error');
       const tgt = fin.hash.length > 1 && document.getElementById(decodeURIComponent(fin.hash.slice(1)));
-      const top = tgt ? tgt.getBoundingClientRect().top + scrollY - 90 : (y || 0);
+      const top = err ? Math.max(0, err.getBoundingClientRect().top + scrollY - 120) : tgt ? tgt.getBoundingClientRect().top + scrollY - 90 : keepY != null ? keepY : (opts.y || 0);
       if (lenis) { lenis.resize && lenis.resize(); lenis.scrollTo(top, { immediate: true, force: true }); } else scrollTo(0, top);
       initPage($('#ph-main'));
       nav.classList.remove('pre');
       if (hero && hero.startIntro) hero.startIntro();
     };
-    if (document.startViewTransition && !reduce) await document.startViewTransition(swap).updateCallbackDone.catch(() => {}); else swap();
-    get(from, 600000).catch(() => {}); // keep the page we left, so Back is instant too
+    if (document.startViewTransition && !reduce && !opts.post) await document.startViewTransition(swap).updateCallbackDone.catch(() => {}); else swap();
+    if (!isDyn(new URL(from))) get(from, 600000).catch(() => {}); // keep the page we left, so Back is instant too
+    watchLinks();
+    if (opts.post || /order-received/.test(fin.pathname)) refreshBag();
     if (window.jQuery) {
       const jq = window.jQuery, main = $('#ph-main');
       if (jq.fn.wc_variation_form) jq('.variations_form', main).each(function () { jq(this).wc_variation_form(); });
@@ -680,32 +734,49 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     document.dispatchEvent(new CustomEvent('ph:page', { detail: { url: location.href } }));
     try { if (window.fbq) fbq('track', 'PageView'); if (window.gtag) gtag('event', 'page_view', { page_location: location.href, page_title: document.title }); } catch (e) {}
   }
+  instantGo = (url, push) => go(url, { push: push !== false });
 
   history.scrollRestoration = 'manual';
   history.replaceState(Object.assign({}, history.state, { ph: 1 }), '');
   // the page we start on: kept so coming Back to it is instant
-  (window.requestIdleCallback || (f => setTimeout(f, 2000)))(() => get(location.href, 600000).catch(() => {}));
+  (window.requestIdleCallback || (f => setTimeout(f, 2000)))(() => { if (!isDyn(new URL(location.href))) get(location.href, 600000).catch(() => {}); watchLinks(); });
   addEventListener('popstate', e => {
     const u = new URL(location.href);
     if (!e.state || !e.state.ph || !allowed(u)) { location.reload(); return; }
-    go(u.href, false, e.state.y || 0);
+    go(u.href, { y: e.state.y || 0 });
   });
   document.addEventListener('click', e => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const a = e.target.closest && e.target.closest('a[href]'), u = linkUrl(a); if (!u) return;
     e.preventDefault();
-    if (u.href === location.href) { closeAll(); return; }
-    go(u.href, true);
+    if (u.href === location.href && !unsafe.test(u.search)) { closeAll(); return; }
+    go(u.href, { push: true });
   });
-  /* search and filter forms (GET) open the same way */
+  /* forms: search & filters (GET) open the same way; cart, checkout, login & account forms (POST) are sent in the background */
   document.addEventListener('submit', e => {
     const f = e.target;
-    if (e.defaultPrevented || (f.getAttribute('method') || 'get').toLowerCase() !== 'get' || f.closest('.woocommerce-cart-form,.checkout')) return;
+    if (e.defaultPrevented || f.hasAttribute('data-no-instant') || (f.getAttribute('target') || '_self') !== '_self') return;
+    const method = (f.getAttribute('method') || 'get').toLowerCase();
     let u; try { u = new URL(f.getAttribute('action') || location.href, location.href); } catch (x) { return; }
-    const q = new URLSearchParams(); new FormData(f).forEach((v, k) => { if (typeof v === 'string') q.append(k, v); });
-    u.search = q.toString();
-    if (!allowed(u)) return;
-    e.preventDefault(); go(u.href, true);
+    if (method === 'get') {
+      const q = new URLSearchParams(); new FormData(f).forEach((v, k) => { if (typeof v === 'string') q.append(k, v); });
+      u.search = q.toString();
+      if (!allowed(u)) return;
+      e.preventDefault(); go(u.href, { push: true });
+      return;
+    }
+    if (method !== 'post' || !allowed(u) || f.dataset.busy) { if (f.dataset.busy) e.preventDefault(); return; }
+    e.preventDefault();
+    const fd = new FormData(f), s = e.submitter;
+    if (s && s.name && !fd.has(s.name)) fd.append(s.name, s.value || '');
+    f.dataset.busy = 1; f.classList.add('is-busy');
+    const done = () => { delete f.dataset.busy; f.classList.remove('is-busy'); };
+    // if anything goes wrong, send the form the normal way
+    go(u.href, { post: fd, fallback: () => {
+      done();
+      if (s && s.name) { const h = document.createElement('input'); h.type = 'hidden'; h.name = s.name; h.value = s.value || ''; f.appendChild(h); }
+      HTMLFormElement.prototype.submit.call(f);
+    } }).then(done, done);
   });
 })();
 

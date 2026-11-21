@@ -18,7 +18,7 @@ $ph_desc  = $ph_current && $ph_current->description ? $ph_current->description :
 $ph_shop  = wc_get_page_permalink( 'shop' );
 $ph_min   = isset( $_GET['min_price'] ) ? (int) $_GET['min_price'] : null; // phpcs:ignore WordPress.Security.NonceVerification
 $ph_max   = isset( $_GET['max_price'] ) ? (int) $_GET['max_price'] : null; // phpcs:ignore WordPress.Security.NonceVerification
-$ph_base  = remove_query_arg( array( 'min_price', 'max_price', 'paged' ) );
+$ph_base  = preg_replace( '#/page/\d+/?(?=\?|$)#', '/', remove_query_arg( array( 'min_price', 'max_price', 'paged' ) ) ); // filters start again at page 1
 $ph_prices = array(
 	array( __( 'Any price', 'potteryhub' ), null, null ),
 	/* translators: %s: price */

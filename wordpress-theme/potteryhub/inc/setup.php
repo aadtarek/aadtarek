@@ -63,7 +63,7 @@ add_action(
 				'ar'       => ph_is_ar() ? 1 : 0,
 				'front'    => is_front_page() ? 1 : 0,
 				'base'     => ph_home_path(),
-				'full'     => ph_full_load_paths(),
+				'dyn'      => ph_full_load_paths(),
 				'i18n'     => array(
 					'added'      => __( 'added to your cart', 'potteryhub' ),
 					'viewCart'   => __( 'View cart', 'potteryhub' ),

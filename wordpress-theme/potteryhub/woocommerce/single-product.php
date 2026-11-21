@@ -32,7 +32,6 @@ while ( have_posts() ) :
 					<div class="main" id="main">
 						<img id="mainImg" src="<?php echo esc_url( $ph_main ); ?>" alt="<?php echo esc_attr( $product->get_name() ); ?>">
 						<?php if ( $ph_off ) : ?><span class="badge">−<?php echo (int) $ph_off; ?>%</span><?php endif; ?>
-						<button class="heart" type="button" data-wish="<?php echo esc_attr( ph_wish_data( $product ) ); ?>" aria-label="<?php esc_attr_e( 'Save to wishlist', 'potteryhub' ); ?>"><?php echo ph_icon( 'heart', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 					</div>
 					<div class="minis rv">
 						<?php if ( $ph_gallery ) : ?>

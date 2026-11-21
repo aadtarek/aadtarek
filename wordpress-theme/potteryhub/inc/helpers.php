@@ -13,6 +13,14 @@ function ph_icon( $name, $size = 16, $stroke = 1.8 ) {
 		'arrow'  => '<path d="M5 12h14M13 6l6 6-6 6"/>',
 		'back'   => '<path d="M19 12H5M11 6l-6 6 6 6"/>',
 		'bag'    => '<path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8L5 8z"/><path d="M9 10V6.5a3 3 0 0 1 6 0V10"/>',
+		'home'   => '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+		'grid'   => '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+		'info'   => '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.6v.2"/>',
+		'book'   => '<path d="M5 5.5A1.5 1.5 0 0 1 6.5 4H19v14H6.5A1.5 1.5 0 0 0 5 19.5zM5 19.5A1.5 1.5 0 0 0 6.5 21H19"/>',
+		'leaf'   => '<path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14zM5 19l7-7"/>',
+		'fire'   => '<path d="M12 21c-3.6 0-6-2.4-6-5.6 0-3.4 2.6-5 3.4-8.4 1.9 1.3 2.6 3 2.6 4.6.9-.6 1.6-1.8 1.8-3 2 1.6 4.2 4 4.2 6.8 0 3.2-2.4 5.6-6 5.6z"/>',
+		'truck'  => '<path d="M3 6.5h11v9H3zM14 9.5h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+		'hand'   => '<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V12M11 11.5V5a1.5 1.5 0 0 1 3 0v6.5M14 11.5V6.5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6 7-2.6 0-4-1.3-5.4-3.4L3.8 14.7a1.5 1.5 0 0 1 2.4-1.8L8 15"/>',
 		'heart'  => '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/>',
 		'search' => '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
 		'close'  => '<path d="M6 6l12 12M18 6 6 18"/>',
@@ -146,7 +154,6 @@ function ph_card( $product, $i = 0 ) {
 			<?php echo $img; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<?php if ( $off ) : ?><span class="badge">−<?php echo (int) $off; ?>%</span><?php endif; ?>
 			<?php if ( ! $product->is_in_stock() ) : ?><span class="badge sold"><?php esc_html_e( 'Sold out', 'potteryhub' ); ?></span><?php endif; ?>
-			<button class="heart" type="button" data-wish="<?php echo esc_attr( ph_wish_data( $product ) ); ?>" aria-label="<?php esc_attr_e( 'Save to wishlist', 'potteryhub' ); ?>"><?php echo ph_icon( 'heart', 15 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 			<div class="quick">
 				<?php if ( ph_quick_addable( $product ) ) : ?>
 					<button class="qa" type="button" data-add="<?php echo (int) $product->get_id(); ?>"><?php echo ph_icon( 'bag', 16 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php esc_html_e( 'Add', 'potteryhub' ); ?></span></button>

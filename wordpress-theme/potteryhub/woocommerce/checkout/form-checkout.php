@@ -17,7 +17,11 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 	return;
 }
 ?>
-<form name="checkout" method="post" class="checkout woocommerce-checkout ph-co" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data" aria-label="<?php echo esc_attr__( 'Checkout', 'woocommerce' ); ?>">
+<form name="checkout" method="post" class="checkout woocommerce-checkout ph-co" action="<?php echo esc_url( wc_get_checkout_url() ); ?>" enctype="multipart/form-data" aria-label="<?php echo esc_attr__( 'Checkout', 'woocommerce' ); ?>"
+	data-ship="<?php echo esc_attr( wp_json_encode( ph_ship_map() ) ); ?>"
+	data-uor="<?php echo esc_attr( wp_create_nonce( 'update-order-review' ) ); ?>"
+	data-coupon="<?php echo esc_attr( wp_create_nonce( 'apply-coupon' ) ); ?>"
+	data-rcoupon="<?php echo esc_attr( wp_create_nonce( 'remove-coupon' ) ); ?>">
 
 	<div class="ph-co-main">
 		<?php if ( $checkout->get_checkout_fields() ) : ?>
