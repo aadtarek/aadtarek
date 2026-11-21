@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PH_VERSION', '1.4.2' );
+define( 'PH_VERSION', '1.4.3' );
 define( 'PH_DIR', get_template_directory() );
 define( 'PH_URI', get_template_directory_uri() );
 

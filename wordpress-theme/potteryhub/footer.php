@@ -62,7 +62,7 @@ $ph_wc = class_exists( 'WooCommerce' );
 			<div class="mn-cats">
 				<?php foreach ( ph_categories( 6 ) as $ph_t ) : ?>
 					<a class="mn-cat" href="<?php echo esc_url( get_term_link( $ph_t ) ); ?>">
-						<span class="mn-ci"><img src="<?php echo esc_url( ph_cat_img( $ph_t, 'woocommerce_thumbnail' ) ); ?>" alt="" loading="lazy"></span>
+						<span class="mn-ci"><img src="<?php echo esc_url( ph_cat_img( $ph_t ) ); ?>" alt="" loading="lazy"></span>
 						<b><?php echo esc_html( $ph_t->name ); ?></b><small><?php echo esc_html( ph_pieces( (int) $ph_t->count ) ); ?></small>
 					</a>
 				<?php endforeach; ?>

@@ -1501,3 +1501,24 @@ form.is-busy [type=submit],form.is-busy #place_order{opacity:.6;pointer-events:n
 .ph-free-t{color:#3f7a4f;font-weight:800}
 .dfoot .shipbar svg{color:var(--terra);flex:none}
 .co-sum:has(.ph-free) .woocommerce-shipping-totals td{color:#3f7a4f;font-weight:700}
+
+/* ---------- touch screens: one tap adds to the bag (no hover effects that move the buttons) ---------- */
+@media (hover:none),(pointer:coarse){
+  .card:hover .quick button,.card:hover .quick a,.card:hover .quick .qb{animation:none!important}
+  .card .quick{transition:none}
+  .card:hover .media::after{opacity:0}
+  .card.vis:hover .media{--ty:0px;box-shadow:none}
+  .card.vis:hover .media img{transform:scale(1)}
+}
+.quick button,.quick a,.qa,.qb,[data-add],.book button,.heart{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+/* product photos sit on the same warm colour as the menu's category tiles */
+.card .media{background:#ded7cb}
+/* menu category tiles: two per row, whole piece visible */
+.mn-cats{grid-template-columns:repeat(2,1fr);gap:12px}
+.mn-cat{padding:8px 8px 12px;text-align:start;display:grid;grid-template-columns:1fr;gap:0}
+.mn-ci{aspect-ratio:1;background:#ded7cb;margin-bottom:10px}
+.mn-ci img{object-fit:cover;object-position:50% 55%}
+.mn-cat b{font-size:14px;padding:0 4px}
+.mn-cat small{font-size:12px;padding:0 4px}
+@media (max-width:380px){.mn-cats{grid-template-columns:repeat(2,1fr)}}
