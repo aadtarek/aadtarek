@@ -1331,7 +1331,7 @@ a.pg-arrow:hover{background:var(--forest);color:var(--cream);border-color:var(--
 /* ---------- product cards on phones: one soft panel in the photo's colour, round bag button ---------- */
 @media (max-width:640px){
   .grid{grid-template-columns:1fr 1fr;gap:12px}
-  .card{background:#dbd3c6;border-radius:20px;padding:7px 7px 13px;box-shadow:0 10px 24px -20px rgba(60,40,30,.5)}
+  .card{background:#ded7cb;border-radius:20px;padding:7px 7px 13px;box-shadow:0 10px 24px -20px rgba(60,40,30,.5)}
   .card .media{aspect-ratio:1/1.05;border-radius:14px;clip-path:inset(22% 0 0 0 round 14px)}
   .card.vis .media{clip-path:inset(0 0 0 0 round 14px)}
   .card .heart{width:32px;height:32px;top:8px;right:8px}
