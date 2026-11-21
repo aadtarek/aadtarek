@@ -1533,3 +1533,10 @@ form.is-busy [type=submit],form.is-busy #place_order{opacity:.6;pointer-events:n
 #pre .pre-logo{opacity:1;transform:none;animation:phPreIn 1.2s cubic-bezier(.16,1,.3,1) both}
 @keyframes phPreIn{from{transform:scale(.85)}}
 .bento .bbig{opacity:1}
+/* sticky buy bar always fits the phone screen; plugins' hidden copy helpers never widen the page */
+.sbar{max-width:calc(100vw - 24px)}
+.sbar .sn{overflow:hidden}
+.sbar .sn small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbar .buy,.sbar .booknow{flex:none}
+@media (max-width:640px){.sbar{gap:10px;padding:8px}.sbar .buy{padding:0 16px;font-size:14px}.sbar .si{width:46px;height:46px}}
+textarea[class*="fallbackTextarea"]{position:fixed!important;top:0!important;left:0!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none}

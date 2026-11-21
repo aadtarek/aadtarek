@@ -404,6 +404,19 @@ add_filter(
 	2
 );
 
+/** No link to a privacy page that isn't published (it would open a "not found" page). */
+add_filter(
+	'woocommerce_get_privacy_policy_text',
+	function ( $text ) {
+		$id = (int) get_option( 'wp_page_for_privacy_policy' );
+		if ( $id && 'publish' !== get_post_status( $id ) ) {
+			$text = str_replace( '[privacy_policy]', ph_is_ar() ? 'سياسة الخصوصية' : __( 'privacy policy', 'woocommerce' ), $text );
+		}
+		return $text;
+	},
+	20
+);
+
 /** "Delivery" instead of "Shipping"/"Shipment" in the order summary. */
 add_filter( 'woocommerce_shipping_package_name', fn() => __( 'Delivery', 'potteryhub' ) );
 

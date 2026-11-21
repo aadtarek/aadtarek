@@ -30,7 +30,7 @@ while ( have_posts() ) :
 			<div class="dgrid">
 				<div>
 					<div class="main" id="main">
-						<img id="mainImg" src="<?php echo esc_url( $ph_main ); ?>" alt="<?php echo esc_attr( $product->get_name() ); ?>">
+						<img id="mainImg" src="<?php echo esc_url( $ph_main ); ?>" alt="<?php echo esc_attr( $product->get_name() ); ?>" fetchpriority="high" decoding="async">
 						<?php if ( $ph_off ) : ?><span class="badge">−<?php echo (int) $ph_off; ?>%</span><?php endif; ?>
 					</div>
 					<div class="minis rv">
