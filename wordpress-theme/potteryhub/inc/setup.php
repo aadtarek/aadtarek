@@ -121,6 +121,9 @@ add_action(
 	'wp_head',
 	function () {
 		echo '<link rel="icon" href="' . esc_url( ph_img( 'favicon.png' ) ) . '">';
+		if ( is_front_page() ) { // the first hero photo is the largest thing on the page: fetch it first
+			echo '<link rel="preload" as="image" fetchpriority="high" href="' . esc_url( get_theme_mod( 'ph_hero1_img', ph_img( 'hero-1.jpg' ) ) ) . '">';
+		}
 		echo '<meta name="theme-color" content="#ba4a2f">';
 	}
 );

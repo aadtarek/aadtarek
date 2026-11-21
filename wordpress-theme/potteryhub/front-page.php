@@ -71,6 +71,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 <section class="bento" id="hero" data-slides="<?php echo esc_attr( wp_json_encode( $ph_slides ) ); ?>" data-feat="<?php echo esc_attr( wp_json_encode( $ph_feat_data ) ); ?>" data-cats="<?php echo esc_attr( wp_json_encode( $ph_tile ) ); ?>">
 	<div class="bgrid">
 		<div class="bt bbig" id="bBig" style="--d:0ms">
+			<div class="im on" data-first style="background-image:url('<?php echo esc_url( $ph_slides[0]['img'] ); ?>');background-position:<?php echo (int) $ph_slides[0]['fx']; ?>% 50%"></div>
 			<div class="bx">
 				<div class="eyebrow" id="bEb"><?php echo esc_html( $ph_slides[0]['eb'] ); ?></div>
 				<h1 class="bth serif" id="bT"></h1>

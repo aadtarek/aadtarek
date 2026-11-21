@@ -340,8 +340,9 @@ function initHome() {
   let slides = [], feat = [], cats = [];
   try { slides = JSON.parse(hero.dataset.slides); feat = JSON.parse(hero.dataset.feat); cats = JSON.parse(hero.dataset.cats); } catch (e) {}
   const bBig = $('#bBig'), BDUR = 6000; let bi = -1, btimer = null;
-  slides.forEach(s => {
-    s.el = document.createElement('div'); s.el.className = 'im'; s.el.style.backgroundImage = "url('" + s.img + "')"; bBig.prepend(s.el);
+  slides.forEach((s, i) => {
+    const first = i === 0 && $('.im[data-first]', bBig); // the first photo is already in the page (shows before scripts run)
+    if (first) s.el = first; else { s.el = document.createElement('div'); s.el.className = 'im'; s.el.style.backgroundImage = "url('" + s.img + "')"; bBig.prepend(s.el); }
     s.tt = document.createElement('span'); let k = 0; s.tt.innerHTML = s.t.split(' ').map(w => '<span class="w2"><i style="--i:' + (k++) + '">' + esc(w) + '</i></span>').join(' '); $('#bT').appendChild(s.tt);
   });
   function fitHero() {
