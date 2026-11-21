@@ -11308,3 +11308,24 @@ function rfaheya_mcp_install_plugin( $package, $activate ) {
 	$data = $file ? get_plugin_data( WP_PLUGIN_DIR . '/' . $file, false, false ) : array();
 	return array( 'installed' => $file, 'name' => $data['Name'] ?? '', 'version' => $data['Version'] ?? '', 'active' => $file ? is_plugin_active( $file ) : false );
 }
+
+// With the Claude Connection plugin (any-site version) installed too, it gets this store's own tools.
+add_filter(
+	'claude_connection_tools',
+	function ( $tools ) {
+		$mine = rfaheya_mcp_tools();
+		foreach ( array( 'list_offers', 'save_offer', 'delete_offer', 'get_settings', 'update_settings', 'get_menus', 'save_menus', 'refresh_store' ) as $name ) {
+			if ( isset( $mine[ $name ] ) && ! isset( $tools[ $name ] ) ) {
+				$tools[ $name ] = $mine[ $name ];
+			}
+		}
+		return $tools;
+	}
+);
+add_action(
+	'claude_connection_clear_caches',
+	function () {
+		delete_transient( 'rfaheya_bootstrap' );
+		rfaheya_purge_page_cache();
+	}
+);

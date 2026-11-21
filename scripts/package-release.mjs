@@ -88,3 +88,9 @@ for (const [path, data] of Object.entries(files)) plugin[`rfaheya-storefront/sit
 plugin['rfaheya-storefront/site/htaccess.txt'] = new Uint8Array(readFileSync(join(root, 'wordpress/htaccess')))
 writeFileSync(join(release, 'rfaheya-storefront.zip'), zipSync(plugin, { level: 9 }))
 console.log(`release/rfaheya-storefront.zip — WordPress plugin, version 1.0.${build}`)
+
+// Claude Connection: the any-site MCP plugin (wordpress/claude-connection), as its own zip.
+const clc = {}
+for (const f of readdirSync(join(root, 'wordpress/claude-connection'))) clc[`claude-connection/${f}`] = new Uint8Array(readFileSync(join(root, 'wordpress/claude-connection', f)))
+writeFileSync(join(release, 'claude-connection.zip'), zipSync(clc, { level: 9 }))
+console.log('release/claude-connection.zip — Claude Connection plugin (any WordPress site)')
