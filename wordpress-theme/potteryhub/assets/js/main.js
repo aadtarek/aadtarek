@@ -1,6 +1,7 @@
 /* Pottery Hub theme — motion, cart drawer, wishlist, search. */
 (() => {
 'use strict';
+if (window.__phMain) return; window.__phMain = 1;
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const C = window.PH || {}, T = k => (C.i18n && C.i18n[k]) || k;
 C.ar = +C.ar === 1; C.front = +C.front === 1; // wp_localize_script sends "0" / "1" strings
@@ -620,22 +621,13 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     doc.querySelectorAll('head style[id]').forEach(st => { if (!document.getElementById(st.id)) document.head.appendChild(st.cloneNode(true)); });
     return Promise.all(waits);
   }
-  const runInline = (src, where) => { const n = document.createElement('script'); n.textContent = src.textContent; if (src.id) n.id = src.id; (where || document.body).appendChild(n); };
-  async function addScripts(doc) {
-    const have = new Set($$('script[src]').map(x => key(x.src))), fresh = new Set();
-    const list = [...doc.querySelectorAll('script')].filter(x => !x.closest('#ph-main'));
-    for (const x of list) {
-      if (!x.src || have.has(key(x.src)) || (x.type && !/javascript|module/.test(x.type))) continue;
-      const h = (x.id || '').replace(/-js$/, '');
-      ['-js-extra', '-js-before'].forEach(sfx => { const i = h && doc.getElementById(h + sfx); if (i && !document.getElementById(h + sfx)) runInline(i); });
-      await new Promise(r => { const n = document.createElement('script'); n.src = x.src; if (x.id) n.id = x.id; n.async = false; n.onload = n.onerror = r; document.body.appendChild(n); });
-      const af = h && doc.getElementById(h + '-js-after'); if (af && !document.getElementById(h + '-js-after')) runInline(af);
-      if (h) fresh.add(h);
-      have.add(key(x.src));
-    }
-    doc.querySelectorAll('script[type="text/template"][id]').forEach(t => { if (!document.getElementById(t.id)) document.body.appendChild(t.cloneNode(true)); });
-    return fresh;
-  }
+  /* The scripts a page runs (external files, incl. combined/optimised bundles). A page that needs
+     different ones opens with a normal load, so nothing ever runs twice. */
+  const sig = d => [...d.querySelectorAll('script')].filter(x => !x.closest('#ph-main')).map(x => key(new URL(x.getAttribute('src') || x.getAttribute('data-src') || '', location.href).href)).filter(u => !/^blob:/.test(u) && u !== key(location.href) && !/connect\.facebook|googletagmanager|google-analytics|clarity\.ms|tiktok|snap/.test(u));
+  let mine = null; // scripts this page loaded (read once the page has finished parsing)
+  const sameScripts = d => { if (!mine) mine = new Set(sig(document)); return sig(d).every(u => mine.has(u)); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mine = new Set(sig(document)); });
+  function addTemplates(doc) { doc.querySelectorAll('script[type="text/template"][id]').forEach(t => { if (!document.getElementById(t.id)) document.body.appendChild(t.cloneNode(true)); }); }
   function swapHead(doc) {
     document.title = doc.title;
     const sel = 'meta[name="description"],meta[name="robots"],link[rel="canonical"],link[rel="alternate"][hreflang],link[rel="prev"],link[rel="next"],meta[property^="og:"],meta[property^="article:"],meta[property^="product:"],meta[name^="twitter:"],script[type="application/ld+json"]';
@@ -652,7 +644,7 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     const fin = new URL(d.url, location.href); fin.hash = to.hash;
     if (!allowed(fin)) { location.href = fin.href; return; }
     const doc = new DOMParser().parseFromString(d.html, 'text/html'), nm = doc.getElementById('ph-main');
-    if (!nm || doc.documentElement.lang !== document.documentElement.lang) { location.href = fin.href; return; }
+    if (!nm || doc.documentElement.lang !== document.documentElement.lang || !sameScripts(doc)) { location.href = fin.href; return; }
     await addStyles(doc);
     if (id !== navId) return;
     const from = location.href;
@@ -661,7 +653,8 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
       teardown();
       const cur = $('#ph-main');
       cur.replaceWith(document.adoptNode(nm));
-      $$('script', nm).forEach(x => { if (!x.type || /javascript/.test(x.type)) { const n = document.createElement('script'); [...x.attributes].forEach(at => n.setAttribute(at.name, at.value)); n.textContent = x.textContent; x.replaceWith(n); } });
+      $$('script', nm).forEach(x => { const t = (x.getAttribute('type') || '').toLowerCase(); if (x.src || !(t === '' || t === 'text/javascript' || t === 'application/javascript' || t === 'litespeed/javascript')) return; const n = document.createElement('script'); n.textContent = x.textContent; if (x.id) n.id = x.id; x.replaceWith(n); });
+      addTemplates(doc);
       body.className = doc.body.className;
       swapHead(doc);
       const nc = doc.querySelector('#nav nav.c'), oc = $('#nav nav.c'); if (nc && oc) oc.innerHTML = nc.innerHTML;
@@ -677,11 +670,10 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     };
     if (document.startViewTransition && !reduce) await document.startViewTransition(swap).updateCallbackDone.catch(() => {}); else swap();
     get(from, 600000).catch(() => {}); // keep the page we left, so Back is instant too
-    const fresh = await addScripts(doc);
     if (window.jQuery) {
       const jq = window.jQuery, main = $('#ph-main');
-      if (!fresh.has('wc-add-to-cart-variation') && jq.fn.wc_variation_form) jq('.variations_form', main).each(function () { jq(this).wc_variation_form(); });
-      if (!fresh.has('wc-single-product')) jq('.wc-tabs-wrapper, .woocommerce-tabs, #rating', main).trigger('init');
+      if (jq.fn.wc_variation_form) jq('.variations_form', main).each(function () { jq(this).wc_variation_form(); });
+      jq('.wc-tabs-wrapper, .woocommerce-tabs, #rating', main).trigger('init');
       jq(document.body).trigger('ph:page');
     }
     document.dispatchEvent(new CustomEvent('ph:page', { detail: { url: location.href } }));

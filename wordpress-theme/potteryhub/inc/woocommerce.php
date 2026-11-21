@@ -652,6 +652,12 @@ add_action(
 		if ( function_exists( 'is_checkout' ) && is_checkout() ) {
 			wp_add_inline_script( 'ph-main', 'window.PH=window.PH||{};PH.ship=' . wp_json_encode( ph_ship_map() ) . ';', 'before' );
 		}
+		// Product-page scripts on every page, so all pages share the same scripts (and the same
+		// combined file under caching plugins) and pages can open without a reload.
+		if ( ! is_cart() && ! is_checkout() && ! is_account_page() ) {
+			wp_enqueue_script( 'wc-add-to-cart-variation' );
+			wp_enqueue_script( 'wc-single-product' );
+		}
 	},
 	21
 );
