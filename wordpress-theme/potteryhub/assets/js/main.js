@@ -621,9 +621,10 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     doc.querySelectorAll('head style[id]').forEach(st => { if (!document.getElementById(st.id)) document.head.appendChild(st.cloneNode(true)); });
     return Promise.all(waits);
   }
-  /* The scripts a page runs (external files, incl. combined/optimised bundles). A page that needs
-     different ones opens with a normal load, so nothing ever runs twice. */
-  const sig = d => [...d.querySelectorAll('script')].filter(x => !x.closest('#ph-main')).map(x => key(new URL(x.getAttribute('src') || x.getAttribute('data-src') || '', location.href).href)).filter(u => !/^blob:/.test(u) && u !== key(location.href) && !/connect\.facebook|googletagmanager|google-analytics|clarity\.ms|tiktok|snap/.test(u));
+  /* The scripts a page runs. A page that needs different ones opens with a normal load, so nothing
+     ever runs twice. Caching plugins' combined files are left out: every page enqueues the same
+     scripts (see inc/woocommerce.php), they differ only in per-page inline data. */
+  const sig = d => [...d.querySelectorAll('script')].filter(x => !x.closest('#ph-main')).map(x => key(new URL(x.getAttribute('src') || x.getAttribute('data-src') || '', location.href).href)).filter(u => !/^blob:/.test(u) && u !== key(location.href) && !/\/wp-content\/litespeed\/|connect\.facebook|googletagmanager|google-analytics|clarity\.ms|tiktok|snap/.test(u));
   let mine = null; // scripts this page loaded (read once the page has finished parsing)
   const sameScripts = d => { if (!mine) mine = new Set(sig(document)); return sig(d).every(u => mine.has(u)); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mine = new Set(sig(document)); });
