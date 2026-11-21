@@ -240,6 +240,9 @@ msgstr ""
 msgid "Do you deliver everywhere in Egypt?"
 msgstr ""
 
+msgid "Yes, to every governorate — delivery is free, and you pay cash on delivery."
+msgstr ""
+
 msgid "Yes, to every governorate. The delivery fee shows at checkout as soon as you pick your governorate, and you pay cash on delivery."
 msgstr ""
 
@@ -336,6 +339,12 @@ msgstr ""
 msgid "Save %d%%"
 msgstr ""
 
+msgid "Free delivery"
+msgstr ""
+
+msgid "all over Egypt"
+msgstr ""
+
 msgid "Description"
 msgstr ""
 
@@ -363,7 +372,13 @@ msgstr ""
 msgid "Delivery details"
 msgstr ""
 
+msgid "to every governorate"
+msgstr ""
+
 msgid "Order summary"
+msgstr ""
+
+msgid "Free"
 msgstr ""
 
 msgid "Calculated at checkout"
@@ -646,9 +661,6 @@ msgid "Page %1$d of %2$d"
 msgstr ""
 
 msgid "Home delivery"
-msgstr ""
-
-msgid "Free delivery"
 msgstr ""
 
 msgid "Email settings saved. Send a test email to check them."

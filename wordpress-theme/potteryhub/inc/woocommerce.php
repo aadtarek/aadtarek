@@ -115,6 +115,9 @@ function ph_mini_cart() {
 		if ( $save > 0 ) {
 			echo '<div class="tot"><span>' . esc_html__( 'You save', 'potteryhub' ) . '</span><span>' . wc_price( $save ) . '</span></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
+		if ( ph_free_delivery() ) {
+			echo '<div class="shipbar">' . ph_icon( 'truck', 17, 1.7 ) . '<span><b>' . esc_html__( 'Free delivery', 'potteryhub' ) . '</b> ' . esc_html__( 'all over Egypt', 'potteryhub' ) . '</span></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		}
 		echo '<div class="tot big"><span>' . esc_html__( 'Subtotal', 'potteryhub' ) . '</span><span>' . WC()->cart->get_cart_subtotal() . '</span></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		echo '<a class="btn wide" href="' . esc_url( wc_get_checkout_url() ) . '">' . esc_html__( 'Checkout', 'potteryhub' ) . ' ' . ph_icon( 'arrow', 16, 2 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		echo '</div>';
@@ -543,6 +546,7 @@ add_filter(
 				'Home delivery' => __( 'Home delivery', 'potteryhub' ),
 				'Flat rate'     => __( 'Home delivery', 'potteryhub' ),
 				'Free shipping' => __( 'Free delivery', 'potteryhub' ),
+				'Free delivery' => __( 'Free delivery', 'potteryhub' ),
 			);
 			foreach ( $rates as $r ) {
 				if ( isset( $map[ $r->get_label() ] ) ) {
@@ -613,6 +617,17 @@ foreach ( array( 'woocommerce_update_product', 'woocommerce_new_product', 'wooco
  * Delivery prices by governorate, so the checkout total changes the moment a
  * governorate is picked (WooCommerce confirms it right after).
  */
+/** True when delivery costs nothing everywhere the store ships (so the site can say so). */
+function ph_free_delivery() {
+	static $free = null;
+	if ( null === $free ) {
+		$m     = ph_ship_map();
+		$costs = array_merge( array_values( $m['s'] ), null === $m['def'] ? array() : array( $m['def'] ) );
+		$free  = $costs && 0.0 === (float) max( $costs );
+	}
+	return $free;
+}
+
 function ph_ship_map() {
 	$map = array(
 		'def' => null,

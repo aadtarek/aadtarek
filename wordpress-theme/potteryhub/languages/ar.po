@@ -241,6 +241,9 @@ msgstr "أيوه — كل قطعة بتتشكّل وتتطلي باليد، وع
 msgid "Do you deliver everywhere in Egypt?"
 msgstr "بتوصلوا لكل مصر؟"
 
+msgid "Yes, to every governorate — delivery is free, and you pay cash on delivery."
+msgstr "أيوه، لكل المحافظات — والتوصيل مجاني، والدفع كاش عند الاستلام."
+
 msgid "Yes, to every governorate. The delivery fee shows at checkout as soon as you pick your governorate, and you pay cash on delivery."
 msgstr "أيوه، لكل المحافظات. مصاريف التوصيل بتظهر في صفحة الدفع أول ما تختار محافظتك، والدفع كاش عند الاستلام."
 
@@ -337,6 +340,12 @@ msgstr "+%d أخرى"
 msgid "Save %d%%"
 msgstr "وفّر %d%%"
 
+msgid "Free delivery"
+msgstr "توصيل مجاني"
+
+msgid "all over Egypt"
+msgstr "لكل مصر"
+
 msgid "Description"
 msgstr "الوصف"
 
@@ -364,8 +373,14 @@ msgstr "أضف للحقيبة"
 msgid "Delivery details"
 msgstr "بيانات التوصيل"
 
+msgid "to every governorate"
+msgstr "لكل المحافظات"
+
 msgid "Order summary"
 msgstr "ملخص الطلب"
+
+msgid "Free"
+msgstr "مجاني"
 
 msgid "Calculated at checkout"
 msgstr "بيتحسب في صفحة الدفع"
@@ -546,9 +561,6 @@ msgstr "صفحة %1$d من %2$d"
 
 msgid "Home delivery"
 msgstr "توصيل للمنزل"
-
-msgid "Free delivery"
-msgstr "توصيل مجاني"
 
 msgid "Your email"
 msgstr "بريدك الإلكتروني"

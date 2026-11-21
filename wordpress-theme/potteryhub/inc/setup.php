@@ -136,9 +136,6 @@ function ph_menu_fallback() {
 	if ( ! ph_template_url( 'template-about.php' ) ) {
 		array_splice( $items, 1, 0, array( array( $home . '#cats', __( 'Collections', 'potteryhub' ) ) ) );
 	}
-	if ( ph_journal_url() && wp_count_posts()->publish ) {
-		$items[] = array( ph_journal_url(), __( 'Journal', 'potteryhub' ) );
-	}
 	if ( ph_template_url( 'template-contact.php' ) ) {
 		$items[] = array( ph_template_url( 'template-contact.php' ), __( 'Contact', 'potteryhub' ) );
 	}

@@ -41,6 +41,7 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 		<div class="co-card co-sum">
 			<?php do_action( 'woocommerce_checkout_before_order_review_heading' ); ?>
 			<h3 id="order_review_heading" class="co-h"><span>2</span><?php esc_html_e( 'Your order', 'woocommerce' ); ?></h3>
+			<?php if ( ph_free_delivery() ) : ?><div class="ph-free"><i><?php echo ph_icon( 'truck', 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></i><span><b><?php esc_html_e( 'Free delivery', 'potteryhub' ); ?></b> <?php esc_html_e( 'to every governorate', 'potteryhub' ); ?></span></div><?php endif; ?>
 			<?php do_action( 'woocommerce_checkout_before_order_review' ); ?>
 			<div id="order_review" class="woocommerce-checkout-review-order">
 				<?php do_action( 'woocommerce_checkout_order_review' ); ?>

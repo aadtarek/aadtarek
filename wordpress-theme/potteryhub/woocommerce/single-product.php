@@ -72,6 +72,7 @@ while ( have_posts() ) :
 							<?php endif; ?>
 						</div>
 						<?php woocommerce_template_single_add_to_cart(); ?>
+						<?php if ( ph_free_delivery() ) : ?><div class="ph-free"><i><?php echo ph_icon( 'truck', 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></i><span><b><?php esc_html_e( 'Free delivery', 'potteryhub' ); ?></b> <?php esc_html_e( 'all over Egypt', 'potteryhub' ); ?></span></div><?php endif; ?>
 					</div>
 					<div class="acc rv">
 						<?php if ( $ph_long && $ph_long !== $ph_desc ) : ?>
@@ -81,7 +82,7 @@ while ( have_posts() ) :
 							<details><summary><?php esc_html_e( 'Details', 'potteryhub' ); ?></summary><div class="accb"><?php wc_display_product_attributes( $product ); ?></div></details>
 						<?php endif; ?>
 						<details<?php echo $ph_long && $ph_long !== $ph_desc ? '' : ' open'; ?>><summary><?php esc_html_e( 'Care', 'potteryhub' ); ?></summary><p><?php echo esc_html( ph_mod( 'ph_care' ) ); ?></p></details>
-						<details><summary><?php esc_html_e( 'Delivery', 'potteryhub' ); ?></summary><p><?php echo esc_html( ph_mod( 'ph_delivery' ) ); ?></p></details>
+						<details><summary><?php esc_html_e( 'Delivery', 'potteryhub' ); ?></summary><p><?php if ( ph_free_delivery() ) : ?><b><?php esc_html_e( 'Free delivery', 'potteryhub' ); ?></b> <?php esc_html_e( 'all over Egypt', 'potteryhub' ); ?> — <?php endif; ?><?php echo esc_html( ph_mod( 'ph_delivery' ) ); ?></p></details>
 						<?php if ( comments_open() || $product->get_review_count() ) : ?>
 							<?php /* translators: %d: number of reviews */ ?>
 							<details id="ph-reviews"><summary><?php echo esc_html( sprintf( __( 'Reviews (%d)', 'potteryhub' ), $product->get_review_count() ) ); ?></summary><div class="accb ph-reviews"><?php comments_template(); ?></div></details>

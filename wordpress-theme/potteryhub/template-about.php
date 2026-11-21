@@ -26,6 +26,9 @@ $ph_addr  = ph_contact( 'ph_address' ) ? ph_contact( 'ph_address' ) : 'Value Mal
 $ph_mail  = ph_contact( 'ph_email' ) ? ph_contact( 'ph_email' ) : 'info@potteryhubeg.com';
 $ph_phone = ph_contact( 'ph_phone' );
 $ph_wa    = ph_whatsapp_url();
+if ( ! function_exists( 'ph_free_delivery' ) ) {
+	function ph_free_delivery() { return false; } // phpcs:ignore
+}
 
 while ( have_posts() ) :
 	the_post();
@@ -127,7 +130,7 @@ while ( have_posts() ) :
 				<?php
 				$ph_faq = array(
 					array( __( 'Is everything really handmade?', 'potteryhub' ), __( 'Yes — every piece is shaped and glazed by hand. That’s why each one is a little different from the next.', 'potteryhub' ) ),
-					array( __( 'Do you deliver everywhere in Egypt?', 'potteryhub' ), __( 'Yes, to every governorate. The delivery fee shows at checkout as soon as you pick your governorate, and you pay cash on delivery.', 'potteryhub' ) ),
+					array( __( 'Do you deliver everywhere in Egypt?', 'potteryhub' ), ph_free_delivery() ? __( 'Yes, to every governorate — delivery is free, and you pay cash on delivery.', 'potteryhub' ) : __( 'Yes, to every governorate. The delivery fee shows at checkout as soon as you pick your governorate, and you pay cash on delivery.', 'potteryhub' ) ),
 					array( __( 'Can I order a custom piece?', 'potteryhub' ), __( 'Tell us what you have in mind on WhatsApp or by email, and we’ll let you know what’s possible.', 'potteryhub' ) ),
 					array( __( 'How do I care for my pottery?', 'potteryhub' ), __( 'Wash gently with warm water and a soft sponge. Avoid sudden temperature changes, and let the piece cool before washing.', 'potteryhub' ) ),
 				);

@@ -1491,3 +1491,13 @@ form.is-busy [type=submit],form.is-busy #place_order{opacity:.6;pointer-events:n
 .ab .mo,.ab .mo:first-child{grid-row:auto;aspect-ratio:3/4}
 .ab .mo:first-child{border-radius:999px 999px 24px 24px}
 @media (max-width:600px){.ab .mosaic{grid-template-columns:1fr 1fr}.ab .mo:first-child{grid-column:1/-1;aspect-ratio:4/3;border-radius:24px}}
+
+/* ---------- free delivery ---------- */
+.ph-free{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 14px;border-radius:14px;background:var(--sage);color:var(--forest);font-size:13.5px;line-height:1.4}
+.ph-free i{width:32px;height:32px;flex:none;border-radius:10px;background:#fff;display:grid;place-items:center;color:var(--terra)}
+.ph-free b{font-weight:800}
+.co-sum .ph-free{margin:0 0 16px}
+.ph-cart .ph-free{margin:6px 0 14px}
+.ph-free-t{color:#3f7a4f;font-weight:800}
+.dfoot .shipbar svg{color:var(--terra);flex:none}
+.co-sum:has(.ph-free) .woocommerce-shipping-totals td{color:#3f7a4f;font-weight:700}

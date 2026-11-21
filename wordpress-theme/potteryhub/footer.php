@@ -79,7 +79,6 @@ $ph_wc = class_exists( 'WooCommerce' );
 				array( ph_template_url( 'template-workshops.php' ), __( 'Workshops', 'potteryhub' ), 'clock' ),
 				array( ph_template_url( 'template-about.php' ), __( 'About us', 'potteryhub' ), 'info' ),
 				array( ph_template_url( 'template-contact.php' ), __( 'Contact', 'potteryhub' ), 'chat' ),
-				array( ph_journal_url() && wp_count_posts()->publish ? ph_journal_url() : '', __( 'Journal', 'potteryhub' ), 'book' ),
 			);
 			foreach ( $ph_pages as $ph_p ) :
 				if ( ! $ph_p[0] ) {

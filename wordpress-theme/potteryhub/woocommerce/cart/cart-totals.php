@@ -27,13 +27,14 @@ defined( 'ABSPATH' ) || exit;
 			<tr class="fee"><th><?php echo esc_html( $fee->name ); ?></th><td><?php wc_cart_totals_fee_html( $fee ); ?></td></tr>
 		<?php endforeach; ?>
 		<?php if ( WC()->cart->needs_shipping() ) : ?>
-			<tr class="ph-ship-note"><th><?php esc_html_e( 'Delivery', 'potteryhub' ); ?></th><td><?php esc_html_e( 'Calculated at checkout', 'potteryhub' ); ?></td></tr>
+			<tr class="ph-ship-note"><th><?php esc_html_e( 'Delivery', 'potteryhub' ); ?></th><td><?php if ( ph_free_delivery() ) : ?><b class="ph-free-t"><?php esc_html_e( 'Free', 'potteryhub' ); ?></b><?php else : ?><?php esc_html_e( 'Calculated at checkout', 'potteryhub' ); ?><?php endif; ?></td></tr>
 		<?php endif; ?>
 		<tr class="order-total">
 			<th><?php esc_html_e( 'Total', 'potteryhub' ); ?></th>
 			<td><?php echo wc_price( (float) WC()->cart->get_subtotal() + (float) WC()->cart->get_subtotal_tax() - (float) WC()->cart->get_discount_total() - (float) WC()->cart->get_discount_tax() + (float) WC()->cart->get_fee_total() ); // phpcs:ignore WordPress.Security.EscapeOutput ?></td>
 		</tr>
 	</table>
+	<?php if ( ph_free_delivery() ) : ?><div class="ph-free"><i><?php echo ph_icon( 'truck', 18, 1.7 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></i><span><b><?php esc_html_e( 'Free delivery', 'potteryhub' ); ?></b> <?php esc_html_e( 'all over Egypt', 'potteryhub' ); ?></span></div><?php endif; ?>
 	<div class="wc-proceed-to-checkout">
 		<?php do_action( 'woocommerce_proceed_to_checkout' ); ?>
 	</div>
