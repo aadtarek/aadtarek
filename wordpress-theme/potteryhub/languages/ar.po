@@ -328,14 +328,14 @@ msgstr "اتسجلت معانا"
 msgid "Please enter a valid email"
 msgstr "اكتب بريد إلكتروني صحيح"
 
-msgid "Thanks! We’ll call you to confirm your place."
-msgstr "شكرًا! هنكلمك عشان نأكد حجزك."
-
 msgid "Thanks! We’ll get back to you soon."
 msgstr "شكرًا! هنرد عليك قريب."
 
 msgid "Please add your name and a phone number or email."
 msgstr "اكتب اسمك ورقم موبايل أو بريد إلكتروني."
+
+msgid "Thanks! We’ll call you to confirm your place."
+msgstr "شكرًا! هنكلمك عشان نأكد حجزك."
 
 msgid "Name"
 msgstr "الاسم"
@@ -387,6 +387,9 @@ msgstr "الاسم بالكامل"
 
 msgid "Phone number"
 msgstr "رقم الموبايل"
+
+msgid "To get your order confirmation"
+msgstr "عشان يوصلك تأكيد الطلب"
 
 msgid "Governorate"
 msgstr "المحافظة"

@@ -215,7 +215,7 @@ function ph_page_img( $fallback ) {
 function ph_form( $type ) {
 	$sent = isset( $_GET['ph_sent'] ) ? sanitize_key( wp_unslash( $_GET['ph_sent'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
 	?>
-	<form class="phform rv" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+	<form class="phform rv" method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" data-ok="<?php echo esc_attr( 'workshop' === $type ? __( 'Thanks! We’ll call you to confirm your place.', 'potteryhub' ) : __( 'Thanks! We’ll get back to you soon.', 'potteryhub' ) ); ?>">
 		<?php if ( 'ok' === $sent ) : ?>
 			<div class="phform-ok"><?php echo ph_icon( 'check', 20, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?> <?php echo 'workshop' === $type ? esc_html__( 'Thanks! We’ll call you to confirm your place.', 'potteryhub' ) : esc_html__( 'Thanks! We’ll get back to you soon.', 'potteryhub' ); ?></div>
 		<?php elseif ( 'bad' === $sent ) : ?>

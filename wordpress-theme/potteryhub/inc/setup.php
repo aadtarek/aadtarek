@@ -78,6 +78,8 @@ add_action(
 					'error'      => __( 'Something went wrong — please try again.', 'potteryhub' ),
 					'subscribed' => __( 'You’re on the list', 'potteryhub' ),
 					'sub_bad'    => __( 'Please enter a valid email', 'potteryhub' ),
+					'sent'       => __( 'Thanks! We’ll get back to you soon.', 'potteryhub' ),
+					'needContact' => __( 'Please add your name and a phone number or email.', 'potteryhub' ),
 				),
 			)
 		);

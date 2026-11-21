@@ -1329,3 +1329,5 @@ a.pg-arrow:hover{background:var(--forest);color:var(--cream);border-color:var(--
   .ph-cart .product-price{display:none}
 }
 .info .pr b{white-space:normal!important;max-width:100%}.info .pr .woocommerce-Price-amount{white-space:nowrap}
+.ph-mini .line.pending .step{border:0;background:none}.ph-mini .line.pending small{color:var(--terra)}
+.woocommerce-message a.wc-forward,.woocommerce-message .button.wc-forward,a.added_to_cart,.wc-block-components-notice-banner a.wc-forward{display:none!important}

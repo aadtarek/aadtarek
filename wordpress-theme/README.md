@@ -15,7 +15,10 @@ Cart & checkout switch to the theme's design automatically on activation.
 Contact & workshop form messages and newsletter subscribers are listed on the same screen.
 
 ## Checkout
-Asks for four things only: full name, phone (Egyptian number check), governorate (sets the delivery price) and full address. Country is always Egypt. Customers who don't log in give no email, so only the store gets the order email; logged-in customers also get a confirmation.
+Asks for: full name, phone (Egyptian number check), email (optional — customers who give it get the order confirmation), governorate (sets the delivery price instantly) and full address. Country is always Egypt.
+
+## Instant site
+Add to cart opens the cart drawer right away; search filters as you type; pages start loading when the pointer rests on a link (speculation rules, prefetch fallback); contact & newsletter forms confirm without reloading.
 
 ## Customize → Pottery Hub
 Hero slides, promo banners, workshop section, footer & product texts, social links, **Contact details** (phone, WhatsApp, email, address, hours, map) — every text has an Arabic field.

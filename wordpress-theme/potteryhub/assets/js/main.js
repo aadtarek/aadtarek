@@ -10,6 +10,7 @@ const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const body = document.body, nav = $('#nav'), hero = $('#hero');
 const icon = {
   arrow: '<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  check: '<svg class="ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5 10 17 19 7"/></svg>',
   heart: '<svg class="ic" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.3a4.3 4.3 0 0 1 7.5 2.5C19.5 15.4 12 20 12 20z"/></svg>'
 };
 if (C.ar) $$('svg path').forEach(p => { if (/^M(5 12h14|19 12H5)/.test(p.getAttribute('d') || '')) p.closest('svg').classList.add('flipx'); });
@@ -99,11 +100,21 @@ function bumpBag(n) {
   c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
 }
 let cartQueue = Promise.resolve();
+/* Show the piece in the cart drawer straight away; the real line replaces it a moment later. */
+function pendingLine(src, name, qty) {
+  const mini = $('.ph-mini'); if (!mini) return;
+  let body = $('.dbody', mini);
+  if (!body || $('.dempty', mini)) { mini.innerHTML = '<div class="dbody" data-lenis-prevent></div>'; body = $('.dbody', mini); }
+  const img = src ? (src.currentSrc || src.src) : '';
+  const l = document.createElement('div'); l.className = 'line pending';
+  l.innerHTML = '<span class="li">' + (img ? '<img src="' + esc(img) + '" alt="">' : '') + '</span><div><b>' + esc(name || '') + '</b><small>' + esc(T('added')) + '</small><div class="step"><output>' + (qty || 1) + '</output></div></div>';
+  body.prepend(l);
+}
 function addToCart(id, qty, src, name, btn) {
   qty = qty || 1;
   bumpBag(qty);
-  flyToCart(src, () => {});
-  toast((qty > 1 ? qty + ' × ' : '') + (name || '') + ' — ' + T('added'), T('viewCart'), () => openDrawer('cart'));
+  pendingLine(src, name, qty);
+  openDrawer('cart');
   if (btn) { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 900); }
   // requests run one after another so quick double-adds both count
   const job = cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty })).then(r => {
@@ -203,22 +214,66 @@ if (C.ajax && (wish.length || C.user)) post('ph_wish', { ids: wish.map(w => w.id
   if (drawer && !$('[data-pane="wish"]', drawer).hidden) renderWish();
 }).catch(() => {});
 
-/* ---------- search overlay ---------- */
+/* ---------- search overlay: filters a product list in the browser, no waiting ---------- */
 const sq = $('#sovQ'), sres = $('#sovRes');
-let sT, sReq = 0;
-sq && sq.addEventListener('input', () => {
-  clearTimeout(sT);
+const norm = t => String(t || '').toLowerCase().normalize('NFKD').replace(/[ً-ٰٟـ̀-ͯ]/g, '')
+  .replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي');
+let sIdx = null, sIdxLoading = null;
+const SK = 'ph_sidx_' + (C.ar ? 'ar' : 'en');
+try { const c = JSON.parse(sessionStorage.getItem(SK) || 'null'); if (c && c.l) sIdx = c; } catch (e) {}
+function loadIndex() {
+  if (sIdxLoading) return sIdxLoading;
+  sIdxLoading = fetch(ep('ph_search_index'), { credentials: 'same-origin' }).then(r => r.json()).then(d => {
+    if (d && d.l) { d.l.forEach(x => { x.s = norm(x.n + ' ' + x.k); }); sIdx = d; try { sessionStorage.setItem(SK, JSON.stringify(d)); } catch (e) {} renderSearch(); }
+  }).catch(() => {});
+  return sIdxLoading;
+}
+if (sIdx) sIdx.l.forEach(x => { if (!x.s) x.s = norm(x.n + ' ' + x.k); });
+function renderSearch() {
+  if (!sq || !sres) return;
   const q = sq.value.trim();
-  if (q.length < 2) { sres.innerHTML = ''; return; }
-  sT = setTimeout(async () => {
-    const id = ++sReq;
-    try {
-      const r = await (await fetch(ep('ph_search') + '&q=' + encodeURIComponent(q), { credentials: 'same-origin' })).json();
-      if (id !== sReq) return;
-      sres.innerHTML = r.length ? r.map(p => '<a href="' + esc(p.url) + '"><span class="si"><img src="' + esc(p.img) + '" alt=""></span><span><b>' + esc(p.name) + '</b><small>' + esc(p.price) + '</small></span></a>').join('') + '<a class="all" href="' + esc(C.search + '?post_type=product&s=' + encodeURIComponent(q)) + '">' + esc(T('seeAll')) + ' ' + icon.arrow + '</a>'
-        : '<div class="none">' + esc(T('noMatch')) + ' “' + esc(q) + '”</div>';
-    } catch (e) {}
-  }, 220);
+  if (q.length < 1) { sres.innerHTML = ''; return; }
+  if (!sIdx) { loadIndex(); return; }
+  const words = norm(q).split(/\s+/).filter(Boolean);
+  const hits = sIdx.l.filter(x => words.every(w => x.s.includes(w))).slice(0, 12);
+  sres.innerHTML = hits.length ? hits.map(p => '<a href="' + esc(p.u) + '"><span class="si"><img src="' + esc(p.i) + '" alt=""></span><span><b>' + esc(p.n) + '</b><small>' + esc(p.p) + '</small></span></a>').join('') + '<a class="all" href="' + esc(C.search + '?post_type=product&s=' + encodeURIComponent(q)) + '">' + esc(T('seeAll')) + ' ' + icon.arrow + '</a>'
+    : '<div class="none">' + esc(T('noMatch')) + ' “' + esc(q) + '”</div>';
+}
+sq && sq.addEventListener('input', renderSearch);
+$('#openSearch') && $('#openSearch').addEventListener('pointerenter', loadIndex);
+$('#openSearch') && $('#openSearch').addEventListener('click', loadIndex);
+// fetch the list quietly once the page is idle, so the first search is instant too
+(window.requestIdleCallback || (f => setTimeout(f, 2500)))(() => { if (C.ajax && !sIdx) loadIndex(); });
+
+/* ---------- instant pages for browsers without speculation rules: prefetch on hover / touch ---------- */
+(() => {
+  if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) return;
+  const done = new Set(), skip = /add-to-cart|ph_buy_now|wc-ajax|wp-admin|wp-login|customer-logout|\/(cart|checkout|my-account)\b|\.php/;
+  const go = e => {
+    const a = e.target.closest && e.target.closest('a[href]'); if (!a || a.target === '_blank' || a.hasAttribute('download')) return;
+    let u; try { u = new URL(a.href, location.href); } catch (x) { return; }
+    if (u.origin !== location.origin || u.hash && u.pathname === location.pathname || skip.test(u.href) || done.has(u.href)) return;
+    done.add(u.href); const l = document.createElement('link'); l.rel = 'prefetch'; l.href = u.href; document.head.appendChild(l);
+  };
+  document.addEventListener('pointerover', go, { passive: true });
+  document.addEventListener('touchstart', go, { passive: true });
+})();
+
+/* ---------- forms answer immediately (sent in the background) ---------- */
+document.addEventListener('submit', e => {
+  const f = e.target;
+  if (!f.matches('form.news, form.phform')) return;
+  if (f.matches('form.phform')) {
+    const ph = $('input[name=phone]', f), em = $('input[name=email]', f);
+    if (ph && em && !ph.value.trim() && !em.value.trim()) { e.preventDefault(); ph.setCustomValidity(T('needContact')); ph.reportValidity(); ph.addEventListener('input', () => ph.setCustomValidity(''), { once: true }); return; }
+  }
+  e.preventDefault();
+  const body = new FormData(f);
+  fetch(f.getAttribute('action'), { method: 'POST', body, credentials: 'same-origin' }).catch(() => {});
+  if (f.matches('form.news')) { f.reset(); toast(T('subscribed')); return; }
+  const card = f.closest('.fcard') || f;
+  const ok = document.createElement('div'); ok.className = 'phform-ok'; ok.innerHTML = icon.check + ' ' + esc(f.dataset.ok || T('sent'));
+  f.reset(); $$('.phform-ok,.phform-err', f).forEach(x => x.remove()); f.prepend(ok); ok.scrollIntoView({ block: 'center', behavior: 'smooth' });
 });
 
 /* ---------- cursor ---------- */
@@ -454,6 +509,24 @@ document.addEventListener('click', e => { const r = e.target.closest('.woocommer
     if (!e.target.matches('.woocommerce-cart-form input.qty')) return;
     clearTimeout(t); t = setTimeout(() => { const b = $('.woocommerce-cart-form [name="update_cart"]'); if (b) { b.disabled = false; b.click(); } }, 350);
   });
+})();
+
+/* checkout: delivery price and total change the moment a governorate is picked */
+(() => {
+  const sel = $('#billing_state'); if (!sel || !C.ship) return;
+  const num = el => el ? parseFloat(el.textContent.replace(/[^\d.]/g, '')) || 0 : 0;
+  const setNum = (el, v) => { if (!el) return; const b = el.querySelector('bdi') || el; const t = b.textContent; b.lastChild && (b.innerHTML = b.innerHTML.replace(/[\d,]+(\.\d+)?/, v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }))); };
+  const apply = () => {
+    const v = sel.value; if (!v) return;
+    const cost = v in C.ship.s ? C.ship.s[v] : C.ship.def; if (cost == null) return;
+    const shipEl = $('.co-totals .woocommerce-shipping-totals td .amount'), totEl = $('.co-totals .order-total td .amount');
+    if (!shipEl || !totEl) return;
+    const total = num(totEl) - num(shipEl) + cost;
+    setNum(shipEl, cost); setNum(totEl, total);
+    const btn = $('#place_order'); if (btn) btn.innerHTML = btn.innerHTML.replace(/[\d,]+\.\d{2}/, total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  };
+  sel.addEventListener('change', apply);
+  if (window.jQuery) jQuery(sel).on('change', apply);
 })();
 
 /* ---------- checkout: coupon inside the order summary ---------- */

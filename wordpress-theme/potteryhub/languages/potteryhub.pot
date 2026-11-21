@@ -402,6 +402,12 @@ msgstr ""
 msgid "Please enter a valid email"
 msgstr ""
 
+msgid "Thanks! We’ll get back to you soon."
+msgstr ""
+
+msgid "Please add your name and a phone number or email."
+msgstr ""
+
 msgid "Arabic version"
 msgstr ""
 
@@ -433,12 +439,6 @@ msgid "Google Maps link (optional)"
 msgstr ""
 
 msgid "Thanks! We’ll call you to confirm your place."
-msgstr ""
-
-msgid "Thanks! We’ll get back to you soon."
-msgstr ""
-
-msgid "Please add your name and a phone number or email."
 msgstr ""
 
 msgid "Name"
@@ -490,6 +490,9 @@ msgid "Full name"
 msgstr ""
 
 msgid "Phone number"
+msgstr ""
+
+msgid "To get your order confirmation"
 msgstr ""
 
 msgid "Governorate"

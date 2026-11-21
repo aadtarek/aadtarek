@@ -117,7 +117,6 @@ function ph_mini_cart() {
 		}
 		echo '<div class="tot big"><span>' . esc_html__( 'Subtotal', 'potteryhub' ) . '</span><span>' . WC()->cart->get_cart_subtotal() . '</span></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		echo '<a class="btn wide" href="' . esc_url( wc_get_checkout_url() ) . '">' . esc_html__( 'Checkout', 'potteryhub' ) . ' ' . ph_icon( 'arrow', 16, 2 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
-		echo '<a class="vcart" href="' . esc_url( wc_get_cart_url() ) . '">' . esc_html__( 'View cart', 'potteryhub' ) . '</a>';
 		echo '</div>';
 	} else {
 		echo '<div class="dbody"><div class="dempty"><div class="eb">' . ph_icon( 'bag', 30, 1.4 ) . '</div><b>' . esc_html__( 'Your cart is empty', 'potteryhub' ) . '</b>' . esc_html__( 'Find a piece you love.', 'potteryhub' ) . '<br><a class="btn" href="' . esc_url( wc_get_page_permalink( 'shop' ) ) . '">' . esc_html__( 'Start shopping', 'potteryhub' ) . '</a></div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
@@ -256,9 +255,9 @@ add_action( 'woocommerce_after_quantity_input_field', fn() => print '<button typ
 /* Checkout ------------------------------------------------------------------ */
 
 /**
- * Checkout asks for four things only: full name, phone, governorate and the
- * full address. The country is always Egypt; no email, city, postcode,
- * second address or order notes.
+ * Checkout asks for: full name, phone, email (optional), governorate and the
+ * full address. The country is always Egypt; no city, postcode, second
+ * address or order notes.
  */
 add_filter(
 	'woocommerce_checkout_fields',
@@ -280,6 +279,16 @@ add_filter(
 				'required'    => true,
 				'type'        => 'tel',
 				'validate'    => array( 'phone' ),
+			),
+			'billing_email'      => array(
+				'type'         => 'email',
+				'label'        => __( 'Email', 'potteryhub' ),
+				'placeholder'  => __( 'To get your order confirmation', 'potteryhub' ),
+				'class'        => array( 'form-row-wide' ),
+				'priority'     => 22,
+				'required'     => false,
+				'validate'     => array( 'email' ),
+				'autocomplete' => 'email',
 			),
 			'billing_country'    => array(
 				'type'     => 'hidden',
@@ -544,4 +553,149 @@ add_filter(
 		return $rates;
 	},
 	20
+);
+
+/* Instant search ---------------------------------------------------------- */
+
+/**
+ * wc-ajax=ph_search_index — every visible product in one small list, so the
+ * search box can filter as you type with no waiting. Cached per language and
+ * refreshed whenever a product changes.
+ */
+function ph_search_index() {
+	$lang = ph_lang();
+	$key  = 'ph_sidx_' . $lang . '_' . get_option( 'ph_sidx_ver', 1 );
+	$out  = get_transient( $key );
+	if ( false === $out ) {
+		$out = array();
+		$ids = wc_get_products(
+			array(
+				'status'     => 'publish',
+				'visibility' => 'catalog',
+				'limit'      => 1000,
+				'return'     => 'ids',
+				'orderby'    => 'popularity',
+			)
+		);
+		foreach ( $ids as $id ) {
+			$p = wc_get_product( $id );
+			if ( ! $p || ! $p->is_visible() ) {
+				continue;
+			}
+			$cats  = wp_get_post_terms( $id, 'product_cat', array( 'fields' => 'names' ) );
+			$out[] = array(
+				'n' => $p->get_name(),
+				'k' => wp_strip_all_tags( get_post_field( 'post_title', $id ) . ' ' . get_post_meta( $id, '_ph_name_ar', true ) . ' ' . $p->get_sku() . ' ' . implode( ' ', is_wp_error( $cats ) ? array() : $cats ) ),
+				'p' => ph_plain_price( wc_get_price_to_display( $p ) ),
+				'i' => ph_product_img( $p, 'woocommerce_thumbnail' ),
+				'u' => $p->get_permalink(),
+			);
+		}
+		set_transient( $key, $out, DAY_IN_SECONDS );
+	}
+	wp_send_json(
+		array(
+			'v' => (int) get_option( 'ph_sidx_ver', 1 ),
+			'l' => $out,
+		)
+	);
+}
+add_action( 'wc_ajax_ph_search_index', 'ph_search_index' );
+
+/** A product changed: bump the index version (old cached copies expire). */
+foreach ( array( 'woocommerce_update_product', 'woocommerce_new_product', 'woocommerce_delete_product', 'woocommerce_trash_product', 'woocommerce_product_set_stock_status', 'edited_product_cat' ) as $ph_hook ) {
+	add_action( $ph_hook, fn() => update_option( 'ph_sidx_ver', (int) get_option( 'ph_sidx_ver', 1 ) + 1, true ) );
+}
+
+/* Instant page loads -------------------------------------------------------- */
+
+/**
+ * Browsers that support it start loading a page while the pointer rests on its
+ * link, so the click shows it immediately. Cart, checkout, account, admin and
+ * add-to-cart links are never pre-loaded.
+ */
+add_action(
+	'wp_footer',
+	function () {
+		if ( is_admin() || is_customize_preview() ) {
+			return;
+		}
+		$rules = array(
+			'prerender' => array(
+				array(
+					'source'    => 'document',
+					'where'     => array(
+						'and' => array(
+							array( 'href_matches' => '/*' ),
+							array( 'not' => array( 'href_matches' => array( '/wp-*', '/*/wp-*', '*\\?*add-to-cart=*', '*\\?*ph_buy_now*', '*\\?*wc-ajax=*', '*\\?*customer-logout*', '/*/feed/*', '*.php*' ) ) ),
+							array( 'not' => array( 'selector_matches' => '[rel~=nofollow], [target=_blank], .no-prerender, a[download]' ) ),
+						),
+					),
+					'eagerness' => 'moderate',
+				),
+			),
+		);
+		$skip = array();
+		foreach ( array( 'cart', 'checkout', 'myaccount' ) as $page ) {
+			$id = function_exists( 'wc_get_page_id' ) ? wc_get_page_id( $page ) : 0;
+			if ( $id > 0 ) {
+				$path = wp_parse_url( get_permalink( $id ), PHP_URL_PATH );
+				if ( $path ) {
+					$skip[] = rtrim( $path, '/' ) . '*';
+				}
+			}
+		}
+		if ( $skip ) {
+			$rules['prerender'][0]['where']['and'][] = array( 'not' => array( 'href_matches' => $skip ) );
+		}
+		echo '<script type="speculationrules">' . wp_json_encode( $rules, JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+	},
+	99
+);
+
+/**
+ * Delivery prices by governorate, so the checkout total changes the moment a
+ * governorate is picked (WooCommerce confirms it right after).
+ */
+function ph_ship_map() {
+	$map = array(
+		'def' => null,
+		's'   => array(),
+	);
+	if ( ! class_exists( 'WC_Shipping_Zones' ) ) {
+		return $map;
+	}
+	foreach ( WC_Shipping_Zones::get_zones() as $z ) {
+		$cost = null;
+		foreach ( $z['shipping_methods'] as $m ) {
+			if ( 'yes' === $m->enabled && 'flat_rate' === $m->id && is_numeric( $m->get_option( 'cost' ) ) ) {
+				$cost = (float) $m->get_option( 'cost' );
+				break;
+			}
+			if ( 'yes' === $m->enabled && 'free_shipping' === $m->id && ! $m->get_option( 'requires' ) ) {
+				$cost = 0.0;
+				break;
+			}
+		}
+		if ( null === $cost ) {
+			continue;
+		}
+		foreach ( $z['zone_locations'] as $loc ) {
+			if ( 'state' === $loc->type && 0 === strpos( $loc->code, 'EG:' ) && ! isset( $map['s'][ substr( $loc->code, 3 ) ] ) ) {
+				$map['s'][ substr( $loc->code, 3 ) ] = $cost;
+			} elseif ( 'country' === $loc->type && 'EG' === $loc->code && null === $map['def'] ) {
+				$map['def'] = $cost;
+			}
+		}
+	}
+	return $map;
+}
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+			wp_add_inline_script( 'ph-main', 'window.PH=window.PH||{};PH.ship=' . wp_json_encode( ph_ship_map() ) . ';', 'before' );
+		}
+	},
+	21
 );
