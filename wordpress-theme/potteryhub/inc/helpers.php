@@ -146,7 +146,7 @@ function ph_card( $product, $i = 0 ) {
 	$off  = ph_discount( $product );
 	$url  = $product->get_permalink();
 	$name = $product->get_name();
-	$img  = $product->get_image_id() ? wp_get_attachment_image( $product->get_image_id(), 'woocommerce_single', false, array( 'loading' => 'lazy', 'alt' => $name ) ) : wc_placeholder_img( 'woocommerce_single' );
+	$img  = $product->get_image_id() ? wp_get_attachment_image( $product->get_image_id(), 'woocommerce_single', false, array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => $name, 'sizes' => '(max-width: 640px) 48vw, (max-width: 1100px) 32vw, 360px' ) ) : wc_placeholder_img( 'woocommerce_single' );
 	?>
 	<article class="card" data-cur="<?php esc_attr_e( 'View', 'potteryhub' ); ?>" style="--d:<?php echo (int) ( ( $i % 4 ) * 90 ); ?>ms">
 		<div class="media">

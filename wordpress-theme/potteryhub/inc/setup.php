@@ -116,6 +116,21 @@ function ph_full_load_paths() {
 /* WordPress' own link pre-loading is not needed: main.js opens pages instantly. */
 add_filter( 'wp_speculation_rules_configuration', '__return_null' );
 
+/* Fonts don't hold up the first paint: connect early, load the stylesheet without blocking. */
+add_filter(
+	'style_loader_tag',
+	function ( $tag, $handle ) {
+		if ( 'ph-fonts' !== $handle || is_admin() ) {
+			return $tag;
+		}
+		$pre = '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+		$async = str_replace( array( "rel='stylesheet'", 'rel="stylesheet"' ), 'rel="preload" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" data-no-optimize="1"', $tag );
+		return $pre . $async . '<noscript>' . $tag . '</noscript>';
+	},
+	10,
+	2
+);
+
 /** Admin bar offset for the fixed header. */
 add_action(
 	'wp_head',
