@@ -92,19 +92,45 @@ function flyToCart(src, done) {
     if (t < 1) requestAnimationFrame(st); else { f.remove(); done(); }
   })(t0);
 }
-async function addToCart(id, qty, src, name, btn) {
-  if (btn) btn.classList.add('loading');
-  try {
-    const r = await post('add_to_cart', { product_id: id, quantity: qty || 1 });
-    if (r.error && r.product_url) { location.href = r.product_url; return; }
-    if (!r.fragments) throw 0;
-    flyToCart(src, () => applyFragments(r.fragments));
-    toast((qty > 1 ? qty + ' × ' : '') + (name || '') + ' — ' + T('added'), T('viewCart'), () => openDrawer('cart'));
-    if (btn) { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 900); }
-    if (window.jQuery) jQuery(document.body).trigger('added_to_cart', [r.fragments, r.cart_hash]);
-  } catch (err) { toast(T('error')); }
-  finally { if (btn) btn.classList.remove('loading'); }
+/* Instant add to cart: the bag updates right away, the server confirms in the background. */
+function bumpBag(n) {
+  const c = $('i.ph-bag-n'); if (!c) return;
+  const v = Math.max(0, (+c.textContent || 0) + n); c.textContent = v; c.classList.toggle('on', v > 0);
+  c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
 }
+let cartQueue = Promise.resolve();
+function addToCart(id, qty, src, name, btn) {
+  qty = qty || 1;
+  bumpBag(qty);
+  flyToCart(src, () => {});
+  toast((qty > 1 ? qty + ' × ' : '') + (name || '') + ' — ' + T('added'), T('viewCart'), () => openDrawer('cart'));
+  if (btn) { btn.classList.add('ok'); setTimeout(() => btn.classList.remove('ok'), 900); }
+  // requests run one after another so quick double-adds both count
+  const job = cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty })).then(r => {
+    if (r && r.error && r.product_url) { bumpBag(0 - qty); location.href = r.product_url; return; }
+    if (!r || !r.fragments) throw 0;
+    applyFragments(r.fragments, true);
+    if (window.jQuery) jQuery(document.body).trigger('added_to_cart', [r.fragments, r.cart_hash]);
+    return r;
+  }).catch(() => { bumpBag(0 - qty); toast(T('error')); });
+  cartQueue = job.catch(() => {});
+  return job;
+}
+/* Buy now: add in the background, then straight to checkout. */
+function buyNow(id, qty) {
+  bumpBag(qty || 1);
+  return cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty || 1 })).then(r => {
+    if (r && r.error && r.product_url) { location.href = r.product_url; return; }
+    location.href = C.checkout;
+  }).catch(() => { location.href = C.checkout; });
+}
+document.addEventListener('click', e => {
+  const qb = e.target.closest('a.qb[href*="ph_buy_now"]');
+  if (!qb || !C.checkout) return;
+  e.preventDefault();
+  const id = new URL(qb.href).searchParams.get('add-to-cart');
+  if (id) buyNow(id, 1); else location.href = qb.href;
+});
 document.addEventListener('click', e => {
   const qa = e.target.closest('[data-add]');
   if (qa) {
@@ -113,17 +139,19 @@ document.addEventListener('click', e => {
     addToCart(qa.dataset.add, 1, img, name, qa);
   }
 });
-/* drawer quantity & remove */
-document.addEventListener('click', async e => {
+/* drawer quantity & remove: change on screen first, then sync with the server */
+const lineQ = {};
+document.addEventListener('click', e => {
   const st = e.target.closest('.ph-mini .step button'), rm = e.target.closest('.ph-mini [data-rm]');
   if (!st && !rm) return;
-  const line = e.target.closest('.line'); line.classList.add('busy');
-  try {
-    let r;
-    if (rm) r = await post('remove_from_cart', { cart_item_key: rm.dataset.rm });
-    else { const q = Math.max(0, +$('output', line).textContent + +st.dataset.q); r = await post('ph_qty', { key: line.dataset.key, qty: q }); }
-    applyFragments(r.fragments);
-  } catch (err) { line.classList.remove('busy'); toast(T('error')); }
+  const line = e.target.closest('.line'), key = line.dataset.key, out = $('output', line), was = +out.textContent;
+  const q = rm ? 0 : Math.max(0, was + +st.dataset.q);
+  out.textContent = q; bumpBag(q - was);
+  if (!q) { line.style.height = line.offsetHeight + 'px'; requestAnimationFrame(() => line.classList.add('gone')); }
+  clearTimeout(lineQ[key]);
+  lineQ[key] = setTimeout(() => {
+    cartQueue = cartQueue.then(() => post('ph_qty', { key, qty: q })).then(r => applyFragments(r.fragments, true)).catch(() => { toast(T('error')); post('get_refreshed_fragments', {}).then(r => applyFragments(r.fragments, true)); });
+  }, q ? 300 : 0);
 });
 
 /* cached pages may show another visitor's (empty) cart: refresh it when this browser has one */
@@ -330,18 +358,23 @@ if (hero) {
 
 /* ---------- product page ---------- */
 const form = $('.book form.cart');
-$$('.quantity').forEach(q => {
-  const inp = $('input.qty', q); if (!inp) return;
-  const step = d => { const min = +inp.min || 1, max = +inp.max || 999; inp.value = clamp((+inp.value || 1) + d, min, max); inp.dispatchEvent(new Event('change', { bubbles: true })); };
-  const m = $('.qminus', q), p = $('.qplus', q); m && (m.onclick = () => step(-1)); p && (p.onclick = () => step(1));
+/* quantity +/- (delegated, so it keeps working after WooCommerce refreshes the cart) */
+document.addEventListener('click', e => {
+  const b = e.target.closest('.quantity .qminus, .quantity .qplus'); if (!b) return;
+  e.preventDefault();
+  const inp = $('input.qty', b.closest('.quantity')); if (!inp) return;
+  const min = inp.min === '' ? 1 : +inp.min, max = +inp.max || 999;
+  inp.value = clamp((+inp.value || 0) + (b.classList.contains('qplus') ? 1 : -1), min, max);
+  inp.dispatchEvent(new Event('change', { bubbles: true }));
+  if (window.jQuery) jQuery(inp).trigger('change');
 });
 if (form && !form.classList.contains('variations_form') && !form.classList.contains('grouped_form')) {
   const addBtn = $('.single_add_to_cart_button', form);
   form.addEventListener('submit', e => {
-    if (e.submitter && e.submitter.name === 'ph_buy_now') return;
     if (!addBtn || !addBtn.value) return;
     e.preventDefault();
     const qty = +($('input.qty', form) || { value: 1 }).value || 1;
+    if (e.submitter && e.submitter.name === 'ph_buy_now') { buyNow(addBtn.value, qty); return; }
     addToCart(addBtn.value, qty, $('#mainImg'), $('.dname') ? $('.dname').textContent : '', addBtn);
   });
 }
@@ -351,10 +384,10 @@ if (form && form.classList.contains('variations_form')) {
   const vid = () => +(($('input.variation_id', form) || {}).value || 0);
   if (buy) buy.disabled = true;
   form.addEventListener('submit', e => {
-    if (e.submitter && e.submitter.name === 'ph_buy_now') return;
     if (!vid() || (addBtn && addBtn.classList.contains('disabled'))) return;
     e.preventDefault();
     const qty = +($('input.qty', form) || { value: 1 }).value || 1;
+    if (e.submitter && e.submitter.name === 'ph_buy_now') { buyNow(vid(), qty); return; }
     addToCart(vid(), qty, mi, $('.dname') ? $('.dname').textContent : '', addBtn);
   });
   const swap = src => { if (!mi || !src || mi.src === src) return; mi.style.opacity = 0; setTimeout(() => { mi.src = src; mi.style.opacity = ''; }, 200); };
@@ -407,6 +440,21 @@ else {
     setTimeout(() => { pre.classList.add('out'); document.documentElement.style.overflow = ''; if (lenis && !open.size) lenis.start(); setTimeout(intro, 450); setTimeout(() => pre.remove(), 1400); }, 350);
   })(t0);
 }
+
+/* sort dropdown: close when clicking elsewhere */
+document.addEventListener('click', e => { $$('details.sort[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }); });
+
+/* cart page: rows disappear instantly when removed */
+document.addEventListener('click', e => { const r = e.target.closest('.woocommerce-cart-form .product-remove > a'); if (r) { const row = r.closest('.cart_item'); if (row) row.classList.add('gone'); } });
+/* cart page: update totals as soon as a quantity changes (no "Update cart" click) */
+(() => {
+  if (!$('form.woocommerce-cart-form')) return;
+  let t;
+  document.body.addEventListener('change', e => {
+    if (!e.target.matches('.woocommerce-cart-form input.qty')) return;
+    clearTimeout(t); t = setTimeout(() => { const b = $('.woocommerce-cart-form [name="update_cart"]'); if (b) { b.disabled = false; b.click(); } }, 350);
+  });
+})();
 
 /* ---------- checkout: coupon inside the order summary ---------- */
 (() => {

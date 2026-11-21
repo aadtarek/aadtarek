@@ -64,7 +64,7 @@ $ph_prices = array(
 					<div class="count"><?php woocommerce_result_count(); ?></div>
 					<div style="display:flex;gap:8px">
 						<button class="sel-wrap fbtn" type="button" id="openFilters"><?php echo ph_icon( 'filter', 15, 1.8 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php esc_html_e( 'Filters', 'potteryhub' ); ?></button>
-						<div class="sel-wrap"><?php woocommerce_catalog_ordering(); ?></div>
+						<?php ph_sort_menu(); ?>
 					</div>
 				</div>
 				<?php if ( woocommerce_product_loop() ) : ?>
@@ -77,7 +77,7 @@ $ph_prices = array(
 						}
 						?>
 					</div>
-					<?php woocommerce_pagination(); ?>
+					<?php ph_pagination(); ?>
 				<?php else : ?>
 					<div class="grid shop-grid"><div class="empty"><b><?php esc_html_e( 'Nothing here yet', 'potteryhub' ); ?></b><?php esc_html_e( 'Try another category or clear your filters.', 'potteryhub' ); ?><br><a class="see" href="<?php echo esc_url( $ph_shop ); ?>"><?php esc_html_e( 'Clear filters', 'potteryhub' ); ?></a></div></div>
 				<?php endif; ?>

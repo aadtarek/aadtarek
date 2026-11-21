@@ -255,7 +255,25 @@ msgstr ""
 msgid "Delivery details"
 msgstr ""
 
-msgid "Anything else?"
+msgid "Order summary"
+msgstr ""
+
+msgid "Calculated at checkout"
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "Keep shopping"
+msgstr ""
+
+msgid "Your pieces"
+msgstr ""
+
+msgid "Coupon code"
+msgstr ""
+
+msgid "Apply"
 msgstr ""
 
 msgid "Read"
@@ -468,25 +486,133 @@ msgstr ""
 msgid "Start shopping"
 msgstr ""
 
-msgid "Landmark, best time to call, gift note…"
+msgid "Full name"
+msgstr ""
+
+msgid "Phone number"
 msgstr ""
 
 msgid "Governorate"
 msgstr ""
 
-msgid "City / Area"
+msgid "Choose your governorate"
+msgstr ""
+
+msgid "Full address"
+msgstr ""
+
+msgid "Area, street, building number, floor, apartment, nearby landmark"
+msgstr ""
+
+msgid "Please enter a valid Egyptian phone number (e.g. 01012345678)."
 msgstr ""
 
 msgid "Have a coupon?"
 msgstr ""
 
-msgid "Coupon code"
-msgstr ""
-
-msgid "Apply"
-msgstr ""
-
 msgid "Place order"
+msgstr ""
+
+msgid "Featured"
+msgstr ""
+
+msgid "Best selling"
+msgstr ""
+
+msgid "Newest"
+msgstr ""
+
+msgid "Price: low to high"
+msgstr ""
+
+msgid "Price: high to low"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Pages"
+msgstr ""
+
+msgid "Page %1$d of %2$d"
+msgstr ""
+
+msgid "Home delivery"
+msgstr ""
+
+msgid "Free delivery"
+msgstr ""
+
+msgid "Email settings saved. Send a test email to check them."
+msgstr ""
+
+msgid "Pottery Hub — test email"
+msgstr ""
+
+msgid "If you can read this, order emails will arrive too."
+msgstr ""
+
+msgid "Test email sent to %s. Check the inbox (and spam)."
+msgstr ""
+
+msgid "The email could not be sent: %s"
+msgstr ""
+
+msgid "unknown error"
+msgstr ""
+
+msgid "7. Email delivery (order emails)"
+msgstr ""
+
+msgid "Most hosting servers block or spam-folder emails sent the default way, so order emails never arrive. Connect a real mailbox here and every email (new order, order confirmation, forms) goes through it."
+msgstr ""
+
+msgid "New-order emails go to: %s"
+msgstr ""
+
+msgid "change"
+msgstr ""
+
+msgid "Last email failure (%1$s): %2$s"
+msgstr ""
+
+msgid "SMTP server"
+msgstr ""
+
+msgid "Port & security"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Username (email)"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "(saved — leave empty to keep)"
+msgstr ""
+
+msgid "Gmail: use an \"App password\" (Google Account → Security → 2-Step Verification → App passwords), not your normal password."
+msgstr ""
+
+msgid "From email (optional)"
+msgstr ""
+
+msgid "From name (optional)"
+msgstr ""
+
+msgid "Save email settings"
+msgstr ""
+
+msgid "Send a test email"
+msgstr ""
+
+msgid "Emails from the shop are failing, so customers and you may not get order emails."
+msgstr ""
+
+msgid "Fix email delivery"
 msgstr ""
 
 msgid "Your email"
@@ -538,9 +664,6 @@ msgid "Cairo & Giza"
 msgstr ""
 
 msgid "Rest of Egypt"
-msgstr ""
-
-msgid "Home delivery"
 msgstr ""
 
 msgid "Delivery set: Cairo & Giza %1$s, other governorates %2$s. Fine-tune in WooCommerce → Settings → Shipping."

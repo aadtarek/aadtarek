@@ -256,8 +256,26 @@ msgstr "أضف للحقيبة"
 msgid "Delivery details"
 msgstr "بيانات التوصيل"
 
-msgid "Anything else?"
-msgstr "حاجة كمان؟"
+msgid "Order summary"
+msgstr "ملخص الطلب"
+
+msgid "Calculated at checkout"
+msgstr "بيتحسب في صفحة الدفع"
+
+msgid "Total"
+msgstr "الإجمالي"
+
+msgid "Keep shopping"
+msgstr "كمّل تسوّق"
+
+msgid "Your pieces"
+msgstr "قطعك"
+
+msgid "Coupon code"
+msgstr "كود الكوبون"
+
+msgid "Apply"
+msgstr "تطبيق"
 
 msgid "Read"
 msgstr "اقرأ"
@@ -364,26 +382,62 @@ msgstr "اختار قطعة تعجبك."
 msgid "Start shopping"
 msgstr "ابدأ التسوق"
 
-msgid "Landmark, best time to call, gift note…"
-msgstr "علامة مميزة، أنسب وقت نكلمك فيه، رسالة هدية…"
+msgid "Full name"
+msgstr "الاسم بالكامل"
+
+msgid "Phone number"
+msgstr "رقم الموبايل"
 
 msgid "Governorate"
 msgstr "المحافظة"
 
-msgid "City / Area"
-msgstr "المدينة / المنطقة"
+msgid "Choose your governorate"
+msgstr "اختار المحافظة"
+
+msgid "Full address"
+msgstr "العنوان بالتفصيل"
+
+msgid "Area, street, building number, floor, apartment, nearby landmark"
+msgstr "المنطقة، الشارع، رقم العمارة، الدور، الشقة، وعلامة مميزة"
+
+msgid "Please enter a valid Egyptian phone number (e.g. 01012345678)."
+msgstr "اكتب رقم موبايل مصري صحيح (مثلاً 01012345678)."
 
 msgid "Have a coupon?"
 msgstr "معاك كوبون خصم؟"
 
-msgid "Coupon code"
-msgstr "كود الكوبون"
-
-msgid "Apply"
-msgstr "تطبيق"
-
 msgid "Place order"
 msgstr "تأكيد الطلب"
+
+msgid "Featured"
+msgstr "المميز"
+
+msgid "Best selling"
+msgstr "الأكثر مبيعًا"
+
+msgid "Newest"
+msgstr "الأحدث"
+
+msgid "Price: low to high"
+msgstr "السعر: من الأقل للأعلى"
+
+msgid "Price: high to low"
+msgstr "السعر: من الأعلى للأقل"
+
+msgid "Sort"
+msgstr "ترتيب"
+
+msgid "Pages"
+msgstr "الصفحات"
+
+msgid "Page %1$d of %2$d"
+msgstr "صفحة %1$d من %2$d"
+
+msgid "Home delivery"
+msgstr "توصيل للمنزل"
+
+msgid "Free delivery"
+msgstr "توصيل مجاني"
 
 msgid "Your email"
 msgstr "بريدك الإلكتروني"
@@ -408,9 +462,6 @@ msgstr "القاهرة والجيزة"
 
 msgid "Rest of Egypt"
 msgstr "باقي المحافظات"
-
-msgid "Home delivery"
-msgstr "توصيل للمنزل"
 
 msgid "Date"
 msgstr "التاريخ"

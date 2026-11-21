@@ -18,6 +18,7 @@ $ph_wc = class_exists( 'WooCommerce' );
 <?php wp_body_open(); ?>
 <div id="cur"><span></span></div>
 
+<?php if ( is_front_page() ) : ?>
 <div id="pre" aria-hidden="true">
 	<svg class="spark" style="left:14%;top:22%" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
 	<svg class="spark" style="right:18%;top:30%;animation-delay:-.8s" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 6.5 3.5 9.4 10 10-6.5.6-9.4 3.5-10 10-.6-6.5-3.5-9.4-10-10 6.5-.6 9.4-3.5 10-10z"/></svg>
@@ -29,6 +30,7 @@ $ph_wc = class_exists( 'WooCommerce' );
 		<div class="pre-bar"><i id="preBar"></i></div>
 	</div>
 </div>
+<?php endif; ?>
 <div id="prog"></div>
 
 <header class="nav pre" id="nav">

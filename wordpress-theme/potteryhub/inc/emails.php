@@ -31,6 +31,7 @@ add_action(
 	function () {
 		if ( class_exists( 'WooCommerce' ) ) {
 			ph_brand_emails();
+			ph_enable_order_emails();
 		}
 	}
 );

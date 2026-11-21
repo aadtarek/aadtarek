@@ -255,93 +255,126 @@ add_action( 'woocommerce_after_quantity_input_field', fn() => print '<button typ
 
 /* Checkout ------------------------------------------------------------------ */
 
-/** Checkout fields: phone required (we call to confirm), no company, Egyptian-friendly order. */
+/**
+ * Checkout asks for four things only: full name, phone, governorate and the
+ * full address. The country is always Egypt; no email, city, postcode,
+ * second address or order notes.
+ */
 add_filter(
 	'woocommerce_checkout_fields',
 	function ( $f ) {
-		unset( $f['billing']['billing_company'], $f['shipping']['shipping_company'] );
-		$order = array(
-			'first_name' => 10,
-			'last_name'  => 20,
-			'phone'      => 30,
-			'email'      => 40,
-			'country'    => 50,
-			'state'      => 60,
-			'city'       => 70,
-			'address_1'  => 80,
-			'address_2'  => 90,
-			'postcode'   => 100,
+		$keep = array(
+			'billing_first_name' => array(
+				'label'        => __( 'Full name', 'potteryhub' ),
+				'placeholder'  => '',
+				'class'        => array( 'form-row-wide' ),
+				'priority'     => 10,
+				'required'     => true,
+				'autocomplete' => 'name',
+			),
+			'billing_phone'      => array(
+				'label'       => __( 'Phone number', 'potteryhub' ),
+				'placeholder' => '01xxxxxxxxx',
+				'class'       => array( 'form-row-wide' ),
+				'priority'    => 20,
+				'required'    => true,
+				'type'        => 'tel',
+				'validate'    => array( 'phone' ),
+			),
+			'billing_country'    => array(
+				'type'     => 'hidden',
+				'label'    => '',
+				'class'    => array( 'ph-hidden' ),
+				'priority' => 25,
+				'required' => true,
+				'default'  => 'EG',
+			),
+			'billing_state'      => array(
+				'type'        => 'state',
+				'country'     => 'EG',
+				'label'       => __( 'Governorate', 'potteryhub' ),
+				'placeholder' => __( 'Choose your governorate', 'potteryhub' ),
+				'class'       => array( 'form-row-wide', 'address-field', 'update_totals_on_change' ),
+				'priority'    => 30,
+				'required'    => true,
+				'validate'    => array( 'state' ),
+			),
+			'billing_address_1'  => array(
+				'type'         => 'textarea',
+				'label'        => __( 'Full address', 'potteryhub' ),
+				'placeholder'  => __( 'Area, street, building number, floor, apartment, nearby landmark', 'potteryhub' ),
+				'class'        => array( 'form-row-wide' ),
+				'priority'     => 40,
+				'required'     => true,
+				'autocomplete' => 'street-address',
+			),
 		);
-		foreach ( array( 'billing', 'shipping' ) as $g ) {
-			foreach ( $order as $k => $prio ) {
-				if ( isset( $f[ $g ][ $g . '_' . $k ] ) ) {
-					$f[ $g ][ $g . '_' . $k ]['priority'] = $prio;
-				}
+		foreach ( array_keys( $f['billing'] ) as $k ) {
+			if ( ! isset( $keep[ $k ] ) ) {
+				unset( $f['billing'][ $k ] );
 			}
 		}
-		if ( isset( $f['billing']['billing_phone'] ) ) {
-			$f['billing']['billing_phone']['required'] = true;
-			$f['billing']['billing_phone']['class']    = array( 'form-row-first' );
+		foreach ( $keep as $k => $v ) {
+			$f['billing'][ $k ] = array_merge( isset( $f['billing'][ $k ] ) ? $f['billing'][ $k ] : array(), $v );
 		}
-		if ( isset( $f['billing']['billing_email'] ) ) {
-			$f['billing']['billing_email']['class'] = array( 'form-row-last' );
-		}
-		if ( isset( $f['order']['order_comments'] ) ) {
-			$f['order']['order_comments']['placeholder'] = __( 'Landmark, best time to call, gift note…', 'potteryhub' );
-		}
+		$f['shipping'] = array();
+		$f['order']    = array();
 		return $f;
-	}
-);
-
-/** Egypt: no postcode, governorate + city side by side. */
-add_filter(
-	'woocommerce_get_country_locale',
-	function ( $l ) {
-		$l['EG'] = array_merge(
-			isset( $l['EG'] ) ? $l['EG'] : array(),
-			array(
-				'postcode' => array(
-					'required' => false,
-					'hidden'   => true,
-				),
-				'state'    => array(
-					'label'    => __( 'Governorate', 'potteryhub' ),
-					'required' => true,
-					'class'    => array( 'form-row-first', 'address-field' ),
-				),
-				'city'     => array(
-					'label' => __( 'City / Area', 'potteryhub' ),
-					'class' => array( 'form-row-last', 'address-field' ),
-				),
-			)
-		);
-		return $l;
-	}
-);
-
-/** Keep our field order after WooCommerce's address script re-sorts by country; phone is required. */
-add_filter(
-	'woocommerce_get_country_locale_default',
-	function ( $d ) {
-		$prio = array(
-			'first_name' => 10,
-			'last_name'  => 20,
-			'phone'      => 30,
-			'country'    => 50,
-			'state'      => 60,
-			'city'       => 70,
-			'address_1'  => 80,
-			'address_2'  => 90,
-			'postcode'   => 100,
-		);
-		foreach ( $prio as $k => $p ) {
-			$d[ $k ]             = isset( $d[ $k ] ) ? $d[ $k ] : array();
-			$d[ $k ]['priority'] = $p;
-		}
-		$d['phone']['required'] = true;
-		return $d;
 	},
-	20
+	99
+);
+
+/** The country is always Egypt. */
+add_filter(
+	'woocommerce_checkout_get_value',
+	function ( $value, $input ) {
+		return in_array( $input, array( 'billing_country', 'shipping_country' ), true ) ? 'EG' : $value;
+	},
+	10,
+	2
+);
+add_action(
+	'woocommerce_checkout_update_order_review',
+	function () {
+		if ( WC()->customer ) {
+			WC()->customer->set_billing_country( 'EG' );
+			WC()->customer->set_shipping_country( 'EG' );
+		}
+	}
+);
+
+/** Deliver to the address above (no second address, no notes box). */
+add_filter( 'woocommerce_cart_needs_shipping_address', '__return_false' );
+add_filter( 'woocommerce_enable_order_notes_field', '__return_false' );
+
+/** Store the order cleanly: copy the address to shipping, and use the account email when logged in. */
+add_action(
+	'woocommerce_checkout_create_order',
+	function ( $order ) {
+		$order->set_billing_country( 'EG' );
+		$order->set_shipping_first_name( $order->get_billing_first_name() );
+		$order->set_shipping_address_1( $order->get_billing_address_1() );
+		$order->set_shipping_state( $order->get_billing_state() );
+		$order->set_shipping_country( 'EG' );
+		$order->set_shipping_phone( $order->get_billing_phone() );
+		if ( ! $order->get_billing_email() && is_user_logged_in() ) {
+			$order->set_billing_email( wp_get_current_user()->user_email );
+		}
+	}
+);
+
+/** Egyptian mobile numbers: 11 digits starting with 01 (or +20 / 0020). */
+add_action(
+	'woocommerce_after_checkout_validation',
+	function ( $data, $errors ) {
+		$p = preg_replace( '/[\s\-\(\)]/', '', (string) ( $data['billing_phone'] ?? '' ) );
+		$p = preg_replace( '/^(\+|00)20/', '0', $p );
+		if ( $p && ! preg_match( '/^01[0125]\d{8}$/', $p ) && ! preg_match( '/^0\d{8,9}$/', $p ) ) {
+			$errors->add( 'billing_phone', __( 'Please enter a valid Egyptian phone number (e.g. 01012345678).', 'potteryhub' ), array( 'id' => 'billing_phone' ) );
+		}
+	},
+	10,
+	2
 );
 
 /** Arabic checkout privacy note (when the store still uses WooCommerce's default English text). */
@@ -407,4 +440,108 @@ add_filter(
 		}
 		return $c;
 	}
+);
+
+/** Error messages say "Full name is required", not "Billing Full name…". */
+add_filter(
+	'gettext_with_context_woocommerce',
+	function ( $t, $text, $context ) {
+		return 'checkout-validation' === $context && 'Billing %s' === $text ? '%s' : $t;
+	},
+	10,
+	3
+);
+
+/** Governorate starts empty so the shopper picks it (and the right delivery price). */
+add_filter( 'default_checkout_billing_state', fn( $v ) => is_user_logged_in() ? $v : '' );
+
+/* Shop toolbar ------------------------------------------------------------- */
+
+/** Sorting options (short labels). */
+add_filter(
+	'woocommerce_catalog_orderby',
+	function () {
+		return array(
+			'menu_order' => __( 'Featured', 'potteryhub' ),
+			'popularity' => __( 'Best selling', 'potteryhub' ),
+			'date'       => __( 'Newest', 'potteryhub' ),
+			'price'      => __( 'Price: low to high', 'potteryhub' ),
+			'price-desc' => __( 'Price: high to low', 'potteryhub' ),
+		);
+	}
+);
+
+/** Sorting dropdown (plain links, so it works without JavaScript and with caching). */
+function ph_sort_menu() {
+	if ( ! wc_get_loop_prop( 'is_paginated' ) || ! woocommerce_products_will_display() ) {
+		return;
+	}
+	$opts    = apply_filters( 'woocommerce_catalog_orderby', array() );
+	$default = apply_filters( 'woocommerce_default_catalog_orderby', get_option( 'woocommerce_default_catalog_orderby', 'menu_order' ) );
+	$current = isset( $_GET['orderby'] ) ? wc_clean( wp_unslash( $_GET['orderby'] ) ) : $default; // phpcs:ignore WordPress.Security.NonceVerification
+	if ( ! isset( $opts[ $current ] ) ) {
+		$current = array_key_first( $opts );
+	}
+	echo '<details class="sort"><summary><span class="sort-l">' . esc_html__( 'Sort', 'potteryhub' ) . '</span><b>' . esc_html( $opts[ $current ] ) . '</b><i class="sort-c" aria-hidden="true"></i></summary><div class="sort-m" role="menu">';
+	foreach ( $opts as $k => $label ) {
+		$url = remove_query_arg( array( 'paged', 'product-page' ), add_query_arg( 'orderby', $k ) );
+		$url = preg_replace( '#/page/\d+/?#', '/', $url );
+		echo '<a role="menuitem" href="' . esc_url( $url ) . '"' . ( $k === $current ? ' class="on" aria-current="true"' : '' ) . ' rel="nofollow">' . esc_html( $label ) . ( $k === $current ? ph_icon( 'check', 15, 2 ) : '' ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	}
+	echo '</div></details>';
+}
+
+/** Pagination: previous / numbers / next. */
+function ph_pagination() {
+	global $wp_query;
+	$total = (int) $wp_query->max_num_pages;
+	if ( $total < 2 ) {
+		return;
+	}
+	$cur  = max( 1, (int) get_query_var( 'paged' ) );
+	$base = esc_url_raw( str_replace( 999999999, '%#%', remove_query_arg( 'add-to-cart', get_pagenum_link( 999999999, false ) ) ) );
+	$links = paginate_links(
+		array(
+			'base'      => $base,
+			'format'    => '',
+			'current'   => $cur,
+			'total'     => $total,
+			'type'      => 'array',
+			'mid_size'  => 1,
+			'end_size'  => 1,
+			'prev_next' => false,
+		)
+	);
+	$url = fn( $n ) => str_replace( '%#%', $n, $base );
+	echo '<nav class="pager" aria-label="' . esc_attr__( 'Pages', 'potteryhub' ) . '">';
+	echo $cur > 1 ? '<a class="pg-arrow" href="' . esc_url( $url( $cur - 1 ) ) . '" rel="prev">' . ph_icon( 'back', 16, 2 ) . '<span>' . esc_html__( 'Previous', 'potteryhub' ) . '</span></a>' : '<span class="pg-arrow off">' . ph_icon( 'back', 16, 2 ) . '<span>' . esc_html__( 'Previous', 'potteryhub' ) . '</span></span>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo '<div class="pg-nums">' . implode( '', (array) $links ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	echo $cur < $total ? '<a class="pg-arrow" href="' . esc_url( $url( $cur + 1 ) ) . '" rel="next"><span>' . esc_html__( 'Next', 'potteryhub' ) . '</span>' . ph_icon( 'arrow', 16, 2 ) . '</a>' : '<span class="pg-arrow off"><span>' . esc_html__( 'Next', 'potteryhub' ) . '</span>' . ph_icon( 'arrow', 16, 2 ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput
+	/* translators: 1: current page, 2: total pages */
+	echo '<div class="pg-of">' . esc_html( sprintf( __( 'Page %1$d of %2$d', 'potteryhub' ), $cur, $total ) ) . '</div>';
+	echo '</nav>';
+}
+
+/** Cart page: no cross-sell block (keeps the summary clean). */
+remove_action( 'woocommerce_cart_collaterals', 'woocommerce_cross_sell_display' );
+
+/** Shipping method names set up in English show in Arabic on the Arabic site. */
+add_filter(
+	'woocommerce_package_rates',
+	function ( $rates ) {
+		if ( ph_is_ar() ) {
+			$map = array(
+				'Home delivery' => __( 'Home delivery', 'potteryhub' ),
+				'Flat rate'     => __( 'Home delivery', 'potteryhub' ),
+				'Free shipping' => __( 'Free delivery', 'potteryhub' ),
+			);
+			foreach ( $rates as $r ) {
+				if ( isset( $map[ $r->get_label() ] ) ) {
+					$r->set_label( $map[ $r->get_label() ] );
+				}
+			}
+		}
+		return $rates;
+	},
+	20
 );

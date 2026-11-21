@@ -72,8 +72,15 @@ function ph_admin_run( $tool ) {
 			/* translators: %d: number of pages */
 			return $n ? sprintf( __( 'Created %d pages (About, Workshops, Contact, Journal) with English and Arabic text. Edit them in Pages.', 'potteryhub' ), $n ) : __( 'The pages already exist.', 'potteryhub' );
 
+		case 'smtp_save':
+			return ph_smtp_save();
+
+		case 'smtp_test':
+			return ph_smtp_test();
+
 		case 'emails':
 			ph_brand_emails( true );
+			ph_enable_order_emails();
 			return __( 'Order emails now use the shop’s colours and logo. Preview them in WooCommerce → Settings → Emails.', 'potteryhub' );
 
 		case 'shipping':
@@ -184,6 +191,9 @@ function ph_admin_page() {
 		};
 		$tool( 'shipping', __( '6. Delivery prices in Egypt', 'potteryhub' ), __( 'Creates two delivery zones — Cairo & Giza, and the rest of Egypt — each with its own price. Running it again replaces these two zones.', 'potteryhub' ), __( 'Save delivery prices', 'potteryhub' ), $field( 'ph_ship_near', __( 'Cairo & Giza', 'potteryhub' ) ) . $field( 'ph_ship_far', __( 'Other governorates', 'potteryhub' ) ) );
 	}
+
+	echo '<div id="smtp"></div>';
+	ph_smtp_card();
 
 	$msgs = get_option( 'ph_messages', array() );
 	echo '<div class="card" style="max-width:760px"><h2>' . esc_html__( 'Messages & workshop requests', 'potteryhub' ) . ' (' . count( $msgs ) . ')</h2>';
