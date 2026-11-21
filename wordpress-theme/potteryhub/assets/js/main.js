@@ -653,13 +653,26 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
     doc.querySelectorAll('head style[id]').forEach(st => { if (!document.getElementById(st.id)) document.head.appendChild(st.cloneNode(true)); });
     return Promise.all(waits);
   }
-  /* The scripts a page runs. A page that needs different ones opens with a normal load, so nothing
-     ever runs twice. Caching plugins' combined files are left out: every page enqueues the same
-     scripts (see inc/woocommerce.php), they differ only in per-page inline data. */
-  const sig = d => [...d.querySelectorAll('script')].filter(x => !x.closest('#ph-main')).map(x => key(new URL(x.getAttribute('src') || x.getAttribute('data-src') || '', location.href).href)).filter(u => !/^(blob|data):/.test(u) && u !== key(location.href) && !/\/wp-content\/litespeed\/|connect\.facebook|googletagmanager|google-analytics|clarity\.ms|tiktok|snap/.test(u));
-  let mine = null; // scripts this page loaded (read once the page has finished parsing)
-  const sameScripts = d => { if (!mine) mine = new Set(sig(document)); return sig(d).every(u => mine.has(u)); };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mine = new Set(sig(document)); });
+  /* Scripts. Every page loads the same core set (WordPress, WooCommerce, the theme, analytics) —
+     sometimes one by one, sometimes inside a caching plugin's combined file — so those are never
+     loaded twice. A plugin script only some pages use (e.g. on cart or checkout) is loaded once,
+     the first time a page that needs it opens. */
+  const common = /\/wp-includes\/js\/|\/woocommerce\/assets\/js\/(jquery-blockui|js-cookie|sourcebuster|frontend\/(add-to-cart|woocommerce|single-product|order-attribution|cart-fragments))|\/pixelyoursite\/|\/themes\/potteryhub\/|\/lenis|brikpanel-pulse|\/wp-content\/litespeed\/|connect\.facebook|googletagmanager|google-analytics|clarity\.ms|tiktok|snap/;
+  const srcOf = x => { const a = x.getAttribute('src') || x.getAttribute('data-src') || ''; return a && !/^(blob|data):/.test(a) ? key(new URL(a, location.href).href) : ''; };
+  const loaded = new Set();
+  const seen = () => { $$('script').forEach(x => { const u = srcOf(x); if (u) loaded.add(u); }); };
+  async function addScripts(doc) {
+    seen();
+    for (const x of doc.querySelectorAll('script')) {
+      if (x.closest('#ph-main')) continue;
+      const u = srcOf(x); if (!u || loaded.has(u) || common.test(u)) continue;
+      loaded.add(u);
+      const h = (x.id || '').replace(/-js$/, '');
+      ['-js-extra', '-js-before'].forEach(sfx => { const i = h && doc.getElementById(h + sfx); if (i && !document.getElementById(h + sfx)) { const n = document.createElement('script'); n.id = h + sfx; n.textContent = i.textContent; document.body.appendChild(n); } });
+      await new Promise(r => { const n = document.createElement('script'); n.src = x.getAttribute('src') || x.getAttribute('data-src'); n.async = false; n.onload = n.onerror = r; document.body.appendChild(n); setTimeout(r, 4000); });
+      const af = h && doc.getElementById(h + '-js-after'); if (af && !document.getElementById(h + '-js-after')) { const n = document.createElement('script'); n.id = h + '-js-after'; n.textContent = af.textContent; document.body.appendChild(n); }
+    }
+  }
   function addTemplates(doc) { doc.querySelectorAll('script[type="text/template"][id]').forEach(t => { if (!document.getElementById(t.id)) document.body.appendChild(t.cloneNode(true)); }); }
   function swapHead(doc) {
     document.title = doc.title;
@@ -688,7 +701,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
     const fin = new URL(d.url, location.href); if (!opts.post || fin.href.split('#')[0] !== to.href.split('#')[0]) fin.hash = to.hash;
     if (!allowed(fin)) { location.href = fin.href; return; }
     const doc = new DOMParser().parseFromString(d.html, 'text/html'), nm = doc.getElementById('ph-main');
-    if (!nm || doc.documentElement.lang !== document.documentElement.lang || !sameScripts(doc)) {
+    if (!nm || doc.documentElement.lang !== document.documentElement.lang) {
       if (opts.post) { opts.fallback && opts.fallback(); return; }
       location.href = fin.href; return;
     }
@@ -724,6 +737,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
     if (document.startViewTransition && !reduce && !opts.post) await document.startViewTransition(swap).updateCallbackDone.catch(() => {}); else swap();
     if (!isDyn(new URL(from))) get(from, 600000).catch(() => {}); // keep the page we left, so Back is instant too
     watchLinks();
+    await addScripts(doc);
     if (opts.post || /order-received/.test(fin.pathname)) refreshBag();
     if (window.jQuery) {
       const jq = window.jQuery, main = $('#ph-main');
