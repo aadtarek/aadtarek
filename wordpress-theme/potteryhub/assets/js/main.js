@@ -493,19 +493,19 @@ if (!pre || seen || reduce) { if (pre) pre.remove(); requestAnimationFrame(intro
 else {
   $('#preWord').innerHTML = 'POTTERY HUB'.split('').map((c, i) => c === ' ' ? '<span style="width:.45em"></span>' : '<span><i style="--i:' + i + '">' + c + '</i></span>').join('');
   if (lenis) lenis.stop(); document.documentElement.style.overflow = 'hidden';
-  const urls = hero ? $$('#bBig .im').map(x => x.style.backgroundImage.slice(5, -2)) : [];
+  const urls = hero ? $$('#bBig .im[data-first]').map(x => x.style.backgroundImage.slice(5, -2).replace(/^"|"$/g, '')) : []; // only the first photo: short preloader
   let done = 0; const total = urls.length + 1;
   urls.forEach(u => { const i = new Image(); i.onload = i.onerror = () => done++; i.src = u; });
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => done++);
   requestAnimationFrame(() => pre.classList.add('go'));
   const t0 = performance.now(); let shown = 0, fin = false;
   (function tick(now) {
-    const el = now - t0, goal = Math.max(Math.min(done / total, el / 1900, 1), el > 7000 ? 1 : 0);
-    shown += (goal - shown) * .07; if (goal >= 1 && shown > .995) shown = 1;
+    const el = now - t0, goal = Math.max(Math.min(done / total, el / 700, 1), el > 1800 ? 1 : 0);
+    shown += (goal - shown) * .18; if (goal >= 1 && shown > .995) shown = 1;
     $('#preBar').style.transform = 'scaleX(' + shown + ')'; $('#preF').style.setProperty('--a', (shown * 360) + 'deg');
     if (shown < 1) return requestAnimationFrame(tick);
     if (fin) return; fin = true;
-    setTimeout(() => { pre.classList.add('out'); document.documentElement.style.overflow = ''; if (lenis && !open.size) lenis.start(); setTimeout(intro, 450); setTimeout(() => pre.remove(), 1400); }, 350);
+    setTimeout(() => { pre.classList.add('out'); document.documentElement.style.overflow = ''; if (lenis && !open.size) lenis.start(); setTimeout(intro, 250); setTimeout(() => pre.remove(), 900); }, 80);
   })(t0);
 }
 

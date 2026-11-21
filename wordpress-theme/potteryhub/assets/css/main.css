@@ -466,7 +466,7 @@ label.sel-wrap::after{content:"";position:absolute;right:16px;top:50%;width:6px;
 .toast u{font-weight:700;color:#ffd9cb}
 
 /* preloader */
-#pre{position:fixed;inset:0;z-index:10000;background:var(--terra);color:var(--cream);display:grid;place-items:center;overflow:hidden;clip-path:inset(0 0 0 0 round 0 0 0 0);transition:clip-path 1.2s var(--ease)}
+#pre{position:fixed;inset:0;z-index:10000;background:var(--terra);color:var(--cream);display:grid;place-items:center;overflow:hidden;clip-path:inset(0 0 0 0 round 0 0 0 0);transition:clip-path .8s var(--ease)}
 #pre::before{content:"";position:absolute;inset:0;background:var(--grain);opacity:.12;mix-blend-mode:overlay}
 #pre.out{clip-path:inset(0 0 100% 0 round 0 0 50% 50%)}
 .pre-in{position:relative;display:flex;flex-direction:column;align-items:center;gap:20px;transition:transform 1.1s var(--ease),opacity .7s}
@@ -1524,9 +1524,9 @@ form.is-busy [type=submit],form.is-busy #place_order{opacity:.6;pointer-events:n
 @media (max-width:380px){.mn-cats{grid-template-columns:repeat(2,1fr)}}
 
 /* the page never stays hidden: if scripts are late, the preloader and header clear on their own */
-#pre{animation:phPreAuto .6s ease 3.4s forwards}
+#pre{animation:phPreAuto .5s ease 2s forwards}
 @keyframes phPreAuto{to{opacity:0;visibility:hidden}}
-.nav.pre{animation:phNavAuto .8s cubic-bezier(.16,1,.3,1) 3.6s forwards}
+.nav.pre{animation:phNavAuto .8s cubic-bezier(.16,1,.3,1) 2.2s forwards}
 @keyframes phNavAuto{to{transform:none}}
 
 /* first paint: the preloader mark and the big hero photo show at once (no waiting for scripts) */
