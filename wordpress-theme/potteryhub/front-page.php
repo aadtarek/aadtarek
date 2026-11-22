@@ -98,11 +98,17 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 			<span class="ci"><img id="bCi" src="<?php echo esc_url( $ph_c0['img'] ); ?>" alt=""></span>
 		</a>
 		<?php endif; ?>
-		<a class="bt bwk" href="<?php echo esc_url( ph_template_url( 'template-workshops.php' ) ? ph_template_url( 'template-workshops.php' ) : '#classes' ); ?>" style="--d:320ms" data-cur="<?php esc_attr_e( 'Explore', 'potteryhub' ); ?>">
+		<?php
+		$ph_c1i = count( $ph_tile ) > 1 ? (int) floor( count( $ph_tile ) / 2 ) : 0;
+		$ph_c1  = $ph_tile ? $ph_tile[ $ph_c1i ] : null;
+		if ( $ph_c1 ) :
+			?>
+		<a class="bt bcat bcat2" id="bCat2" data-start="<?php echo (int) $ph_c1i; ?>" href="<?php echo esc_url( $ph_c1['url'] ); ?>" style="--d:320ms" data-cur="<?php esc_attr_e( 'Shop', 'potteryhub' ); ?>">
 			<span class="barr"><?php echo ph_icon( 'arrow', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
-			<small><?php esc_html_e( 'The studio', 'potteryhub' ); ?></small><h4><?php echo wp_kses( __( 'Pottery<br>workshops', 'potteryhub' ), array( 'br' => array() ) ); ?></h4>
-			<img class="wi" src="<?php echo esc_url( ph_img( 'emblem-light.png' ) ); ?>" alt="">
+			<small class="swap"><?php echo esc_html( $ph_c1['n'] ); ?></small><h4 class="swap"><?php echo esc_html( $ph_c1['name'] ); ?></h4>
+			<span class="ci"><img src="<?php echo esc_url( $ph_c1['img'] ); ?>" alt=""></span>
 		</a>
+		<?php endif; ?>
 	</div>
 </section>
 

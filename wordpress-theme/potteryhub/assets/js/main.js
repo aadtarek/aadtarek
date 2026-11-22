@@ -382,8 +382,13 @@ function initHome() {
     $('#bFadd').onclick = () => addToCart(feat[fi].id, 1, $('#bFi'), feat[fi].name, $('#bFadd'));
   }
   /* rotating category tile */
-  const bc = $('#bCat'); let ci = 0;
-  if (bc && cats.length > 1) pI(() => { if (open.size || document.hidden || bc.matches(':hover')) return; bc.classList.add('chg'); setTimeout(() => { ci = (ci + 1) % cats.length; const c = cats[ci]; $('#bCn').textContent = c.n; $('#bCh').textContent = c.name; $('#bCi').src = c.img; bc.href = c.url; bc.classList.remove('chg'); }, 480); }, 5200);
+  [['#bCat', 0], ['#bCat2', -1]].forEach(([sel, start], k) => {
+    const bc = $(sel); if (!bc || cats.length < 2) return;
+    let ci = start < 0 ? +bc.dataset.start || 0 : start;
+    const sm = $('small', bc), h = $('h4', bc), im = $('.ci img', bc);
+    const step = () => { if (open.size || document.hidden || bc.matches(':hover')) return; bc.classList.add('chg'); setTimeout(() => { ci = (ci + 1) % cats.length; const c = cats[ci]; sm.textContent = c.n; h.textContent = c.name; im.src = c.img; bc.href = c.url; bc.classList.remove('chg'); }, 480); };
+    if (k) pT(() => pI(step, 5200), 2600); else pI(step, 5200); // the second tile turns half a beat later
+  });
 
   /* category arrows */
   $$('[data-sc]').forEach(b => b.onclick = () => { const r = $('#catRow'); r.scrollBy({ left: (C.ar ? -1 : 1) * +b.dataset.sc * r.clientWidth * .8, behavior: 'smooth' }); });

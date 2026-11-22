@@ -1540,3 +1540,10 @@ form.is-busy [type=submit],form.is-busy #place_order{opacity:.6;pointer-events:n
 .sbar .buy,.sbar .booknow{flex:none}
 @media (max-width:640px){.sbar{gap:10px;padding:8px}.sbar .buy{padding:0 16px;font-size:14px}.sbar .si{width:46px;height:46px}}
 textarea[class*="fallbackTextarea"]{position:fixed!important;top:0!important;left:0!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none}
+
+/* second rotating category tile (in place of the workshops tile): soft clay */
+.bcat2{grid-column:5/6;grid-row:2/3;background:#eedfd3}
+.bcat2::after{background:linear-gradient(180deg,rgba(238,223,211,.92) 0%,rgba(238,223,211,0) 34%,rgba(238,223,211,0) 62%,rgba(238,223,211,.88) 100%)}
+.bcat2 h4,.bcat2 small{color:#7a3f2c}
+@media (max-width:1180px){.bcat2{grid-column:4/5}}
+@media (max-width:640px){.bcat2{grid-column:auto;grid-row:auto}}
