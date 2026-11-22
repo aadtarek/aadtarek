@@ -117,7 +117,7 @@ export function FinderQuiz() {
     <div className="container-x pt-3 pb-16 text-ink lg:grid lg:grid-cols-[minmax(0,36%)_1fr] lg:gap-6 lg:pt-4 lg:pb-20">
       {/* ---------- Left: a photo island for the question ---------- */}
       <aside className="relative hidden lg:block">
-        <div className="sticky top-[96px] h-[calc(100vh-112px)] max-h-[820px] min-h-[560px]">
+        <div className="rf-under-head sticky top-[96px] h-[calc(100vh-112px)] max-h-[820px] min-h-[560px]">
           <div className="relative size-full overflow-hidden rounded-[36px] bg-[#1c120b]">
             <img key={step} src={panels[step]} alt="" className="size-full animate-fade-in object-cover" />
             <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-[#140c07]/55 via-transparent to-[#140c07]/70" />

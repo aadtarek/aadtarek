@@ -126,7 +126,7 @@ function InfoLayout({
         <div className="rf-white rounded-[28px] border border-line px-5 py-7 sm:px-10 sm:py-10">
           <div className="max-w-[46rem]">{children}</div>
         </div>
-        <aside className="h-fit lg:sticky lg:top-24">
+        <aside className="rf-under-head h-fit lg:sticky lg:top-24">
           {related.length > 0 && <p className="text-[12.5px] font-semibold tracking-[0.14em] uppercase">Related</p>}
           <ul className="mt-3 border-t border-line empty:hidden">
             {related.map((r) => (

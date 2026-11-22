@@ -279,7 +279,7 @@ function DiscoveryBuilder() {
         </div>
       )}
 
-      <aside className="h-fit rf-white rounded-[28px] border border-line p-6 lg:sticky lg:top-24">
+      <aside className="rf-under-head h-fit rf-white rounded-[28px] border border-line p-6 lg:sticky lg:top-24">
         <p className="text-[13px] font-semibold tracking-[0.14em] uppercase">Your discovery set</p>
         <SetProgress count={selected.length} className="mt-4" />
         <p className={`mt-3 text-[13.5px] ${ready ? 'font-medium text-[#55662a]' : 'text-ink-soft'}`}>{hint}</p>
@@ -480,7 +480,7 @@ function GiftBuilderForm({ products }: { products: Product[] }) {
         </a>
       )}
 
-      <aside id="gift-summary" className="h-fit scroll-mt-24 rf-white rounded-[28px] border border-line p-5 sm:p-6 lg:sticky lg:top-24">
+      <aside id="gift-summary" className="rf-under-head h-fit scroll-mt-24 rf-white rounded-[28px] border border-line p-5 sm:p-6 lg:sticky lg:top-24">
         <p className="flex items-center gap-2 text-[13px] font-semibold tracking-[0.14em] uppercase">
           <Gift className="size-4" strokeWidth={1.5} />
           Your gift box

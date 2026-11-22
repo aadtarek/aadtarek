@@ -1947,3 +1947,34 @@ html.rf-has-adminbar .vx-empty {
 .rf-product-desc .wp-content ol { list-style: decimal; }
 .rf-product-desc .wp-content a { color: var(--color-gold, #b8862b); text-decoration: underline; text-underline-offset: 3px; }
 .rf-product-desc .wp-content img { max-width: 100%; height: auto; border-radius: 16px; }
+
+/* The header tucks away while scrolling down and comes back on the way up (Header.tsx). Whatever
+   sticks just below it moves up with it, so no gap is left. */
+.rf-header {
+  transition:
+    background-color 0.5s ease,
+    border-color 0.5s ease,
+    backdrop-filter 0.5s ease,
+    transform 0.45s var(--rf-ease-soft);
+}
+html[data-head='hidden'] .rf-header {
+  transform: translateY(calc(-100% - 14px));
+}
+.rf-under-head {
+  transition: top 0.45s var(--rf-ease-soft);
+}
+html[data-head='hidden'] .rf-under-head {
+  top: 14px;
+}
+html[data-head='hidden'] .rf-under-head-2 {
+  top: 92px;
+}
+html.rf-has-adminbar[data-head='hidden'] .rf-under-head {
+  top: 46px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rf-header,
+  .rf-under-head {
+    transition: none;
+  }
+}

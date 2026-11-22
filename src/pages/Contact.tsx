@@ -214,7 +214,7 @@ export function FaqSection({ asPage = false }: { asPage?: boolean }) {
       {asPage && <PageHeader eyebrow="Help" title="Questions, answered" image={faqImage} />}
       <section className={`container-x ${asPage ? 'mt-4 lg:mt-5' : 'mt-4 lg:mt-5'}`} aria-labelledby="faq-title">
         <div className="grid gap-8 rounded-[28px] bg-chip px-4 py-8 lg:grid-cols-[minmax(0,340px)_1fr] lg:gap-12 lg:rounded-[36px] lg:p-12">
-          <div className="px-1 lg:sticky lg:top-24 lg:self-start lg:px-0">
+          <div className="rf-under-head px-1 lg:sticky lg:top-24 lg:self-start lg:px-0">
             <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">Frequently asked questions</p>
             <h2 id="faq-title" className="mt-3 font-serif text-[40px] leading-[0.98] sm:text-[52px]">
               Good to <span className="text-gold italic">know.</span>

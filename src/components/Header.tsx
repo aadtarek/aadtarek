@@ -84,6 +84,44 @@ export function Header() {
       window.removeEventListener('scroll', update)
     }
   }, [])
+  // Scrolling down tucks the header away (more room for the page); scrolling up brings it back.
+  // Never while the menu or search is open, near the top, or when something in it has focus.
+  useEffect(() => {
+    const root = document.documentElement
+    let last = window.scrollY
+    let travel = 0
+    let hidden = false
+    const set = (h: boolean) => {
+      if (h === hidden) return
+      hidden = h
+      if (h) root.dataset.head = 'hidden'
+      else delete root.dataset.head
+    }
+    const onScroll = () => {
+      const y = window.scrollY
+      const d = y - last
+      last = y
+      if (y < 120 || document.body.style.overflow === 'hidden') return set(false)
+      // A few pixels of the same direction first, so a shaky thumb doesn't flicker it.
+      travel = Math.sign(d) === Math.sign(travel) ? travel + d : d
+      if (travel > 10) set(true)
+      else if (travel < -6) set(false)
+    }
+    const onFocus = (e: FocusEvent) => {
+      if (e.target instanceof Element && e.target.closest('.rf-header')) set(false)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('focusin', onFocus)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      document.removeEventListener('focusin', onFocus)
+      delete root.dataset.head
+    }
+  }, [])
+  // A new page, the menu or search: the header shows.
+  useEffect(() => {
+    delete document.documentElement.dataset.head
+  }, [location.pathname, menuOpen, searchOpen])
   const clear = isHome && !scrolled && !searchOpen
   const floating = scrolled
 

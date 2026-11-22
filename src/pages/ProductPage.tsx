@@ -147,7 +147,7 @@ function ProductDetails({ product }: { product: Product }) {
           />
         </div>
 
-        <div className="min-w-0 lg:sticky lg:top-[96px] lg:self-start">
+        <div className="rf-under-head min-w-0 lg:sticky lg:top-[96px] lg:self-start">
           <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">{chips.map((c) => c.label).join(' · ')}</p>
           <h1 className="mt-2.5 font-serif text-[46px] leading-[0.95] sm:text-[60px] xl:text-[68px]">{product.name}</h1>
           {/* A short description that only names the DNA isn't repeated: the picture card below shows it. */}
@@ -733,7 +733,7 @@ function ProductFaq() {
   return (
     <section className="container-x mt-4 lg:mt-5" aria-labelledby="product-faq-title">
       <div className="grid gap-6 rounded-[28px] bg-chip px-4 py-8 lg:grid-cols-[minmax(0,320px)_1fr] lg:gap-10 lg:rounded-[36px] lg:p-12">
-        <div className="px-1 lg:sticky lg:top-24 lg:self-start lg:px-0">
+        <div className="rf-under-head px-1 lg:sticky lg:top-24 lg:self-start lg:px-0">
           <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase">FAQs</p>
           <h2 id="product-faq-title" className="mt-2.5 font-serif text-[38px] leading-none sm:text-[48px]">
             Your <span className="text-gold italic">questions.</span>

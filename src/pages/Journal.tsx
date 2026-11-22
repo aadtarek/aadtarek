@@ -150,7 +150,7 @@ function ArticleView({ a, others }: { a: ArticleData | WpArticle; others: Articl
           </div>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-24 lg:self-start">
+        <aside className="rf-under-head space-y-4 lg:sticky lg:top-24 lg:self-start">
           {headings.length > 1 && (
             <nav aria-label="In this article" className="hidden rounded-[28px] bg-chip p-5 lg:block">
               <p className="text-[11px] font-semibold tracking-[0.2em] text-gold uppercase">In this article</p>

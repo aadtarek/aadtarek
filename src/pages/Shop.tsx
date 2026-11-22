@@ -190,7 +190,7 @@ export function Shop() {
       </header>
 
       {/* Toolbar: stays at the top while scrolling */}
-      <div className="rf-shop-bar sticky top-[76px] z-20 mt-5 flex flex-wrap items-center gap-2 rounded-[24px] border border-line p-2 lg:top-[84px] lg:flex-nowrap lg:rounded-full">
+      <div className="rf-shop-bar rf-under-head sticky top-[76px] z-20 mt-5 flex flex-wrap items-center gap-2 rounded-[24px] border border-line p-2 lg:top-[84px] lg:flex-nowrap lg:rounded-full">
         <div role="group" aria-label="Who it's for" className="no-scrollbar flex w-full overflow-x-auto rounded-full bg-chip p-1 lg:w-auto">
           <SegButton active={filters.gender.length === 0} onClick={() => update({ gender: '' })}>
             All <em>{genderCounts.length}</em>
@@ -257,7 +257,7 @@ export function Shop() {
       </div>
 
       <div className="mt-6 lg:grid lg:grid-cols-[270px_minmax(0,1fr)] lg:items-start lg:gap-6">
-        <aside className="rf-white no-scrollbar sticky top-[160px] hidden max-h-[calc(100vh-180px)] overflow-y-auto rounded-[28px] border border-line p-[22px] lg:block" aria-label="Filters">
+        <aside className="rf-white rf-under-head-2 no-scrollbar sticky top-[160px] hidden max-h-[calc(100vh-180px)] overflow-y-auto rounded-[28px] border border-line p-[22px] lg:block" aria-label="Filters">
           {panel}
         </aside>
 

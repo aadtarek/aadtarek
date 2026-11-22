@@ -376,7 +376,7 @@ export function Checkout() {
           </Box>
         </div>
 
-        <aside className="rf-white order-first rounded-[26px] border border-line p-5 sm:p-6 lg:sticky lg:top-24 lg:order-none lg:rounded-[28px]">
+        <aside className="rf-under-head rf-white order-first rounded-[26px] border border-line p-5 sm:p-6 lg:sticky lg:top-24 lg:order-none lg:rounded-[28px]">
           <h2 className="flex items-baseline justify-between font-serif text-[26px] leading-none">
             Order summary
             <span className="font-sans text-[12.5px] text-muted">
