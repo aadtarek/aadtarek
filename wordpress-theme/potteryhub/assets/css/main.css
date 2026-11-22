@@ -1613,3 +1613,6 @@ button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data
   .toast{transition:opacity .4s var(--out),transform .5s var(--out),bottom .5s}
   .dock-hide .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
 }
+
+/* header: away on the way down, back on the way up (same signal as the dock) */
+.dock-hide .nav:not(.pre){transform:translateY(calc(-100% - 40px));box-shadow:none}
