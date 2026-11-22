@@ -93,6 +93,7 @@ while ( have_posts() ) :
 
 			<?php if ( $ph_related ) : ?>
 			<div class="similar">
+				<?php echo ph_clay( 'clay-sim' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 				<div class="sec-h rv"><div><div class="eyebrow"><?php esc_html_e( 'You may also like', 'potteryhub' ); ?></div><h2 class="serif"><?php esc_html_e( 'Similar Pieces', 'potteryhub' ); ?></h2></div><a class="see" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Shop all', 'potteryhub' ); ?></a></div>
 				<div class="grid">
 					<?php

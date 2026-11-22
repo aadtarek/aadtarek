@@ -131,6 +131,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 <?php endif; ?>
 
 <main class="sec" id="popular">
+	<?php echo ph_clay( 'clay-pop' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	<div class="sec-h">
 		<div><div class="eyebrow"><?php esc_html_e( 'The collection', 'potteryhub' ); ?></div><h2 class="serif"><?php esc_html_e( 'Popular of the Week', 'potteryhub' ); ?></h2><p><?php esc_html_e( 'The most loved pieces, shaped and glazed by hand', 'potteryhub' ); ?></p></div>
 		<a class="see" href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>"><?php esc_html_e( 'Shop all', 'potteryhub' ); ?> <?php echo ph_icon( 'arrow', 14, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></a>
@@ -154,6 +155,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 
 
 <section class="sec">
+	<?php echo ph_clay( 'clay-promo' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	<div class="promos">
 		<?php
 		for ( $i = 1; $i <= 2; $i++ ) :

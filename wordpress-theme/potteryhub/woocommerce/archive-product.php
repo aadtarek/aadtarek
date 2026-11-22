@@ -78,6 +78,7 @@ $ph_prices = array(
 						?>
 					</div>
 					<?php ph_pagination(); ?>
+					<div class="clay-row"><?php echo ph_clay( 'clay-end' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 				<?php else : ?>
 					<div class="grid shop-grid"><div class="empty"><b><?php esc_html_e( 'Nothing here yet', 'potteryhub' ); ?></b><?php esc_html_e( 'Try another category or clear your filters.', 'potteryhub' ); ?><br><a class="see" href="<?php echo esc_url( $ph_shop ); ?>"><?php esc_html_e( 'Clear filters', 'potteryhub' ); ?></a></div></div>
 				<?php endif; ?>
