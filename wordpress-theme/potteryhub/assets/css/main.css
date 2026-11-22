@@ -1562,3 +1562,12 @@ textarea[class*="fallbackTextarea"]{position:fixed!important;top:0!important;lef
   .nav.solid{padding:0 10px}
   .nav .ibtn{width:42px;height:42px}
 }
+
+/* every clickable thing shows the hand/pointer */
+button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data-add],[data-open],[data-search],.single_add_to_cart_button,.buy,.add_to_cart_button,input[type=submit],input[type=checkbox],input[type=radio]{cursor:pointer}
+/* house cursor: a small clay dot, and a soft clay ring over anything clickable (mouse only; the real cursor never hides) */
+@media (hover:hover) and (pointer:fine){
+  html,body{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'%3E%3Ccircle cx='11' cy='11' r='5.5' fill='%23ba4a2f' stroke='%23fbf8f3' stroke-width='2'/%3E%3C/svg%3E") 11 11,auto}
+  a,button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data-add],[data-open],[data-search],.single_add_to_cart_button,.buy,.add_to_cart_button,input[type=submit],input[type=checkbox],input[type=radio],.bfeat,.card .media,.minis button,.mn-cat,.woocommerce button.button,.woocommerce a.button,.woocommerce input.button,.woocommerce .single_add_to_cart_button{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='18' r='14' fill='%23ba4a2f' fill-opacity='.14' stroke='%23ba4a2f' stroke-width='1.6'/%3E%3Ccircle cx='18' cy='18' r='3.2' fill='%23ba4a2f' stroke='%23fbf8f3' stroke-width='1.2'/%3E%3C/svg%3E") 18 18,pointer}
+  input[type=text],input[type=email],input[type=tel],input[type=search],input[type=password],input[type=number],textarea,[contenteditable]{cursor:text}
+}
