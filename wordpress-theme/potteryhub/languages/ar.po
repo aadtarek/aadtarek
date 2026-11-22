@@ -394,6 +394,9 @@ msgstr "تطبيق"
 msgid "Read more"
 msgstr "اقرأ المزيد"
 
+msgid "Title"
+msgstr "العنوان"
+
 msgid "Checkout"
 msgstr "إتمام الطلب"
 
@@ -417,6 +420,9 @@ msgstr "اكتب بريد إلكتروني صحيح"
 
 msgid "Thanks! We’ll get back to you soon."
 msgstr "شكرًا! هنرد عليك قريب."
+
+msgid "Number copied"
+msgstr "تم نسخ الرقم"
 
 msgid "Please add your name and a phone number or email."
 msgstr "اكتب اسمك ورقم موبايل أو بريد إلكتروني."
@@ -549,6 +555,42 @@ msgstr "اختار"
 
 msgid "View"
 msgstr "عرض"
+
+msgid "Digital wallet"
+msgstr "محفظة إلكترونية"
+
+msgid "Customers send the order total from any mobile wallet to your wallet number. Orders wait on hold until you confirm the transfer."
+msgstr "العميل بيحوّل إجمالي الطلب من أي محفظة موبايل لرقم محفظتك، والطلب بيفضل معلّق لحد ما تأكد وصول التحويل."
+
+msgid "Enable"
+msgstr "تفعيل"
+
+msgid "Accept payment by digital wallet"
+msgstr "قبول الدفع بالمحفظة الإلكترونية"
+
+msgid "Wallet number"
+msgstr "رقم المحفظة"
+
+msgid "After you place the order, send the total from any mobile wallet to this number. We’ll confirm your order as soon as the transfer arrives."
+msgstr "بعد ما تأكد الطلب، حوّل الإجمالي من أي محفظة موبايل على الرقم ده، وهنأكد طلبك أول ما التحويل يوصل."
+
+msgid "Copy"
+msgstr "نسخ"
+
+msgid "Amount to send"
+msgstr "المبلغ المطلوب تحويله"
+
+msgid "Waiting for the digital wallet transfer."
+msgstr "في انتظار التحويل من المحفظة الإلكترونية."
+
+msgid "One last step: send the payment"
+msgstr "خطوة أخيرة: حوّل المبلغ"
+
+msgid "Send the total from any mobile wallet to this number, and we’ll confirm your order as soon as it arrives."
+msgstr "حوّل الإجمالي من أي محفظة موبايل على الرقم ده، وهنأكد طلبك أول ما يوصل."
+
+msgid "Please send %1$s from any mobile wallet to %2$s. We’ll confirm your order as soon as the transfer arrives."
+msgstr "من فضلك حوّل %1$s من أي محفظة موبايل على الرقم %2$s، وهنأكد طلبك أول ما التحويل يوصل."
 
 msgid "Cairo & Giza"
 msgstr "القاهرة والجيزة"

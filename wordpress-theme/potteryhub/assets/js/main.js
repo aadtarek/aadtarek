@@ -329,6 +329,14 @@ document.addEventListener('pointerover', e => { if (e.target.closest && e.target
 // fetched quietly once the page is idle, so the first search is instant too
 (window.requestIdleCallback || (f => setTimeout(f, 2500)))(loadIndex);
 
+/* copy buttons (wallet number) */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  e.preventDefault();
+  const done = () => { toast(T('copied')); b.classList.add('ok'); setTimeout(() => b.classList.remove('ok'), 1200); };
+  if (navigator.clipboard) navigator.clipboard.writeText(b.dataset.copy).then(done, done); else done();
+});
+
 /* ---------- forms answer immediately (sent in the background) ---------- */
 document.addEventListener('submit', e => {
   const f = e.target;

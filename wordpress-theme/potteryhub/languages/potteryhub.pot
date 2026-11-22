@@ -495,6 +495,9 @@ msgstr ""
 msgid "Thanks! We’ll get back to you soon."
 msgstr ""
 
+msgid "Number copied"
+msgstr ""
+
 msgid "Please add your name and a phone number or email."
 msgstr ""
 
@@ -724,6 +727,42 @@ msgid "Choose options"
 msgstr ""
 
 msgid "View"
+msgstr ""
+
+msgid "Digital wallet"
+msgstr ""
+
+msgid "Customers send the order total from any mobile wallet to your wallet number. Orders wait on hold until you confirm the transfer."
+msgstr ""
+
+msgid "Enable"
+msgstr ""
+
+msgid "Accept payment by digital wallet"
+msgstr ""
+
+msgid "Wallet number"
+msgstr ""
+
+msgid "After you place the order, send the total from any mobile wallet to this number. We’ll confirm your order as soon as the transfer arrives."
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Amount to send"
+msgstr ""
+
+msgid "Waiting for the digital wallet transfer."
+msgstr ""
+
+msgid "One last step: send the payment"
+msgstr ""
+
+msgid "Send the total from any mobile wallet to this number, and we’ll confirm your order as soon as it arrives."
+msgstr ""
+
+msgid "Please send %1$s from any mobile wallet to %2$s. We’ll confirm your order as soon as the transfer arrives."
 msgstr ""
 
 msgid "Arabic names added to %1$d products and %2$d categories. Existing Arabic names were kept."
