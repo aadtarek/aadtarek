@@ -34,6 +34,7 @@ $ph_wc = class_exists( 'WooCommerce' );
 <header class="nav pre" id="nav">
 	<div class="l">
 		<button class="ibtn mb" id="openMenuM" type="button" aria-label="<?php esc_attr_e( 'Menu', 'potteryhub' ); ?>"><?php echo ph_icon( 'menu', 20, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+		<button class="ibtn mb" type="button" data-search aria-label="<?php esc_attr_e( 'Search', 'potteryhub' ); ?>"><?php echo ph_icon( 'search', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 		<nav class="c" aria-label="<?php esc_attr_e( 'Main', 'potteryhub' ); ?>"><?php ph_menu( 'primary' ); ?></nav>
 	</div>
 	<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="brand" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"><img class="lt" src="<?php echo esc_url( ph_img( 'logo-light.png' ) ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"><img class="dk" src="<?php echo esc_url( ph_img( 'logo-dark.png' ) ); ?>" alt=""></a>

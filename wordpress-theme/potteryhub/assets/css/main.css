@@ -1547,3 +1547,18 @@ textarea[class*="fallbackTextarea"]{position:fixed!important;top:0!important;lef
 .bcat2 h4,.bcat2 small{color:#7a3f2c}
 @media (max-width:1180px){.bcat2{grid-column:4/5}}
 @media (max-width:640px){.bcat2{grid-column:auto;grid-row:auto}}
+
+/* phone/tablet header: menu + search | logo | language + bag, two even sides */
+@media (max-width:1000px){
+  .nav{grid-template-columns:1fr auto 1fr;gap:6px}
+  .nav .l{gap:2px}
+  .nav .r{gap:4px}
+  #openSearch{display:none}
+  .nav .lang{display:grid;place-items:center;height:32px;min-width:40px;padding:0 10px;margin:0;border-radius:999px;border:1.3px solid currentColor;font-size:12.5px;line-height:1;opacity:.9}
+  .nav .lang::after{display:none}
+  .nav.solid .lang{border-color:rgba(47,59,51,.22)}
+}
+@media (max-width:640px){
+  .nav.solid{padding:0 10px}
+  .nav .ibtn{width:42px;height:42px}
+}
