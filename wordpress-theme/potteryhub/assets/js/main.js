@@ -371,7 +371,7 @@ function initHome() {
   /* featured piece */
   const bf = $('#bFeat'); let fi = 0, fpause = false;
   function setFeat() {
-    const f = feat[fi]; if (!f) return;
+    const f = feat[fi]; if (!f || !$('#bFc')) return; // the page may have changed meanwhile
     $('#bFc').textContent = f.cat; $('#bFn').textContent = f.name; $('#bFp').innerHTML = f.price; $('#bFi').src = f.img;
     $('#bFurl').href = f.url; $('#bFurl').setAttribute('aria-label', f.name); $('#bFbuy').href = f.buy;
     $('#bFadd').hidden = !f.add;
@@ -492,7 +492,8 @@ function setDock(key) {
   const pathOf = a => { try { return slash(new URL(a.href).pathname); } catch (e) { return ''; } };
   if (!key) {
     const acc = $('[data-dk="account"]', dock), shop = $('[data-dk="shop"]', dock);
-    if (p === base) key = 'home';
+    const hm = $('[data-dk="home"]', dock);
+    if (p === base || (hm && p === pathOf(hm))) key = 'home';
     else if (acc && p.startsWith(pathOf(acc))) key = 'account';
     else if ((shop && p.startsWith(pathOf(shop))) || /\/product(-category|-tag)?\//.test(p)) key = 'shop';
   }
