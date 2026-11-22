@@ -139,6 +139,7 @@ function buyNow(id, qty) {
   bumpBag(qty || 1);
   return cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty || 1 })).then(r => {
     if (r && r.error && r.product_url) { location.href = r.product_url; return; }
+    if (r && r.fragments) { applyFragments(r.fragments, true); if (window.jQuery) jQuery(document.body).trigger('added_to_cart', [r.fragments, r.cart_hash]); }
     dropPages();
     if (instantGo) instantGo(C.checkout); else location.href = C.checkout;
   }).catch(() => { location.href = C.checkout; });
