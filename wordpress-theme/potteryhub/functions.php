@@ -7,7 +7,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PH_VERSION', '1.9.0' );
+define( 'PH_VERSION', '1.8.1' );
 define( 'PH_DIR', get_template_directory() );
 define( 'PH_URI', get_template_directory_uri() );
 
@@ -24,5 +24,4 @@ require PH_DIR . '/inc/admin.php';
 
 if ( class_exists( 'WooCommerce' ) ) {
 	require PH_DIR . '/inc/woocommerce.php';
-	require PH_DIR . '/inc/wallet.php';
 }

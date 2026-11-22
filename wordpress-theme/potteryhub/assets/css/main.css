@@ -1554,18 +1554,3 @@ a,button,summary,label,[role=button]{-webkit-tap-highlight-color:transparent}
   .clay-sim{top:-84px;width:80px}
 }
 @media (prefers-reduced-motion:reduce){.clay .c-p1{stroke-dashoffset:0;opacity:1}}
-
-/* ---------- digital wallet payment ---------- */
-.ph-wallet{display:grid;gap:10px;font-size:13.5px;line-height:1.55;color:var(--muted)}
-.ph-wallet p{margin:0}
-.ph-wallet-n,.ph-wallet-a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--cream)}
-.ph-wallet-n span,.ph-wallet-a span{flex:1;font-size:12.5px}
-.ph-wallet-n b{font-size:18px;letter-spacing:.04em;color:var(--forest);font-weight:800;white-space:nowrap}
-.ph-wallet-n{flex-wrap:wrap}
-.ph-wallet-n span{flex-basis:100%}
-.ph-wallet-n b{flex:1}
-.ph-wallet-a b{color:var(--terra);font-weight:800;font-size:15px}
-.ph-wallet-n button{height:34px;padding:0 14px;border-radius:20px;background:var(--forest);color:var(--cream);font-weight:700;font-size:12.5px;transition:background .3s}
-.ph-wallet-n button.ok{background:#3f7a4f}
-.ph-wallet-ty{margin:0 0 26px;padding:22px;border-radius:20px;background:#fff;border:1.5px solid var(--terra-t)}
-.ph-wallet-ty h2{font-size:24px;color:var(--forest);margin-bottom:12px}
