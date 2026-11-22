@@ -22,7 +22,7 @@ flipArrows(document);
 /* ---------- smooth scroll ---------- */
 let lenis = null;
 if (window.Lenis && !reduce) {
-  lenis = new Lenis({ lerp: .09, smoothWheel: true, wheelMultiplier: .95, prevent: n => !!(n.closest && n.closest('[data-lenis-prevent],.select2-container,.select2-dropdown')) });
+  lenis = new Lenis({ lerp: .09, smoothWheel: true, wheelMultiplier: .95, prevent: n => !!(n.closest && n.closest('[data-lenis-prevent],.side,.drawer,.sov,.select2-container,.select2-dropdown')) });
   (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(performance.now());
 }
 const smoothTo = t => lenis ? lenis.scrollTo(t, { duration: 1.4, offset: -90 }) : (typeof t === 'number' ? scrollTo({ top: t, behavior: 'smooth' }) : t.scrollIntoView({ behavior: 'smooth' }));
@@ -58,8 +58,11 @@ scrim && (scrim.onclick = closeAll);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
 document.addEventListener('click', e => { if (e.target.closest('[data-close]')) closeAll(); });
 const drawer = $('#drawer'), menu = $('#menu'), sov = $('#sov');
+let drawerAt = 0;
+const afterSlide = fn => { const w = 620 - (performance.now() - drawerAt); w > 0 ? setTimeout(fn, w) : fn(); };
 function openDrawer(tab) {
   if (!drawer) return;
+  if (!drawer.classList.contains('on')) drawerAt = performance.now();
   $$('.tabs button', drawer).forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
   if (!$('[data-pane="' + tab + '"]', drawer)) tab = 'cart';
   $$('.pane', drawer).forEach(p => { p.hidden = p.dataset.pane !== tab; });
@@ -88,15 +91,22 @@ function applyFragments(fr, quiet) {
   const n = $('i.ph-bag-n'); if (n && !quiet) { n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
 }
 function flyToCart(src, done) {
-  const tgt = $('#openCart'), r = src && src.getBoundingClientRect();
+  const phone = matchMedia('(max-width:640px)').matches;
+  if (phone) document.documentElement.classList.remove('dock-hide'); // bring the dock back so the piece has somewhere to land
+  const tgt = (phone && $('#dock [data-dk="bag"]')) || $('#openCart'), r = src && src.getBoundingClientRect();
   if (!tgt || !r || !r.width || reduce) { done(); return; }
   const tr = tgt.getBoundingClientRect(), f = document.createElement('img');
-  f.className = 'flyer'; f.src = src.currentSrc || src.src; document.body.appendChild(f);
-  const s0 = Math.min(r.width, r.height, 260), x0 = r.left + r.width / 2, y0 = r.top + r.height / 2, x1 = tr.left + tr.width / 2, y1 = tr.top + tr.height / 2, t0 = performance.now(), D = 850;
+  const s0 = Math.min(r.width, r.height, 220), x0 = r.left + r.width / 2, y0 = r.top + r.height / 2, x1 = tr.left + tr.width / 2, y1 = tr.top + tr.height / 2 - (phone ? 8 : 0), t0 = performance.now(), D = phone ? 720 : 820;
+  f.className = 'flyer'; f.src = src.currentSrc || src.src; f.alt = '';
+  Object.assign(f.style, { left: '0px', top: '0px', width: s0 + 'px', height: s0 + 'px', willChange: 'transform,opacity' });
+  document.body.appendChild(f);
+  let fired = false;
   (function st(now) {
-    const t = clamp((now - t0) / D, 0, 1), e = eio(t), sz = s0 + (22 - s0) * e, x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e - Math.sin(Math.PI * t) * 140;
-    Object.assign(f.style, { left: (x - sz / 2) + 'px', top: (y - sz / 2) + 'px', width: sz + 'px', height: sz + 'px', opacity: t > .9 ? (1 - t) * 10 : 1, transform: 'rotate(' + (t * 200) + 'deg)' });
-    if (t < 1) requestAnimationFrame(st); else { f.remove(); done(); }
+    const t = clamp((now - t0) / D, 0, 1), e = eio(t), k = (s0 + (22 - s0) * e) / s0, x = x0 + (x1 - x0) * e, y = y0 + (y1 - y0) * e - Math.sin(Math.PI * t) * (phone ? 90 : 140);
+    f.style.transform = 'translate3d(' + (x - s0 / 2) + 'px,' + (y - s0 / 2) + 'px,0) scale(' + k + ') rotate(' + (t * 200) + 'deg)';
+    f.style.opacity = t > .88 ? (1 - t) / .12 : 1;
+    if (!fired && t >= .82) { fired = true; done(); } // open the bag as it lands, not after a pause
+    if (t < 1) requestAnimationFrame(st); else f.remove();
   })(t0);
 }
 /* Instant add to cart: the bag updates right away, the server confirms in the background. */
@@ -128,8 +138,8 @@ function addToCart(id, qty, src, name, btn) {
   const job = cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty })).then(r => {
     if (r && r.error && r.product_url) { bumpBag(0 - qty); location.href = r.product_url; return; }
     if (!r || !r.fragments) throw 0;
-    applyFragments(r.fragments, true); dropPages();
-    if (window.jQuery) jQuery(document.body).trigger('added_to_cart', [r.fragments, r.cart_hash]);
+    dropPages();
+    afterSlide(() => { applyFragments(r.fragments, true); if (window.jQuery) jQuery(document.body).trigger('added_to_cart', [r.fragments, r.cart_hash]); });
     return r;
   }).catch(() => { bumpBag(0 - qty); toast(T('error')); });
   cartQueue = job.catch(() => {});
@@ -479,7 +489,7 @@ function initPage(root) {
   pars = $$('[data-par]');
   if (hero) initHome();
   initProduct();
-  const side = $('#side');
+  const side = $('#side'); sheetDrag(side, '(max-width:1000px)');
   $('#openFilters') && ($('#openFilters').onclick = () => show(side));
   $('#sideDone') && ($('#sideDone').onclick = closeAll);
   syncHearts();
@@ -521,6 +531,37 @@ window.addEventListener('resize', () => setDock(($('#dock .on') || {}).dataset ?
     });
   }, { passive: true });
 })();
+/* bottom sheets close when pulled down; the content still scrolls normally */
+function sheetDrag(el, mq) {
+  if (!el || el.dataset.drag) return; el.dataset.drag = 1;
+  let y0 = 0, x0 = 0, dy = 0, t0 = 0, on = false, sc = null;
+  el.addEventListener('touchstart', e => {
+    if (!matchMedia(mq).matches || !el.classList.contains('on') || e.touches.length > 1) return;
+    sc = e.target.closest('.dbody') || (el.scrollHeight > el.clientHeight + 2 ? el : null);
+    y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; t0 = performance.now(); on = null;
+  }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    if (on === false || !matchMedia(mq).matches || !el.classList.contains('on')) return;
+    const d = e.touches[0].clientY - y0;
+    if (on === null) {
+      if (Math.abs(d) < 6) return;
+      on = d > 0 && Math.abs(d) > Math.abs(e.touches[0].clientX - x0) && (!sc || sc.scrollTop <= 0); // pull down from the top only
+      if (!on) return;
+      el.style.transition = 'none';
+    }
+    dy = Math.max(0, d); if (e.cancelable) e.preventDefault();
+    el.style.transform = 'translateY(' + dy + 'px)';
+  }, { passive: false });
+  const end = () => {
+    if (!on) { on = false; return; }
+    const fast = dy / Math.max(1, performance.now() - t0) > .5;
+    el.style.transition = ''; el.style.transform = '';
+    if (dy > Math.min(140, el.offsetHeight * .28) || (fast && dy > 40)) closeAll();
+    on = false; dy = 0;
+  };
+  el.addEventListener('touchend', end); el.addEventListener('touchcancel', end);
+}
+sheetDrag(drawer, '(max-width:640px)');
 initPage(document);
 
 
@@ -803,6 +844,32 @@ document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id
     const u = new URL(location.href);
     if (!e.state || !e.state.ph || !allowed(u)) { location.reload(); return; }
     go(u.href, { y: e.state.y || 0 });
+  });
+  /* shop pages: only the products change (no page swap, no jump to the top of the page) */
+  let pgId = 0;
+  document.addEventListener('click', async e => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest('.pager a[href]'), grid = $('#ph-main .shop-grid'), u = linkUrl(a);
+    if (!u || !grid) return;
+    e.preventDefault();
+    const id = ++pgId, tool = $('#ph-main .tool') || grid;
+    grid.classList.add('pg-busy');
+    smoothTo(tool);
+    let d; try { d = await get(u.href); } catch (er) { location.href = u.href; return; }
+    if (id !== pgId) return;
+    const doc = new DOMParser().parseFromString(d.html, 'text/html'), ng = doc.querySelector('#ph-main .shop-grid');
+    if (!ng) { go(u.href, { push: true }); return; }
+    history.replaceState(Object.assign({}, history.state, { ph: 1, y: scrollY }), '');
+    history.pushState({ ph: 1, y: tool.getBoundingClientRect().top + scrollY - 90 }, '', d.url || u.href);
+    const op = $('#ph-main .pager'), np = doc.querySelector('#ph-main .pager');
+    grid.replaceWith(document.adoptNode(ng));
+    if (op && np) op.replaceWith(document.adoptNode(np)); else if (op) op.remove();
+    const oc = $('#ph-main .tool .count'), nc = doc.querySelector('#ph-main .tool .count'); if (oc && nc) oc.innerHTML = nc.innerHTML;
+    if (doc.title) document.title = doc.title;
+    flipArrows($('#ph-main .pager') || ng); watch(ng); watchLinks();
+    if (lenis && lenis.resize) lenis.resize();
+    const nx = $('#ph-main .pager a[rel="next"]'); if (nx) warmU(new URL(nx.href)); // the page after is ready before the next tap
+    document.dispatchEvent(new CustomEvent('ph:page', { detail: { url: location.href } }));
   });
   document.addEventListener('click', e => {
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

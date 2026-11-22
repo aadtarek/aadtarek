@@ -1616,3 +1616,38 @@ button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data
 
 /* header: away on the way down, back on the way up (same signal as the dock) */
 .dock-hide .nav:not(.pre){transform:translateY(calc(-100% - 40px));box-shadow:none}
+
+/* ---------- phone: the cart opens from the bottom as a sheet ---------- */
+.flyer{position:fixed;z-index:400;border-radius:50%;object-fit:cover;pointer-events:none;box-shadow:0 10px 30px rgba(40,25,15,.3)}
+@media (max-width:640px){
+  #drawer,[dir=rtl] #drawer{top:auto;bottom:0;left:0;right:0;width:100%;height:auto;max-height:min(86vh,760px);border-radius:28px 28px 0 0;padding-bottom:env(safe-area-inset-bottom);
+    transform:translateY(105%);transition:transform .55s cubic-bezier(.2,.9,.25,1),visibility 0s .55s;will-change:transform}
+  #drawer.on,[dir=rtl] #drawer.on{transform:none;transition:transform .55s cubic-bezier(.2,.9,.25,1);box-shadow:0 -24px 60px rgba(30,20,15,.22)}
+  #drawer::before,.side::before{content:"";position:absolute;top:9px;left:50%;width:42px;height:5px;margin-left:-21px;border-radius:3px;background:rgba(47,59,51,.2);z-index:2}
+  #drawer .dh{padding:24px 20px 14px}
+  #drawer .dbody{min-height:0;overscroll-behavior:contain;padding:10px 20px}
+  #drawer .dfoot{padding:14px 20px 18px}
+  #drawer .dempty{padding:30px 10px 34px}
+}
+/* phone/tablet filters sheet: scrolls inside, pulls down to close */
+@media (max-width:1000px){
+  .side{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-top:30px;will-change:transform}
+  .side.on{transition:transform .5s cubic-bezier(.2,.9,.25,1)}
+}
+/* ---------- phone header: logo at the start, language + menu at the end (search and cart live in the dock) ---------- */
+@media (max-width:640px){
+  .nav,.nav.solid{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .nav.solid{padding:0 8px 0 18px}
+  [dir=rtl] .nav.solid{padding:0 18px 0 8px}
+  .nav .brand{order:0;flex:none}
+  .nav .r{order:1;margin-inline-start:auto;gap:6px}
+  .nav .l{order:2;gap:0}
+  .nav .l [data-search],#openSearch,#openCart{display:none}
+  #openMenuM{width:44px;height:44px;border-radius:50%;background:var(--forest);color:var(--cream)}
+  .nav:not(.solid) #openMenuM{background:rgba(255,255,255,.18);color:inherit;border:1px solid currentColor}
+  .nav .lang{height:36px;min-width:44px}
+}
+
+/* shop pages swap in place */
+.shop-grid{transition:opacity .3s}
+.shop-grid.pg-busy{opacity:.35;pointer-events:none}

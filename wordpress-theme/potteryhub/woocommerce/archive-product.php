@@ -36,7 +36,7 @@ $ph_prices = array(
 		<div class="shop-h"><div><h1 class="serif"><?php echo esc_html( $ph_title ); ?></h1><p><?php echo esc_html( wp_strip_all_tags( $ph_desc ) ); ?></p></div></div>
 		<?php woocommerce_output_all_notices(); ?>
 		<div class="shop-l">
-			<aside class="side" id="side">
+			<aside class="side" id="side" data-lenis-prevent>
 				<form class="sbox" role="search" action="<?php echo esc_url( home_url( '/' ) ); ?>" method="get">
 					<?php echo ph_icon( 'search', 17, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 					<input name="s" value="<?php echo esc_attr( get_search_query() ); ?>" placeholder="<?php esc_attr_e( 'Search the shop', 'potteryhub' ); ?>" aria-label="<?php esc_attr_e( 'Search the shop', 'potteryhub' ); ?>">
