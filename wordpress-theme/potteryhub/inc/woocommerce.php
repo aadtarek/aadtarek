@@ -139,6 +139,7 @@ add_filter(
 		$f['div.ph-mini']  = ph_mini_cart();
 		$f['i.ph-bag-n']   = ph_cart_count();
 		$n                 = WC()->cart->get_cart_contents_count();
+		$f['b.ph-dock-n']  = '<b class="ph-dock-n">' . ( $n ? (int) $n : '' ) . '</b>';
 		$f['span.ph-tabn'] = '<span class="ph-tabn">' . ( $n ? '(' . (int) $n . ')' : '' ) . '</span>';
 		return $f;
 	}

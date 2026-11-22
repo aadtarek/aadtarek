@@ -104,6 +104,7 @@ function bumpBag(n) {
   const c = $('i.ph-bag-n'); if (!c) return;
   const v = Math.max(0, (+c.textContent || 0) + n); c.textContent = v; c.classList.toggle('on', v > 0);
   c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
+  const d = $('.ph-dock-n'); if (d) d.textContent = v || '';
 }
 let cartQueue = Promise.resolve();
 let dropPages = () => {}, instantGo = null; // set by the instant-pages code below
@@ -482,7 +483,27 @@ function initPage(root) {
   $('#openFilters') && ($('#openFilters').onclick = () => show(side));
   $('#sideDone') && ($('#sideDone').onclick = closeAll);
   syncHearts();
+  setDock();
 }
+/* phone dock: the glass blob slides under the current section */
+function setDock(key) {
+  const dock = $('#dock'); if (!dock) return;
+  const p = location.pathname.replace(/\/+$/, '/'), base = (C.base || '/').replace(/\/+$/, '/');
+  const pathOf = a => { try { return new URL(a.href).pathname.replace(/\/+$/, '/'); } catch (e) { return ''; } };
+  if (!key) {
+    const acc = $('[data-dk="account"]', dock), shop = $('[data-dk="shop"]', dock);
+    if (p === base) key = 'home';
+    else if (acc && p.startsWith(pathOf(acc))) key = 'account';
+    else if ((shop && p.startsWith(pathOf(shop))) || /\/product(-category|-tag)?\//.test(p)) key = 'shop';
+  }
+  const on = key && $('[data-dk="' + key + '"]', dock), blob = $('.dk-blob', dock);
+  $$('[data-dk]', dock).forEach(x => x.classList.toggle('on', x === on));
+  if (!blob) return;
+  if (!on) { blob.style.opacity = 0; return; }
+  blob.style.width = on.offsetWidth + 'px'; blob.style.transform = 'translateX(' + on.offsetLeft + 'px)'; blob.style.opacity = 1;
+}
+document.addEventListener('pointerdown', e => { const it = e.target.closest('#dock [data-dk]'); if (it && it.tagName === 'A') setDock(it.dataset.dk); });
+window.addEventListener('resize', () => setDock(($('#dock .on') || {}).dataset ? $('#dock .on').dataset.dk : ''));
 initPage(document);
 
 

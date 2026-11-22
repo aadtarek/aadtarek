@@ -119,6 +119,18 @@ $ph_wc = class_exists( 'WooCommerce' );
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<nav class="dock" id="dock" aria-label="<?php esc_attr_e( 'Quick links', 'potteryhub' ); ?>">
+	<span class="dk-blob" aria-hidden="true"></span>
+	<a href="<?php echo esc_url( home_url( '/' ) ); ?>" data-dk="home"><?php echo ph_icon( 'home', 21, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php esc_html_e( 'Home', 'potteryhub' ); ?></span></a>
+	<?php if ( $ph_wc ) : ?>
+	<a href="<?php echo esc_url( wc_get_page_permalink( 'shop' ) ); ?>" data-dk="shop"><?php echo ph_icon( 'grid', 21, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php esc_html_e( 'Shop', 'potteryhub' ); ?></span></a>
+	<?php endif; ?>
+	<button type="button" data-search data-dk="search"><?php echo ph_icon( 'search', 21, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php esc_html_e( 'Search', 'potteryhub' ); ?></span></button>
+	<?php if ( $ph_wc ) : ?>
+	<button type="button" data-open="cart" data-dk="bag"><?php echo ph_icon( 'bag', 21, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php $ph_dn = WC()->cart ? WC()->cart->get_cart_contents_count() : 0; ?><b class="ph-dock-n"><?php echo $ph_dn ? (int) $ph_dn : ''; ?></b><span><?php esc_html_e( 'Cart', 'potteryhub' ); ?></span></button>
+	<a href="<?php echo esc_url( wc_get_page_permalink( 'myaccount' ) ); ?>" data-dk="account"><?php echo ph_icon( 'user', 21, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><span><?php esc_html_e( 'My account', 'potteryhub' ); ?></span></a>
+	<?php endif; ?>
+</nav>
 <?php wp_footer(); ?>
 </body>
 </html>
