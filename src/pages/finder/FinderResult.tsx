@@ -124,7 +124,7 @@ export function FinderResult() {
             <button
               type="button"
               onClick={() => cart.openQuickAdd(product)}
-              className={`inline-flex h-[54px] flex-1 items-center justify-center gap-2.5 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase ${gold}`}
+              className={`inline-flex h-[54px] shrink-0 sm:flex-1 items-center justify-center gap-2.5 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase ${gold}`}
             >
               <Handbag className="size-[18px]" strokeWidth={1.5} />
               Add to cart
@@ -133,7 +133,7 @@ export function FinderResult() {
               <button
                 type="button"
                 onClick={(e) => addWithFlight(cart, e.currentTarget, product, sample.id)}
-                className="inline-flex h-[54px] flex-1 items-center justify-center gap-2.5 rounded-full text-[12.5px] font-semibold tracking-[0.12em] text-gold uppercase shadow-[inset_0_0_0_1.5px_var(--color-olive)] transition hover:bg-olive hover:text-on-accent"
+                className="inline-flex h-[54px] shrink-0 sm:flex-1 items-center justify-center gap-2.5 rounded-full text-[12.5px] font-semibold tracking-[0.12em] text-gold uppercase shadow-[inset_0_0_0_1.5px_var(--color-olive)] transition hover:bg-olive hover:text-on-accent"
               >
                 <FlaskConical className="size-[18px]" strokeWidth={1.5} />
                 Try {sample.size.replace(/\s*ML$/i, ' ml')} first
@@ -155,17 +155,18 @@ export function FinderResult() {
           <Link to={`/shop/${product.slug}`} className="block overflow-hidden rounded-[22px] lg:h-full lg:rounded-[28px]" style={{ background: tint.tint }}>
             <img src={product.images[0].src} alt={product.images[0].alt} className="aspect-[4/3] w-full object-cover lg:aspect-auto lg:h-full" />
           </Link>
-          <div className="absolute inset-x-4 bottom-4 rounded-[20px] bg-white/85 p-3 text-[#14110d] backdrop-blur-xl lg:inset-x-6 lg:bottom-6 lg:p-4">
-            <p className="text-[10.5px] font-semibold tracking-[0.2em] text-[#5b5145] uppercase">Key notes</p>
+          {/* Phones: under the photo, so the bottle shows whole. Laptops: over its foot. */}
+          <div className="rf-notes-panel mt-2 rounded-[20px] p-3 shadow-[inset_0_0_0_1px_var(--color-line)] lg:absolute lg:inset-x-6 lg:bottom-6 lg:mt-0 lg:p-4 lg:text-[#14110d] lg:shadow-none lg:backdrop-blur-xl">
+            <p className="text-[10.5px] font-semibold tracking-[0.2em] text-muted uppercase lg:text-[#5b5145]">Key notes</p>
             <ul className="mt-2 grid grid-cols-3 gap-2">
               {keyNotes.map((n, i) => (
                 <li key={`${n.name}-${i}`} className="flex items-center gap-2">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-chip lg:bg-white">
                     <img src={n.image} alt="" className="size-7 object-contain" />
                   </span>
                   <span className="min-w-0">
                     <span className="block truncate text-[13px] font-semibold">{n.name}</span>
-                    <span className="block truncate text-[11px] text-[#5b5145]">{tiers[i]}</span>
+                    <span className="block truncate text-[11px] text-muted lg:text-[#5b5145]">{tiers[i]}</span>
                   </span>
                 </li>
               ))}

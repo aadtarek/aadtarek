@@ -19,7 +19,9 @@ export function rankProducts(products: Product[], a: FinderAnswers): Match[] {
   return products
     .map((product) => {
       const pr = product.profile
-      const keywords = new Set([...product.accords, ...product.notes.map((n) => n.name)])
+      // Lower-case, so "lemon" in a choice finds "Sicilian Lemon" in a product.
+      const keywords = [...product.accords, ...product.notes.map((n) => n.name)].map((k) => k.toLowerCase())
+      const has = (word: string) => keywords.some((k) => k.includes(word.toLowerCase()))
       let score = 0
 
       if (a.for) {
@@ -30,7 +32,7 @@ export function rankProducts(products: Product[], a: FinderAnswers): Match[] {
       if (a.style && product.families.includes(a.style)) score += 4
       if (a.occasion && pr.occasions.includes(a.occasion)) score += 2
 
-      const matchedNotes = a.notes.filter((n) => allNotes.find((o) => o.value === n)?.matches.some((m) => keywords.has(m)))
+      const matchedNotes = a.notes.filter((n) => allNotes.find((o) => o.value === n)?.matches.some(has))
       score += matchedNotes.length * 2
 
       if (a.season) {

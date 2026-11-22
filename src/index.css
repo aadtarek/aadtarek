@@ -1978,3 +1978,17 @@ html.rf-has-adminbar[data-head='hidden'] .rf-under-head {
     transition: none;
   }
 }
+
+/* The finder result's key notes: a card under the photo on phones, glass over the photo on laptops. */
+.rf-notes-panel {
+  background: #fff;
+}
+:root.dark .rf-notes-panel {
+  background: var(--color-card);
+}
+@media (min-width: 64rem) {
+  .rf-notes-panel,
+  :root.dark .rf-notes-panel {
+    background: rgb(255 255 255 / 0.85);
+  }
+}

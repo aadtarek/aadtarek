@@ -6,6 +6,7 @@ import {
   Flower2,
   MapPin,
   Pencil,
+  RotateCcw,
   SlidersHorizontal,
   Sun,
   UserRound,
@@ -24,9 +25,10 @@ import {
   genderOptions,
   label,
   longevityOptions,
-  mainNotes,
   MAX_NOTES,
-  moreNotes,
+  moreNoteGroups,
+  notesFor,
+  styleNotes,
   occasionOptions,
   panels,
   presenceOptions,
@@ -36,6 +38,7 @@ import {
   toSearch,
   TOTAL_STEPS,
   type FinderAnswers,
+  type NoteOption,
   type Option,
 } from '../../finder/data'
 import { usePersistentState } from '../../lib/storage'
@@ -93,6 +96,27 @@ export function FinderQuiz() {
     window.setTimeout(() => next(updated), 260)
   }
 
+  // A note picked (or unpicked). The third one moves on by itself — no need for Continue.
+  const pickNote = (updated: FinderAnswers) => {
+    const filled = updated.notes.length === MAX_NOTES && answers.notes.length < MAX_NOTES
+    setAnswers(updated)
+    if (filled)
+      window.setTimeout(() => {
+        setNotesOpen(false)
+        next(updated)
+      }, 450)
+  }
+
+  // Start over: every answer cleared, back to the first question.
+  const reset = () => {
+    setAnswers(emptyAnswers)
+    setReviewOpen(false)
+    setNotesOpen(false)
+    setReturnToReview(false)
+    setParams({ step: '1' })
+  }
+  const started = Boolean(answers.for || answers.occasion || answers.style || answers.notes.length || answers.season || answers.presence || answers.longevity)
+
   const edit = (i: number) => {
     setReviewOpen(false)
     setReturnToReview(complete)
@@ -136,8 +160,20 @@ export function FinderQuiz() {
 
         <div className="flex items-center justify-between">
           <p className="text-[11px] font-semibold tracking-[0.24em] text-gold uppercase sm:text-[12px]">Rfaheya Finder</p>
-          <div className="flex items-center gap-4">
-            <p className="rf-white rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold tabular-nums shadow-[inset_0_0_0_1px_var(--color-line)]" aria-live="polite">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {started && (
+              <button
+                type="button"
+                onClick={reset}
+                aria-label="Start over"
+                title="Start over"
+                className="rf-white inline-flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[12px] font-semibold tracking-[0.06em] whitespace-nowrap text-ink-soft uppercase shadow-[inset_0_0_0_1px_var(--color-line)] transition hover:text-ink hover:shadow-[inset_0_0_0_1px_var(--color-olive)] sm:px-3.5"
+              >
+                <RotateCcw className="size-4" strokeWidth={1.6} />
+                <span className="max-[380px]:hidden">Start over</span>
+              </button>
+            )}
+            <p className="rf-white shrink-0 rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold whitespace-nowrap tabular-nums shadow-[inset_0_0_0_1px_var(--color-line)]" aria-live="polite">
               {step + 1} <span className="text-muted">/ {TOTAL_STEPS}</span>
             </p>
             <Link to="/" aria-label="Exit the finder" className="rf-white grid size-10 place-items-center rounded-full shadow-[inset_0_0_0_1px_var(--color-line)]">
@@ -220,20 +256,23 @@ export function FinderQuiz() {
             <StepHead step={3} title="Which notes do you love?" subtitle={`Pick up to ${MAX_NOTES} notes you’re drawn to.`}>
               <NotesCounter count={answers.notes.length} />
               <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                {mainNotes.map((n) => (
-                  <NoteCard key={n.value} option={n} answers={answers} setAnswers={setAnswers} />
+                {/* The chosen style's notes, then any picked from "Explore more notes". */}
+                {notesFor(answers.style).map((n) => (
+                  <NoteCard key={n.value} option={n} answers={answers} onPick={pickNote} />
                 ))}
                 {answers.notes
-                  .filter((v) => moreNotes.some((m) => m.value === v))
-                  .map((v) => (
-                    <NoteCard key={v} option={moreNotes.find((m) => m.value === v)!} answers={answers} setAnswers={setAnswers} />
+                  .filter((v) => !notesFor(answers.style).some((m) => m.value === v))
+                  .map((v) => allNotes.find((m) => m.value === v))
+                  .filter((n): n is NoteOption => Boolean(n))
+                  .map((n) => (
+                    <NoteCard key={n.value} option={n} answers={answers} onPick={pickNote} />
                   ))}
               </div>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
                   onClick={() => setNotesOpen(true)}
-                  className="rf-white inline-flex h-[54px] flex-1 items-center justify-center gap-3 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] transition hover:shadow-[inset_0_0_0_1.5px_var(--color-olive)]"
+                  className="rf-white inline-flex h-[54px] shrink-0 sm:flex-1 items-center justify-center gap-3 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] transition hover:shadow-[inset_0_0_0_1.5px_var(--color-olive)]"
                 >
                   Explore more notes
                   <ArrowRight className="size-4" strokeWidth={1.5} />
@@ -242,7 +281,7 @@ export function FinderQuiz() {
                   type="button"
                   disabled={answers.notes.length === 0}
                   onClick={() => next(answers)}
-                  className="inline-flex h-[54px] flex-1 items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[12.5px] font-semibold tracking-[0.12em] uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex h-[54px] shrink-0 sm:flex-1 items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[12.5px] font-semibold tracking-[0.12em] uppercase disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Continue
                   <ArrowRight className="size-4" strokeWidth={1.5} />
@@ -316,7 +355,7 @@ export function FinderQuiz() {
                 type="button"
                 onClick={() => setReviewOpen(true)}
                 disabled={!complete}
-                className="rf-white inline-flex h-[58px] flex-1 items-center justify-center gap-3 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] transition hover:shadow-[inset_0_0_0_1.5px_var(--color-olive)] disabled:opacity-40 sm:max-w-[22rem]"
+                className="rf-white inline-flex h-[58px] shrink-0 sm:flex-1 items-center justify-center gap-3 rounded-full text-[12.5px] font-semibold tracking-[0.12em] uppercase shadow-[inset_0_0_0_1.5px_var(--color-line-strong)] transition hover:shadow-[inset_0_0_0_1.5px_var(--color-olive)] disabled:opacity-40 sm:max-w-[22rem]"
               >
                 <SlidersHorizontal className="size-5" strokeWidth={1.4} />
                 Review your choices
@@ -325,7 +364,7 @@ export function FinderQuiz() {
                 type="button"
                 onClick={finish}
                 disabled={!complete}
-                className="inline-flex h-[58px] flex-1 items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[12.5px] font-semibold tracking-[0.12em] uppercase disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex h-[58px] shrink-0 sm:flex-1 items-center justify-center gap-3 rounded-full bg-olive text-on-accent shadow-[0_14px_28px_-16px_rgba(160,100,20,0.9)] transition hover:bg-olive-hover text-[12.5px] font-semibold tracking-[0.12em] uppercase disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Find my perfect scent
                 <ArrowRight className="size-5" strokeWidth={1.4} />
@@ -335,7 +374,7 @@ export function FinderQuiz() {
         </div>
       </section>
 
-      {notesOpen && <MoreNotesModal answers={answers} setAnswers={setAnswers} onClose={() => setNotesOpen(false)} />}
+      {notesOpen && <MoreNotesModal answers={answers} onPick={pickNote} onClose={() => setNotesOpen(false)} />}
       {reviewOpen && <ReviewModal answers={answers} onEdit={edit} onClose={() => setReviewOpen(false)} onFinish={finish} />}
     </div>
   )
@@ -485,30 +524,39 @@ function toggleNote(answers: FinderAnswers, value: string): FinderAnswers {
   return { ...answers, notes: [...answers.notes, value] }
 }
 
-function NoteCard({
-  option,
-  answers,
-  setAnswers,
-}: {
-  option: (typeof allNotes)[number]
-  answers: FinderAnswers
-  setAnswers: (a: FinderAnswers) => void
-}) {
+/** A soft tint behind an ingredient picture, by the style the note belongs to. */
+const NOTE_TINTS: Record<string, string> = {
+  fresh: 'radial-gradient(120% 120% at 30% 20%, #f3fbf6 0%, #d9eee6 60%, #c5e2d7 100%)',
+  oriental: 'radial-gradient(120% 120% at 30% 20%, #fbf1e4 0%, #ecd6bb 60%, #ddbf9c 100%)',
+  floral: 'radial-gradient(120% 120% at 30% 20%, #fdf3f4 0%, #f4dbe0 60%, #e9c4cd 100%)',
+  fruity: 'radial-gradient(120% 120% at 30% 20%, #fff4ec 0%, #f9dccb 60%, #f1c5ad 100%)',
+  sweet: 'radial-gradient(120% 120% at 30% 20%, #fdf6ea 0%, #f1e0c4 60%, #e5cba3 100%)',
+  more: 'radial-gradient(120% 120% at 30% 20%, #fbf8f3 0%, #ede4d6 60%, #ddd0bc 100%)',
+}
+const noteTint = (value: string) => NOTE_TINTS[(Object.keys(styleNotes) as (keyof typeof styleNotes)[]).find((k) => styleNotes[k].some((n) => n.value === value)) ?? 'more']
+
+function NoteCard({ option, answers, onPick }: { option: NoteOption; answers: FinderAnswers; onPick: (a: FinderAnswers) => void }) {
   const checked = answers.notes.includes(option.value)
   const full = !checked && answers.notes.length >= MAX_NOTES
   return (
     <button
       type="button"
-      onClick={() => setAnswers(toggleNote(answers, option.value))}
+      onClick={() => onPick(toggleNote(answers, option.value))}
       aria-pressed={checked}
       disabled={full}
       className={`rf-white group overflow-hidden rounded-[20px] p-1.5 text-left transition duration-300 disabled:cursor-not-allowed disabled:opacity-45 ${
         checked ? 'shadow-[inset_0_0_0_2.5px_var(--color-olive)]' : 'shadow-[inset_0_0_0_1px_var(--color-line)] hover:shadow-[inset_0_0_0_1px_var(--color-olive)]'
       }`}
     >
-      <span className="block aspect-[265/107] overflow-hidden rounded-[15px]">
-        <img src={option.image} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      </span>
+      {option.icon ? (
+        <span className="relative block aspect-[265/107] overflow-hidden rounded-[15px]" style={{ background: noteTint(option.value) }}>
+          <img src={option.image} alt="" className="absolute inset-0 m-auto h-full w-auto max-w-[78%] object-contain drop-shadow-[0_8px_10px_rgba(60,40,20,0.22)] transition-transform duration-500 group-hover:scale-110" />
+        </span>
+      ) : (
+        <span className="block aspect-[265/107] overflow-hidden rounded-[15px]">
+          <img src={option.image} alt="" className="size-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        </span>
+      )}
       <span className="flex items-center justify-between px-2.5 pt-2.5 pb-1.5">
         <span className="font-serif text-[18px] leading-none sm:text-[20px]">{option.label}</span>
         <span
@@ -522,22 +570,14 @@ function NoteCard({
   )
 }
 
-function MoreNotesModal({
-  answers,
-  setAnswers,
-  onClose,
-}: {
-  answers: FinderAnswers
-  setAnswers: (a: FinderAnswers) => void
-  onClose: () => void
-}) {
+function MoreNotesModal({ answers, onPick, onClose }: { answers: FinderAnswers; onPick: (a: FinderAnswers) => void; onClose: () => void }) {
   const swipe = useSwipeClose<HTMLDivElement>(onClose)
   return (
     <Overlay onClose={onClose} label="Discover more scent notes">
       <div ref={swipe} className="absolute inset-x-0 bottom-0 max-h-[94vh] overflow-y-auto rounded-t-[28px] bg-sand p-5 shadow-2xl [animation:slide-up_.55s_cubic-bezier(.16,1,.3,1)] sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[min(58rem,calc(100vw-2rem))] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] sm:p-10 sm:[animation:pop-in_.5s_cubic-bezier(.16,1,.3,1)]">
         <span aria-hidden className="mx-auto -mt-2 mb-3 block h-[5px] w-11 rounded-full bg-line-strong sm:hidden" />
         <img
-          src={moreNotes[0].image}
+          src={allNotes.find((n) => n.value === 'vanilla')?.image}
           alt=""
           aria-hidden
           className="pointer-events-none absolute top-0 right-0 hidden h-[270px] w-[52%] rounded-tr-[32px] object-cover [mask-image:linear-gradient(to_left,black_40%,transparent),linear-gradient(to_top,transparent,black_40%)] [mask-composite:intersect] sm:block"
@@ -563,11 +603,16 @@ function MoreNotesModal({
           </div>
         </div>
         <div className="mt-5 border-t border-line pt-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
-            {moreNotes.map((n) => (
-              <NoteCard key={n.value} option={n} answers={answers} setAnswers={setAnswers} />
-            ))}
-          </div>
+          {moreNoteGroups(answers.style).map((g, i) => (
+            <div key={g.title} className={i ? 'mt-7' : ''}>
+              <p className="mb-3 text-[11px] font-semibold tracking-[0.2em] text-muted uppercase">{g.title}</p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5">
+                {g.notes.map((n) => (
+                  <NoteCard key={n.value} option={n} answers={answers} onPick={onPick} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
         <button
           type="button"
