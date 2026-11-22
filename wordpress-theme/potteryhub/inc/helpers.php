@@ -111,21 +111,6 @@ function ph_product_cat( $product ) {
 	return $t && ! is_wp_error( $t ) ? $t->name : '';
 }
 
-/** Data a heart button stores in the wishlist. */
-function ph_wish_data( $product ) {
-	return wp_json_encode(
-		array(
-			'id'    => $product->get_id(),
-			'name'  => $product->get_name(),
-			'price' => ph_plain_price( wc_get_price_to_display( $product ) ),
-			'img'   => ph_product_img( $product, 'woocommerce_thumbnail' ),
-			'url'   => $product->get_permalink(),
-			'cat'   => ph_product_cat( $product ),
-			'add'   => ph_quick_addable( $product ) ? 1 : 0,
-		)
-	);
-}
-
 /** Price as plain text ("EGP 1,100.00"). */
 function ph_plain_price( $amount ) {
 	return html_entity_decode( wp_strip_all_tags( wc_price( $amount ) ), ENT_QUOTES, 'UTF-8' );
@@ -148,7 +133,7 @@ function ph_card( $product, $i = 0 ) {
 	$name = $product->get_name();
 	$img  = $product->get_image_id() ? wp_get_attachment_image( $product->get_image_id(), 'woocommerce_single', false, array( 'loading' => 'lazy', 'decoding' => 'async', 'alt' => $name, 'sizes' => '(max-width: 640px) 48vw, (max-width: 1100px) 32vw, 360px' ) ) : wc_placeholder_img( 'woocommerce_single' );
 	?>
-	<article class="card" data-cur="<?php esc_attr_e( 'View', 'potteryhub' ); ?>" style="--d:<?php echo (int) ( ( $i % 4 ) * 90 ); ?>ms">
+	<article class="card" style="--d:<?php echo (int) ( ( $i % 4 ) * 90 ); ?>ms">
 		<div class="media">
 			<a class="cover" href="<?php echo esc_url( $url ); ?>" aria-label="<?php echo esc_attr( $name ); ?>"></a>
 			<?php echo $img; // phpcs:ignore WordPress.Security.EscapeOutput ?>

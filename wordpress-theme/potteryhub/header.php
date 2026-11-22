@@ -33,18 +33,18 @@ $ph_wc = class_exists( 'WooCommerce' );
 
 <header class="nav pre" id="nav">
 	<div class="l">
-		<button class="ibtn mb" id="openMenuM" type="button" aria-label="<?php esc_attr_e( 'Menu', 'potteryhub' ); ?>"><?php echo ph_icon( 'menu', 20, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+		<button class="ibtn mb" id="openMenuM" type="button" data-menu aria-label="<?php esc_attr_e( 'Menu', 'potteryhub' ); ?>"><?php echo ph_icon( 'menu', 20, 1.6 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 		<button class="ibtn mb" type="button" data-search aria-label="<?php esc_attr_e( 'Search', 'potteryhub' ); ?>"><?php echo ph_icon( 'search', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 		<nav class="c" aria-label="<?php esc_attr_e( 'Main', 'potteryhub' ); ?>"><?php ph_menu( 'primary' ); ?></nav>
 	</div>
 	<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="brand" aria-label="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"><img class="lt" src="<?php echo esc_url( ph_img( 'logo-light.png' ) ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"><img class="dk" src="<?php echo esc_url( ph_img( 'logo-dark.png' ) ); ?>" alt=""></a>
 	<div class="r">
 		<a class="lang ul" href="<?php echo esc_url( ph_switch_url() ); ?>" hreflang="<?php echo ph_is_ar() ? 'en' : 'ar'; ?>"><?php echo ph_is_ar() ? 'EN' : 'عربي'; ?></a>
-		<button class="ibtn" id="openSearch" type="button" aria-label="<?php esc_attr_e( 'Search', 'potteryhub' ); ?>"><?php echo ph_icon( 'search', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+		<button class="ibtn" id="openSearch" type="button" data-search aria-label="<?php esc_attr_e( 'Search', 'potteryhub' ); ?>"><?php echo ph_icon( 'search', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 		<?php if ( $ph_wc ) : ?>
-		<button class="ibtn" id="openCart" type="button" aria-label="<?php esc_attr_e( 'Cart', 'potteryhub' ); ?>"><?php echo ph_icon( 'bag', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo ph_cart_count(); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
+		<button class="ibtn" id="openCart" type="button" data-open="cart" aria-label="<?php esc_attr_e( 'Cart', 'potteryhub' ); ?>"><?php echo ph_icon( 'bag', 19, 1.5 ); // phpcs:ignore WordPress.Security.EscapeOutput ?><?php echo ph_cart_count(); // phpcs:ignore WordPress.Security.EscapeOutput ?></button>
 		<?php endif; ?>
-		<button class="pill" id="openMenu" type="button" aria-label="<?php esc_attr_e( 'Menu', 'potteryhub' ); ?>">
+		<button class="pill" id="openMenu" type="button" data-menu aria-label="<?php esc_attr_e( 'Menu', 'potteryhub' ); ?>">
 			<svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h14M1 6h14M1 11h14"/></svg>
 			<span class="av"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="9" r="4.2"/><path d="M4 21c1.2-4.2 4.4-6.2 8-6.2s6.8 2 8 6.2z"/></svg></span>
 		</button>

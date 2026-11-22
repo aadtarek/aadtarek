@@ -45,9 +45,6 @@ msgstr ""
 msgid "Please activate WooCommerce."
 msgstr ""
 
-msgid "View"
-msgstr ""
-
 msgid "Featured piece"
 msgstr ""
 
@@ -55,18 +52,6 @@ msgid "Buy now"
 msgstr ""
 
 msgid "Add to cart"
-msgstr ""
-
-msgid "Shop"
-msgstr ""
-
-msgid "Explore"
-msgstr ""
-
-msgid "The studio"
-msgstr ""
-
-msgid "Pottery<br>workshops"
 msgstr ""
 
 msgid "Collections"
@@ -105,6 +90,9 @@ msgstr ""
 msgid "Keep reading"
 msgstr ""
 
+msgid "Shop"
+msgstr ""
+
 msgid "Help"
 msgstr ""
 
@@ -141,6 +129,9 @@ msgstr ""
 msgid "Search mugs, bowls, teapots…"
 msgstr ""
 
+msgid "Explore"
+msgstr ""
+
 msgid "About us"
 msgstr ""
 
@@ -148,6 +139,12 @@ msgid "Sign in"
 msgstr ""
 
 msgid "Popular:"
+msgstr ""
+
+msgid "Quick links"
+msgstr ""
+
+msgid "Cart"
 msgstr ""
 
 msgid "This page wandered off"
@@ -291,9 +288,6 @@ msgstr ""
 msgid "Main"
 msgstr ""
 
-msgid "Cart"
-msgstr ""
-
 msgid "Every piece is handmade — small variations make it yours."
 msgstr ""
 
@@ -399,9 +393,6 @@ msgstr ""
 msgid "Apply"
 msgstr ""
 
-msgid "Read"
-msgstr ""
-
 msgid "Read more"
 msgstr ""
 
@@ -486,30 +477,6 @@ msgstr ""
 msgid "added to your cart"
 msgstr ""
 
-msgid "View cart"
-msgstr ""
-
-msgid "Saved to your wishlist"
-msgstr ""
-
-msgid "Removed from your wishlist"
-msgstr ""
-
-msgid "Moved to your cart"
-msgstr ""
-
-msgid "No saved pieces"
-msgstr ""
-
-msgid "Tap the heart on any piece to keep it here."
-msgstr ""
-
-msgid "Browse the shop"
-msgstr ""
-
-msgid "Remove"
-msgstr ""
-
 msgid "No pieces match"
 msgstr ""
 
@@ -589,6 +556,9 @@ msgid "Less"
 msgstr ""
 
 msgid "More"
+msgstr ""
+
+msgid "Remove"
 msgstr ""
 
 msgid "You save"
@@ -751,6 +721,9 @@ msgid "Add"
 msgstr ""
 
 msgid "Choose options"
+msgstr ""
+
+msgid "View"
 msgstr ""
 
 msgid "Arabic names added to %1$d products and %2$d categories. Existing Arabic names were kept."

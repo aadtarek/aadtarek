@@ -80,7 +80,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 			</div>
 		</div>
 		<?php if ( $ph_f0 ) : ?>
-		<div class="bt bfeat" id="bFeat" style="--d:120ms" data-cur="<?php esc_attr_e( 'View', 'potteryhub' ); ?>">
+		<div class="bt bfeat" id="bFeat" style="--d:120ms">
 			<a class="cover" id="bFurl" href="<?php echo esc_url( $ph_f0['url'] ); ?>" aria-label="<?php echo esc_attr( $ph_f0['name'] ); ?>"></a>
 			<div class="fx">
 				<span class="pl"><?php esc_html_e( 'Featured piece', 'potteryhub' ); ?></span>
@@ -92,7 +92,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 		</div>
 		<?php endif; ?>
 		<?php if ( $ph_c0 ) : ?>
-		<a class="bt bcat" id="bCat" href="<?php echo esc_url( $ph_c0['url'] ); ?>" style="--d:220ms" data-cur="<?php esc_attr_e( 'Shop', 'potteryhub' ); ?>">
+		<a class="bt bcat" id="bCat" href="<?php echo esc_url( $ph_c0['url'] ); ?>" style="--d:220ms">
 			<span class="barr"><?php echo ph_icon( 'arrow', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 			<small class="swap" id="bCn"><?php echo esc_html( $ph_c0['n'] ); ?></small><h4 class="swap" id="bCh"><?php echo esc_html( $ph_c0['name'] ); ?></h4>
 			<span class="ci"><img id="bCi" src="<?php echo esc_url( $ph_c0['img'] ); ?>" alt=""></span>
@@ -103,7 +103,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 		$ph_c1  = $ph_tile ? $ph_tile[ $ph_c1i ] : null;
 		if ( $ph_c1 ) :
 			?>
-		<a class="bt bcat bcat2" id="bCat2" data-start="<?php echo (int) $ph_c1i; ?>" href="<?php echo esc_url( $ph_c1['url'] ); ?>" style="--d:320ms" data-cur="<?php esc_attr_e( 'Shop', 'potteryhub' ); ?>">
+		<a class="bt bcat bcat2" id="bCat2" data-start="<?php echo (int) $ph_c1i; ?>" href="<?php echo esc_url( $ph_c1['url'] ); ?>" style="--d:320ms">
 			<span class="barr"><?php echo ph_icon( 'arrow', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></span>
 			<small class="swap"><?php echo esc_html( $ph_c1['n'] ); ?></small><h4 class="swap"><?php echo esc_html( $ph_c1['name'] ); ?></h4>
 			<span class="ci"><img src="<?php echo esc_url( $ph_c1['img'] ); ?>" alt=""></span>
@@ -120,7 +120,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 	</div>
 	<div class="cats" id="catRow">
 		<?php foreach ( $ph_cats as $ph_i => $t ) : ?>
-			<a class="cat" data-rv data-cur="<?php esc_attr_e( 'Shop', 'potteryhub' ); ?>" style="--d:<?php echo (int) min( $ph_i, 5 ) * 90; ?>ms" href="<?php echo esc_url( get_term_link( $t ) ); ?>">
+			<a class="cat" data-rv style="--d:<?php echo (int) min( $ph_i, 5 ) * 90; ?>ms" href="<?php echo esc_url( get_term_link( $t ) ); ?>">
 				<div class="cw"><img src="<?php echo esc_url( ph_cat_img( $t ) ); ?>" alt="" loading="lazy"></div>
 				<b><?php echo esc_html( $t->name ); ?></b><small><?php echo esc_html( ph_pieces( $t->count ) ); ?></small>
 			</a>

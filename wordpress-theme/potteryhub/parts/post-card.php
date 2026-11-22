@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 $ph_i = isset( $args['i'] ) ? (int) $args['i'] : 0;
 ?>
 <article <?php post_class( 'pcard' ); ?> data-rv style="--d:<?php echo (int) ( $ph_i % 3 ) * 100; ?>ms">
-	<a class="pc-img" href="<?php the_permalink(); ?>" data-cur="<?php esc_attr_e( 'Read', 'potteryhub' ); ?>">
+	<a class="pc-img" href="<?php the_permalink(); ?>">
 		<?php if ( has_post_thumbnail() ) : ?>
 			<?php the_post_thumbnail( 'medium_large', array( 'loading' => 'lazy' ) ); ?>
 		<?php else : ?>

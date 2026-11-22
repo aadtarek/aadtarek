@@ -46,9 +46,6 @@ msgstr "لا توجد نتائج."
 msgid "Home"
 msgstr "الرئيسية"
 
-msgid "View"
-msgstr "عرض"
-
 msgid "Featured piece"
 msgstr "قطعة مختارة"
 
@@ -57,18 +54,6 @@ msgstr "اشترِ الآن"
 
 msgid "Add to cart"
 msgstr "أضف للحقيبة"
-
-msgid "Shop"
-msgstr "المتجر"
-
-msgid "Explore"
-msgstr "اكتشف"
-
-msgid "The studio"
-msgstr "الاستوديو"
-
-msgid "Pottery<br>workshops"
-msgstr "ورش<br>الفخار"
 
 msgid "Collections"
 msgstr "المجموعات"
@@ -106,6 +91,9 @@ msgstr "تسوّق المجموعة"
 msgid "Keep reading"
 msgstr "اقرأ كمان"
 
+msgid "Shop"
+msgstr "المتجر"
+
 msgid "Help"
 msgstr "المساعدة"
 
@@ -142,6 +130,9 @@ msgstr "إغلاق"
 msgid "Search mugs, bowls, teapots…"
 msgstr "ابحث عن مجات، بولات، براريد…"
 
+msgid "Explore"
+msgstr "اكتشف"
+
 msgid "About us"
 msgstr "من نحن"
 
@@ -150,6 +141,9 @@ msgstr "تسجيل الدخول"
 
 msgid "Popular:"
 msgstr "الأكثر بحثًا:"
+
+msgid "Cart"
+msgstr "الحقيبة"
 
 msgid "This page wandered off"
 msgstr "الصفحة دي مش موجودة"
@@ -292,9 +286,6 @@ msgstr "القائمة"
 msgid "Main"
 msgstr "الرئيسية"
 
-msgid "Cart"
-msgstr "الحقيبة"
-
 msgid "Every piece is handmade — small variations make it yours."
 msgstr "كل قطعة مصنوعة يدويًا — والاختلافات الصغيرة بتخليها ليك وحدك."
 
@@ -400,9 +391,6 @@ msgstr "كود الكوبون"
 msgid "Apply"
 msgstr "تطبيق"
 
-msgid "Read"
-msgstr "اقرأ"
-
 msgid "Read more"
 msgstr "اقرأ المزيد"
 
@@ -411,30 +399,6 @@ msgstr "إتمام الطلب"
 
 msgid "added to your cart"
 msgstr "اتضافت لحقيبتك"
-
-msgid "View cart"
-msgstr "عرض الحقيبة"
-
-msgid "Saved to your wishlist"
-msgstr "اتحفظت في المفضلة"
-
-msgid "Removed from your wishlist"
-msgstr "اتشالت من المفضلة"
-
-msgid "Moved to your cart"
-msgstr "اتنقلت للحقيبة"
-
-msgid "No saved pieces"
-msgstr "مفيش قطع محفوظة"
-
-msgid "Tap the heart on any piece to keep it here."
-msgstr "اضغط على القلب في أي قطعة عشان تحفظها هنا."
-
-msgid "Browse the shop"
-msgstr "تصفّح المتجر"
-
-msgid "Remove"
-msgstr "إزالة"
 
 msgid "No pieces match"
 msgstr "مفيش نتائج لـ"
@@ -489,6 +453,9 @@ msgstr "أقل"
 
 msgid "More"
 msgstr "أكثر"
+
+msgid "Remove"
+msgstr "إزالة"
 
 msgid "You save"
 msgstr "وفّرت"
@@ -579,6 +546,9 @@ msgstr "أضف"
 
 msgid "Choose options"
 msgstr "اختار"
+
+msgid "View"
+msgstr "عرض"
 
 msgid "Cairo & Giza"
 msgstr "القاهرة والجيزة"
