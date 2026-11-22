@@ -488,8 +488,8 @@ function initPage(root) {
 /* phone dock: the glass blob slides under the current section */
 function setDock(key) {
   const dock = $('#dock'); if (!dock) return;
-  const p = location.pathname.replace(/\/+$/, '/'), base = (C.base || '/').replace(/\/+$/, '/');
-  const pathOf = a => { try { return new URL(a.href).pathname.replace(/\/+$/, '/'); } catch (e) { return ''; } };
+  const slash = x => x.replace(/\/*$/, '/'), p = slash(location.pathname), base = slash(C.base || '/');
+  const pathOf = a => { try { return slash(new URL(a.href).pathname); } catch (e) { return ''; } };
   if (!key) {
     const acc = $('[data-dk="account"]', dock), shop = $('[data-dk="shop"]', dock);
     if (p === base) key = 'home';
