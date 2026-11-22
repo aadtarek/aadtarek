@@ -483,6 +483,7 @@ function initPage(root) {
   $('#openFilters') && ($('#openFilters').onclick = () => show(side));
   $('#sideDone') && ($('#sideDone').onclick = closeAll);
   syncHearts();
+  document.documentElement.classList.remove('dock-hide'); // every new page starts with the dock showing
   setDock();
 }
 /* phone dock: the glass blob slides under the current section */
@@ -505,6 +506,21 @@ function setDock(key) {
 }
 document.addEventListener('pointerdown', e => { const it = e.target.closest('#dock [data-dk]'); if (it && it.tagName === 'A') setDock(it.dataset.dk); });
 window.addEventListener('resize', () => setDock(($('#dock .on') || {}).dataset ? $('#dock .on').dataset.dk : ''));
+/* dock hides while scrolling down, comes back on the way up (and at the top/bottom of the page) */
+(() => {
+  let lastY = scrollY, acc = 0, tick = false;
+  const set = h => { const r = document.documentElement; if (r.classList.contains('dock-hide') === h) return; r.classList.toggle('dock-hide', h); };
+  addEventListener('scroll', () => {
+    if (tick) return; tick = true;
+    requestAnimationFrame(() => {
+      tick = false;
+      const y = scrollY, d = y - lastY; lastY = y;
+      if (y < 80 || y + innerHeight > document.documentElement.scrollHeight - 40) { acc = 0; set(false); return; }
+      acc = (acc > 0) === (d > 0) ? acc + d : d; // distance travelled in the current direction
+      if (acc > 24) set(true); else if (acc < -14) set(false);
+    });
+  }, { passive: true });
+})();
 initPage(document);
 
 

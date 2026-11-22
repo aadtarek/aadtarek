@@ -1603,3 +1603,13 @@ button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   @media (max-width:640px){.dock{background:rgba(251,248,243,.96)}}
 }
+
+/* dock: away on the way down, back on the way up */
+@media (max-width:640px){
+  .dock{transition:transform .5s cubic-bezier(.2,.9,.25,1),opacity .4s}
+  .dock-hide .dock{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));opacity:0;pointer-events:none}
+  .sbar{transition:transform .55s var(--out),bottom .5s cubic-bezier(.2,.9,.25,1)}
+  .dock-hide .sbar{bottom:calc(12px + env(safe-area-inset-bottom))}
+  .toast{transition:opacity .4s var(--out),transform .5s var(--out),bottom .5s}
+  .dock-hide .toast{bottom:calc(24px + env(safe-area-inset-bottom))}
+}
