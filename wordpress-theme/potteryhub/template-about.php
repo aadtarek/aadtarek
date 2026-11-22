@@ -85,6 +85,7 @@ while ( have_posts() ) :
 		</section>
 
 		<section class="ab-steps">
+			<?php echo ph_clay( 'clay-steps' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 			<div class="sec-h"><div><div class="eyebrow"><?php esc_html_e( 'From clay to your table', 'potteryhub' ); ?></div><h2 class="serif"><?php esc_html_e( 'How a piece is made', 'potteryhub' ); ?></h2></div></div>
 			<div class="ab-sg">
 				<?php

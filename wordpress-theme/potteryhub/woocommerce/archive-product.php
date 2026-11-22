@@ -30,7 +30,7 @@ $ph_prices = array(
 );
 ?>
 <div class="shop-page">
-	<div class="pband"></div>
+	<div class="pband"><?php echo ph_clay( 'clay-band' ); // phpcs:ignore WordPress.Security.EscapeOutput ?></div>
 	<div class="pwrap">
 		<?php woocommerce_breadcrumb(); ?>
 		<div class="shop-h"><div><h1 class="serif"><?php echo esc_html( $ph_title ); ?></h1><p><?php echo esc_html( wp_strip_all_tags( $ph_desc ) ); ?></p></div></div>

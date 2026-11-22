@@ -122,7 +122,7 @@ function ph_mini_cart() {
 		echo '<a class="btn wide" href="' . esc_url( wc_get_checkout_url() ) . '">' . esc_html__( 'Checkout', 'potteryhub' ) . ' ' . ph_icon( 'arrow', 16, 2 ) . '</a>'; // phpcs:ignore WordPress.Security.EscapeOutput
 		echo '</div>';
 	} else {
-		echo '<div class="dbody"><div class="dempty"><div class="eb">' . ph_icon( 'bag', 30, 1.4 ) . '</div><b>' . esc_html__( 'Your cart is empty', 'potteryhub' ) . '</b>' . esc_html__( 'Find a piece you love.', 'potteryhub' ) . '<br><a class="btn" href="' . esc_url( wc_get_page_permalink( 'shop' ) ) . '">' . esc_html__( 'Start shopping', 'potteryhub' ) . '</a></div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
+		echo '<div class="dbody"><div class="dempty"><div class="eb eb-clay">' . ph_clay() . '</div><b>' . esc_html__( 'Your cart is empty', 'potteryhub' ) . '</b>' . esc_html__( 'Find a piece you love.', 'potteryhub' ) . '<br><a class="btn" href="' . esc_url( wc_get_page_permalink( 'shop' ) ) . '">' . esc_html__( 'Start shopping', 'potteryhub' ) . '</a></div></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	}
 	echo '</div>';
 	return ob_get_clean();

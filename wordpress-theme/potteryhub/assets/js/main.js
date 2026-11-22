@@ -75,6 +75,55 @@ function toast(m) {
   t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 3400);
 }
 
+/* ---------- every tap answers: a soft clay ripple where the finger lands, buttons give a little ---------- */
+const pressSel = 'button,.btn,.qa,.qb,.buy,.chip,.ibtn,.pill,.x,.rb,.see,.cat,.mn-links a,.mn-cat,.mn-cart,.mn-lang,.dock a,.dock button,.lst a,.lst button,.minis button,.step button,.pager a,.sort summary,.bt,.card .media,summary';
+const tapSel = 'a,button,[role=button],summary,label,select,input[type=checkbox],input[type=radio],[data-add]';
+let pressed = null;
+function release() {
+  if (!pressed) return;
+  const el = pressed; pressed = null;
+  el.animate([{ scale: .95 }, { scale: 1.025 }, { scale: 1 }], { duration: 380, easing: 'cubic-bezier(.3,1.4,.5,1)' });
+}
+document.addEventListener('pointerdown', e => {
+  if (e.button > 0 || !e.target.closest) return;
+  const hit = e.target.closest(tapSel), el = e.target.closest(pressSel);
+  if (!reduce) {
+    const r = document.createElement('span'); r.className = 'tapfx' + (hit ? ' on' : '');
+    r.style.left = e.clientX + 'px'; r.style.top = e.clientY + 'px';
+    body.appendChild(r); r.addEventListener('animationend', () => r.remove()); setTimeout(() => r.remove(), 900);
+  }
+  if (el && !el.disabled && !reduce && el.animate) {
+    pressed = el;
+    el.animate([{ scale: 1 }, { scale: .95 }], { duration: 110, easing: 'ease-out', fill: 'forwards' });
+    if (e.pointerType === 'touch' && navigator.vibrate) { try { navigator.vibrate(8); } catch (x) {} }
+  }
+}, { passive: true });
+addEventListener('pointerup', release, { passive: true });
+addEventListener('pointercancel', release, { passive: true });
+/* a little burst of clay dust from a button */
+function dust(el) {
+  if (reduce || !el || !el.getBoundingClientRect) return;
+  const r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, cols = ['#ba4a2f', '#e9a48f', '#ded7cb', '#2f3b33'];
+  for (let i = 0; i < 14; i++) {
+    const d = document.createElement('i'), a = (i / 14) * Math.PI * 2 + Math.random() * .4, R = 40 + Math.random() * 50, sz = 4 + Math.random() * 5;
+    d.className = 'dust'; Object.assign(d.style, { left: cx + 'px', top: cy + 'px', width: sz + 'px', height: sz + 'px', background: cols[i % 4] });
+    body.appendChild(d);
+    d.animate([{ transform: 'translate(-50%,-50%)', opacity: 1 }, { transform: 'translate(calc(-50% + ' + Math.cos(a) * R + 'px),calc(-50% + ' + (Math.sin(a) * R * .7 - 10) + 'px)) scale(.3)', opacity: 0 }], { duration: 650 + Math.random() * 250, easing: 'cubic-bezier(.2,.8,.3,1)' }).onfinish = () => d.remove();
+  }
+}
+/* Buy now: the button fills like a progress bar, the arrow keeps moving, then a tick — and on to checkout */
+function buyFx(btns) {
+  btns = btns.filter(Boolean);
+  btns.forEach(b => { if (b.classList.contains('bn-go')) return; b.classList.add('bn-go'); const f = document.createElement('span'); f.className = 'bn-fill'; b.appendChild(f); });
+  dust(btns.find(b => b.offsetParent) || btns[0]);
+  return okay => btns.forEach(b => { if (okay) { b.classList.add('bn-done'); const t = document.createElement('span'); t.className = 'bn-tick'; b.appendChild(t); } else { b.classList.remove('bn-go', 'bn-done'); $$('.bn-fill,.bn-tick', b).forEach(x => x.remove()); } });
+}
+
+/* ---------- pots taking shape on the wheel: drawn only while on screen ---------- */
+const clayIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('run', e.isIntersecting)), { rootMargin: '60px' }) : null;
+const watchClay = el => { if (clayIO && !reduce) $$('svg.clay', el).forEach(c => clayIO.observe(c)); };
+watchClay(document);
+
 /* ---------- overlays: cart, menu, search, filters ---------- */
 const scrim = $('#scrim'), open = new Set();
 const drawer = $('#drawer'), menu = $('#menu'), sov = $('#sov');
@@ -139,7 +188,7 @@ async function post(name, data) {
 function applyFragments(fr, quiet) {
   if (!fr) return;
   Object.keys(fr).forEach(sel => $$(sel).forEach(el => { el.outerHTML = fr[sel]; }));
-  flipArrows($('.ph-mini'));
+  flipArrows($('.ph-mini')); watchClay($('.ph-mini'));
   const n = $('i.ph-bag-n'); if (n && !quiet) { n.classList.remove('bump'); void n.offsetWidth; n.classList.add('bump'); }
 }
 const refreshBag = () => { if (C.ajax) post('get_refreshed_fragments', {}).then(r => applyFragments(r && r.fragments, true)).catch(() => {}); };
@@ -200,21 +249,23 @@ function addToCart(id, qty, src, name, btn) {
   return job;
 }
 /* Buy now: add in the background, then straight to checkout */
-function buyNow(id, qty) {
+function buyNow(id, qty, btns) {
   bumpBag(qty || 1);
+  const fx = buyFx(btns || []), t0 = performance.now();
   return cartQueue.then(() => post('add_to_cart', { product_id: id, quantity: qty || 1 })).then(r => {
-    if (r && r.error && r.product_url) { location.href = r.product_url; return; }
+    if (r && r.error && r.product_url) { fx(false); location.href = r.product_url; return; }
     if (r && r.fragments) { applyFragments(r.fragments, true); cartChanged(r); }
     dropPages();
-    if (instantGo) instantGo(C.checkout); else location.href = C.checkout;
+    fx(true);
+    setTimeout(() => { if (instantGo) instantGo(C.checkout); else location.href = C.checkout; }, Math.max(260, 700 - (performance.now() - t0))); // long enough to see it done
   }).catch(() => { location.href = C.checkout; });
 }
 document.addEventListener('click', e => {
-  const qb = e.target.closest('a.qb[href*="ph_buy_now"]');
+  const qb = e.target.closest('a[href*="ph_buy_now"]');
   if (qb && C.checkout) {
     e.preventDefault();
     const id = new URL(qb.href).searchParams.get('add-to-cart');
-    if (id) buyNow(id, 1); else location.href = qb.href;
+    if (id) buyNow(id, 1, [qb]); else location.href = qb.href;
     return;
   }
   const qa = e.target.closest('[data-add]');
@@ -416,11 +467,12 @@ function initProduct() {
   const form = $('.book form.cart'); if (!form) return;
   const variable = form.classList.contains('variations_form'), addBtn = $('.single_add_to_cart_button', form), mi = $('#mainImg');
   const qty = () => +($('input.qty', form) || { value: 1 }).value || 1, name = () => $('.dname') ? $('.dname').textContent : '';
+  const buyBtns = b => { const sb = $('#sbar.on #sbBuy'); return sb ? [b, sb] : [b]; }; // the sticky bar's button answers too
   if (!variable && !form.classList.contains('grouped_form')) {
     form.addEventListener('submit', e => {
       if (!addBtn || !addBtn.value) return;
       e.preventDefault();
-      if (e.submitter && e.submitter.name === 'ph_buy_now') buyNow(addBtn.value, qty()); else addToCart(addBtn.value, qty(), mi, name(), addBtn);
+      if (e.submitter && e.submitter.name === 'ph_buy_now') buyNow(addBtn.value, qty(), buyBtns(e.submitter)); else addToCart(addBtn.value, qty(), mi, name(), addBtn);
     });
   }
   /* variable products: AJAX add of the chosen variation, photo swap, Buy now only once a choice is made */
@@ -430,7 +482,7 @@ function initProduct() {
     form.addEventListener('submit', e => {
       if (!vid() || (addBtn && addBtn.classList.contains('disabled'))) return;
       e.preventDefault();
-      if (e.submitter && e.submitter.name === 'ph_buy_now') buyNow(vid(), qty()); else addToCart(vid(), qty(), mi, name(), addBtn);
+      if (e.submitter && e.submitter.name === 'ph_buy_now') buyNow(vid(), qty(), buyBtns(e.submitter)); else addToCart(vid(), qty(), mi, name(), addBtn);
     });
     const swap = src => { if (!mi || !src || mi.src === src) return; mi.style.opacity = 0; pT(() => { mi.src = src; mi.style.opacity = ''; }, 200); };
     if (window.jQuery) {
@@ -755,7 +807,7 @@ else {
     if (!isDyn(new URL(from))) get(from, 600000).catch(() => {}); // keep the page we left, so Back is instant too
     watchLinks();
     await addScripts(doc);
-    if (opts.post || /order-received/.test(fin.pathname)) refreshBag();
+    if (opts.post || unsafe.test(to.search) || /order-received/.test(fin.pathname)) refreshBag(); // the cart changed on the server
     if (window.jQuery) {
       const jq = window.jQuery, main = $('#ph-main');
       if (jq.fn.wc_variation_form) jq('.variations_form', main).each(function () { jq(this).wc_variation_form(); });

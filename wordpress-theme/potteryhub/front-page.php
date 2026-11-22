@@ -114,6 +114,7 @@ $ph_c0 = $ph_tile ? $ph_tile[0] : null;
 
 <?php if ( $ph_cats ) : ?>
 <section class="sec stays" id="cats">
+	<?php echo ph_clay( 'clay-cats' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	<div class="sec-h">
 		<div><div class="eyebrow"><?php esc_html_e( 'Collections', 'potteryhub' ); ?></div><h2 class="serif"><?php esc_html_e( 'Shop by category', 'potteryhub' ); ?></h2></div>
 		<div class="arrows"><button type="button" data-sc="-1" aria-label="<?php esc_attr_e( 'Previous', 'potteryhub' ); ?>"><?php echo ph_icon( 'back', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button><button type="button" data-sc="1" aria-label="<?php esc_attr_e( 'Next', 'potteryhub' ); ?>"><?php echo ph_icon( 'arrow', 16, 2 ); // phpcs:ignore WordPress.Security.EscapeOutput ?></button></div>

@@ -10,6 +10,7 @@ $ph_wc = class_exists( 'WooCommerce' );
 ?>
 </div><!-- #ph-main -->
 <footer class="foot" id="about">
+	<?php echo ph_clay( 'clay-foot' ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 	<div class="fg">
 		<div data-rv>
 			<img src="<?php echo esc_url( ph_img( 'logo-light.png' ) ); ?>" alt="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>" style="height:92px;width:auto">

@@ -1434,7 +1434,7 @@ button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data
 .dock{display:none}
 @media (max-width:640px){
   .dock{position:fixed;z-index:95;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));height:66px;display:flex;align-items:center;padding:6px;border-radius:28px;isolation:isolate;
-    background:linear-gradient(160deg,rgba(255,255,255,.62),rgba(255,255,255,.18) 55%,rgba(255,255,255,.32));
+    background:linear-gradient(160deg,rgba(255,255,255,.8),rgba(251,248,243,.55) 55%,rgba(255,255,255,.66));
     -webkit-backdrop-filter:blur(20px) saturate(1.9) brightness(1.04);backdrop-filter:blur(20px) saturate(1.9) brightness(1.04);
     border:1px solid rgba(255,255,255,.65);
     box-shadow:0 22px 44px -18px rgba(45,30,22,.42),0 2px 6px -2px rgba(45,30,22,.12),inset 0 1px 1px rgba(255,255,255,.95),inset 0 -1px 1px rgba(255,255,255,.35),inset 0 0 22px rgba(255,255,255,.28);
@@ -1451,7 +1451,7 @@ button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data
   .ph-dock-n:empty{display:none}
   .dock-hide .dock{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom)));opacity:0;pointer-events:none}
   /* room for the dock: page end, sticky buy bar and messages sit above it */
-  body{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+  .foot{padding-bottom:calc(112px + env(safe-area-inset-bottom))} /* the footer runs on behind the dock */
   .sbar{bottom:calc(86px + env(safe-area-inset-bottom));transform:translate(-50%,calc(100% + 140px));transition:transform .55s var(--out),bottom .5s cubic-bezier(.2,.9,.25,1)}
   .sbar.on{transform:translate(-50%,0)}
   .dock-hide .sbar{bottom:calc(12px + env(safe-area-inset-bottom))}
@@ -1477,3 +1477,65 @@ button:not(:disabled),[role=button],summary,label[for],select,.btn,.qa,.qb,[data
   .side{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-top:30px;will-change:transform}
   .side.on{transition:transform .5s cubic-bezier(.2,.9,.25,1)}
 }
+
+/* ---------- every tap answers ---------- */
+a,button,summary,label,[role=button]{-webkit-tap-highlight-color:transparent}
+.tapfx{position:fixed;z-index:500;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;pointer-events:none;border:1.5px solid rgba(186,74,47,.35);background:radial-gradient(circle,rgba(186,74,47,.10),rgba(186,74,47,0) 70%);animation:tapfx .55s cubic-bezier(.2,.8,.3,1) forwards}
+.tapfx.on{width:58px;height:58px;margin:-29px 0 0 -29px;border-color:rgba(186,74,47,.55);background:radial-gradient(circle,rgba(186,74,47,.18),rgba(186,74,47,0) 70%)}
+@keyframes tapfx{from{transform:scale(.25);opacity:1}to{transform:scale(1);opacity:0}}
+.dust{position:fixed;z-index:500;border-radius:50%;pointer-events:none}
+/* Buy now on its way: fills like a progress bar, the arrow keeps going, then a soft tick */
+.bn-go{position:relative;overflow:hidden;pointer-events:none;animation:bnPulse 1.1s ease-out infinite}
+.bn-fill{position:absolute;inset:0;z-index:0;pointer-events:none;background:rgba(255,255,255,.26);transform-origin:left;transform:scaleX(0);animation:bnFill 1.2s cubic-bezier(.2,.8,.2,1) forwards}
+[dir=rtl] .bn-fill{transform-origin:right}
+.bn-done .bn-fill{animation:none;transform:scaleX(1);transition:transform .25s ease-out}
+.bn-go>*:not(.bn-fill):not(.bn-tick){position:relative;z-index:1}
+.bn-go svg{animation:bnArrow .7s cubic-bezier(.5,0,.5,1) infinite}
+.bn-done svg{animation:none;opacity:0}
+.bn-go::after{opacity:0}
+.bn-tick{position:absolute;z-index:2;top:50%;right:18px;width:7px;height:13px;margin-top:-9px;border:solid currentColor;border-width:0 2.4px 2.4px 0;transform:rotate(45deg);animation:bnTick .3s cubic-bezier(.3,1.6,.5,1) both}
+[dir=rtl] .bn-tick{right:auto;left:18px}
+@keyframes bnFill{to{transform:scaleX(.88)}}
+@keyframes bnArrow{0%{translate:0 0;opacity:1}45%{translate:calc(12px * var(--dir,1)) 0;opacity:0}55%{translate:calc(-12px * var(--dir,1)) 0;opacity:0}100%{translate:0 0;opacity:1}}
+@keyframes bnPulse{0%{box-shadow:0 0 0 0 rgba(186,74,47,.45)}100%{box-shadow:0 0 0 14px rgba(186,74,47,0)}}
+@keyframes bnTick{from{transform:rotate(45deg) scale(0)}to{transform:rotate(45deg) scale(1)}}
+[dir=rtl]{--dir:-1}
+
+/* ---------- pots taking shape on the wheel (background drawings) ---------- */
+.clay{position:absolute;pointer-events:none;height:auto;color:var(--terra);stroke-width:1.6;opacity:.22}
+.clay .c-pot{stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
+.clay:not(.run) .c-p1{stroke-dashoffset:0;opacity:1}
+.clay .c-rings ellipse{opacity:0;transform-box:fill-box;transform-origin:center;stroke-width:.9}
+.clay .c-spin{stroke-dasharray:.05 .07;opacity:.8}
+.clay .c-head{opacity:.7}
+.clay.run .c-pot{animation:clayDraw 13.5s cubic-bezier(.45,0,.2,1) infinite}
+.clay.run .c-p2{animation-delay:4.5s}
+.clay.run .c-p3{animation-delay:9s}
+.clay.run .c-rings ellipse{animation:clayRing 2.4s ease-in-out infinite}
+.clay.run .c-rings ellipse:nth-child(2){animation-delay:.8s}
+.clay.run .c-rings ellipse:nth-child(3){animation-delay:1.6s}
+.clay.run .c-spin{animation:claySpin .9s linear infinite}
+@keyframes clayDraw{0%{stroke-dashoffset:1;opacity:0}2%{opacity:1}18%{stroke-dashoffset:0}28%{stroke-dashoffset:0;opacity:1}33%{stroke-dashoffset:0;opacity:0}100%{stroke-dashoffset:1;opacity:0}}
+@keyframes clayRing{0%{transform:translateY(0) scaleX(1);opacity:0}25%{opacity:.9}100%{transform:translateY(-46px) scaleX(.75);opacity:0}}
+@keyframes claySpin{to{stroke-dashoffset:-.12}}
+/* where they sit */
+.pband{overflow:hidden}
+.clay-band{top:46px;right:max(5vw,calc(50% - 620px));width:min(220px,30vw);opacity:.32}
+[dir=rtl] .clay-band{right:auto;left:max(5vw,calc(50% - 620px))}
+.clay-cats{top:18px;right:calc(var(--pad) + 120px);width:min(150px,26vw);z-index:-1;opacity:.24}
+[dir=rtl] .clay-cats{right:auto;left:calc(var(--pad) + 120px)}
+.ab-steps{position:relative;isolation:isolate}
+.clay-steps{top:60px;right:0;width:min(200px,30vw);z-index:-1;opacity:.2}
+[dir=rtl] .clay-steps{right:auto;left:0}
+.clay-foot{right:-20px;bottom:-26px;width:min(340px,55vw);color:var(--cream);opacity:.07;z-index:-1}
+[dir=rtl] .clay-foot{right:auto;left:-20px}
+.eb-clay{color:var(--terra)}
+.eb-clay .clay{position:static;width:62px;height:62px;opacity:1;stroke-width:5}
+@media (max-width:640px){
+  .clay-band{top:auto;bottom:18px;width:120px;opacity:.28}
+  .clay-cats{right:12px;top:30px;width:96px}
+  .clay-steps{top:70px;right:4px;width:96px}
+  .clay-foot{bottom:96px}
+  [dir=rtl] .clay-cats{right:auto;left:12px}
+}
+@media (prefers-reduced-motion:reduce){.clay .c-p1{stroke-dashoffset:0;opacity:1}}

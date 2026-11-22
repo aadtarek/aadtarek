@@ -7,6 +7,24 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * A pot taking shape on a turning wheel: three forms draw themselves one after another
+ * while the wheel spins. Pure line drawing (currentColor); animated in CSS only while on screen.
+ *
+ * @param string $class Extra class for placement (e.g. 'clay-shop').
+ */
+function ph_clay( $class = '' ) {
+	return '<svg class="clay ' . esc_attr( $class ) . '" viewBox="0 0 200 220" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+		. '<path class="c-pot c-p1" pathLength="1" d="M80 186C70 170 62 150 64 128C66 108 86 100 90 86C93 76 88 66 84 60H116C112 66 107 76 110 86C114 100 134 108 136 128C138 150 130 170 120 186M84 60A16 4 0 0 0 116 60"/>'
+		. '<path class="c-pot c-p2" pathLength="1" d="M58 146C60 170 78 186 100 186C122 186 140 170 142 146M58 146A42 8 0 0 0 142 146A42 8 0 0 0 58 146"/>'
+		. '<path class="c-pot c-p3" pathLength="1" d="M78 186C66 176 62 158 64 140C66 122 76 114 82 108V94H118V108C124 114 134 122 136 140C138 158 134 176 122 186M82 94A18 4 0 0 0 118 94"/>'
+		. '<g class="c-rings"><ellipse cx="100" cy="172" rx="30" ry="3.5"/><ellipse cx="100" cy="172" rx="30" ry="3.5"/><ellipse cx="100" cy="172" rx="30" ry="3.5"/></g>'
+		. '<ellipse class="c-head" cx="100" cy="190" rx="66" ry="9"/>'
+		. '<ellipse class="c-spin" pathLength="1" cx="100" cy="190" rx="52" ry="6"/>'
+		. '<path class="c-base" d="M24 196C24 204 58 212 100 212C142 212 176 204 176 196"/>'
+		. '</svg>';
+}
+
 /** Inline SVG icons (stroke = currentColor). */
 function ph_icon( $name, $size = 16, $stroke = 1.8 ) {
 	$p = array(
