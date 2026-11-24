@@ -1,16 +1,18 @@
 <?php
 /**
  * Plugin Name: Cheops MCP
- * Description: Lets Claude manage the Cheops Privé dashboard (units, projects, pages, community pages, theme settings, media, cache) through one secret MCP link. Settings → Cheops MCP.
- * Version: 1.0.0
+ * Description: Lets Claude manage the Cheops Privé dashboard (units, projects, pages, community pages, theme settings, theme files, media, cache) through one secret MCP link. Settings → Cheops MCP.
+ * Version: 1.1.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Cheops Privé
  */
 if (!defined('ABSPATH')) exit;
 
-const CHEOPS_MCP_VERSION = '1.0.0';
+const CHEOPS_MCP_VERSION = '1.1.0';
 const CHEOPS_MCP_PROTOCOL = '2025-06-18';
+
+require_once __DIR__ . '/theme-files.php';
 
 /* ---------- Key, user and activity log ---------- */
 
@@ -95,7 +97,7 @@ function cheops_mcp_dispatch($msg) {
                 'protocolVersion' => (string) ($params['protocolVersion'] ?? CHEOPS_MCP_PROTOCOL),
                 'capabilities' => ['tools' => ['listChanged' => false]],
                 'serverInfo' => ['name' => 'cheops-prive', 'title' => 'Cheops Privé dashboard', 'version' => CHEOPS_MCP_VERSION],
-                'instructions' => 'The WordPress dashboard of ' . home_url('/') . ' (Cheops Privé, real estate advisory). Read before you change anything. Units are the cheops_unit post type; their details live in _cheops_* meta. Lake Town, The MarQ Gardens and LVLS have shared community settings. Run clear_cache after changes so visitors see them.',
+                'instructions' => 'The WordPress dashboard of ' . home_url('/') . ' (Cheops Privé, real estate advisory). Read before you change anything. Units are the cheops_unit post type; their details live in _cheops_* meta. Lake Town, The MarQ Gardens and LVLS have shared community settings. Theme files (PHP, CSS, JS, images) can be read and changed with the *_theme_file tools; every change keeps a backup. Run clear_cache after changes so visitors see them.',
             ]);
         case 'ping':
             return cheops_mcp_result($id, (object) []);
@@ -265,6 +267,12 @@ const CHEOPS_MCP_COMMUNITIES = ['lake-town' => ['cheops_lake_town', 'cheops_lake
 /* ---------- Tools ---------- */
 
 function cheops_mcp_tools() {
+    static $tools = null;
+    if ($tools === null) $tools = apply_filters('cheops_mcp_tools', cheops_mcp_base_tools());
+    return $tools;
+}
+
+function cheops_mcp_base_tools() {
     $post_fields = [
         'id' => ['type' => 'integer', 'description' => 'Leave out to create a new one.'],
         'title' => ['type' => 'string'],
@@ -448,6 +456,7 @@ add_action('admin_post_cheops_mcp_save', static function () {
     if (!current_user_can('manage_options')) wp_die('Not allowed.');
     check_admin_referer('cheops_mcp_save');
     update_option('cheops_mcp_enabled', empty($_POST['enabled']) ? 0 : 1, false);
+    if (empty($_POST['clear_log'])) update_option('cheops_mcp_files', empty($_POST['files']) ? 0 : 1, false);
     $uid = (int) ($_POST['user'] ?? 0);
     if ($uid && user_can($uid, 'manage_options')) update_option('cheops_mcp_user', $uid, false);
     if (!empty($_POST['new_key'])) update_option('cheops_mcp_key', wp_generate_password(48, false, false), false);
@@ -475,6 +484,8 @@ function cheops_mcp_settings_page() {
         <input type="hidden" name="action" value="cheops_mcp_save"><?php wp_nonce_field('cheops_mcp_save'); ?>
         <table class="form-table" role="presentation">
           <tr><th scope="row">Access</th><td><label><input type="checkbox" name="enabled" value="1" <?php checked(cheops_mcp_enabled()); ?>> Claude can use the link</label></td></tr>
+          <tr><th scope="row">Theme files</th><td><label><input type="checkbox" name="files" value="1" <?php checked(cheops_mcp_files_enabled()); ?>> Claude can change the theme files (PHP, CSS, JS, images)</label>
+            <p class="description">Only inside the <code><?php echo esc_html(get_template()); ?></code> theme folder. Every change keeps a backup and a change that breaks the home page is undone at once.</p></td></tr>
           <tr><th scope="row">Acts as</th><td><select name="user"><?php foreach ($admins as $u): ?><option value="<?php echo (int) $u->ID; ?>" <?php selected((int) get_option('cheops_mcp_user'), (int) $u->ID); ?>><?php echo esc_html($u->display_name . ' (' . $u->user_login . ')'); ?></option><?php endforeach; ?></select>
             <p class="description">Changes show in the dashboard as made by this administrator.</p></td></tr>
           <tr><th scope="row">New link</th><td><label><input type="checkbox" name="new_key" value="1"> Make a new link (the old one stops working)</label></td></tr>
